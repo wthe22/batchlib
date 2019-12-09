@@ -5,7 +5,7 @@ rem ======================================== Script Meta-data ==================
 :__setup__   [prefix]
 set "%~1NAME=batchlib"
 set "%~1DESCRIPTION=Batch Script Library"
-set "%~1VERSION=2.0-b"
+set "%~1VERSION=2.0-b.1"
 set "%~1RELEASE=03/25/2019"   :: MM/DD/YYYY
 set "%~1URL=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1DOWNLOAD_URL=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
@@ -53,6 +53,15 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :__changelog__
+echo    2.0-b.1 (2019-03-25)
+echo    Bug fix update
+echo    - fixed Module.updater not upgrading script
+exit /b 0
+
+
+:__changelog__.full
+call :__changelog__
+echo=
 echo    2.0-b (2019-03-25)
 echo    Major update
 echo    - fixed parameter when calling script as lib module
@@ -75,11 +84,6 @@ echo    - Module.detect() no longer set __name__
 echo    - Module.detect() now changes %* argument
 echo    - added path_check(), check_eol(), color2seq()
 echo    - added assertion for debugging
-exit /b 0
-
-
-:__changelog__.full
-call :__changelog__
 exit /b 0
 
 rem ======================================== Debug function ========================================
@@ -3223,7 +3227,10 @@ setlocal EnableDelayedExpansion
 set "_set_cmd="
 if /i "%1" == "check" set "_set_cmd=_show=true"
 if /i "%1" == "upgrade" set "_set_cmd=_upgrade=true"
-shift /1
+if defined _set_cmd (
+    set "!_set_cmd!"
+    shift /1
+)
 set "_metadata=NAME DESCRIPTION VERSION RELEASE URL DOWNLOAD_URL"
 echo Checking requirements...
 call :Module.check_support "%~1" || ( 1>&2 echo script does not support call as 'Module' & exit /b 1 )
@@ -3254,7 +3261,7 @@ move "!_downloaded!" "%~f1" > nul && (
     echo Script will exit
     pause
     exit
-) || 1>&2 echo error: update failed
+) || ( 1>&2 echo error: update failed & exit /b 1 )
 exit /b 0
 
 
@@ -3683,4 +3690,7 @@ rem Others
 driverquery
 gpresult
 telnet
+
+
+
 
