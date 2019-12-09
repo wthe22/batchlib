@@ -5,11 +5,11 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a"
+set "%~1version=2.1-a.1"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=10/12/2019"   :: mm/dd/YYYY
+set "%~1release_date=10/20/2019"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -110,6 +110,20 @@ for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
     )
 )
 exit /b 1
+
+
+:changelog.text.2.1-a.1 (2019-10-20)
+echo    Bug Fixes
+echo    - Fixed incorrect release date
+echo=
+echo    Features
+echo    - Added fdate(), epoch2time()
+echo    - pow(): Added error message if integer is too large
+echo=
+echo    Changes
+echo    - scripts.main() now preserves prompt (echo) message
+echo    - Removed tester() framework (replaced by unittest())
+exit/ b 0
 
 
 :changelog.text.2.1-a (2019-10-12)
@@ -467,8 +481,11 @@ echo Script Command Line Interface
 echo Be careful with special characters
 echo Enter 'exit /b' to quit
 echo=
+call :script_cli._loop
+exit /b %errorlevel%
+
 :script_cli._loop
-@set /p "user_input=$ "
+@set /p "user_input=$"
 %user_input%
 @echo=
 @goto script_cli._loop
@@ -600,8 +617,8 @@ set Category_string.functions= ^
 set "Category_time.name=Date and Time"
 set Category_time.functions= ^
     ^ difftime ftime ^
-    ^ diffdate %=fdate=% what_day ^
-    ^ time2epoch %=epoch2time=% ^
+    ^ diffdate fdate what_day ^
+    ^ time2epoch epoch2time ^
     ^ timeleft wait %=sleep=%
 set "Category_file.name=File and Folder"
 set Category_file.functions= ^
@@ -628,7 +645,7 @@ set Category_formatting.functions= ^
 set "Category_framework.name=Framework"
 set Category_framework.functions= ^
     ^ module.entry_point module.read_metadata module.is_module module.version_compare ^
-    ^ unittest tester.run_tests dynamenu ^
+    ^ unittest dynamenu ^
     ^ parse_args
 set "Category_others.name=Others"
 set Category_others.functions= ^
@@ -960,9 +977,6 @@ echo=!_message!
 set /p "user_input="
 if defined _require_filled if not defined user_input goto Input.string._loop
 exit /b 0
-
-
-rem (!) Add support for DisableDelayedExpansion
 
 rem ======================== notes ========================
 
@@ -1525,6 +1539,7 @@ echo=
 echo EXIT STATUS
 echo    0:  - Successful.
 echo    1:  - The result is too large (^> 2147483647).
+echo        - The integer is too large (^> 2147483647).
 exit /b 0
 
 rem ======================== demo ========================
@@ -1557,10 +1572,22 @@ for %%a in (
         call :unittest.fail %%a
     )
 )
+
+for %%a in (
+    "2147483648 1"
+    "2147483647 2"
+    "46340 3"
+    "1290 4"
+    "215 5"
+    "73 6"
+    "35 7"
+    "21 8"
+    "4 16"
+    "2 31"
+) do (
+    call %batchlib%:pow result %%~a 2> nul && call :unittest.fail "unexpected success: %%~a"
+)
 exit /b 0
-
-
-rem (!) Test if result is too large
 
 rem ======================== function ========================
 
@@ -1570,7 +1597,7 @@ setlocal EnableDelayedExpansion
 set "_result=1"
 set "_limit=0x7FFFFFFF"
 for /l %%p in (1,1,%~3) do (
-    set /a "_result*=%~2"
+    set /a "_result*=%~2" || ( 1>&2 echo error: integer is too large & exit /b 1 )
     set /a "_limit/=%~2"
 )
 if "!_limit!" == "0" ( 1>&2 echo error: result is too large & exit /b 1 )
@@ -2605,9 +2632,38 @@ rem ======================== test ========================
 
 :test.lib.diffdate.main
 for %%a in (
-    "0:  1/01/1970"
+    "0:       01/01/1970"
+    "30:      01/31/1970"
+    
+    "31:      02/01/1970"
+    "58:      02/28/1970"
+    
+    "59:      03/01/1970"
+    "90:      04/01/1970"
+    "120:     05/01/1970"
+    "151:     06/01/1970"
+    "181:     07/01/1970"
+    "212:     08/01/1970"
+    "243:     09/01/1970"
+    "273:     10/01/1970"
+    "304:     11/01/1970"
+    "334:     12/01/1970"
 
-    "11017:  3/01/2000"
+    "364:     12/31/1970"
+    "365:     01/01/1971"   "423:     02/28/1971"   "424:     03/01/1971"   "729:     12/31/1971"
+    "730:     01/01/1972"   "789:     02/29/1972"   "790:     03/01/1972"   "1095:    12/31/1972"
+    "1096:    01/01/1973"
+    
+    "10956:   12/31/1999"
+    "10957:   01/01/2000"   "11016:   02/29/2000"   "11017:   03/01/2000"   "11322:   12/31/2000"
+    "47482:   01/01/2100"   "47540:   02/28/2100"   "47541:   03/01/2100"   "47846:   12/31/2100"
+    "157054:  01/01/2400"   "157113:  02/29/2400"   "157114:  03/01/2400"   "157419:  12/31/2400"
+    
+    "10957:   01/01/2000"
+    "10988:   02/01/2000"
+    "11015:   02/28/2000"
+    "11017:   03/01/2000"
+    
     "11382:  3/01/2001"
     "12478:  3/01/2004"
 
@@ -2638,14 +2694,8 @@ if "%~3" == "" (
 set "_args=!_args:/ =/!"
 set "_args=!_args:/0=/!"
 for %%d in (!_args!) do for /f "tokens=1-3 delims=/" %%a in ("%%d") do (
-    set /a "_difference+= (%%c-1970)*365 + (%%c/4 - %%c/100 + %%c/400 - 477) + (%%a-1)*30 + %%a/2 + %%b"
-    set /a "_leapyear=%%c %% 100"
-    if "!_leapyear!" == "0" (
-        set /a "_leapyear=%%c %% 400"
-    ) else set /a "_leapyear=%%c %% 4"
-    if "!_leapyear!" == "0" if %%a LEQ 2 set /a "_difference-=1"
-    if %%a GTR 8 set /a "_difference+=%%a %% 2"
-    if %%a GTR 2 set /a "_difference-=2"
+    set /a "_difference+=(%%c-1970)*365 + (%%c/4 - %%c/100 + %%c/400 - 477) + (336 * (%%a-1) + 7) / 11 + %%b - 2"
+    if %%a LEQ 2 set /a "_difference+=2-(((%%c %% 4)-8)/-8)*((((%%c %% 400)-512)/-512)+((((%%c %% 100)-128)/-128)-1)/-1)"
     set /a "_difference*=-1"
 )
 for /f "tokens=*" %%r in ("!_difference!") do (
@@ -2654,13 +2704,35 @@ for /f "tokens=*" %%r in ("!_difference!") do (
 )
 exit /b 0
 
-rem ================================ fdate(WIP) ================================
+rem ======================== notes ========================
+
+rem Days from month formula
+rem
+rem         days_from_month = (336 * (%%a-1) + 7) / 11
+rem     
+rem     In this formula we assume february to be 30 days, so we need to fix it:
+rem
+rem         if month > 2:
+rem             days_from_month -= 2
+rem
+rem Leap year detection
+rem
+rem         is_zero = (( (your_value_here) -max_value)/-max_value)
+rem         is_divisible_by_4 = (((year %% 4)-8)/-8)
+rem         is_divisible_by_100 = (((year %% 100)-128)/-128)
+rem         is_divisible_by_400 = (((year %% 400)-512)/-512)
+rem         is_leap_year = is_divisible_by_4 * (is_divisible_by_400 + (is_divisible_by_100 - 1)/-1)
+rem         is_leap_year = is_divisible_by_4 AND (is_divisible_by_400 OR (NOT is_divisible_by_100))
+rem
+rem     In here, 1 means it is true and 0 means it is false.
+
+rem ================================ fdate() ================================
 
 rem ======================== documentation ========================
 
 :fdate.__doc__
 echo NAME
-echo    fdate - convert days since epoch to human readable date (WIP)
+echo    fdate - convert days since epoch to human readable date
 echo=
 echo SYNOPSIS
 echo    fdate   return_var  days_since_epoch
@@ -2681,29 +2753,41 @@ rem ======================== demo ========================
 
 :fdate.__demo__
 call %batchlib%:Input.string days_since_epoch
-call %batchlib%:fdate result !time_in_centisecond!
+call %batchlib%:fdate result !days_since_epoch!
 echo=
-echo Formatted time : !result!
+echo Formatted date : !result!
 exit /b 0
 
 rem ======================== test ========================
 
-::test.debug.lib.fdate.main
+:test.lib.fdate.main
 for %%a in (
-    "01/01/1970: 0"
+    "01/01/1970:       0"
+    "01/31/1970:      30"
+    
+    "02/01/1970:      31"
+    "02/28/1970:      58"
+    
+    "03/01/1970:      59"
+    "04/01/1970:      90"
+    "05/01/1970:     120"
+    "06/01/1970:     151"
+    "07/01/1970:     181"
+    "08/01/1970:     212"
+    "09/01/1970:     243"
+    "10/01/1970:     273"
+    "11/01/1970:     304"
+    "12/01/1970:     334"
 
-    "01/31/1970:  30"
-    "02/01/1970:  31"
-
-    "12/31/1999:  10956"
-    "01/01/2000:  10957"
-    "12/31/2000:  12417"
-    "01/01/2003:  12417"
-    "12/31/2003:  12417"
-    "01/01/2004:  12418"
-
-    "02/28/2000:  11015"
-    "03/01/2000:  11017"
+    "12/31/1970:     364"
+    "01/01/1971:     365"   "02/28/1971:     423"   "03/01/1971:     424"   "12/31/1971:     729"
+    "01/01/1972:     730"   "02/29/1972:     789"   "03/01/1972:     790"   "12/31/1972:    1095"
+    "01/01/1973:    1096"
+    
+    "12/31/1999:   10956"
+    "01/01/2000:   10957"   "02/29/2000:   11016"   "03/01/2000:   11017"   "12/31/2000:   11322"
+    "01/01/2100:   47482"   "02/28/2100:   47540"   "03/01/2100:   47541"   "12/31/2100:   47846"
+    "01/01/2400:  157054"   "02/29/2400:  157113"   "03/01/2400:  157114"   "12/31/2400:  157419"
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call %batchlib%:fdate result %%c
     if not "!result!" == "%%b" (
@@ -2712,29 +2796,28 @@ for %%a in (
 )
 exit /b 0
 
-    "02/28/2003:  12111"
-    "03/01/2003:  12112"
-    "02/28/2004:  12476"
-    "03/01/2004:  12478"
-    "02/28/2100:  47540"
-    "03/01/2100:  47541"
-    "02/28/2400: 157112"
-    "03/01/2400: 157114"
-
 rem ======================== function ========================
 
 :fdate   return_var  days_since_epoch
 set "%~1="
 setlocal EnableDelayedExpansion
-set "_result="
-set /a "_era=(%~2 + 135140) / 146097"
-set /a "_doe=(%~2 + 135140) %% 146097"
+set /a "_dso=%~2 + 135140 - 60"
+set /a "_era=!_dso! / 146097"
+set /a "_doe=!_dso! - !_era! * 146097"
 set /a "_yoe=(!_doe! - !_doe!/1460 + !_doe!/36524 - !_doe!/146096) / 365"
-set /a "_doy=!_doe! - !_yoe!*365 - (!_yoe!/4 - !_yoe!/100)"
 set /a "_year=!_yoe! + !_era! * 400 + 1600"
-set /a "_month=(!_doy! - !_doy!/30 + !_doy!/36524 - !_doy!/146096) / 30 + 1"
-echo e: !_era! doe: !_doe! yoe: !_yoe! ### doy: !_doy!
-echo Y: !_year! M: !_month!
+set /a "_doy=!_doe! - (!_yoe!*365 + !_yoe!/4 - !_yoe!/100)"
+set /a "_mp=(5 * !_doy! + 2) / 153"
+set /a "_day=!_doy! - (153 * !_mp! + 2) / 5 + 1"
+if !_mp! LSS 10 (
+    set /a "_month=!_mp! + 3"
+) else set /a "_month=!_mp! - 9"
+if !_month! LEQ 2 set /a "_year+=1"
+for %%v in (_month _day) do (
+    set "%%v=0!%%v!"
+    set "%%v=!%%v:~-2,2!"
+)
+set "_result=!_month!/!_day!/!_year!"
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
@@ -2743,14 +2826,7 @@ exit /b 0
 
 rem ======================== notes ========================
 
-rem Month
-(%%a-1)*30 + %%a/2 + %%b"
-set /a "_leapyear=%%c %% 100"
-if %%a GTR 8 set /a "_difference+=%%a %% 2"
-if %%a GTR 2 set /a "_difference-=2"
-set /a "_difference*=-1"
-
-rem (!)
+rem Implementation details:
 rem http://howardhinnant.github.io/date_algorithms.html
 
 rem ================================== what_day() ==================================
@@ -2916,13 +2992,13 @@ for /f "tokens=*" %%r in ("!_epoch!") do (
 )
 exit /b 0
 
-rem ================================== epoch2time(WIP) ==================================
+rem ================================== epoch2time() ==================================
 
 rem ======================== documentation ========================
 
 :epoch2time.__doc__
 echo NAME
-echo    epoch2time - convert epoch time to human readable date and time (WIP)
+echo    epoch2time - convert epoch time to human readable date and time
 echo=
 echo SYNOPSIS
 echo    epoch2time   return_var  epoch_time
@@ -2936,6 +3012,7 @@ echo        The number of seconds since epoch (January 1, 1970 00:00:00).
 echo=
 echo DEPENDENCIES
 echo    - ftime()
+echo    - fdate()
 echo=
 echo NOTES
 echo    - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
@@ -2952,24 +3029,24 @@ exit /b 0
 
 rem ======================== test ========================
 
-::test.debug.lib.epoch2time.main
+:test.lib.epoch2time.main
 for %%a in (
-    " 1/01/1970_00:00:00| 0"
+    "01/01/1970_00:00:00# 0"
 
-    "12/31/1999_23:59:59| 946684799"
-    " 1/01/2000_00:00:00| 946684800"
-    "12/31/2003_23:59:59| 1072915199"
-    " 1/01/2004_00:00:00| 1072915200"
+    "12/31/1999_23:59:59# 946684799"
+    "01/01/2000_00:00:00# 946684800"
+    "12/31/2003_23:59:59# 1072915199"
+    "01/01/2004_00:00:00# 1072915200"
 
-    " 3/28/2000_23:59:59| 954287999"
-    " 3/01/2000_00:00:00| 951868800"
-    " 3/28/2003_23:59:59| 1048895999"
-    " 3/01/2003_00:00:00| 1046476800"
-    " 3/28/2004_23:59:59| 1080518399"
-    " 3/01/2004_00:00:00| 1078099200"
+    "03/28/2000_23:59:59# 954287999"
+    "03/01/2000_00:00:00# 951868800"
+    "03/28/2003_23:59:59# 1048895999"
+    "03/01/2003_00:00:00# 1046476800"
+    "03/28/2004_23:59:59# 1080518399"
+    "03/01/2004_00:00:00# 1078099200"
 
-    " 1/19/2038_03:14:07| 2147483647"
-) do for /f "tokens=1* delims=|" %%b in (%%a) do (
+    "01/19/2038_03:14:07# 2147483647"
+) do for /f "tokens=1* delims=#" %%b in (%%a) do (
     call %batchlib%:epoch2time result %%c
     if not "!result!" == "%%b" (
         call :unittest.fail %%a
@@ -2984,29 +3061,14 @@ set "%~1="
 setlocal EnableDelayedExpansion
 set /a "_days=%~2 / 86400"
 set /a "_time=(%~2 %% 86400) * 100"
-echo A: %*
-echo D: !_days! T: !_time!
 call %batchlib%:ftime _time "!_time!"
+call %batchlib%:fdate _days "!_days!"
 set "_result=!_days!_!_time:~0,-3!"
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
 )
-echo R: !%~1!
 exit /b 0
-
-rem ======================== notes ========================
-
-setlocal ENABLEEXTENSIONS
-set /a i=%1,ss=i%%60,i/=60,nn=i%%60,i/=60,hh=i%%24,dd=i/24,i/=24
-set /a a=i+2472632,b=4*a+3,b/=146097,c=-b*146097,c/=4,c+=a
-set /a d=4*c+3,d/=1461,e=-1461*d,e/=4,e+=c,m=5*e+2,m/=153,dd=153*m+2,dd/=5
-set /a dd=-dd+e+1,mm=-m/10,mm*=12,mm+=m+3,yy=b*100+d-4800+m/10
-(if %mm% LSS 10 set mm=0%mm%)&(if %dd% LSS 10 set dd=0%dd%)
-(if %hh% LSS 10 set hh=0%hh%)&(if %nn% LSS 10 set nn=0%nn%)
-if %ss% LSS 10 set ss=0%ss%
-endlocal&set %7=%ss%&set %6=%nn%&set %5=%hh%&^
-set %4=%dd%&set %3=%mm%&set %2=%yy%&goto :EOF
 
 rem ================================== timeleft() ==================================
 
@@ -5585,6 +5647,20 @@ rem ======================== function ========================
 )
 exit /b 0
 
+rem ======================== notes ========================
+
+rem This is significantly faster
+
+:colorPrint
+pushd "!tempPath!"
+(
+    set /p "=!DEL!!DEL!" < nul > "%~2_"
+    findstr /l /v /a:%~1 "." "%~2_" nul
+    del /f /q "%~2_" > nul
+) 2> nul
+popd
+goto :EOF
+
 rem ============================ updater() ============================
 
 rem ======================== documentation ========================
@@ -5860,7 +5936,7 @@ exit /b 0
 
 
 rem (!) Test for errorlevel
-rem (!) Test fail message
+rem (!) Test unittest fail message
 
 rem ======================== function ========================
 
@@ -6158,211 +6234,6 @@ for /l %%i in (1,1,5) do (
 endlocal
 exit /b 2
 
-rem ================================ tester ================================
-
-rem ======================== documentation ========================
-
-:tester.__doc__
-echo NAME
-echo    tester - testing automation framework
-echo=
-echo DESCRIPTION
-echo    Allows testing automation on batch script
-echo=
-echo NOTES
-echo    - Test output of this framework cannot be recorded so debugging 
-echo      can only be done manually (and it takes a lot of effort).
-exit /b 0
-
-rem ============================ .run_tests(Deprecated) ============================
-
-rem ======================== documentation ========================
-
-:tester.run_tests.__doc__
-echo NAME
-echo    tester.run_tests - run tests and record the results (Deprecated)
-echo=
-echo SYNOPSIS
-echo    tester.run_tests   labels  [-v]  [-f]
-echo=
-echo DESCRIPTION
-echo    N/A
-echo=
-echo POSITIONAL ARGUMENTS
-echo    labels
-echo        Function labels of the tests to execute, each seperated by space.
-echo=
-echo OPTIONS
-echo    -v, --verbose
-echo        Show more results on the test run.
-echo=
-echo    -f, --failfast
-echo        Stop the test run on the first failure
-echo=
-echo EXIT STATUS
-echo    0:  - Tests passed
-echo    1:  - Tests failed
-echo    2:  - Tests skipped
-exit /b 0
-
-rem ======================== demo ========================
-
-:tester.run_tests.__demo__
-set "tester.test_list=test_odd_seconds"
-call :tester.run_tests --verbose
-exit /b 0
-
-
-:test_odd_seconds
-set "now_time=!time!"
-set /a "odd=!now_time:~-2,2! %% 2"
-if "!odd!" == "0" (
-    echo Seconds of !now_time! is not an odd number
-    exit /b !tester.exit.failed!
-)
-exit /b !tester.exit.passed!
-
-rem ======================== test =======================
-
-::test.debug.framework.tester.run_tests.main
-set test_cases= ^
-    ^ something... !LF!^
-    ^ %=END=%
-set "errors=0"
-for /f "tokens=*" %%a in ("!test_cases!") do (
-    for /f "tokens=1* delims=:" %%b in ("%%a") do (
-        set "result="
-        call :tester.run_tests %%c > nul
-        if not "!result!" == "%%b" (
-            set /a "errors+=1"
-            echo [failed] %%a
-        )
-    )
-)
-if not "!errors!" == "0" exit /b !tester.exit.failed!
-exit /b !tester.exit.passed!
-
-
-:test.framework.tester.run_tests.make_result   {passed|failed|skipped|error}
-echo [%~1] example
-exit /b !tester.exit.%~1!
-
-
-rem (!) Recording test output is not feasible yet for this function, rework is absolutely required.
-
-rem ======================== function ========================
-
-:tester.run_tests   labels  [-v|-q]  [-f]
-setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_fail_fast) do set "%%v="
-set "_verbosity=1"
-set "parse_args.argc=1"
-for %%a in (%*) do (
-    set "_shift="
-    for %%o in (
-        "-v --verbose   :_verbosity=2"
-        "-f --failfast  :_fail_fast=true"
-    ) do for /f "tokens=1* delims=:" %%b in (%%o) do (
-        for %%f in (%%b) do if /i "%%a" == "%%f" (
-            set "%%c"
-            set "_shift=true"
-        )
-    )
-    if defined _shift (
-        shift /!parse_args.argc!
-    ) else set /a "parse_args.argc+=1"
-)
-set /a "parse_args.argc-=1"
-
-cd /d "!temp_path!"
-for %%d in ("tester") do (
-    if not exist "%%~d" md "%%~d"
-    cd /d "%%~d"
-)
-for %%p in (
-    in out log
-) do if not exist "%%~p" md "%%~p"
-
-set _stream_redirect=^> "log\output" 2^>^&1
-
-set /a "tester.exit.passed=0x0"
-set /a "tester.exit.error=0x1"
-set /a "tester.exit.failed=0x2"
-set /a "tester.exit.skipped=0x3"
-
-set "tester.tests_count=0"
-for %%t in (!tester.test_list!) do set /a "tester.tests_count+=1"
-for %%c in (passed failed error skipped) do set "tester.tests_%%c=0"
-set "tester.tests_run=0"
-set "tester.start_time=!time!"
-
-for %%t in (!tester.test_list!) do if not defined tester.should_stop (
-    set /a "tester.tests_run+=1"
-    call :tester._run %%t
-)
-if defined _fail_fast if not "!tester.tests_run!" == "!tester.tests_count!" (
-    echo First failure encountered. Stopping the test run.
-)
-call %batchlib%:difftime tester.time_taken !time! !tester.start_time!
-call %batchlib%:ftime tester.time_taken !tester.time_taken!
-echo=
-echo ----------------------------------------------------------------------
-echo=
-echo Ran !tester.tests_run! tests in !tester.time_taken!
-echo=
-
-set "tester.was_successful=true"
-for %%c in (failed error) do (
-    if not "!tester.tests_%%c!" == "0" set "tester.was_successful="
-)
-set "infos= "
-if defined tester.was_successful (
-    < nul set /p "=OK "
-) else < nul set /p "=FAILED "
-if not "!tester.tests_passed!" == "0" set "infos=!infos!, passed=!tester.tests_passed!"
-if not "!tester.tests_failed!" == "0" set "infos=!infos!, failed=!tester.tests_failed!"
-if not "!tester.tests_error!" == "0"  set "infos=!infos!, errors=!tester.tests_error!"
-if not "!tester.tests_skipped!" == "0"  set "infos=!infos!, skipped=!tester.tests_skipped!"
-set "infos=!infos:~3!"
-if defined infos < nul set /p "=(!infos!)"
-echo=
-if not defined tester.was_successful exit /b 1
-exit /b 0
-
-:tester._run
-call %batchlib%:difftime _timestamp !time! !tester.start_time!
-call %batchlib%:ftime _timestamp !_timestamp!
-echo !_timestamp! [!tester.tests_run!/!tester.tests_count!] %~1
-setlocal EnableDelayedExpansion EnableExtensions
-call :%~1 %_stream_redirect%
-for /f "tokens=* delims=" %%e in ("!errorlevel!") do (
-    endlocal
-    set "_exit_code=%%e"
-)
-set "_status="
-for %%c in (passed failed error skipped) do (
-    if "!_exit_code!" == "!tester.exit.%%c!" (
-        set /a "tester.tests_%%c+=1"
-        set "_status=%%c"
-    )
-)
-if not defined _status (
-    set /a "tester.tests_error+=1"
-    set "_status=error"
-)
-if "!_verbosity!" == "2" type "log\output"
-if /i "!_status!" == "error" (
-    echo test %~1 failed -- an error occurred
-) else if /i not "!_status!" == "passed" (
-    echo test %~1 !_status!
-)
-if defined _fail_fast (
-    for %%c in (failed error) do if "!_status!" == "%%c" (
-        set "tester.should_stop=true"
-    )
-)
-exit /b 0
-
 rem ================================ unittest() ================================
 
 rem ======================== documentation ========================
@@ -6419,6 +6290,8 @@ exit /b 0
 
 rem (!) Add time limit?
 rem     - Your code did not execute within the time limits
+
+rem ======================== demo ========================
 
 :unittest.__demo__
 call :unittest -p "test.framework.unittest.test_*" -v
@@ -6562,7 +6435,7 @@ if "!_verbosity!" == "2" (
 )
 exit /b 0
 
-:unittest._add_result {success|failure|error|skip}  test  [msg]
+:unittest._add_result   {success|failure|error|skip}  test  [msg]
 set "_list_name="
 set "_mark=?"
 set "_msg=test %~1 has unknown result"
@@ -6639,51 +6512,8 @@ exit /b 0
 echo This test should result in an error
 exit /b 1
 
-rem ================================ unittest() ================================
 
-ENV_CHANGED
-RESOURCE_DENIED
-INTERRUPTED
-
-== CPython 3.6.6 (v3.6.6:4cf1f54eb7, Jun 27 2018, 03:37:03) [MSC v.1900 64 bit (AMD64)]
-== Windows-10-10.0.17763-SP0 little-endian
-== cwd: C:\Users\wthe22\AppData\Local\Temp\test_python_1704
-== CPU count: 8
-== encodings: locale=cp1252, FS=utf-8
-Run tests sequentially
-0:00:00 [  1/407] test_grammar
-0:00:00 [  2/407] test_opcodes
-...
-0:00:08 [ 10/407] test_support
-0:00:08 [ 11/407] test___all__
-0:00:39 [ 12/407] test___future__ -- test___all__ passed in 30 sec
-0:00:39 [ 13/407] test__locale
-...
-0:00:41 [ 20/407] test_array
-0:00:43 [ 21/407] test_asdl_parser
-test_asdl_parser skipped -- test irrelevant for an installed Python
-0:00:43 [ 22/407] test_ast -- test_asdl_parser skipped
-0:00:45 [ 23/407] test_asyncgen
-0:00:46 [ 24/407] test_asynchat
-0:00:48 [ 25/407] test_asyncio
-0:01:30 [ 26/407] test_asyncore -- test_asyncio passed in 42 sec
-0:01:31 [ 27/407] test_atexit
-0:01:31 [ 28/407] test_audioop
-0:01:31 [ 29/407] test_augassign
-0:01:31 [ 30/407] test_base64
-0:01:32 [ 31/407] test_baseexception
-0:01:32 [ 32/407] test_bdb
-test test_bdb failed -- multiple errors occurred; run in verbose mode for details
-0:01:33 [ 33/407/1] test_bigaddrspace -- test_bdb failed
-0:01:33 [ 34/407/1] test_bigmem
-0:01:33 [ 35/407/1] test_binascii
-0:01:33 [ 36/407/1] test_binhex
-0:01:33 [ 37/407/1] test_binop
-0:01:33 [ 38/407/1] test_bisect
-test test_bisect failed -- multiple errors occurred; run in verbose mode for details
-0:01:33 [ 39/407/2] test_bool -- test_bisect failed
-0:01:33 [ 40/407/2] test_buffer
-0:01:42 [ 41/407/2] test_bufio
+rem (!) Make output that can recorded / tested
 
 rem ================================ parse_args() ================================
 
@@ -7171,15 +7001,6 @@ exit /b 0
 
 rem ================================ list_ip() ================================
 
-
-:list_ip.__demo__
-echo List interface IP address
-echo Does not show interfaces with no IPv4 address
-echo=
-echo=
-call :list_ip
-exit /b 0
-
 :list_ip
 set "interface_count=0"
 for /f "tokens=* usebackq" %%o in (`ipconfig /all`) do (
@@ -7210,6 +7031,7 @@ for /f "tokens=* usebackq" %%o in (`ipconfig /all`) do (
 )
 if not "!interface_count!" == "0" if defined interface_ipv4 call :list_ip.output
 exit /b 0
+
 :list_ip.output
 echo [!interface_type!] !interface_name!:
 echo Desc        : !interface_desc!
@@ -7243,18 +7065,6 @@ exit /b 0
 
 rem ======================================== Notes ========================================
 :notes.general     Useful stuffs worth looking at
-
-rem ================================================================================
-
-rem error levels: https://www.keycdn.com/support/nginx-error-log
-rem debug - Useful debugging information to help determine where the problem lies.
-rem info - Informational messages that aren't necessary to read but may be good to know.
-rem notice - Something normal happened that is worth noting.
-rem warning - Something unexpected happened, however is not a cause for concern.
-rem error - Something was unsuccessful.
-rem crit - There are problems that need to be critically addressed.
-rem alert - Prompt action is required.
-rem emerg - The system is in an unusable state and requires immediate attention.
 
 rem ======================================== Notes (General) ========================================
 
