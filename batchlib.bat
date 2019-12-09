@@ -5,11 +5,11 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.0-b.5"
+set "%~1version=2.0-b.6"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=07/30/2019"   :: MM/dd/yyyy
+set "%~1release_date=07/31/2019"   :: MM/dd/yyyy
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -71,7 +71,7 @@ rem Macros to call external module (use absolute paths)
 set "batchlib="
 
 rem Variables below are not used here, but for reference only
-rem set "data_path=data\Functions\"
+rem set "data_path=data\batchlib\"
 rem set "default_console_width=80"
 rem set "default_console_height=25"
 rem set "console_width=!default_console_width!"
@@ -112,6 +112,13 @@ for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
 exit /b 0
 
 
+:changelog.text.2.0-b.6 (2019-07-31)
+echo    - fixed minified script not showing usage parameters
+echo    - added extract_func() for minifying script
+echo    - improved structure and description of the minified script
+echo    - added tests for Input.number()
+exit /b 0
+
 :changelog.text.2.0-b.5 (2019-07-30)
 echo    - added --description option to Input.path()
 echo    - added parameter to tell script not to cleanup temporary files
@@ -128,7 +135,7 @@ echo    - removed miswritten parse_args() dependency in tester.run_tests()
 echo    - removed support for labels beginning with '@' at tester.find_tests()
 echo    - replaced scripts.debug_tests() with scripts.test()
 echo    - used predefined folder instead of file names for input/output/log in tester framework
-echo    - fix_eol() and module.updater() no longer restarts script automatically on success
+echo    - fix_eol() and module.updater() no longer restarts script automatically on success (for easier testing)
 echo    - simplified temp_path code in diffbin(), watchvar()
 echo    - config.default(): each scripts now have its own temp_path
 echo    - improved several demo text
@@ -255,7 +262,7 @@ rem ======================================== Main ==============================
 @call :scripts.main %*
 @exit %errorlevel%
 
-rem ======================================== Scripts/Entry points  ========================================
+rem ======================================== Scripts/Entry points ========================================
 :scripts.__init__
 @exit /b 0
 
@@ -265,12 +272,12 @@ rem Call script as library module and call the function
 call your_file_name.bat --module=lib <function> [arg1 [arg2 [...]]]
 
 rem Example:
-call batchlib.bat --module=lib pow result 2 16
-call batchlib.bat --module=lib :Input.number age "Input your age: " 0~200
+call batchlib-min.bat --module=lib pow result 2 16
+call batchlib-min.bat --module=lib :Input.number age --description "Input your age: " --range 0~200
 
-rem Set as macro and call as external package
-set "batchlib=batchlib.bat --module=lib "
-call %batchlib%:Input.number age "Input your age: " 0~200
+rem Set macro and call as external package
+set "batchlib=batchlib-min.bat --module=lib "
+call %batchlib%:Input.number age --description "Input your age: " --range 0~200
 
 
 :scripts.lib
@@ -529,15 +536,15 @@ exit /b 0
 rem ================================ auto_input ================================
 
 :tests.auto_input.main
-(
+> "in\ignore_n_quit" (
     echo ignore1
     echo ignore2
     echo ignore3
     echo 0
-) > "in\ignore_n_quit"
-(
+)
+> "out\ignore_n_quit" 2>&1 (
     start "" /i /wait /b cmd /c ""%~f0" --no-cleanup" < "in\ignore_n_quit"
-) > "out\ignore_n_quit" 2>&1 && (
+) && (
     exit /b !tester.exit.passed!
 ) || exit /b !tester.exit.failed!
 exit /b !tester.exit.failed!
@@ -641,58 +648,42 @@ exit /b 1
 :save_minified
 setlocal EnableDelayedExpansion EnableExtensions
 call :Function.read
-set "labels_to_include=metadata about license scripts.lib !Category_all.functions!"
-set "_write="
-set "_mark="
-set "_current="
+set "border_line="
+for /l %%n in (1,1,40) do set "border_line=!border_line!="
+set "lib_functions= !Category_all.functions! "
+for %%c in (shortcuts framework) do (
+    for %%f in (!Category_%%c.functions!) do (
+        set "lib_functions=!lib_functions: %%f = !"
+    )
+)
 > "%~f1" (
     echo @rem UTF-8-BOM guard ^> nul 2^> nul
     echo @goto module.entry_point
     echo=
-    echo=
-    for /f "delims=" %%a in ('findstr /n "^" "%~f0"') do (
-        set "line=%%a"
-        set "line=!line:*:=!"
-
-        if defined _write (
-            if "!line:~0,7!" == "rem ===" set "_current=BORDER"
-            if not defined line set "_current=EOL"
-            if defined _current (
-                set "_mark=!_mark!!_current! "
-                for %%p in (
-                    "EOL EOL "
-                    "EOL BORDER "
-                ) do if /i "!_mark!" == %%p (
-                    set "_write="
-                    echo=
-                )
-                set "_current="
-            ) else if defined _mark set "_mark="
-        )
-
-        for /f "tokens=1" %%b in ("!line!") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
-            if /i ":%%c" == "%%b" if /i "%%d" == "" (
-                for %%l in (!labels_to_include!) do if "%%c" == "%%l" set "_write=true"
-            )
-        )
-        if defined _write (
-            setlocal DisableDelayedExpansion
-            set "line=%%a"
-            setlocal EnableDelayedExpansion
-            set "line=!line:*:=!"
-            echo(!line!
-            endlocal
-            endlocal
-        )
+    for %%s in (
+        "Metadata: metadata about"
+        "License: license"
+        "Scripts/Entry points: scripts.__init__ scripts.lib"
+        "Shortcuts: shortcuts.__init__ !Category_shortcuts.functions!"
+        "Batch Script Library: lib.__init__ !lib_functions!"
+        "Framework: framework.__init__ !Category_framework.functions!"
+    ) do for /f "tokens=1* delims=:" %%a in (%%s) do (
+        1>&2 echo %%a: %%b
+        echo rem !border_line:~0,40! %%a !border_line:~0,40!
+        for /f "tokens=1" %%c in ("%%b") do if not "%%~xc" == ".__init__" echo=
+        call :extract_func %%b
     )
     echo :__main__
     echo @echo off
     echo echo !SOFTWARE.description! !SOFTWARE.version!
     echo echo=
-    echo echo Usage: !SOFTWARE.name! --module:lib :^<function^> [parameters]
+    echo echo Usage: !SOFTWARE.name! --module=lib :^^^^^<function^^^^^> [parameters]
     echo echo=
     echo echo List of functions:
-    for %%v in (!Category_all.functions!) do (
+    for %%v in (
+        !Category_shortcuts.functions!
+        !lib_functions!
+    ) do (
         set "_escaped=!Function_%%v.args!"
         set _escaped=!_escaped:"=^"!
         set "_escaped=!_escaped:%%=%%%%!"
@@ -701,6 +692,28 @@ set "_current="
         set "_escaped=!_escaped:>=^>!"
         echo echo     !_escaped!
     )
+    echo echo=
+    echo echo Framework functions:
+    for %%v in (
+        !Category_framework.functions!
+    ) do (
+        set "_escaped=!Function_%%v.args!"
+        set _escaped=!_escaped:"=^"!
+        set "_escaped=!_escaped:%%=%%%%!"
+        set "_escaped=!_escaped:<=^<!"
+        set "_escaped=!_escaped:|=^|!"
+        set "_escaped=!_escaped:>=^>!"
+        echo echo     !_escaped!
+    )
+    echo echo=
+    echo echo Framework functions MUST be embedded into your script to work correctly
+    echo echo=
+    echo echo Example:
+    echo echo     call batchlib-min.bat --module=lib :Input.number age --description "Input your age: " --range 0~200
+    echo echo=
+    echo echo Set macro and call as external package:
+    echo echo     set batchlib="C:\absolute\path\to\batchlib-min.bat" --module=lib %%%%=END=%%%%
+    echo echo     call %%%%batchlib%%%%:Input.number age --description "Input your age: " --range 0~200
     echo exit /b 0
 )
 exit /b 0
@@ -746,6 +759,56 @@ echo=
 call %batchlib%:Input.number your_integer --range "-0xf0~-0xff, -99~9, 0x100~0x200, 0x16,555"
 echo Your input: !your_integer!
 goto :EOF
+
+rem ======================== tests ========================
+
+:Input.number.__debug_tests__
+:tests.lib.Input.number.main
+set "errors=0"
+> "in\boundaries" (
+    echo=
+    echo -2147483648
+    echo -2147483647
+    echo 2147483647
+    echo -65536
+    echo 65535
+    echo -100
+    echo 100
+    echo -1
+    echo 1
+    echo 0
+)
+set "evaluate_result=call :tests.lib.Input.number.evaluate_result"
+
+< "in\boundaries" > nul 2>&1 (
+    set "expected_result=100"
+    call %batchlib%:Input.number result --range 0~200
+) & !evaluate_result! "example"
+
+for %%n in (
+    -2147483647
+    2147483647
+    -1
+    1
+    0
+) do (
+    < "in\boundaries" > nul 2>&1 (
+        set "expected_result=%%n"
+        call %batchlib%:Input.number result --range %%n~%%n
+    ) & !evaluate_result! "range: %%n"
+)
+if not "!errors!" == "0" exit /b !tester.exit.failed!
+exit /b !tester.exit.passed!
+
+
+:tests.lib.Input.number.evaluate_result
+if not "!result!" == "!expected_result!" (
+    echo [failed] %~1   "!result!" == "!expected_result!"
+    set /a "errors+=1"
+)
+exit /b
+
+rem (!) Needs more test cases
 
 rem ======================== function ========================
 
@@ -800,18 +863,18 @@ rem ======================== tests ========================
 
 :tests.lib.Input.string.main
 set "errors=0"
-(
+> "in\empty" (
     echo=
     echo hello
     echo   world
-) > "in\empty"
-(
+)
+> "in\spaced" (
     echo   world  %=END=%
-) > "in\spaced"
-(
+)
+> "in\semicolon" (
     echo ; pass
     echo fail
-) > "in\semicolon"
+)
 set "evaluate_result=call :tests.lib.Input.string.evaluate_result"
 
 < "in\empty" > nul 2>&1 (
@@ -1924,7 +1987,7 @@ for /f "tokens=*" %%r in ("!_difference!") do (
 )
 exit /b 0
 
-rem ================================ fdate() ================================
+rem ================================ fdate(WIP) ================================
 .$ Function time fdate
 
 rem ======================== demo ========================
@@ -2138,7 +2201,7 @@ for /f "tokens=*" %%r in ("!_epoch!") do (
 )
 exit /b 0
 
-rem ================================== epoch2time() ==================================
+rem ================================== epoch2time(WIP) ==================================
 .$ Function time epoch2time
 
 rem ======================== demo ========================
@@ -2878,14 +2941,14 @@ rem ======================== function ========================
 if not exist "%~1" ( 1>&2 echo error: zip file does not exist & exit /b 1 )
 if not exist "%~2" md "%~2" || ( 1>&2 echo error: create folder failed & exit /b 2 )
 for %%s in ("!temp!\unzip.vbs") do (
-    (
+    > "%%~s" (
         echo zip_file = WScript.Arguments(0^)
         echo dest_path = WScript.Arguments(1^)
         echo=
         echo set ShellApp = CreateObject("Shell.Application"^)
         echo set content = ShellApp.NameSpace(zip_file^).items
         echo ShellApp.NameSpace(dest_path^).CopyHere(content^)
-    ) > "%%~s"
+    )
     cscript //nologo "%%~s" "%~f1" "%~f2"
     del /f /q "%%~s"
 )
@@ -3019,14 +3082,14 @@ call %batchlib%:Input.path --exist --file source_file
 call %batchlib%:Input.path --not-exist destination_file
 echo=
 echo Converting to hex...
-call %batchlib%:hexlify "!source_file!" "!destination_file!" --CRLF
+call %batchlib%:hexlify "!source_file!" "!destination_file!" --eol "0d 0a"
 echo Done
 goto :EOF
 
 rem ======================== tests ========================
 
 :tests.lib.hexlify.main
-call %batchlib%:hexlify "%~f0" "hexlify.hex" --CRLF
+call %batchlib%:hexlify "%~f0" "hexlify.hex"
 if exist "hexlify.rebuild" del /f /q "hexlify.rebuild"
 certutil -decodehex "hexlify.hex" "hexlify.rebuild" > nul
 call :diffbin offset "%~f0" "hexlify.rebuild"
@@ -3036,14 +3099,11 @@ exit /b !tester.exit.passed!
 
 rem ======================== function ========================
 
-:hexlify   <source_file>  <destination_file>  [--CRLF|--LF|--CR]
+:hexlify   <source_file>  <destination_file>  [--eol=<hex>]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_eol) do set "%%v="
 set "_eol=0d 0a"
 set parse_args.args= ^
-    ^ "--CR   --cr      :flag:_eol=0d" ^
-    ^ "--LF   --lf      :flag:_eol=0a" ^
-    ^ "--CRLF --crlf    :flag:_eol=0d 0a"
+    ^ "-e --eol     :var:_eol"
 call :parse_args %*
 set "_eol_len=2"
 if /i "!_eol!" == "0d 0a" set "_eol_len=5"
@@ -3086,25 +3146,62 @@ if not "!_hex:~7680!" == "" (
 set "_hex=!_hex:~0,-1!"
 exit /b
 
-rem ======================== notes ========================
+rem ================================ extract_func(WIP) ================================
+.$ Function file extract_func
 
-for /f "tokens=1* delims=#" %%a in ("!_hex!") do (
-    if "%%b" == "" (
-        set "_hex=%%a"
-    ) else (
-        set "_hex=%%a 3D %%b"
-        set "_hex=!_hex:#=3d!"
-        set "_hex=!_hex:_=!"
+rem ======================== demo ========================
+
+:extract_func.__demo__
+echo Extracts functions from script
+echo=
+call %batchlib%:Input.string function_labels || set "function_labels=extract_func"
+call %batchlib%:extract_func !function_labels!
+goto :EOF
+
+rem ======================== function ========================
+
+:extract_func
+setlocal EnableDelayedExpansion EnableExtensions
+set labels_to_include=%*
+set "_current="
+set "_mark="
+set "_write="
+for /f "delims=" %%a in ('findstr /n "^" "%~f0"') do (
+    set "line=%%a"
+    set "line=!line:*:=!"
+
+    if defined _write (
+        if "!line:~0,7!" == "rem ===" set "_current=BORDER"
+        if not defined line set "_current=EOL"
+        if defined _current (
+            set "_mark=!_mark!!_current! "
+            for %%p in (
+                "EOL EOL "
+                "EOL BORDER "
+            ) do if /i "!_mark!" == %%p (
+                set "_write="
+                echo=
+            )
+            set "_current="
+        ) else if defined _mark set "_mark="
     )
-    if /i "!_hex:~-4,4!" == "0D0A" echo !_hex!
+
+    for /f "tokens=1" %%b in ("!line!") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
+        if /i ":%%c" == "%%b" if /i "%%d" == "" (
+            for %%l in (!labels_to_include!) do if "%%c" == "%%~l" set "_write=true"
+        )
+    )
+    if defined _write (
+        setlocal DisableDelayedExpansion
+        set "line=%%a"
+        setlocal EnableDelayedExpansion
+        set "line=!line:*:=!"
+        echo(!line!
+        endlocal
+        endlocal
+    )
 )
-if /i "!_hex:~-4,4!" == "0D0A" set "_hex=$"
-if not "!_hex:~7680!" == "" (
-    < nul set /p "=!_hex:~0,-3!"
-    set "_hex=!_hex:~-3,3!"
-)
-set "_hex=!_hex:~0,-1!"
-exit /b
+exit /b 0
 
 rem ================================ expand_link() ================================
 $ Function net expand_link
@@ -3503,7 +3600,7 @@ set parse_args.args= ^
 call :parse_args %*
 
 rem Convert to hex and format
-call :hexlify "latest.txt" "latest.tmp" --CRLF
+call :hexlify "latest.txt" "latest.tmp"
 > "latest.hex" (
     for /f "usebackq tokens=*" %%o in ("latest.tmp") do (
         set "_hex=%%o"
@@ -3537,28 +3634,29 @@ set "_states=new deleted changed"
 
 rem Compare variables
 for %%s in (!_states!) do set "_%%s_count=0"
-call 2> "changes.hex"
-for /f "usebackq tokens=1-3 delims= " %%a in ("latest.hex") do (
-    set "_old_value="
-    for /f "usebackq tokens=1-3 delims= " %%x in ("old.hex") do if "%%a" == "%%x" set "_old_value=%%z"
-    if defined _old_value (
-        if not "%%c" == "!_old_value!" (
-            set /a "_changed_count+=1"
-            echo !_changed_hex!20 %%a 0D0A
+> "changes.hex" (
+    for /f "usebackq tokens=1-3 delims= " %%a in ("latest.hex") do (
+        set "_old_value="
+        for /f "usebackq tokens=1-3 delims= " %%x in ("old.hex") do if "%%a" == "%%x" set "_old_value=%%z"
+        if defined _old_value (
+            if not "%%c" == "!_old_value!" (
+                set /a "_changed_count+=1"
+                echo !_changed_hex!20 %%a 0D0A
+            )
+        ) else (
+            echo !_new_hex_!20 %%a 0D0A
+            set /a "_new_count+=1"
         )
-    ) else (
-        echo !_new_hex_!20 %%a 0D0A
-        set /a "_new_count+=1"
     )
-) >> "changes.hex"
-for /f "usebackq tokens=1 delims= " %%a in ("old.hex") do (
-    set "_value_found="
-    for /f "usebackq tokens=1 delims= " %%x in ("latest.hex") do if "%%a" == "%%x" set "_value_found=true"
-    if not defined _value_found (
-        echo !_deleted_hex!20 %%a 0D0A
-        set /a "_deleted_count+=1"
+    for /f "usebackq tokens=1 delims= " %%a in ("old.hex") do (
+        set "_value_found="
+        for /f "usebackq tokens=1 delims= " %%x in ("latest.hex") do if "%%a" == "%%x" set "_value_found=true"
+        if not defined _value_found (
+            echo !_deleted_hex!20 %%a 0D0A
+            set /a "_deleted_count+=1"
+        )
     )
-) >> "changes.hex"
+)
 if exist "changes.txt" del /f /q "changes.txt"
 certutil -decodehex "changes.hex" "changes.txt" > nul
 
@@ -3916,13 +4014,13 @@ goto :EOF
 rem ======================== function ========================
 
 :color_print   color  text
-(
+2> nul (
     pushd "!temp_path!" || exit /b 1
-     < nul set /p "=!DEL!!DEL!" > "%~2_"
+     < nul > "%~2_" set /p "=!DEL!!DEL!"
     findstr /l /v /a:%~1 "." "%~2_" nul
     del /f /q "%~2_" > nul
     popd
-) 2> nul
+)
 exit /b 0
 
 rem ================================ fix_eol() ================================
@@ -3943,6 +4041,7 @@ echo=
 echo Note:
 echo - In rare cases, the script cannot find the function, but it fixed by
 echo   moving the function few lines away from where you initially put it.
+echo - Function MUST be embedded into the script
 echo - Function will not work if it is put in an external file
 echo=
 echo=
@@ -4001,6 +4100,7 @@ echo - In rare cases, the script cannot find the function, but it fixed by
 echo   moving the function few lines away from where you initially put it.
 echo - Can be used to detect if script was downloaded
 echo   from GitHub, since uses Unix EOL (LF)
+echo - Function MUST be embedded into the script
 echo - Function will not work if it is put in an external file
 echo=
 for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
@@ -4154,9 +4254,9 @@ rem ======================== tests ========================
 set "dummy_file=!cd!\%~nx0"
 echo F | xcopy "%~f0" "!dummy_file!" /y > nul
 call :module.is_module "!dummy_file!" || ( echo [failed] script is not a module & exit /b !tester.exit.failed! )
-(
+> "in\enter" (
     echo=
-) > "in\enter"
+)
 start "" /wait /b cmd /c ""!dummy_file!" --module=lib :tests.lib.module.updater.update" || echo Failed
 set "exit_code=!errorlevel!"
 if "!exit_code!" == "20" ( echo cannot connect to the test server & exit /b !tester.exit.skipped! )
@@ -4972,7 +5072,7 @@ goto :EOF
 :bcom.send   id
 set "_bcom_send_date=!date!"
 set "_bcom_send_time=!time!"
-(
+> "!bcom.fileDP!\!bcom.fileN!%~1!bcom.fileX!" (
     echo=
     echo=
     echo call :^^^!bcom_sender^^^! ^& goto :EOF
@@ -4982,7 +5082,7 @@ set "_bcom_send_time=!time!"
     echo set "_bcom_send_date=!_bcom_send_date!"
     echo set "_bcom_send_time=!_bcom_send_time!"
     echo goto :EOF
-) > "!bcom.fileDP!\!bcom.fileN!%~1!bcom.fileX!"
+)
 exit /b 0
 
 
@@ -5228,9 +5328,9 @@ set "available_drives="
 for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do vol %%l: > nul 2> nul && set "available_drives=!available_drives! %%l"
 
 rem Read third line of file
-(
+< "%~f0" (
     for /l %%n in (1,1,3) do set /p "a="
-) < "%~f0"
+)
 
 rem Create 0-byte file
 call 2> "File.txt"
@@ -5239,9 +5339,9 @@ rem File Lock/Unlocked State
 
 rem Create State
 echo File is in locked state
-(
+>> "!file_path!" (
     pause > nul
-) >> "!file_path!"
+)
 echo File is in unlocked state
 
 rem Detect State
