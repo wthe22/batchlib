@@ -5,8 +5,8 @@ rem ======================================== Script Meta-data ==================
 :__setup__   [prefix]
 set "%~1NAME=batchlib"
 set "%~1DESCRIPTION=Batch Script Library"
-set "%~1VERSION=2.0-b.1"
-set "%~1RELEASE=03/25/2019"   :: MM/DD/YYYY
+set "%~1VERSION=2.0-b.2"
+set "%~1RELEASE=04/27/2019"   :: MM/DD/YYYY
 set "%~1URL=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1DOWNLOAD_URL=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -15,7 +15,7 @@ exit /b 0
 :__about__
 setlocal EnableDelayedExpansion
 call :__setup__
-title !NAME! !VERSION!
+title !DESCRIPTION! !VERSION!
 cls
 echo A collection of functions for batch script
 echo Created to make batch scripting easier
@@ -23,9 +23,7 @@ echo=
 echo Updated on !RELEASE!
 echo=
 echo Feel free to use, share, or modify this script for your projects :)
-echo=
 echo Visit http://winscr.blogspot.com/ for more scripts^^!
-echo=
 echo=
 echo=
 echo Copyright (C) 2019 by wthe22
@@ -53,14 +51,26 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :__changelog__
-echo    2.0-b.1 (2019-03-25)
-echo    Bug fix update
-echo    - fixed Module.updater not upgrading script
+echo    2.0-b.2 (2019-04-27) ?
+echo    Improvements
+echo    - added warning message for unknown tags when reading function
+echo    - added new parameter '--filled' for Input_string
+echo    - changed title in __about__
+echo    - changes in wcdir():
+echo        - fixed spaces handling when using wildcard drive path
+echo        - fixed folder listing when last item exist and does not contain wildcard
+echo        - improved search speed (~5x faster)
+echo    - added combination version of wcdir: combi_wcdir(), but not included in demo
+echo    - changed __error__.assertion to __error__ to allow generic error messages
 exit /b 0
 
 
 :__changelog__.full
 call :__changelog__
+echo=
+echo    2.0-b.1 (2019-03-25)
+echo    Bug Fix
+echo    - fixed Module.updater() not upgrading script
 echo=
 echo    2.0-b (2019-03-25)
 echo    Major update
@@ -88,11 +98,10 @@ exit /b 0
 
 rem ======================================== Debug function ========================================
 
-:__error__.assertion
+:__error__
 @echo=
 @echo=
-@ < nul set /p "=Assertion error: "
-@for %%t in (%*) do @echo %%~t
+@for %%t in (%*) do @ 1>&2 echo %%~t
 @echo=
 @echo Press any key to exit...
 @pause > nul
@@ -133,9 +142,9 @@ echo Loading script...
         type "%~f0" | more /t4 > "%~f0.tmp" && (
             move "%~f0.tmp" "%~f0" > nul && goto __module__.__main__.reload
         )
-        echo warn: Convert EOL failed
+        echo warning: Convert EOL failed
     )
-) || @echo warn: Cannot check EOL
+) || @echo warning: Cannot check EOL
 
 call :__settings__
 
@@ -193,14 +202,8 @@ echo=
 echo Input search keyword:
 set /p "user_input="
 if "!user_input!" == "0" goto select_function.category
-
-rem Search for keyword in function arguments
-set "Category_search.functions="
-for /f "delims=" %%k in ("!user_input!") do for %%f in (!Category_all.functions!) do (
-    set "_temp= !Function_%%f.args!"
-    if not "!_temp:%%k=!" == "!_temp!" set "Category_search.functions=!Category_search.functions! %%f"
-)
 set "search_keyword=!user_input!"
+call :Function.search "!search_keyword!"
 set "selected.category=search"
 goto select_function.name
 
@@ -255,31 +258,35 @@ set "Category_others.functions="
 set "Category_others.item_count=0"
 set "_function="
 for /f "usebackq tokens=*" %%a in ("%~f0") do for /f "tokens=1-3* delims= " %%b in ("%%a") do (
-    if /i "%%b %%c" == "$ Category" (
-        if not defined Category_%%d.name (
-            set "Category.list=!Category.list! %%d"
-            set "Category_%%d.name=%%~e"
-            set "Category_%%d.functions="
-            set "Category_%%d.item_count=0"
+    if "%%b" == "$" (
+        set "_handled="
+        if /i "%%c" == "Category" (
+            set "_handled=true"
+            if not defined Category_%%d.name (
+                set "Category.list=!Category.list! %%d"
+                set "Category_%%d.name=%%~e"
+                set "Category_%%d.functions="
+                set "Category_%%d.item_count=0"
+            )
         )
-    )
-    if /i "%%b %%c" == "$ Function" (
-        set "_category=%%d"
-        if not defined Category_%%d.name set "_category=others"
-        for %%n in (all !_category!) do (
-            set "Category_%%n.functions=!Category_%%n.functions! %%e"
-            set /a "Category_%%n.item_count+=1"
+        if /i "%%c" == "Function" (
+            set "_handled=true"
+            set "_category=%%d"
+            if not defined Category_%%d.name set "_category=others"
+            for %%n in (all !_category!) do (
+                set "Category_%%n.functions=!Category_%%n.functions! %%e"
+                set /a "Category_%%n.item_count+=1"
+            )
+            set "_function=%%e"
         )
-        set "_function=%%e"
+        if not defined _handled 1>&2 echo warning: Function.read: unhandled: %%a
     )
     if /i "%%b" == ":!_function!" (
         set "_temp=%%a"
         set "Function_!_function!.args=!_temp:~1!"
     )
 )
-set "_temp="
-set "_category="
-set "_function="
+for %%v in (_temp _category _function _handled) do set "%%v="
 set "Category.list=all !Category.list!"
 if not "!Category_others.item_count!" == "0" set "Category.list=!Category.list! others"
 exit /b 0
@@ -312,8 +319,17 @@ for %%v in (!Category_%~1.functions!) do (
 if /i not "%2" == "list" if not defined selected.function exit /b 1
 exit /b 0
 
-rem ======================================== Functions Library ========================================
-:_.FUNCTION_LIBRARY._     Collection of Functions
+
+:Function.search   keyword
+set "Category_search.functions="
+for /f "delims=" %%k in ("%*") do for %%f in (!Category_all.functions!) do (
+    set "_temp= !Function_%%f.args!"
+    if not "!_temp:%%k=!" == "!_temp!" set "Category_search.functions=!Category_search.functions! %%f"
+)
+exit /b 1
+
+rem ======================================== Batch Script Library ========================================
+:_.BATCHLIB._     Collection of Functions
 
 
 $ Category  math    Math
@@ -324,6 +340,7 @@ $ Category  net     Network
 $ Category  env     Environment
 $ Category  io      Input / Output
 $ Category  fw      Framework
+$ Category  module  Module
 
 
 rem ================================ GUIDES ================================
@@ -1387,7 +1404,7 @@ if "!file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_
     )
     exit /b 1
 )
-for /f "tokens=*" %%c in ("!_path!") do (
+for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
     set "%~1=%%c"
 )
@@ -1429,6 +1446,67 @@ goto :EOF
 call :capchar LF
 
 
+:combi_wcdir   [-f|-d]  [-s]  return_var  file_path_part1  [file_path_part2 [...]]
+setlocal EnableDelayedExpansion EnableExtensions
+set "_list_dir=true"
+set "_list_file=true"
+set "_semicolon=true"
+set "_argc=1"
+for %%a in (%*) do (
+    set "_set_cmd="
+    for %%f in ("-f" "--file") do       if /i "%%a" == "%%~f" set "_set_cmd=_list_dir="
+    for %%f in ("-d" "--directory") do  if /i "%%a" == "%%~f" set "_set_cmd=_list_file="
+    for %%f in ("-s" "--semicolon") do  if /i "%%a" == "%%~f" set "_set_cmd=_semicolon=true"
+    if defined _set_cmd (
+        set "!_set_cmd!"
+        shift /!_argc!
+    ) else set /a "_argc+=1"
+)
+set /a "_argc-=1"
+set "_path1=%~2"
+set "_path2=%~3"
+for %%v in (_path1 _path2) do (
+    set "%%v=!%%v:/=\!"
+    set ^"%%v=!%%v:;=%NL%!^"
+    set "_temp="
+    for /f "tokens=* delims=" %%a in ("!%%v!") do (
+        set "_is_listed="
+        for /f "tokens=*" %%b in ("!_temp!") do if "%%a" == "%%b" set "_is_listed=true"
+        if not defined _is_listed set "_temp=!_temp!%%a!LF!"
+    )
+    set "%%v=!_temp!"
+)
+set "_found="
+for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b in ("!_path2!") do (
+    set "_result="
+    pushd "!temp!"
+    call :wcdir.find "%%a\%%b"
+    set "_found=!_found!!_result!"
+)
+set "_result="
+for /f "tokens=* delims=" %%a in ("!_found!") do (
+    set "_is_listed="
+    for /f "tokens=*" %%b in ("!_result!") do if "%%a" == "%%b" set "_is_listed=true"
+    if not defined _is_listed set "_result=!_result!%%a!LF!"
+)
+if defined _result (
+    set "%~1="
+    for /f "tokens=* delims=" %%r in ("!_result!") do (
+        if not defined %~1 (
+            endlocal
+            set "%~1="
+        )
+        if "%_semicolon%" == "" (
+            set "%~1=!%~1!%%r!LF!"
+        ) else set "%~1=!%~1!%%r;"
+    )
+) else (
+    endlocal
+    set "%~1="
+)
+exit /b 0
+
+
 :wcdir   return_var  file_path  [-f|-d]
 set "%~1="
 setlocal EnableDelayedExpansion
@@ -1441,18 +1519,18 @@ set "_args=!_args:/=\!"
 set "_result="
 pushd "!temp!"
 call :wcdir.find "!_args!"
-for /f "tokens=*" %%r in ("!_result!") do (
+for /f "tokens=* delims=" %%r in ("!_result!") do (
     if not defined %~1 endlocal
     set "%~1=!%~1!%%r!LF!"
 )
 exit /b 0
 :wcdir.find
 for /f "tokens=1* delims=\" %%a in ("%~1") do if "%%a" == "*:" (
-    for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do pushd "%%l:\" 2> nul && call :wcdir.find %%b
+    for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do pushd "%%l:\" 2> nul && call :wcdir.find "%%b"
 ) else if "%%b" == "" (
-    if defined _list_file for /f "delims=" %%f in ('dir /b /a:-d "%%a" 2^> nul') do set "_result=!_result!%%~ff!LF!"
-    if defined _list_dir for /f "delims=" %%f in ('dir /b /a:d "%%a" 2^> nul') do set "_result=!_result!%%~ff!LF!"
-) else for /d %%f in ("%%a") do pushd "%%~f\" 2> nul && call :wcdir.find "%%b"
+    if defined _list_dir dir /b /a:d "%%a" > nul 2> nul && ( for /d %%f in ("%%a") do set "_result=!_result!%%~ff!LF!" )
+    if defined _list_file dir /b /a:-d "%%a" > nul 2> nul && ( for %%f in ("%%a") do set "_result=!_result!%%~ff!LF!" )
+) else for /d %%f in ("%%a") do pushd "%%f\" 2> nul && call :wcdir.find "%%b"
 popd
 exit /b
 
@@ -1739,6 +1817,8 @@ echo=
 echo Note:
 echo - Function can determine download name automatically
 echo - Function returns the download file path in a variable
+echo - I suspect files are downloaded to memory first before writting to disk
+echo   so I won't recommend using this to download large files
 echo=
 echo For this demo, file will be saved to "!cd!"
 echo Enter nothing to download laravel v4.2.11 (41 KB)
@@ -1805,13 +1885,14 @@ set "_result="
 for /f "usebackq tokens=*" %%o in (`cscript //nologo "!_script!" "%~2" "%~f3" "!_filename!"`) do set "_result=%%~fo"
 del /f /q "!_script!"
 if not defined _result exit /b 1
-for /f "tokens=*" %%r in ("!_result!") do (
+for /f "tokens=* delims=" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
 )
 exit /b 0
 
-rem PowerShell command, but filename have to be set and PowerShell is so sloooowww
+rem PowerShell command, writes buffer to disk so it shouldn't cause any memory problems
+rem but filename have to be set and PowerShell is so sloooowww
 powershell -Command "(New-Object Net.WebClient).DownloadFile('https://codeload.github.com/laravel/laravel/zip/v4.2.11', 'l.zip')"
 
 rem ================================ get_con_size() ================================
@@ -1940,7 +2021,7 @@ echo=
 echo Note:
 echo - watchvar can only compare the first 3840 characters for very long variables
 echo=
-call :watchvar -i
+call :watchvar --initialize
 for /l %%n in (1,1,5) do (
     for /l %%n in (1,1,10) do (
         set /a "_operation=!random! %% 2"
@@ -1952,13 +2033,13 @@ for /l %%n in (1,1,5) do (
     set "_operation="
     set "_num="
     echo=
-    call :watchvar -n
+    call :watchvar --list
     pause > nul
 )
 goto :EOF
 
 
-:watchvar   [-i]  [-n]
+:watchvar   [-i]  [-l]
 setlocal EnableDelayedExpansion EnableExtensions
 if not defined temp_path set "temp_path=!temp!"
 set "temp_path=!temp_path!\watchvar"
@@ -2133,9 +2214,9 @@ rem Fix EOL (LF to CRLF)
         type "%~f0" | more /t4 > "%~f0.tmp" && (
             move "%~f0.tmp" "%~f0" > nul && goto __module__.__main__.reload
         )
-        echo warn: Convert EOL failed
+        echo warning: Convert EOL failed
     )
-) || @echo warn: Cannot check EOL
+) || @echo warning: Cannot check EOL
 rem Done
 
 
@@ -2251,7 +2332,7 @@ set DQ="
 set "EM=^!"
 set EM=^^!
 
-rem ================================ hex2char() ================================
+rem ================================ hex2char(WIP) ================================
 .$ Function io hex2char
 
 
@@ -2269,7 +2350,7 @@ setlocal EnableDelayedExpansion
 if not defined temp_path set "temp_path=!temp!"
 if not exist "!temp_path!" md "!temp_path!"
 certutil
-for /f "tokens=*" %%f in ("!_result!") do (
+for /f "tokens=* delims=" %%f in ("!_result!") do (
     endlocal
     calL "%%r"
 )
@@ -2391,6 +2472,198 @@ goto :EOF
     del /f /q "%~2_" > nul
     popd
 ) 2> nul
+exit /b 0
+
+rem ================================ Module.detect() ================================
+$ Function module Module.detect
+
+
+:Module.detect.__demo__
+echo Enable module detection when running script
+echo Used for scripts that needs multiple windows / parallel execution
+echo=
+echo Press any key to start another window...
+pause > nul
+@echo on
+start "" "%~f0" --module:2nd_window_demo   test arg Here
+@echo off
+echo=
+echo Done
+goto :EOF
+
+
+:__module__.2nd_window_demo
+@echo off
+setlocal EnableDelayedExpansion
+title Second Window
+echo Hello! I am the second window.
+echo=
+echo Arguments  : %*
+echo=
+pause
+exit
+
+
+:Module.detect
+@for /f "tokens=1,2 delims=:" %%a in ("%1") do @if /i "%%a" == "--module" @(
+    for /f "tokens=1* delims= " %%c in ("%*") do @call :__module__.%%b %%d
+    exit /b
+)
+@goto __module__.__main__
+
+rem ================================ Module.updater() ================================
+$ Function module Module.updater
+
+
+:Module.updater.__demo__
+echo Update this batch script from GitHub (PowerShell hybrid)
+echo=
+echo At __setup__():
+echo - Set the DOWNLOAD_URL to the GitHub raw gist link
+echo=
+echo Note:
+echo - Requires:
+echo    - Module.detect()
+echo    - __module__.lib()
+echo    - __setup__()
+echo    - Module.check_support()
+echo    - download()
+echo    - diffdate()
+echo=
+echo Options:
+echo - set "temp_path=C:\path\to\download"
+echo=
+echo Then, this function can automatically detect updates,
+echo download them, and update script
+echo=
+call :Module.updater check "%~f0" || goto :EOF
+echo=
+echo Note:
+echo - Updating will REPLACE current script with the newer version
+echo=
+call :Input_yesno user_input "Update now? Y/N? " || goto :EOF
+call :Module.updater upgrade "%~f0"
+goto :EOF
+
+
+rem ? Delete downloaded files before exit
+
+
+:Module.updater   <check|upgrade>  script_path
+setlocal EnableDelayedExpansion
+set "_set_cmd="
+if /i "%1" == "check" set "_set_cmd=_show=true"
+if /i "%1" == "upgrade" set "_set_cmd=_upgrade=true"
+if defined _set_cmd (
+    set "!_set_cmd!"
+    shift /1
+)
+set "_metadata=NAME DESCRIPTION VERSION RELEASE URL DOWNLOAD_URL"
+echo Checking requirements...
+call :Module.check_support "%~1" || ( 1>&2 echo script does not support call as 'Module' & exit /b 1 )
+for %%v in (!_metadata!) do set "_module.%%v="
+call "%~1" --module:lib :__setup__ _module. || ( 1>&2 echo error: module call failed & exit /b 1 )
+if not defined _module.DOWNLOAD_URL 1>&2 echo error: script DOWNLOAD_URL is undefined & exit /b 1
+echo Downloading updates...
+call :download _downloaded "!_module.DOWNLOAD_URL!"
+if not exist "!_downloaded!" 1>&2 echo error: download failed & exit /b 1
+for %%f in ("!_downloaded!") do (
+    if exist "%%~ff.bat" del /f /q "%%~ff.bat"
+    ren "%%~ff" "%%~nxf.bat"
+    set "_downloaded=!_downloaded!.bat"
+)
+echo Checking compatibility...
+call :Module.check_support "!_downloaded!" || ( 1>&2 echo error: update script does not support call as 'Module' & exit /b 2 )
+for %%v in (!_metadata!) do set "_downloaded.%%v="
+call "!_downloaded!" --module:lib :__setup__ _downloaded. || ( 1>&2 echo error: module call failed & exit /b 2 )
+if not defined _downloaded.VERSION 1>&2 echo error: downloaded VERSION is undefined & exit /b 2
+if /i not "!_downloaded.NAME!" == "!_module.NAME!" 1>&2 echo warning: script name mismatch
+call :Module.is_newer "!_module.VERSION!"  "!_downloaded.VERSION!" || ( echo No updates available & exit /b 3 )
+call :diffdate update_age !date:~4! !_downloaded.RELEASE!
+echo !_downloaded.DESCRIPTION! !_downloaded.VERSION! is now available (!update_age! days ago)
+if not defined _upgrade exit /b 0
+echo Updating script...
+move "!_downloaded!" "%~f1" > nul && (
+    echo Update success
+    echo Script will exit
+    pause
+    exit
+) || ( 1>&2 echo error: update failed & exit /b 1 )
+exit /b 0
+
+
+:Module.is_newer   first_version  second_version
+setlocal EnableDelayedExpansion
+set "_first=%~1"
+set "_second=%~2"
+for %%n in (_first _second) do for /f "tokens=1,2 delims=-" %%a in ("!%%n!") do (
+    for /f "tokens=1-3 delims=." %%c in ("%%a") do (
+        set "%%n._MAJOR=%%c"
+        set "%%n._MINOR=%%d"
+        set "%%n._PATCH=%%e"
+    )
+    for /f "tokens=1-2 delims=." %%c in ("%%b") do (
+        set "%%n._PRE_ID=%%c"
+        set "%%n._PRE_INC=%%d"
+    )
+)
+for %%v in (_MAJOR _MINOR _PATCH) do (
+    if !_second.%%v! LSS !_first.%%v! exit /b 1
+    if !_second.%%v! GTR !_first.%%v! exit /b 0
+)
+if defined _first._PRE_ID (
+    if not defined _second._PRE_ID exit /b 0
+) else if defined _second._PRE_ID exit /b 1
+for %%v in (_PRE_ID _PRE_INC) do (
+    if !_second.%%v! LSS !_first.%%v! exit /b 1
+    if !_second.%%v! GTR !_first.%%v! exit /b 0
+)
+exit /b 2
+
+rem ================================ Module.check_support() ================================
+$ Function module Module.check_support
+
+
+:Module.check_support.__demo__
+echo Detect if a script supports call as module
+echo=
+echo Detect if script contains:
+echo :Module.detect
+echo :__module__.lib
+echo :__setup__
+echo=
+echo This could prevent script from calling another batch file that does not
+echo understand call as module and cause undesired result
+echo=
+pause
+call :Input_path script_to_check
+echo=
+set "start_time=!time!"
+call :Module.check_support "!script_to_check!" && (
+    echo Script supports call as module
+) || echo Script does not support call as module
+call :difftime time_taken !time! !start_time!
+call :ftime time_taken !time_taken!
+echo=
+echo Done in !time_taken!
+goto :EOF
+
+
+:Module.check_support   file_path
+setlocal EnableDelayedExpansion
+set /a "_missing=0xF"
+for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
+    for /f "tokens=1-2 delims= " %%b in ("%%a") do (
+        if /i "%%b %%c" == "goto Module.detect" set /a "_missing&=~0x1"
+        if /i "%%b" == ":Module.detect"         set /a "_missing&=~0x2"
+        if /i "%%b" == ":__module__.lib"        set /a "_missing&=~0x4"
+        if /i "%%b" == ":__setup__"             set /a "_missing&=~0x8"
+    )
+)
+if not "!_missing!" == "0" exit /b 1
+set "_callable="
+for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
+if not defined _callable exit /b 2
 exit /b 0
 
 rem ================================ parse_args(!) ================================
@@ -2783,7 +3056,7 @@ rem ======================================== Framework =========================
 :_.FRAMEWORK._     Core of the script
 
 rem ================================ Input Number ================================
-$ Function fw Input_number
+$ Function io Input_number
 
 
 :Input_number.__demo__
@@ -2886,21 +3159,67 @@ if !min! LSS 0 if !user_input! GEQ 0 (
 )
 
 rem ================================ Input String ================================
-$ Function fw Input_string
+$ Function io Input_string
 
 
 :Input_string.__demo__
 echo Input text
 echo=
+echo Options:
+echo -f, --filled       Value must be filled
+rem echo -t, --trim         Trim leading and trailing space (' ')
+echo=
 echo Note:
 echo - Function will set errorlevel to 1 if input is undefined
 echo=
 call :Input_string your_text "Enter anything: "
-echo Your input: !your_text!
+echo Your input: "!your_text!"
+call :Input_string --filled your_text "Enter something: "
+echo Your input: "!your_text!"
 goto :EOF
 
 
 :Input_string   variable_name  [description]
+setlocal EnableDelayedExpansion EnableExtensions
+for %%v in (_require_filled _trim_spaces) do set "%%v="
+set "_argc=1"
+for %%a in (%*) do (
+    set "_set_cmd="
+    for %%f in ("-f" "--filled") do if /i "%%a" == "%%~f" set "_set_cmd=_require_filled=true"
+    if defined _set_cmd (
+        set "!_set_cmd!"
+        shift /!_argc!
+    ) else set /a "_argc+=1"
+)
+set /a "_argc-=1"
+:Input_string.input
+echo=
+set "user_input="
+if "%~2" == "" (
+    echo Input %~1:
+) else echo=%~2
+set /p "user_input="
+if defined _require_filled if not defined user_input goto Input_string.input
+for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
+    endlocal
+    set "%~1=%%~c"
+    if not defined %~1 exit /b 1
+)
+exit /b 0
+if not defined user_input (
+    endlocal
+    set "%~1="
+    exit /b 1
+)
+for /f "tokens=* delims=" %%r in ("!user_input!") do (
+    endlocal
+    set "%~1=%%r"
+    if not defined %~1 exit /b 1
+)
+exit /b 0
+
+
+:Input_string.old   variable_name  [description]
 echo=
 set "%~1="
 if "%~2" == "" (
@@ -2910,8 +3229,18 @@ set /p "%~1="
 if not defined %~1 exit /b 1
 exit /b 0
 
+
+rem Trimming
+set "user_input=!user_input!."
+rem Process string / trim
+for /f "tokens=* delims= " %%a in ("!user_input!") do (
+    endlocal
+    set "%~1=%%b"
+    if /i "%user_input%" == "Y" exit /b 0
+)
+set "user_input=!user_input:~0,-1!"
 rem ================================ Input yes/no ================================
-$ Function fw Input_yesno
+$ Function io Input_yesno
 
 
 :Input_yesno.__demo__
@@ -3002,7 +3331,7 @@ for /f "tokens=1* delims=_" %%a in ("Z_!_result!") do (
 exit /b 1
 
 rem ================================ Input Path ================================
-$ Function fw Input_path
+$ Function io Input_path
 
 
 :Input_path.__demo__
@@ -3081,7 +3410,7 @@ if defined user_input call :check_path user_input !_options! || (
     pause
     goto Input_path.input
 )
-for /f "tokens=*" %%c in ("!user_input!") do (
+for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
     endlocal
     set "%~1=%%c"
     set "last_used.file=%%c"
@@ -3089,7 +3418,7 @@ for /f "tokens=*" %%c in ("!user_input!") do (
 exit /b 0
 
 rem ================================ Input IPv4 ================================
-$ Function fw Input_ipv4
+$ Function io Input_ipv4
 
 
 :Input_ipv4.__demo__
@@ -3149,194 +3478,6 @@ for /f "tokens=*" %%c in ("!user_input!") do (
     endlocal
     set "%~1=%%c"
 )
-exit /b 0
-
-rem ================================ Module.detect() ================================
-$ Function fw Module.detect
-
-
-:Module.detect.__demo__
-echo Enable module detection when running script
-echo Used for scripts that needs multiple windows / parallel execution
-echo=
-echo Press any key to start another window...
-pause > nul
-@echo on
-start "" "%~f0" --module:2nd_window_demo   test arg Here
-@echo off
-echo=
-echo Done
-goto :EOF
-
-
-:__module__.2nd_window_demo
-@echo off
-setlocal EnableDelayedExpansion
-title Second Window
-echo Hello! I am the second window.
-echo=
-echo Arguments  : %*
-echo=
-pause
-exit
-
-
-:Module.detect
-@for /f "tokens=1,2 delims=:" %%a in ("%1") do @if /i "%%a" == "--module" @(
-    for /f "tokens=1* delims= " %%c in ("%*") do @call :__module__.%%b %%d
-    exit /b
-)
-@goto __module__.__main__
-
-rem ================================ Module.updater() ================================
-$ Function fw Module.updater
-
-
-:Module.updater.__demo__
-echo Update this batch script from GitHub (PowerShell hybrid)
-echo=
-echo At __setup__():
-echo - Set the DOWNLOAD_URL to the GitHub raw gist link
-echo=
-echo Note:
-echo - Requires:
-echo    - Module.detect()
-echo    - __module__.lib()
-echo    - __setup__()
-echo    - Module.check_support()
-echo    - download()
-echo    - diffdate()
-echo=
-echo Options:
-echo - set "temp_path=C:\path\to\download"
-echo=
-echo Then, this function can automatically detect updates,
-echo download them, and update script
-echo=
-call :Module.updater check "%~f0" || goto :EOF
-echo=
-echo Note:
-echo - Updating will REPLACE current script with the newer version
-call :Input_yesno user_input "Update now? Y/N? " || goto :EOF
-call :Module.updater upgrade "%~f0"
-goto :EOF
-
-
-:Module.updater   <check|upgrade>  script_path
-setlocal EnableDelayedExpansion
-set "_set_cmd="
-if /i "%1" == "check" set "_set_cmd=_show=true"
-if /i "%1" == "upgrade" set "_set_cmd=_upgrade=true"
-if defined _set_cmd (
-    set "!_set_cmd!"
-    shift /1
-)
-set "_metadata=NAME DESCRIPTION VERSION RELEASE URL DOWNLOAD_URL"
-echo Checking requirements...
-call :Module.check_support "%~1" || ( 1>&2 echo script does not support call as 'Module' & exit /b 1 )
-for %%v in (!_metadata!) do set "_module.%%v="
-call "%~1" --module:lib :__setup__ _module. || ( 1>&2 echo error: module call failed & exit /b 1 )
-if not defined _module.DOWNLOAD_URL 1>&2 echo error: script DOWNLOAD_URL is undefined & exit /b 1
-echo Downloading updates...
-call :download _downloaded "!_module.DOWNLOAD_URL!"
-if not exist "!_downloaded!" 1>&2 echo error: download failed & exit /b 1
-for %%f in ("!_downloaded!") do (
-    if exist "%%~ff.bat" del /f /q "%%~ff.bat"
-    ren "%%~ff" "%%~nxf.bat"
-    set "_downloaded=!_downloaded!.bat"
-)
-echo Checking compatibility...
-call :Module.check_support "!_downloaded!" || ( 1>&2 echo error: update script does not support call as 'Module' & exit /b 2 )
-for %%v in (!_metadata!) do set "_downloaded.%%v="
-call "!_downloaded!" --module:lib :__setup__ _downloaded. || ( 1>&2 echo error: module call failed & exit /b 2 )
-if not defined _downloaded.VERSION 1>&2 echo error: downloaded VERSION is undefined & exit /b 2
-if /i not "!_downloaded.NAME!" == "!_module.NAME!" 1>&2 echo warn: script name mismatch
-call :Module.is_newer "!_module.VERSION!"  "!_downloaded.VERSION!" || ( echo No updates available & exit /b 3 )
-call :diffdate update_age !date:~4! !_downloaded.RELEASE!
-echo !_downloaded.DESCRIPTION! !_downloaded.VERSION! is now available (!update_age! days ago)
-if not defined _upgrade exit /b 0
-echo Updating script...
-move "!_downloaded!" "%~f1" > nul && (
-    echo Update success
-    echo Script will exit
-    pause
-    exit
-) || ( 1>&2 echo error: update failed & exit /b 1 )
-exit /b 0
-
-
-:Module.is_newer   first_version  second_version
-setlocal EnableDelayedExpansion
-set "_first=%~1"
-set "_second=%~2"
-for %%n in (_first _second) do for /f "tokens=1,2 delims=-" %%a in ("!%%n!") do (
-    for /f "tokens=1-3 delims=." %%c in ("%%a") do (
-        set "%%n._MAJOR=%%c"
-        set "%%n._MINOR=%%d"
-        set "%%n._PATCH=%%e"
-    )
-    for /f "tokens=1-2 delims=." %%c in ("%%b") do (
-        set "%%n._PRE_ID=%%c"
-        set "%%n._PRE_INC=%%d"
-    )
-)
-for %%v in (_MAJOR _MINOR _PATCH) do (
-    if !_second.%%v! LSS !_first.%%v! exit /b 1
-    if !_second.%%v! GTR !_first.%%v! exit /b 0
-)
-if defined _first._PRE_ID (
-    if not defined _second._PRE_ID exit /b 0
-) else if defined _second._PRE_ID exit /b 1
-for %%v in (_PRE_ID _PRE_INC) do (
-    if !_second.%%v! LSS !_first.%%v! exit /b 1
-    if !_second.%%v! GTR !_first.%%v! exit /b 0
-)
-exit /b 2
-
-rem ================================ Module.check_support() ================================
-$ Function fw Module.check_support
-
-
-:Module.check_support.__demo__
-echo Detect if a script supports call as module
-echo=
-echo Detect if script contains:
-echo :Module.detect
-echo :__module__.lib
-echo :__setup__
-echo=
-echo This could prevent script from calling another batch file that does not
-echo understand call as module and cause undesired result
-echo=
-pause
-call :Input_path script_to_check
-echo=
-set "start_time=!time!"
-call :Module.check_support "!script_to_check!" && (
-    echo Script supports call as module
-) || echo Script does not support call as module
-call :difftime time_taken !time! !start_time!
-call :ftime time_taken !time_taken!
-echo=
-echo Done in !time_taken!
-goto :EOF
-
-
-:Module.check_support   file_path
-setlocal EnableDelayedExpansion
-set /a "_missing=0xF"
-for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
-    for /f "tokens=1-2 delims= " %%b in ("%%a") do (
-        if /i "%%b %%c" == "goto Module.detect" set /a "_missing&=~0x1"
-        if /i "%%b" == ":Module.detect"         set /a "_missing&=~0x2"
-        if /i "%%b" == ":__module__.lib"        set /a "_missing&=~0x4"
-        if /i "%%b" == ":__setup__"             set /a "_missing&=~0x8"
-    )
-)
-if not "!_missing!" == "0" exit /b 1
-set "_callable="
-for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
-if not defined _callable exit /b 2
 exit /b 0
 
 rem ================================ endlocal() ================================
@@ -3413,7 +3554,7 @@ rem error levels: https://www.keycdn.com/support/nginx-error-log
 rem debug - Useful debugging information to help determine where the problem lies.
 rem info - Informational messages that aren't necessary to read but may be good to know.
 rem notice - Something normal happened that is worth noting.
-rem warn - Something unexpected happened, however is not a cause for concern.
+rem warning - Something unexpected happened, however is not a cause for concern.
 rem error - Something was unsuccessful.
 rem crit - There are problems that need to be critically addressed.
 rem alert - Prompt action is required.
@@ -3649,6 +3790,16 @@ rem download_in_progress
 dir dl
 type dl > nul
 dir dl
+
+
+rem List partition (Run as administrator required)
+rem Note:
+rem - Output cannot be redirected as normal
+(
+    echo list volume
+    echo exit
+) | diskpart
+
 
 rem ======================================== Notes (Data Collection) ========================================
 
