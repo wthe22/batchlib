@@ -5,11 +5,11 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.0-b.3"
+set "%~1version=2.0-b.4"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=06/24/2019"   :: MM/dd/yyyy
+set "%~1release_date=07/20/2019"   :: MM/dd/yyyy
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -111,6 +111,20 @@ for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
 )
 exit /b 0
 
+
+:changelog.text.2.0-b.4 (2019-07-20)
+echo    - Removed old codes of Input.string()
+echo    - Removed unused debug codes of Input.string()
+echo    - Fixed incorrect release_date in metadata()
+echo    - Fixed demo of check_path() and module.updater()
+echo    - Fixed Input.string() showing incorrect description when it is not given
+echo    - Fixed Input.string() ignoring the first and last character if it is a double quote '"'
+echo    - Fixed popup showing when using unzip()
+echo    - Improved demo of unzip()
+echo    - Added parentheses to surround error exits to prevent ambiguous exits
+echo    - fix_eol() now restarts script after a successful EOL conversion
+echo    - module.updater() now restarts script after a successful update
+exit /b 0
 
 :changelog.text.2.0-b.3 (2019-07-20)
 echo    Concept
@@ -253,7 +267,7 @@ title !SOFTWARE.description! !SOFTWARE.version!
 cls
 echo Loading script...
 
-for %%n in (1 2) do call :fix_eol.alt%%n scripts.main.reload
+for %%n in (1 2) do call :fix_eol.alt%%n
 call :config
 
 for %%p in (
@@ -329,7 +343,7 @@ exit /b 0
 rem ================================ Main Menu ================================
 
 :main_menu
-set "user_input=dt"
+set "user_input="
 cls
 echo 1. Demo a function
 echo 2. Use command line
@@ -608,13 +622,16 @@ rem ======================================== Shortcuts =========================
 :shortcuts.__init__     Shortcuts to type less codes
 exit /b 0
 
-rem ================================ Input Number ================================
+rem ================================ Input.number() ================================
 $ Function shortcuts Input.number
 
 rem ======================== demo ========================
 
 :Input.number.__demo__
 echo Input number within a specified range, multiple range supported
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Note:
 echo - Valid number range: -2147483647 ~ 2147483647
@@ -651,7 +668,7 @@ for /f "tokens=*" %%r in ("!user_input!") do (
 )
 exit /b
 
-rem ================================ Input String ================================
+rem ================================ Input.string() ================================
 $ Function shortcuts Input.string
 
 rem ======================== demo ========================
@@ -662,6 +679,9 @@ echo=
 echo Options:
 echo -f, --filled       Value must be filled
 rem echo -t, --trim         Trim leading and trailing space (' ')
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Note:
 echo - Function will set errorlevel to 1 if input is undefined
@@ -730,13 +750,13 @@ rem ======================== function ========================
 
 :Input.string   variable_name  [description]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_require_filled _trim_spaces) do set "%%v="
-set "_description=Input %~1: "
+for %%v in (_description _require_filled _trim_spaces) do set "%%v="
 set parse_args.args= ^
     "-d --description   :var:_description" ^
     "-f --filled        :flag:_require_filled=true"
 rem     "-t --trim      :flag:_trim_spaces=true"
 call :parse_args %* || exit /b 1
+if not defined _description set "_description=Input %~1: "
 :Input.string.loop
 echo=
 set "user_input="
@@ -749,9 +769,10 @@ if defined _trim_spaces (
     set "user_input=!user_input:~0,-1!"
 )
 if defined _require_filled if not defined user_input goto Input.string.loop
-for /f tokens^=*^ delims^=^ eol^= %%c in ("!user_input!") do (
+for /f tokens^=*^ delims^=^ eol^= %%c in ("_!user_input!_") do (
     endlocal
     set "%~1=%%~c"
+    set "%~1=!%~1:~1,-1!"
     if not defined %~1 exit /b 1
 )
 exit /b 0
@@ -767,7 +788,7 @@ for /f "tokens=* delims= " %%a in ("!user_input!") do (
     if /i "%user_input%" == "Y" exit /b 0
 )
 
-rem ================================ Input yes/no ================================
+rem ================================ Input.yesno() ================================
 $ Function shortcuts Input.yesno
 
 rem ======================== demo ========================
@@ -782,6 +803,9 @@ echo=
 echo Behavior:
 echo - If -y is not specified, it defaults to 'Y'
 echo - If -n is not specified, it defaults to 'N'
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Note:
 echo - Function will set errorlevel to 0 if user enters 'Y'
@@ -840,55 +864,7 @@ if defined _result (
 )
 exit /b 1
 
-rem ======================== function old ========================
-
-:Input.yesnoa   [-b|-t|-u|-s] [-d]  variable_name  [description]
-setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_truth  _binary  _unshortened _sign _defined) do set "%%v="
-set parse_args.args= ^
-    "-b --binary        :flag:_binary=true" ^
-    "-t --truth         :flag:_truth=true" ^
-    "-u --unshortened   :flag:_unshortened=true" ^
-    "-s --sign          :flag:_sign=true" ^
-    "-d --defined       :flag:_defined=true"
-call :parse_args %*
-:Input.yesno.loopa
-echo=
-if "%~2" == "" (
-    set /p "user_input=%~1? Y/N? "
-) else set /p "user_input=%~2"
-if /i "!user_input!" == "Y" goto Input.yesno.convert
-if /i "!user_input!" == "N" goto Input.yesno.convert
-goto Input.yesno.loop
-:Input.yesno.converta
-set "_result=!user_input!"
-if defined _binary (
-    if /i "!user_input!" == "Y" set "_result=1"
-    if /i "!user_input!" == "N" set "_result=0"
-)
-if defined _truth (
-    if /i "!user_input!" == "Y" set "_result=true"
-    if /i "!user_input!" == "N" set "_result=false"
-)
-if defined _unshortened (
-    if /i "!user_input!" == "Y" set "_result=yes"
-    if /i "!user_input!" == "N" set "_result=no"
-)
-if defined _sign (
-    if /i "!user_input!" == "Y" set "_result=+"
-    if /i "!user_input!" == "N" set "_result=-"
-)
-if defined _defined (
-    if /i "!user_input!" == "N" set "_result="
-)
-for /f "tokens=1* delims=_" %%a in ("Z_!_result!") do (
-    endlocal
-    set "%~1=%%b"
-    if /i "%user_input%" == "Y" exit /b 0
-)
-exit /b 1
-
-rem ================================ Input Path ================================
+rem ================================ Input.path() ================================
 $ Function shortcuts Input.path
 
 rem ======================== demo ========================
@@ -902,6 +878,9 @@ echo -n, --not-exist     Target must not exist
 echo -d, --directory     Target must be a folder (if exist)
 echo -f, --file          Target must be a file (if exist)
 echo -o, --optional      Input is optional
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Note:
 echo - This function does not expand variables (e.g.: %appdata%)
@@ -971,7 +950,7 @@ for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
 )
 exit /b 0
 
-rem ================================ Input IPv4 ================================
+rem ================================ Input.ipv4() ================================
 $ Function shortcuts Input.ipv4
 
 rem ======================== demo ========================
@@ -981,6 +960,9 @@ echo Input a valid IPv4
 echo=
 echo Options:
 echo -w, --allow-wildcard   Allow wildcards in IPv4 address
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 call :Input.ipv4 -w your_ip
 echo Your input: !your_ip!
@@ -1179,7 +1161,7 @@ for /l %%p in (1,1,%~3) do (
     set /a "_result*=%~2"
     set /a "_limit/=%~2"
 )
-if "!_limit!" == "0" 1>&2 echo error: result is too large & exit /b 1
+if "!_limit!" == "0" ( 1>&2 echo error: result is too large & exit /b 1 )
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
@@ -2317,7 +2299,7 @@ for %%r in (!_temp!) do for /f "tokens=1,2 delims=~ " %%a in ("%%~r") do (
     )
     set "_range=!_range:~0,-1!, "
 )
-if not defined _range 1>&2 echo error: invalid range & exit /b 1
+if not defined _range ( 1>&2 echo error: invalid range & exit /b 1 )
 set "_range=!_range:~0,-2!"
 set "_input=%~1"
 for /f "tokens=1-3 delims= " %%a in ("a !_input!") do (
@@ -2431,21 +2413,24 @@ echo -n, --not-exist     Target must not exist
 echo -d, --directory     Target must be a folder (if exist)
 echo -f, --file          Target must be a file (if exist)
 echo=
+echo Dependencies:
+echo - parse_args()
+echo=
 echo Note:
 echo - This function does not expand variables (e.g.: %appdata%)
 echo=
 
-call :Input.string config_file "Input an existing file: "
+call :Input.string config_file  --description "Input an existing file: "
 call :check_path --exist --file config_file && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :Input.string folder "Input an existing folder or a new folder name: "
+call :Input.string folder  --description "Input an existing folder or a new folder name: "
 call :check_path --directory folder && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :Input.string new_name "Input an existing folder or a new folder name: "
+call :Input.string new_name  --description "Input an existing folder or a new folder name: "
 call :check_path --not-exist new_name && (
     echo Your input is valid
 ) || echo Your input is invalid
@@ -2465,12 +2450,12 @@ call :parse_args %*
 set "_path=!%~1!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
 if "!_path:~-1,1!" == ":" set "_path=!_path!\"
-for /f tokens^=1-2*^ delims^=?^"^<^>^| %%a in ("_?_!_path!_") do if not "%%c" == "" 1>&2 echo Invalid path & exit /b 1
-for /f "tokens=1-2* delims=*" %%a in ("_*_!_path!_") do if not "%%c" == "" 1>&2 echo Wildcards are not allowed & exit /b 1
+for /f tokens^=1-2*^ delims^=?^"^<^>^| %%a in ("_?_!_path!_") do if not "%%c" == "" ( 1>&2 echo Invalid path & exit /b 1 )
+for /f "tokens=1-2* delims=*" %%a in ("_*_!_path!_") do if not "%%c" == "" ( 1>&2 echo Wildcards are not allowed & exit /b 1 )
 rem (!) Can be improved
 if "!_path:~1,1!" == ":" (
-    if not "!_path::=!" == "!_path:~0,1!!_path:~2!" 1>&2 echo Invalid path & exit /b 1
-) else if not "!_path::=!" == "!_path!" 1>&2 echo Invalid path & exit /b 1
+    if not "!_path::=!" == "!_path:~0,1!!_path:~2!" ( 1>&2 echo Invalid path & exit /b 1 )
+) else if not "!_path::=!" == "!_path!" ( 1>&2 echo Invalid path & exit /b 1 )
 set "file_exist=false"
 for %%f in ("!_path!") do (
     set "_path=%%~ff"
@@ -2523,7 +2508,9 @@ echo Options:
 echo -f     Search for file only
 echo -d     Search for directory only
 
-echo - Requires: capchar(LF)
+echo Dependencies:
+echo - capchar(LF)
+echo=
 call :Input.string wildcard_path
 call :strip_dquotes wildcard_path
 call :wcdir result "!wildcard_path!"
@@ -2674,25 +2661,29 @@ rem ======================== demo ========================
 :unzip.__demo__
 echo Unzip files (VBScript hybrid)
 echo=
-call :Input.string zip_file
+echo Press any key to try it...
+pause > nul
 echo=
-call :unzip "!zip_file!" "."
+call :Input.path --exist --file zip_file
+call :Input.path --directory destination_folder
 echo=
-echo Done
+call :unzip "!zip_file!" "!destination_folder!" && (
+    echo Unzip successful
+) || (
+    echo Unzip failed
+)
 goto :EOF
 
 rem ======================== function ========================
 
 :unzip   zip_file  destination_folder
-if not exist "%~1" 1>&2 echo error: zip file does not exist & exit /b 1
-if not exist "%~2" md "%~2" || 1>&2 echo error: create folder failed & exit /b 2
+if not exist "%~1" ( 1>&2 echo error: zip file does not exist & exit /b 1 )
+if not exist "%~2" md "%~2" || ( 1>&2 echo error: create folder failed & exit /b 2 )
 for %%s in ("!temp!\unzip.vbs") do (
     (
         echo zip_file = WScript.Arguments(0^)
         echo dest_path = WScript.Arguments(1^)
         echo=
-        echo MsgBox(zip_file^)
-        echo MsgBox(dest_path^)
         echo set ShellApp = CreateObject("Shell.Application"^)
         echo set content = ShellApp.NameSpace(zip_file^).items
         echo ShellApp.NameSpace(dest_path^).CopyHere(content^)
@@ -2701,10 +2692,6 @@ for %%s in ("!temp!\unzip.vbs") do (
     del /f /q "%%~s"
 )
 exit /b 0
-
-rem ======================== notes ========================
-
-rem (!) MsgBox?
 
 rem ================================ checksum() ================================
 $ Function file checksum
@@ -3093,6 +3080,9 @@ echo=
 echo Options:
 echo -i, --initialize   Initialize variable list
 echo -l, --list         Display variable names
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Note:
 echo - watchvar can only compare the first 3840 characters for very long variables
@@ -3566,10 +3556,14 @@ echo Exit Codes:
 echo    0: Success / not necessary
 echo    1: Failed
 echo=
+echo Behavior:
+echo - Script will restart when EOL conversion is successful
+echo=
 echo Note:
 echo - In rare cases, the script cannot find the function, but it fixed by 
 echo   moving the function few lines away from where you initially put it.
 echo - Function will not work if it is put in an external file
+echo=
 echo=
 echo Fixing EOL...
 for %%n in (1 2) do call :fix_eol.alt%%n fix_eol.__demo__.success && (
@@ -3591,8 +3585,9 @@ for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
         echo Converting EOL...
         type "%~f0" | more /t4 > "%~f0.tmp" && (
             move "%~f0.tmp" "%~f0" > nul && (
-                goto 2> nul
-                goto %1
+                echo Convert EOL done. Script will restart.
+                start "" /i cmd /c "%~f0"
+                exit 0
             )
         )
         echo warning: Convert EOL failed
@@ -3737,7 +3732,7 @@ rem ======================== demo ========================
 echo Update this batch script from GitHub
 echo=
 echo At metadata():
-echo - Set the 'download_url' to the GitHub raw gist link
+echo - Set the 'download_url' to the download link (raw format)
 echo=
 echo Dependencies:
 echo - metadata()
@@ -3760,7 +3755,7 @@ echo=
 echo Note:
 echo - Updating will REPLACE current script with the newer version
 echo=
-call :Input.yesno user_input "Update now? Y/N? " || goto :EOF
+call :Input.yesno user_input --description "Update now? Y/N? " || goto :EOF
 echo=
 call :module.updater upgrade "%~f0"
 goto :EOF
@@ -3784,8 +3779,8 @@ call :module.is_module "!_downloaded!" || ( 1>&2 echo error: failed to read upda
 call :module.read_metadata _downloaded. "!_downloaded!"  || ( 1>&2 echo error: failed to read update information & exit /b 2 )
 if not defined _downloaded.version ( 1>&2 echo error: failed to read update information & exit /b 2 )
 if /i not "!_downloaded.name!" == "!_module.name!" ( 1>&2 echo warning: module name does not match )
-call :module.version_compare "!_downloaded.version!" EQU "!_module.version!" && ( echo You are using the latest version & exit /b 0 )
-call :module.version_compare "!_downloaded.version!" GTR "!_module.version!" || ( echo No updates available & exit /b 0 )
+call :module.version_compare "!_downloaded.version!" EQU "!_module.version!" && ( echo You are using the latest version & exit /b 99 )
+call :module.version_compare "!_downloaded.version!" GTR "!_module.version!" || ( echo No updates available & exit /b 99 )
 if defined _show (
     call %batchlib%:diffdate update_age !date:~4! !_downloaded.release_date! 2> nul && (
         echo !_downloaded.description! !_downloaded.version! is now available ^(!update_age! days ago^)
@@ -3796,9 +3791,13 @@ if not defined _upgrade exit /b 0
 echo Updating script...
 move "!_downloaded!" "%~f1" > nul && (
     echo Update success
-    echo Script will exit
-    pause
-    exit
+    if "%~f1" == "%~f0" (
+        echo=
+        echo Press any key to restart script...
+        pause > nul
+        start "" /i cmd /c "%~f0"
+        exit 0
+    )
 ) || ( 1>&2 echo error: update failed & exit /b 1 )
 exit /b 0
 
@@ -3823,6 +3822,11 @@ rem APT
 rem 1. Reading package list
 rem 2. Building dependency tree
 rem 3. Reading state information
+
+
+rem For debug
+set "_module.version=0"
+set "_module.download_url=http://localhost:6543/download/batchlib.bat"
 
 rem ============================ .read_metadata() ============================
 $ Function framework module.read_metadata
@@ -3913,7 +3917,6 @@ exit /b 0
 
 rem ============================ .version_compare() ============================
 $ Function framework module.version_compare
-
 
 rem ======================== demo ========================
 
@@ -4080,11 +4083,11 @@ rem ============================ .init() ============================
 
 :tester.init
 rem Use this if the script receives input
-set "tester.input=!temp!\tester_input"
+set "tester.input=!temp_path!\tester_input"
 rem Use this to redirect output of script/function
-set "tester.output=!temp!\tester_output"
+set "tester.output=!temp_path!\tester_output"
 rem Do NOT use in tests; it is reserved for tester.run_tests()
-set "tester.log=!temp!\tester_log"
+set "tester.log=!temp_path!\tester_log"
 
 rem Exit codes
 set /a "tester.exit.passed=0x0"
@@ -4153,10 +4156,14 @@ echo=
 echo Options:
 echo -v, --verbose      Show more results on the test run
 echo -f, --failfast     Stop the test run on the first failure
+echo=
 echo Exit Code:
 echo    0: passed
 echo    1: failed
 echo    2: skipped
+echo=
+echo Dependencies:
+echo - parse_args()
 echo=
 echo Press any key to demo function...
 pause > nul
@@ -4369,7 +4376,6 @@ if not "!_colon!" == ":" ( 2>&1 echo [failed] case3: parsing of colon ':' & exit
 if not "!_semicolon!" == ";" ( 2>&1 echo [failed] case3: parsing of semicolon ';' & exit /b 1 )
 exit /b 0
 
-
 rem ======================== function ========================
 
 :parse_args   %*
@@ -4416,7 +4422,7 @@ setlocal EnableDelayedExpansion
 for %%o in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%o) do (
     if "%%d" == "" ( 2>&1 echo variable to set is not defined & exit /b 1 )
     if "%%c" == "" (
-        2>&1 echo error: argument type is not defined & exit /b 1
+        ( 2>&1 echo error: argument type is not defined & exit /b 1 )
     ) else (
         set "_valid="
         if /i "%%c" == "flag" set "_valid=true"
