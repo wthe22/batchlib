@@ -5,7 +5,7 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.0-b.6"
+set "%~1version=2.0"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -112,137 +112,29 @@ for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
 exit /b 0
 
 
-:changelog.text.2.0-b.6 (2019-07-31)
-echo    - fixed minified script not showing usage parameters
-echo    - added extract_func() for minifying script
-echo    - improved structure and description of the minified script
-echo    - added tests for Input.number()
-exit /b 0
-
-:changelog.text.2.0-b.5 (2019-07-30)
-echo    - added --description option to Input.path()
-echo    - added parameter to tell script not to cleanup temporary files
-echo    - added menu option to minify script (for performance purposes)
-echo    - added hexlify()
-echo    - Added tests for some function
-echo    - added caret at beginning of multi-line commands for better code readability
-echo    - added ability to specify tests on scripts.test()
-echo    - reworked module.updater(), watchvar()
-echo    - fixed module framework not passing errorlevel when exiting
-echo    - fixed what_day() not returning result when -n is specified
-echo    - fixed diffbin() not finding file if relative path is given
-echo    - removed miswritten parse_args() dependency in tester.run_tests()
-echo    - removed support for labels beginning with '@' at tester.find_tests()
-echo    - replaced scripts.debug_tests() with scripts.test()
-echo    - used predefined folder instead of file names for input/output/log in tester framework
-echo    - fix_eol() and module.updater() no longer restarts script automatically on success (for easier testing)
-echo    - simplified temp_path code in diffbin(), watchvar()
-echo    - config.default(): each scripts now have its own temp_path
-echo    - improved several demo text
-exit /b 0
-
-:changelog.text.2.0-b.4 (2019-07-20)
-echo    - Removed old codes of Input.string()
-echo    - Removed unused debug codes of Input.string()
-echo    - Fixed incorrect release_date in metadata()
-echo    - Fixed demo of check_path() and module.updater()
-echo    - Fixed Input.string() showing incorrect description when it is not given
-echo    - Fixed Input.string() ignoring the first and last character if it is a double quote '"'
-echo    - Fixed popup showing when using unzip()
-echo    - Improved demo of unzip()
-echo    - Added parentheses to surround error exits to prevent ambiguous exits
-echo    - fix_eol() now restarts script after a successful EOL conversion
-echo    - module.updater() now restarts script after a successful update
-exit /b 0
-
-:changelog.text.2.0-b.3 (2019-07-20)
-echo    Concept
-echo    - changed function styles from 'underscores style' to 'namespace structure'
-echo    - changed error handling to exception based
+:changelog.text.2.0 (2019-07-31)
+echo    Major update
+echo=
+echo    Features
+echo    - added module (call as module) and tester (testing automation) frameworks
+echo    - added many new functions
+echo    - added tests for several functions
+echo    - Removed a few redundant and unmaintained functions
+echo    - Added function to get metadata of script
+echo    - added a UTF-8-BOM guard line at beginning of file to prevent errors
+echo      if script is encoded in UTF-8-BOM
+echo    - added menu option to generate minified version of this script (for performance purposes)
 echo=
 echo    Internal
-echo    - renamed function '__setup__' to 'metadata'
-echo    - renamed function 'Module.*' to 'module.*'
-echo    - renamed function 'download' to 'download_file'
-echo    - renamed function 'check_eol' to 'check_win_eol'
-echo    - metadata variable renamed from 'release' to 'release_date'
+echo    - re-factored some functions
+echo    - regrouped category and functions
+echo    - Now the script uses namespace structure
 echo=
 echo    Documentation
 echo    - changed documentation structures
-echo    - each version now has its own label
 echo=
-echo    Features
-echo    - Changed diffdate() default start date to epoch time (1/01/1970)
-echo    - Added testing automation framework: tester
-echo    - Added tests for some function
-echo    - reworked parse_args(), parameters are now simplified and more robust
-echo    - Added check_number(), check_ipv4(), time2epoch()
-echo    - added a UTF-8-BOM guard line at beginning of file to prevent errors
-echo      if script is encoded in UTF-8-BOM
-echo=
-echo    Backward Incompatibilities
-echo    - changed arguments for download()
-echo    - download() no longer gets download name automatically
-exit /b 0
-
-:changelog.text.2.0-b.2 (2019-04-27)
-echo    Features
-echo    - added new parameter '--filled' for Input.string
-echo    - added combination version of wcdir: combi_wcdir(), but not included in demo
-echo    - changed __error__.assertion() to __error__() to allow generic error messages
-echo    - user can now see changelog without looking at the source code
-echo=
-echo    Bug Fixes
-echo    - wcdir():
-echo        - fixed spaces handling when using wildcard drive path
-echo        - fixed folder listing when last item exist and does not contain wildcard
-echo=
-echo    Behavior
-echo    - improved wcdir() search speed (~5x faster)
-echo    - added warning message for unknown tags when reading function
-echo    - changed title in about
-echo    - added fallback display to Module.updater when diffdate() is not found
-echo    - changed default prompt from '>' to '$ '
-echo    - disabled echo when converting EOL
-exit /b 0
-
-:changelog.text.2.0-b.1 (2019-03-25)
-echo    Bug Fixes
-echo    - fixed Module.updater() not upgrading script
-exit /b 0
-
-:changelog.text.2.0-b (2019-03-25)
-echo    Major update
-echo=
-echo    Bug Fixes
-echo    - fixed parameter when calling script as lib module
-echo    - fixed a rare display error of watchvar()
-echo    - fixed error in unzip() if path ends with slash
-echo    - fixed error when capturing Carriage Return using capchar() if script is set to read-only
-echo    - fixed endlocal() not copying empty variables
-echo    - fixed incorrect EOL format if script is downloaded from GitHub
-echo    - fixed expand_link(), and now it can work with incomplete urls (e.g.: no scheme defined)
-echo=
-echo    Features
-echo    - improved demo of download()
-echo    - wcdir() can now search for both file and directory at the same time
-echo    - expand_link can now seperate query ('?') and fragment ('#') in url
-echo    - added path_check(), check_eol(), color2seq()
-echo    - added assertion for debugging
-echo=
-echo    Behavior
-echo    - re-factored several functions (no feature change)
-echo    - removed get_os() /b flag, it is now the default option
-echo    - wcdir() search file/directory only now requires additional parameter
-echo    - Module.detect() no longer set __name__
-echo    - Module.detect() now changes %* argument
-echo=
-echo    Deprecations
-echo    - removed unnecessary watchvar -w flag, since it can be done using ^>^> redirection
-echo=
-echo    Internal
-echo    - regrouped category and functions
-echo    - reworking sleep(), still unavailable for now
+echo    Others
+echo    - No code changes from version 2.0-b.6
 exit /b 0
 
 rem ======================================== Debug functions ========================================
@@ -762,7 +654,6 @@ goto :EOF
 
 rem ======================== tests ========================
 
-:Input.number.__debug_tests__
 :tests.lib.Input.number.main
 set "errors=0"
 > "in\boundaries" (
