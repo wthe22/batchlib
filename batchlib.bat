@@ -1,9 +1,21 @@
 @goto main
 
 
-rem Function Library 1.2.1
-rem Updated on 2017-08-27
+rem Function Library 1.3
+rem Updated on 2018-03-31
 rem Made by wthe22 - http://winscr.blogspot.com/
+
+
+rem ======================================== Change Log ========================================
+:__CHANGE_LOG__     Version History
+
+
+rem     x.x.x (YYYY-MM-DD)
+rem     - Changes to .....
+
+rem ======================================== Entry Point ========================================
+:__ENTRY__     Entry Point
+@rem These kinds of labels serves as a bookmark
 
 
 :restart
@@ -11,45 +23,48 @@ endlocal
 
 :main
 @echo off
-prompt $s
+prompt $g
 call :setupEndlocal
 setlocal EnableDelayedExpansion EnableExtensions
 
 rem ======================================== Settings ========================================
 
 rem Active Settings
-set "dataPath=BatchScript_Data\Functions\"
-set "tempPath=!temp!\BatchScript\"
+set "data_path=BatchScript_Data\Functions\"
+set "temp_path=!temp!\BatchScript\"
 
 rem None of these are used in this script
-set "dataFile=Script.dat"
-set "configFile=Script.cfg"
-set "defaultScreenWidth=80"
-set "defaultScreenHeight=25"
-set "screenWidth=!defaultScreenWidth!"
-set "screenHeight=!defaultScreenHeight!"
-set "pingTimeout=750"
+set "data_file=Script.dat"
+set "debug_file=Script.log"
+set "config_file=Script.cfg"
+set "default_screen_width=80"
+set "default_screen_height=25"
+set "screen_width=!default_screen_width!"
+set "screen_height=!default_screen_height!"
+set "ping_timeout=750"
 
 rem ======================================== Script Setup ========================================
 
-set "scriptVersion=1.2.1"
-set "releaseDate=08/27/2017"
-set "debugFile="
+set "SOFTWARE_NAME=Function Library"
+set "SOFTWARE_VERSION=1.3"
+set "SOFTWARE_RELEASE_DATE=03/31/2018"
+
+
+title !SOFTWARE_NAME! !SOFTWARE_VERSION!
 
 cd /d "%~dp0"
-if not exist "!dataPath!" md "!dataPath!"
-if not exist "!tempPath!" md "!tempPath!"
-cd /d "!dataPath!"
+if not exist "!data_path!" md "!data_path!"
+if not exist "!temp_path!" md "!temp_path!"
+cd /d "!data_path!"
 
 
-title Function Library !scriptVersion!
 cls
 echo Loading script...
-
 call :capchar CR LF BS BASE DQ
-call :readFunctions
-set "debugMode=FALSE"
-goto categoryMenu
+call :Category.read
+call :Function.read
+set "debug_mode=FALSE"
+goto category_menu
 
 
 rem === Multiple batch script windows ===
@@ -57,125 +72,136 @@ start "" "%~f0" [Command to execute]
 rem =====================================
 
 rem File location:   %~f0
-if not exist "!dataPath!" md "!dataPath!"
+
+rem Start in new window
+if "%~1" == "" goto start_in_new_window
+
+:start_in_new_window
+start "!SOFTWARE_NAME! !SOFTWARE_VERSION!" "%~f0" new_window
+exit /b
 
 
-:errorExit
+:error_exit
 echo=
 echo ERROR: !errorMsg!
 echo Script will exit
 pause > nul
 exit
 
-rem ======================================== Main Menu ========================================
+rem ======================================== Menu ========================================
+:__MENU__     Main Menu
 
-:categoryMenu
-set "userInput=?"
+
+:category_menu
+set "user_input=?"
 cls
-call :getCategory list
+call :Category.get_item list
 echo=
 if defined lastUsed_function echo L. Last used Function
 echo S. Search Functions
-echo D. Toggle debug mode [!debugMode!]
+echo D. Toggle debug mode [!debug_mode!]
 echo 0. Exit
 echo=
 echo Which tool do you want to use?
-set /p "userInput="
-if "!userInput!" == "0" exit
-if defined lastUsed_function if /i "!userInput!" == "L" goto startFunction
-if /i "!userInput!" == "S" goto searchFunction
-if /i "!userInput!" == "D" call :toggleDebugMode
-call :getCategory !userInput!
-if defined selected_category goto functionMenu
-goto categoryMenu
+set /p "user_input="
+if "!user_input!" == "0" exit
+if defined lastUsed_function if /i "!user_input!" == "L" goto start_function
+if /i "!user_input!" == "S" goto function_search
+if /i "!user_input!" == "D" call :toggle.debug_mode
+call :Category.get_item !user_input!
+if defined selected_category goto function_menu
+goto category_menu
 
 
-:toggleDebugMode
-if /i "!debugMode!" == "TRUE" (
-    set "debugMode=FALSE"
-) else set "debugMode=TRUE"
-goto :EOF
-
-
-:functionMenu
-set "userInput=?"
+:function_menu
+set "user_input=?"
 cls
-call :getFunction !selected_category! list
+call :Function.get_item !selected_category! list
 echo=
 echo 0. Back
 echo=
 echo Input function number:
-set /p "userInput="
-if "!userInput!" == "0" goto categoryMenu
-call :getFunction !selected_category! !userInput!
-if defined selected_function goto startFunction
-goto functionMenu
+set /p "user_input="
+if "!user_input!" == "0" goto category_menu
+call :Function.get_item !selected_category! !user_input!
+if defined selected_function goto start_function
+goto function_menu
 
 
-:searchFunction
-set "userInput=?"
+:function_search
+set "user_input=?"
 cls
 echo 0. Back
 echo=
 echo Input search keyword:
-set /p "userInput="
-if "!userInput!" == "0" goto categoryMenu
+set /p "user_input="
+if "!user_input!" == "0" goto category_menu
 
 rem Search for keyword in function name
-set "fxList_search="
-for %%f in (!fxList_all!) do (
-    set "_temp= %%f"
-    if not "!_temp:%userInput%=!" == "!_temp!" set "fxList_search=!fxList_search! %%f"
+set "cat_search_functions="
+for %%f in (!cat_all_functions!) do (
+    set "_temp= !fx_%%f_param!"
+    if not "!_temp:%user_input%=!" == "!_temp!" set "cat_search_functions=!cat_search_functions! %%f"
 )
-:searchResult
+:function_search.result
 cls
-echo Keyword:   !userInput!
+echo Keyword : %user_input%
 echo=
-call :getFunction search list
+call :Function.get_item search list
 echo=
 echo 0. Back
 echo=
 echo Input function number:
-set /p "userInput="
-if "!userInput!" == "0" goto categoryMenu
-call :getFunction search !userInput!
-if defined selected_function goto startFunction
-goto searchResult
+set /p "user_input="
+if "!user_input!" == "0" goto category_menu
+call :Function.get_item search !user_input!
+if defined selected_function goto start_function
+goto function_search.result
 
 
-:startFunction
+:start_function
 set "lastUsed_function=!selected_function!"
 setlocal EnableDelayedExpansion EnableExtensions
-title Function Library - !selected_function!
+title !SOFTWARE_NAME! - !selected_function!
 
-if /i "!debugMode!" == "TRUE" (
-    call :debugMenu
-) else call :startFunction_noDebug
+if /i "!debug_mode!" == "TRUE" (
+    call :debug_menu
+) else call :start_function.normal
 
-title Function Library !scriptVersion!
+title !SOFTWARE_NAME! !SOFTWARE_VERSION!
 endlocal
-goto categoryMenu
+goto category_menu
 
 
-:startFunction_noDebug
+:start_function.normal
 cls
 echo =============================== START OF FUNCTION ==============================
-echo=!fxParam_%selected_function%!
+echo=!fx_%selected_function%_param!
 echo=
-call :!selected_function!_Scripts
+call :!selected_function!.Demo
 echo=
 echo ================================ END OF FUNCTION ===============================
 echo=
 pause
 goto :EOF
 
-rem ======================================== Debug Menu ========================================
 
-:debugMenu
-set "userInput=?"
-title Function Library - Debug Mode
+:toggle.debug_mode
+if /i "!debug_mode!" == "TRUE" (
+    set "debug_mode=FALSE"
+) else set "debug_mode=TRUE"
+goto :EOF
+
+
+rem ======================================== Debug Menu ========================================
+:__DEBUG__     Debug function
+
+
+:debug_menu
+set "user_input=?"
+title !SOFTWARE_NAME! - Debug Mode
 cls
-echo !selected_function!()
+echo !selected_function!
 echo=
 echo 1. Single test
 echo 2. Multiple tests
@@ -184,231 +210,253 @@ echo 0. Back to main menu
 echo C. Execute Commands
 echo=
 echo What do you want to do?
-set /p "userInput="
-if "!userInput!" == "0" goto :EOF
-if /i "!userInput!" == "C" call :scriptCmd
-if "!userInput!" == "1" goto debugSingle
-if "!userInput!" == "2" goto debugMultiple
-goto debugMenu
-
-
-:scriptCmd
-cls
-echo Batch Script CMD
-echo Be careful with special characters
-echo Type "EXIT /B" to return to previous menu
-echo=
-:scriptCmd_Loop
-set /p "userInput=> "
-%userInput%
-goto scriptCmd_Loop
+set /p "user_input="
+if "!user_input!" == "0" goto :EOF
+if /i "!user_input!" == "C" call :script_cmd
+if "!user_input!" == "1" goto debug_single
+if "!user_input!" == "2" goto debug_multiple
+goto debug_menu
 
 rem ======================================== Debug Single ========================================
 
-
-:debugSingle
+:debug_single
 cls
-echo !selected_function!()
+echo Guide:
+echo=!fx_%selected_function%_param!
 echo=
-echo=!fxParam_%selected_function%!
 echo=
 echo Input parameter for the function:
-echo=
-set /p "testParameter="
+set /p "debug_param="
 
 rem Display settings
 cls
-echo !selected_function!(!testParameter!)
+echo Guide:
+echo=!fx_%selected_function%_param!
 echo=
+echo=
+echo Command:
+echo !selected_function!   !debug_param!
+echo=
+ceho=
 pause
 echo=
 
-call :!selected_function!_Settings 2> nul
+call :!selected_function!.Debug.settings 2> nul
 
 rem Run function test
 setlocal EnableDelayedExpansion EnableExtensions
 cls
-@echo on    & set "startTime=!time!"
-call :!selected_function! !testParameter!
-@echo off   & set "functionOutput=!return!"
-call :difftime !time! !startTime!
+@echo on    & set "debug_start_time=!time!"
+call :!selected_function! !debug_param!
+@echo off   & set "debug_function_output=!return!"
+call :difftime !time! !debug_start_time!
 call :ftime !return!
-set "runTime=!return!"
+set "debug_time_taken=!return!"
 echo=
 pause 
 
 rem Display test result
 cls
-echo Parameter:
+echo Command:
+echo=!selected_function! !debug_param!
 echo=
-echo=!testParameter!
 echo=
-echo Return     : !functionOutput!
+echo Return     : !debug_function_output!
 echo=
-echo Time taken    : !runTime!
+echo Time taken : !debug_time_taken!
 echo=
-call :!selected_function!_SingleTest_EndInfo 2> nul
+call :!selected_function!.Debug.single_end 2> nul
 echo=
 endlocal
 pause
-goto debugMenu
+goto debug_menu
 
+rem ======================================== Debug Multiple ========================================
 
-:debugMultiple
+:debug_multiple
 cls
-set "testTotal=1000"
-call :inputNumber testTotal 0 2147483647
+set "test_total=1000"
+call :input_number test_total 0 2147483647
 
 cls
 echo !selected_function!()
 echo=
-echo Test !testTotal! times for speed and output of function
+echo Test !test_total! times for speed and output of function
 echo=
 pause
 
 setlocal EnableDelayedExpansion EnableExtensions
-call :!selected_function!_Settings 2> nul
-set "errorDescription="
-set "functionTime=0"
-set "testStartTime=!time!"
+call :!selected_function!.Debug.settings 2> nul
+set "debug_error_desc="
+set "function_run_time=0"
+set "debug_start_time=!time!"
 
-for /l %%l in (1,1,!testTotal!) do (
-    set "testCount=%%l"
-    title Function Library !scriptVersion! - Debug Mode - Test #%%l / !testTotal!
-    call :!selected_function!_Setup 2> nul
+for /l %%l in (1,1,!test_total!) do (
+    set "test_count=%%l"
+    title !SOFTWARE_NAME! !SOFTWARE_VERSION! - !selected_function! - Test #%%l / !test_total!
+    call :!selected_function!.Debug.setup 2> nul
     set "return="
-    set "functionTimeCS=0"
-    set "functionStartTime=!time!"
+    set "function_run_timeCS=0"
+    set "function_start_time=!time!"
     
-    call :!selected_function! !testParameter!
+    call :!selected_function! !debug_param!
     
-    for %%t in (!time! !functionStartTime!) do (
-        for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
-            set /a "functionTimeCS+=24%%a %% 24 *360000 +1%%b*6000 +1%%c*100 +1%%d -610100"
-        )
-        set /a "functionTimeCS*=-1"
+    for %%t in (!time! !function_start_time!) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
+        set /a "function_run_timeCS+=24%%a %% 24 *360000 +1%%b*6000 +1%%c*100 +1%%d -610100"
+        set /a "function_run_timeCS*=-1"
     )
-    if !functionTimeCS! LSS 0 set /a "return+=8640000"
-    set /a "functionTime+=!functionTimeCS!"
+    if !function_run_timeCS! LSS 0 set /a "function_run_timeCS+=8640000"
+    set /a "function_run_time+=!function_run_timeCS!"
     
-    set "functionOutput=!return!"
-    call :!selected_function!_Check 2> nul
-    if defined errorDescription goto debugError
+    set "debug_function_output=!return!"
+    call :!selected_function!_Debug.check 2> nul
+    if defined debug_error_desc goto debug_error
 )
-call :difftime !time! !testStartTime!
-set /a "testTimeAverage=!return!/!testTotal!"
-set /a "functionTimeAverage=!functionTime!/!testTotal!"
+call :difftime !time! !debug_start_time!
+set /a "debug_avg_time=!return!/!test_total!"
+set /a "function_avg_time=!function_run_time!/!test_total!"
 call :ftime !return!
-set "runTime=!return!"
-call :ftime !testTimeAverage!
-set "testTimeAverage=!return!"
-call :ftime !functionTime!
-set "functionTime=!return!"
-call :ftime !functionTimeAverage!
-set "functionTimeAverage=!return!"
+set "debug_time_taken=!return!"
+call :ftime !debug_avg_time!
+set "debug_avg_time=!return!"
+call :ftime !function_run_time!
+set "function_run_time=!return!"
+call :ftime !function_avg_time!
+set "function_avg_time=!return!"
 echo=
 echo Test Done
 pause
 
-title Function Library !scriptVersion! - Debug Mode
+title !SOFTWARE_NAME! !SOFTWARE_VERSION! - Debug Mode
 cls
-echo Run time taken         : !runTime!
-echo Function time taken    : !functionTime!
-echo Average function time  : !functionTimeAverage!
-echo Average time per test  : !testTimeAverage!
-echo Number of tests        : !testTotal!
+echo Debug time taken       : !debug_time_taken!
+echo Function time taken    : !function_run_time!
+echo Average function time  : !function_avg_time!
+echo Average time per test  : !debug_avg_time!
+echo Number of tests        : !test_total!
 echo=
-call :!selected_function!_MultiTest_EndInfo 2> nul
+call :!selected_function!.Debug.multiple_end 2> nul
 echo=
 endlocal
 pause
-goto debugMenu
+goto debug_menu
 
 
-:debugError
+:debug_error
 cls
 echo An error occured...
 echo=
-echo Parameter  : !testParameter!
+echo Parameter  : !debug_param!
 echo=
-echo Return     : !functionOutput!
+echo Return     : !debug_function_output!
 echo=
 echo Error Description  :
-echo=!errorDescription!
+echo=!debug_error_desc!
 echo=
-call :!selected_function!_MultiTest_ErrorInfo 2> nul
+call :!selected_function!.Debug.multiple_error 2> nul
 echo=
 endlocal
 pause
-goto debugMenu
+goto debug_menu
 
+
+:script_cmd
+cls
+echo Batch Script CMD
+echo Be careful with special characters
+echo Type "EXIT /B" to return to previous menu
+echo=
+:script_cmd.loop
+set /p "user_input=>"
+%user_input%
+goto script_cmd.loop
 
 rem ======================================== Category Functions ========================================
+:__CATEGORY_FUNCTIONS__     Read / list cateogry and functions
 
-:readFunctions
-set "categoryList="
-set "lastFoundFunction="
-for /f "usebackq tokens=*" %%o in ("%~f0") do for /f "tokens=1,2* delims= " %%a in ("%%o") do (
-    if /i "%%a" == "#CATEGORY" if not defined catName_%%b (
-        set "categoryList=!categoryList! %%b"
-        set "catName_%%b=%%c"
-        set "fxList_%%b="
-    )
-    if /i "%%a" == "#FUNCTION" for /f "tokens=1* delims= " %%d in ("%%c") do (
-        set "fxName_%%d=%%e"
-        set "lastFoundFunction=%%d"
-        if defined catName_%%b (
-            set "fxList_%%b=!fxList_%%b! %%d"
-        ) else set "fxList_others=!fxList_others! %%d"
-    )
-    if /i "%%a" == ":!lastFoundFunction!" (
-        set "_temp=%%o"
-        set "fxParam_!lastFoundFunction!=!_temp:~1!"
+
+:Category.read
+rem #CATEGORY category  name
+set "category_tag=#CATEGORY"
+set "category_list="
+for /f "usebackq tokens=*" %%o in ("%~f0") do for /f "tokens=1,2* delims= " %%b in ("%%o") do (
+    if /i "%%b" == "!category_tag!" if not "%%c" == "" (
+        if not defined cat_%%c_name (
+            set "category_list=!category_list! %%c"
+            set "cat_%%c_name=%%d"
+            set "cat_%%c_functions= "
+        )
     )
 )
-set "catName_others=Others"
-set "categoryList=!categoryList! others"
-set "fxList_all="
-set "fxCount_all=0"
-for %%c in (!categoryList!) do (
-    set "fxList_all=!fxList_all! !fxList_%%c!"
-    set "fxCount_%%c=0"
-    for %%f in (!fxList_%%c!) do set /a "fxCount_%%c+=1"
-    set /a "fxCount_all+=!fxCount_%%c!"
-)
-set "catName_all=All"
-set "categoryList=all !categoryList!"
+set "category_list=all !category_list! others"
+set "cat_all_name=All"
+set "cat_all_functions= "
+set "cat_others_name=Others"
+set "cat_others_functions= "
 goto :EOF
 
 
-:getCategory   list|number
-set "_listCount=0"
+:Category.get_item   list|number
+set "_count=0"
 set "selected_category="
-for %%c in (!categoryList!) do (
-    set /a "_listCount+=1"
-    if /i "%1" == "LIST" (
-        set "_listCount=   !_listCount!"
-        echo !_listCount:~-3,3!. !catName_%%c! [!fxCount_%%c!]
-    ) else if "%1" == "!_listCount!" set "selected_category=%%c"
+for %%c in (!category_list!) do (
+    set /a "_count+=1"
+    if /i "%~1" == "LIST" (
+        set "_count=   !_count!"
+        echo !_count:~-3,3!. !cat_%%c_name! [!cat_%%c_item_count!]
+    ) else if "%~1" == "!_count!" set "selected_category=%%c"
 )
 goto :EOF
 
 
-:getFunction   category  list|number
-set "_listCount=0"
+:Function.read
+rem #FUNCTION category label
+set "function_tag=#FUNCTION"
+set "current_function_label="
+for /f "usebackq tokens=*" %%o in ("%~f0") do for /f "tokens=1,2* delims= " %%b in ("%%o") do (
+    if /i "%%b" == "!function_tag!" if not "%%d" == "" (
+        set "current_function_label=%%d"
+        if /i defined cat_%%c_name (
+            if /i "%%c" == "all" (
+                set "cat_others_functions=!cat_others_functions! %%d"
+            ) else set "cat_%%c_functions=!cat_%%c_functions! %%d"
+        ) else set "cat_others_functions=!cat_others_functions! %%d"
+    )
+    if /i "%%b" == ":!current_function_label!" (
+        set "_temp=%%o"
+        set "fx_!current_function_label!_param=!_temp:~1!"
+    )
+)
+set "current_function_label="
+set "_temp="
+set "cat_all_functions="
+set "cat_all_item_count=0"
+for %%c in (!category_list!) do (
+    set "cat_%%c_item_count=0"
+    for %%f in (!cat_%%c_functions!) do set /a "cat_%%c_item_count+=1"
+    set "cat_all_functions=!cat_all_functions! !cat_%%c_functions!"
+    set /a "cat_all_item_count+=!cat_%%c_item_count!"
+)
+goto :EOF
+
+
+:Function.get_item   category list|number
+set "_count=0"
 set "selected_function="
-for %%f in (!fxList_%1!) do (
-    set /a "_listCount+=1"
-    if /i "%2" == "list" (
-        set "_listCount=   !_listCount!"
-        echo !_listCount:~-3,3!. !fxName_%%f!
-    ) else if "%2" == "!_listCount!" set "selected_function=%%f"
+for %%f in (!cat_%~1_functions!) do (
+    set /a "_count+=1"
+    if /i "%~2" == "list" (
+        set "_count=   !_count!"
+        echo !_count:~-3,3!. !fx_%%f_param!
+    ) else if "%~2" == "!_count!" set "selected_function=%%f"
 )
 goto :EOF
 
-rem ======================================== Define Categories ========================================
+rem ======================================== Category Definition ========================================
+:__CATEGORY_DEFINITION__     Define Category here
 
-:DEFINE_CATEGORY_HERE --> #CATEGORY category_ID  name
+
+rem #CATEGORY category  name
 
 #CATEGORY math      Math
 #CATEGORY str       String
@@ -418,69 +466,72 @@ rem ======================================== Define Categories =================
 #CATEGORY env       Environment
 #CATEGORY dev       Developer
 
-rem ======================================== Functions Library ========================================
+rem ======================================== Functions Template ========================================
 
 rem ======================================== example(only) ========================================
 
-rem #FUNCTION [category_ID] [label] [name on the menu]
-:example_Scripts    // Scripts to simulate the function
+rem #FUNCTION category label
+
+:example.Demo    // Scripts to simulate the function
 echo Hello world!
 call :example
 goto :EOF
 
 
-:example_Settings   // Things to do before running multi test. Only executed ONCE
+:example.Debug.settings   // Things to do before running multi test. Only executed ONCE
 set "chanceOfError=5"
 goto :EOF
 
 
-:example_Setup      // Things to do before EACH test (Setup parameter)
-set /a "testParameter=!random! %% !chanceOfError!"
+:example.Debug.setup      // Things to do before EACH test (Setup parameter)
+set /a "debug_param=!random! %% !chanceOfError!"
 goto :EOF
 
 
 :example            // This is the function
 set "return=no_error"
-if "!testParameter!" == "0" (
+if "!debug_param!" == "0" (
     echo 1 + 1 = 11
     set "return=error"
 ) else echo 1 + 1 = 2
 exit /b
 
 
-:example_Check      // Check if the output of the function is correct or not
-if /i "!functionOutput!" == "error" set "errorDescription=1 + 1 is not 11!!"
-rem Describe whats wrong with function output in "errorDescription"
-rem Defining this will call "MultiTest_ErrorInfo"
+:example_Debug.check      // Check if the output of the function is correct or not
+if /i "!debug_function_output!" == "error" set "debug_error_desc=1 + 1 is not 11!!"
+rem Describe whats wrong with function output in "debug_error_desc"
+rem Defining this will call ".Debug.multiple_error"
 goto :EOF
 
 
-:example_MultiTest_ErrorInfo    // Informations add for multiple test error result
+:example.Debug.multiple_error    // Informations add for multiple test error result
 echo Chance of error: !chanceOfError!
 goto :EOF
 
 
-:example_SingleTest_EndInfo     // Informations to show for single test end result
+:example.Debug.single_end     // Informations to show for single test end result
 echo Test Done
 goto :EOF
 
 
-:example_MultiTest_EndInfo      // Informations to show for multiple test end result
+:example.Debug.multiple_end      // Informations to show for multiple test end result
 echo MultiTest Success!!
 goto :EOF           // All labels above ends with this
 
-rem ======================================== Functions List ========================================
-
-rem ======================================== rand(min,max) ========================================
-
-#FUNCTION math rand rand (min,max)
+rem ======================================== Functions Library ========================================
+:__FUNCTION_LIBRARY__     Collection of Functions
 
 
-:rand_Scripts   // Scripts to simulate the function
+rem ======================================== rand(min, max) ========================================
+
+#FUNCTION math rand
+
+
+:rand.Demo   // Scripts to simulate the function
 echo Generate random number within a range
 echo=
-call :inputNumber minimum 0 2147483647
-call :inputNumber maximum 0 2147483647
+call :input_number minimum 0 2147483647
+call :input_number maximum 0 2147483647
 call :rand "!minimum!" "!maximum!"
 echo=
 echo Random Number  : !return!
@@ -502,12 +553,13 @@ exit /b
 
 rem ======================================== randw(weights[]) ========================================
 
-#FUNCTION math randw randw (weights[])
+#FUNCTION math randw
 
-:randw_Scripts
+:randw.Demo
 echo Generate random number based on weights
+echo Random number generated is index number (starts from 0)
 echo=
-call :inputString weights
+call :input_string weights
 call :randw !weights!
 echo=
 echo Random Number  : !return!
@@ -532,13 +584,13 @@ exit /b
 
 rem ======================================== sqrt(int) ========================================
 
-#FUNCTION math sqrt sqrt (int)
+#FUNCTION math sqrt
 
 
-:sqrt_Scripts
+:sqrt.Demo
 echo Calculate square root of x
 echo=
-call :inputNumber number 0 2147483647
+call :input_number number 0 2147483647
 call :sqrt !number!
 echo=
 echo Square root of !number! is !return!
@@ -551,19 +603,19 @@ set "return=0"
 for %%n in (32768 16384 8192 4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
     set /a "_guess=!return! + %%n"
     set /a "_guess*=!_guess!"
-    if !_guess! LEQ %1 set /a "return+=%%n"
+    if !_guess! LEQ %~1 set /a "return+=%%n"
 )
 exit /b
 
 rem ======================================== cbrt(int) ========================================
 
-#FUNCTION math cbrt cbrt (x)
+#FUNCTION math cbrt
 
 
-:cbrt_Scripts
+:cbrt.Demo
 echo Calculate cube root of x
 echo=
-call :inputNumber number 0 2147483647
+call :input_number number 0 2147483647
 call :cbrt !number!
 echo=
 echo Cube root of !number! is !return!
@@ -576,20 +628,20 @@ set "return=0"
 for %%n in (1024 512 256 128 64 32 16 8 4 2 1) do (
     set /a "_guess=!return! + %%n"
     set /a "_guess*=!_guess!*!_guess!"
-    if !_guess! LEQ %1 set /a "return+=%%n"
+    if !_guess! LEQ %~1 set /a "return+=%%n"
 )
 exit /b
 
-rem ======================================== yroot(int,pow) ========================================
+rem ======================================== yroot(int, pow) ========================================
 
-#FUNCTION math yroot yroot (x,y)
+#FUNCTION math yroot
 
 
-:yroot_Scripts
+:yroot.Demo
 echo Calculate y root of x
 echo=
-call :inputNumber number 0 2147483647
-call :inputNumber power 0 2147483647
+call :input_number number 0 2147483647
+call :input_number power 0 2147483647
 call :yroot !number! !power!
 echo=
 echo Root to the power of !power! of !number! is !return!
@@ -601,21 +653,21 @@ goto :EOF
 set "return=0"
 for %%n in (32768 16384 8192 4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
     set "_guess=1"
-    for /l %%p in (1,1,%2) do set /a "_guess*=!_guess! + %%n"
-    if not !_guess! LEQ 0 if !_guess! LEQ %1 set /a "return+=%%n"
+    for /l %%p in (1,1,%~2) do set /a "_guess*=!return! + %%n"
+    if not !_guess! LEQ 0 if !_guess! LEQ %~1 set /a "return+=%%n"
 )
 exit /b
 
-rem ======================================== pow(int,pow) ========================================
+rem ======================================== pow(int, pow) ========================================
 
-#FUNCTION math pow pow (x,y)
+#FUNCTION math pow
 
 
-:pow_Scripts
+:pow.Demo
 echo Calculate x to the power of n
 echo=
-call :inputNumber number 0 2147483647
-call :inputNumber power 0 2147483647
+call :input_number number 0 2147483647
+call :input_number power 0 2147483647
 call :pow !number! !power!
 echo=
 echo !number! to the power of !power! is !return!
@@ -629,13 +681,13 @@ exit /b
 
 rem ======================================== prime(int) ========================================
 
-#FUNCTION math prime prime (x)
+#FUNCTION math prime
 
 
-:prime_Scripts
+:prime.Demo
 echo Test for prime number
 echo=
-call :inputNumber number 0 2147483647
+call :input_number number 0 2147483647
 call :prime !number! !power!
 echo=
 if "!return!" == "!number!" (
@@ -668,16 +720,16 @@ if %1 GEQ 2 (
 )
 exit /b
 
-rem ======================================== gcf(int,int) ========================================
+rem ======================================== gcf(int, int) ========================================
 
-#FUNCTION math gcf gcf (x,y)
+#FUNCTION math gcf
 
 
-:gcf_Scripts
+:gcf.Demo
 echo Calculate greatest common factor (GCF) of 2 numbers
 echo=
-call :inputNumber number1 0 2147483647
-call :inputNumber number2 0 2147483647
+call :input_number number1 0 2147483647
+call :input_number number2 0 2147483647
 call :gcf !number1! !number2!
 echo=
 echo GCF of !number1! and !number2! is !return!
@@ -698,13 +750,13 @@ exit /b
 
 rem ======================================== strlen(string) ========================================
 
-#FUNCTION str strlen strlen (string)
+#FUNCTION str strlen
 
 
-:strlen_Scripts
+:strlen.Demo
 echo Calculate string length
 echo=
-call :inputString string
+call :input_string string
 call :strlen string
 echo=
 echo The length of the string is !return! characters
@@ -724,13 +776,13 @@ exit /b
 
 rem ======================================= toUppercase(string) ========================================
 
-#FUNCTION str toUppercase toUppercase (string)
+#FUNCTION str toUppercase
 
 
-:toUppercase_Scripts
+:toUppercase.Demo
 echo Convert string to uppercase
 echo=
-call :inputString string
+call :input_string string
 call :toUppercase string
 echo=
 echo Uppercase:
@@ -749,13 +801,13 @@ exit /b
 
 rem ======================================= toLowercase(string) ========================================
 
-#FUNCTION str toLowercase toLowercase (string)
+#FUNCTION str toLowercase
 
 
-:toLowercase_Scripts
+:toLowercase.Demo
 echo Convert string to lowercase
 echo=
-call :inputString string
+call :input_string string
 call :toLowercase string
 echo=
 echo Lowercase:
@@ -774,13 +826,13 @@ exit /b
 
 rem ======================================== shuffle(variable_name) ========================================
 
-#FUNCTION str shuffle shuffle (string)
+#FUNCTION str shuffle
 
 
-:shuffle_Scripts
+:shuffle.Demo
 echo Shuffle characters in a string
 echo=
-call :inputString text
+call :input_string text
 call :shuffle text
 echo=
 echo Shuffled string: 
@@ -809,14 +861,14 @@ exit /b
 
 rem ======================================== strchk(string) ========================================
 
-#FUNCTION str strchk strchk (string,charset)
+#FUNCTION str strchk
 
 
-:strchk_Scripts
+:strchk.Demo
 echo Check string for invalid characters
 echo=
-call :inputString string
-call :inputString valid_characters
+call :input_string string
+call :input_string valid_characters
 call :strchk string valid_characters
 echo=
 if "!return!" == "-1" (
@@ -827,23 +879,57 @@ goto :EOF
 
 :strchk   variable_name  valid_characters_variable
 set "return=-1"
-for /l %%n in (0,1,8191) do if not "!%1:~%%n,1!" == "" if "!return!" == "-1" (
-    set "_char=!%1:~%%n,1!"
-    for %%c in ("!_char!") do if "!%2:%%~c=!" == "!%2!" set /a "return=%%n"
+if defined %~1 for /l %%n in (0,1,8191) do (
+    if not "!%~1:~%%n,1!" == "" if "!return!" == "-1" (
+        set "_char=!%~1:~%%n,1!"
+        for %%c in ("!_char!") do if "!%~2!" == "!%~2:%%~c=!" set "return=%%n"
+    )
 )
 exit /b
 
-rem ======================================== difftime(end,start) =======================================
+rem Known bugs:
+rem Does not handle '!' and '~' correctly
 
-#FUNCTION time difftime difftime (end,start)
+0123456789012345678901234567890
+
+3
+5
+0!@#$%&*(){}[]:;'<>,/?^.~1"|
+0!@#$%&*(){}[]:;'<>,/?^.~1"|
+
+rem ======================================== strip_dquotes(string) ========================================
+
+#FUNCTION str strip_dquotes
+
+:strip_dquotes.Demo
+echo Remove surrounding double quotes
+echo=
+call :input_string string
+call :strip_dquotes string
+echo=
+echo Stripped : !string!
+goto :EOF
 
 
-:difftime_Scripts
+:strip_dquotes   variable_name
+if not "!%~1!" == "" (
+    set _tempvar="!%~1:~1,-1!"
+    if "!%~1!" == "!_tempvar!" set "%~1=!%~1:~1,-1!"
+    set "_tempvar="
+)
+exit /b
+
+rem ======================================== difftime(end, start) =======================================
+
+#FUNCTION time difftime
+
+
+:difftime.Demo
 echo Calculate difference of 2 times in centiseconds
 echo If start_time is not defined then it assumes it is 00:00:00.00
 echo=
-call :inputString start_time
-call :inputString end_time
+call :input_string start_time
+call :input_string end_time
 call :difftime !end_time! !start_time!
 echo=
 echo Time difference: !return! centiseconds
@@ -863,13 +949,13 @@ rem /n      Don't fix negative centiseconds
 
 rem ======================================== ftime(int) ========================================
 
-#FUNCTION time ftime ftime (int)
+#FUNCTION time ftime
 
 
-:ftime_Scripts
+:ftime.Demo
 echo Convert time (in centiseconds) to HH:MM:SS.CC format
 echo=
-call :inputString time_in_centisecond
+call :input_string time_in_centisecond
 call :ftime !time_in_centisecond!
 echo=
 echo Formatted time : !return!
@@ -882,23 +968,23 @@ set "return="
 for %%n in (360000 6000 100 1) do (
     set /a "_result=!_remainder! / %%n"
     set /a "_remainder%%= %%n"
-    set "_result=?0!_result!"
+    set "_result=E0!_result!"
     set "return=!return!!_result:~-2,2!:"
 )
 set "return=!return:~0,-4!.!return:~-3,2!"
 exit /b
 
-rem ================================== diffdate(end,start) ==================================
+rem ================================== diffdate(end, start) ==================================
 
-#FUNCTION time diffdate diffdate (end,start)
+#FUNCTION time diffdate
 
 
-:diffdate_Scripts
+:diffdate.Demo
 echo Calculate difference between 2 dates in days
 echo If start_date is not defined then it assumes it is 1/01/1
 echo=
-call :inputString start_date
-call :inputString end_date
+call :input_string start_date
+call :input_string end_date
 call :diffdate !end_date! !start_date!
 echo=
 echo Difference : !return! Days
@@ -926,7 +1012,21 @@ exit /b
 
 rem ================================== dayof(date) ==================================
 
-#FUNCTION time dayof dayof (date)
+#FUNCTION time dayof
+
+
+:dayof.Demo
+echo Determine what day is a date
+echo=
+call :input_string a_date
+call :dayof !a_date!
+echo=
+echo That day is !return!
+goto :EOF
+
+
+[Requires]
+call :diffdate
 
 
 :dayof   date  [/n | /s]
@@ -946,12 +1046,12 @@ exit /b
 rem /n      Returns number value
 rem /s      Returns short date name
 
-rem ================================== timeleft(start,progress,end) ==================================
+rem ================================== timeleft(start, progress, end) ==================================
 
-#FUNCTION time timeleft timeleft (start,progress,end)
+#FUNCTION time timeleft
 
 
-:timeleft_Scripts
+:timeleft.Demo
 echo Calculate run time remaining
 echo=
 for %%t in (without with) do (
@@ -982,7 +1082,7 @@ for %%t in (without with) do (
         )
         
         if /i "%%t" == "with" (
-            rem timeleft function starts here ========================================
+:timeleft    start_time current_progress total_progress
             set "_remainder=0"
             for %%t in (!time!:00:00:00:00 !start_time!:00:00:00:00) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
                 set /a "_remainder+=24%%a %% 24 *360000 +1%%b*6000 +1%%c*100 +1%%d -610100"
@@ -998,7 +1098,7 @@ for %%t in (without with) do (
             for %%n in (360000 6000 100 1) do (
                 set /a _result=!_remainder! / %%n
                 set /a _remainder=!_remainder! %% %%n
-                set "_result=?0!_result!"
+                set "_result=E0!_result!"
                 set "_timeRemaining=!_timeRemaining!!_result:~-2,2!:"
             )
             set "_timeRemaining=!_timeRemaining:~0,-4!.!_timeRemaining:~-3,2!"
@@ -1020,13 +1120,13 @@ goto :EOF
 
 rem ======================================== binToDec(bin) ========================================
 
-#FUNCTION conv binToDec binToDec (bin)
+#FUNCTION conv binToDec
 
 
-:binToDec_Scripts
+:binToDec.Demo
 echo Convert binary to decimal
 echo=
-call :inputString binary
+call :input_string binary
 call :binToDec !binary!
 echo=
 echo The decimal value is !return!
@@ -1049,13 +1149,13 @@ exit /b
 
 rem ======================================== decToBin(int) ========================================
 
-#FUNCTION conv decToBin decToBin (int)
+#FUNCTION conv decToBin
 
 
-:decToBin_Scripts
+:decToBin.Demo
 echo Convert decimal to unsigned binary
 echo=
-call :inputNumber decimal 0 2147483647
+call :input_number decimal 0 2147483647
 call :decToBin !decimal!
 echo=
 echo The binary value is !return!
@@ -1076,13 +1176,13 @@ exit /b
 
 rem ======================================== decToOctal(int) ========================================
 
-#FUNCTION conv decToOctal decToOctal (int)
+#FUNCTION conv decToOctal
 
 
-:decToOctal_Scripts
+:decToOctal.Demo
 echo Convert decimal to octal
 echo=
-call :inputNumber decimal 0 2147483647
+call :input_number decimal 0 2147483647
 call :decToOctal !decimal!
 echo=
 echo The octal value is !return!
@@ -1103,13 +1203,13 @@ exit /b
 
 rem ======================================== decToHex(int) ========================================
 
-#FUNCTION conv decToHex decToHex (int)
+#FUNCTION conv decToHex
 
 
-:decToHex_Scripts
+:decToHex.Demo
 echo Convert decimal to hexadecimal
 echo=
-call :inputNumber decimal 0 2147483647
+call :input_number decimal 0 2147483647
 call :decToHex !decimal!
 echo=
 echo The hexadecimal value is !return!
@@ -1129,16 +1229,16 @@ if not "%~1" == "" if "!_result!" == "0" (
 )
 exit /b
 
-rem ======================================== baseX(int,out_charset) ========================================
+rem ======================================== baseX(int, out_charset) ========================================
 
-#FUNCTION conv baseX baseX (int,charset)
+#FUNCTION conv baseX
 
 
-:baseX_Scripts
+:baseX.Demo
 echo Convert decimal to baseX
 echo=
-call :inputNumber decimal 0 2147483647
-call :inputString output_character_set
+call :input_number decimal 0 2147483647
+call :input_string output_character_set
 call :baseX !decimal! output_character_set
 echo=
 echo The value is !return!
@@ -1164,16 +1264,16 @@ if not "!%2!" == "" if not "!_result!" == "0" (
 ) else set "return=!%2:~0,1!"
 exit /b
 
-rem =============================== base10(string,in_charset) ===============================
+rem =============================== base10(string, in_charset) ===============================
 
-#FUNCTION conv base10 base10 (string,charset)
+#FUNCTION conv base10
 
 
-:base10_Scripts
+:base10.Demo
 echo Convert characters from any encoding to base10 (decimal)
 echo=
-call :inputString characters
-call :inputString input_character_set
+call :input_string characters
+call :input_string input_character_set
 call :base10 characters input_character_set
 echo=
 echo The converted value is !return!
@@ -1203,41 +1303,42 @@ exit /b
 
 rem ======================================== romanNumeral(int) ========================================
 
-#FUNCTION conv romanNumeral romanNumeral (int)
+#FUNCTION conv romanNumeral
 
 
-:romanNumeral_Scripts
+:romanNumeral.Demo
 echo Convert number to roman numeral
 echo=
-call :inputNumber number 0 4999
+call :input_number number 0 4999
 call :romanNumeral !number!
 echo=
 echo The Roman Numeral value is !return!
 goto :EOF
 
+
 :romanNumeral   integer(1-4999)
 set "return="
 set /a "_value=%~1"
-for %%v in (
-    M:1000
-    CM:900 D:500 CD:400 C:100
-    XC:90  L:50  XL:40  X:10
-    IX:9   V:5   IV:4   I:1
-) do for /f "tokens=1-2 delims=:" %%a in ("%%v") do (
-    for /l %%n in (%%b,%%b,!_value!) do set "return=!return!%%a"
-    set /a "_value%%=%%b"
+for %%r in (
+    1000.M 900.CM 500.D 400.CD 
+     100.C  90.XC  50.L  40.XL
+      10.X   9.IX   5.V   4.IV   1.I
+) do (
+    for /l %%n in (%%~nr,%%~nr,!_value!) do set "return=!return!%%~xa"
+    set /a "_value%%=%%~nr"
 )
+set "return=!return:.=!"
 exit /b
 
 rem ======================================== unromanNumeral(string) ========================================
 
-#FUNCTION conv unromanNumeral unromanNumeral (string)
+#FUNCTION conv unromanNumeral
 
 
-:unromanNumeral_Scripts
+:unromanNumeral.Demo
 echo Convert roman numeral to number
 echo=
-call :inputString romanNumeral
+call :input_string romanNumeral
 call :unromanNumeral !romanNumeral!
 echo=
 echo The decimal value is !return!
@@ -1245,20 +1346,19 @@ goto :EOF
 
 
 :unromanNumeral   roman_numeral
-set "return=%1"
-for %%l in (
-    IV:4 XL:40 CD:400 IX:9 XC:90 CM:900
-    I:1 V:5 X:10 L:50 C:100 D:500 M:1000
-) do for /f "tokens=1-2 delims=:" %%a in ("%%l") do set "return=!return:%%a=+%%b!"
-set /a "return=!return!"
+set "return=%~1"
+for %%r in (
+    IV.4 XL.40 CD.400 IX.9 XC.90 CM.900 I.1 V.5 X.10 L.50 C.100 D.500 M.1000
+) do set "return=!return:%%~nr=+%%~xr!"
+set /a "return=!return:.=!"
 exit /b
 
 rem ======================================== speedtest() ========================================
 
-#FUNCTION env speedtest speedtest ()
+#FUNCTION env speedtest
 
 
-:speedtest_Scripts
+:speedtest.Demo
 echo Test for system speed
 echo=
 set "startTime=!time!"
@@ -1296,14 +1396,14 @@ exit /b
 
 rem ======================================== wait() ========================================
 
-#FUNCTION ? wait wait (int)
+#FUNCTION ? wait
 
 
-:wait_Scripts
-echo Wait for n milliseconds
-echo This version burns alot of CPU
+:wait.Demo
+echo Wait for n milliseconds (This function burns a lot of CPU)
+echo sleep() is a version that does not burn CPU
 echo=
-call :inputNumber time_in_milliseconds 0 2147483647
+call :input_number time_in_milliseconds 0 2147483647
 echo=
 echo Calibrating speed with speedtest()
 call :speedtest
@@ -1333,14 +1433,14 @@ exit /b
 
 rem ======================================== sleep() ========================================
 
-#FUNCTION ? sleep sleep (int)
+#FUNCTION ? sleep
 
 
-:sleep_Scripts
+:sleep.Demo
 echo Sleep for n milliseconds (VBScript hybrid)
 echo Similar to wait(), but this version does not burn CPU
 echo=
-call :inputNumber time_in_milliseconds 0 2147483647
+call :input_number time_in_milliseconds 0 2147483647
 echo=
 echo Calibrating speed with setupSleep()
 call :setupSleep
@@ -1358,7 +1458,7 @@ goto :EOF
 
 
 [Prerequisites]
-set "tempPath=your_path_here"
+set "temp_path=your_path_here"
 
 [Prerequisites]
 call :setupSleep
@@ -1368,7 +1468,7 @@ call :setupSleep
 set "return="
 set "_totalDelay=0"
 set "sleepDelay="
-echo WScript.Sleep WScript.Arguments(0) > "!tempPath!\sleep.vbs"
+echo WScript.Sleep WScript.Arguments(0) > "!temp_path!\sleep.vbs"
 for /l %%n in (1,1,10) do (
     set "_startTime=!time!"
     call :sleep
@@ -1389,19 +1489,19 @@ exit /b
 
 :sleep   milliseconds
 set /a "return=%* - !sleepDelay! + 0"
-cscript //NoLogo "!tempPath!\sleep.vbs" !return!
+cscript //NoLogo "!temp_path!\sleep.vbs" !return!
 exit /b
 
 rem ======================================== getScreenSize() ========================================
 
-#FUNCTION env getScreenSize getScreenSize ()
+#FUNCTION env getScreenSize
 
 
-:getScreenSize_Scripts
+:getScreenSize.Demo
 echo Get console screen buffer size
 call :getScreenSize
 echo=
-echo Screen buffer size    : !screenHeight!x!screenWidth!
+echo Screen buffer size    : !screen_height!x!screen_width!
 goto :EOF
 
 
@@ -1409,18 +1509,18 @@ goto :EOF
 set "_lineNum=0"
 for /f "usebackq tokens=2 delims=:" %%a in (`mode con`) do (
 	set /a "_lineNum+=1"
-    if "!_lineNum!" == "1" set /a "screenHeight= 0 + %%a + 0"
-    if "!_lineNum!" == "2" set /a "screenWidth= 0 + %%a + 0"
+    if "!_lineNum!" == "1" set /a "screen_height= 0 + %%a + 0"
+    if "!_lineNum!" == "2" set /a "screen_width= 0 + %%a + 0"
 )
 set "_lineNum="
 exit /b
 
 rem ======================================== chkAdmin() ========================================
 
-#FUNCTION env chkAdmin chkAdmin ()
+#FUNCTION env chkAdmin
 
 
-:chkAdmin_Scripts
+:chkAdmin.Demo
 echo Check for administrator privilege
 echo=
 call :chkAdmin
@@ -1438,10 +1538,10 @@ goto :EOF
 
 rem ======================================== getSID() ========================================
 
-#FUNCTION env getSID getSID ()
+#FUNCTION env getSID
 
 
-:getSID_Scripts
+:getSID.Demo
 echo Get currect user's SID
 echo=
 call :getSID
@@ -1457,206 +1557,192 @@ goto :EOF
 
 rem ======================================== watchvar() ========================================
 
-#FUNCTION env watchvar watchvar ()
+#FUNCTION dev watchvar
 
 
-:watchvar_Scripts
-echo Watch for new and deleted variables in batch script
+:watchvar.Demo
+echo Watch for new, deleted and changed variables in batch script
 echo=
-for /l %%n in (1,1,50) do set "tests%%n=."
+echo /i     Initialize variable list
+echo /n     Display variable names
+echo /w     Write to file instead of console
+echo=
 call :watchvar /i
 for /l %%n in (1,1,5) do (
     for /l %%n in (1,1,10) do (
-        set /a "_move=!random! %% 2"
+        set /a "_write=!random! %% 2"
         set /a "_num=!random! %% 10"
-        if "!_move!" == "0" (
-            set "test!_num!="
-        ) else set "test!_num!=filled"
+        if "!_write!" == "0" (
+            set "var!_num!="
+        ) else set "var!_num!=!random!"
     )
-    set "_move="
+    set "_write="
     set "_num="
     
-    call :watchvar /w
+    call :watchvar /n
     pause > nul
 )
 goto :EOF
 
 
-:watchvar   [/i]  [/c]  [/w]
-rem Temp folder address
-for %%f in ("!tempPath!\watchvar") do (
+[Prerequisites]
+set "temp_path=your_path_here"
+
+
+:watchvar   [/i]  [/n]  [/w]
+setlocal EnableDelayedExpansion EnableExtensions
+for %%f in ("!temp_path!\watchvar") do (
     if not exist "%%~f" md "%%~f"
     pushd "%%~f"
 )
-setlocal
 
-rem Write variable list to file
-for %%f in ("varList") do (
-    set > "%%~f_raw.txt"
-    set "filename_rawTxt=%%~f_raw.txt"
-    set "filename_nowTxt=%%~f_now.txt"
-    set "filename_oldTxt=%%~f_old.txt"
-    set "filename_newTxt=%%~f_new.txt"
-    set "filename_delTxt=%%~f_del.txt"
-    
-    set "filename_rawHex=%%~f_raw.hex"
-    set "filename_nowHex=%%~f_now.hex"
-    set "filename_oldHex=%%~f_old.hex"
-    set "filename_newHex=%%~f_new.hex"
-    set "filename_delHex=%%~f_del.hex"
-    
-    set "filename_log=%%~f.log"
-)
-
-rem Get variable name
-if exist "!filename_rawHex!" del /f /q "!filename_rawHex!"
-certutil -encodehex "!filename_rawTxt!" "!filename_rawHex!" > nul
-(
-    set "readLine=0"
-    set "inputHex=0d 0a"
-    for /f "usebackq delims=" %%o in ("!filename_rawHex!") do (
-        set "input=%%o"
-        set "inputHex=!inputHex! !input:~5,48!"
-        set /a "readLine+=1"
-        if "!readLine!" == "160" call :watchvar_parseHex
+rem Setup and rename/delete old files
+for %%f in ("var") do (
+    for %%t in (txt hex) do (
+        if exist "%%~f_old.%%t" del /f /q "%%~f_old.%%t"
+        ren "%%~f_current.%%t" "%%~f_old.%%t"
     )
-    call :watchvar_parseHex
-) > "!filename_nowHex!"
-if exist "!filename_nowTxt!" del /f /q "!filename_nowTxt!"
-certutil -decodehex "!filename_nowHex!" "!filename_nowTxt!" > nul
+    
+    set > "%%~f_current.txt"
+    
+    set "filename=%%~f"
+    set "logfile=%%~f.log"
+)
 
 rem Parse parameter
-set "initialize=false"
-set "countOnly=false"
-set "writeToFile=false"
-if not exist "!filename_oldHex!" set "initialize=true"
+set "initialize_only=False"
+set "display_variable_names=False"
+set "write_to_file=False"
+if not exist "!filename!_old.hex" set "initialize_only=True"
 for %%p in (%*) do (
-    if /i "%%p" == "/I" set "initialize=true"
-    if /i "%%p" == "/C" set "countOnly=true"
-    if /i "%%p" == "/W" set "writeToFile=true"
+    if /i "%%p" == "/I" set "initialize_only=True"
+    if /i "%%p" == "/N" set "display_variable_names=True"
+    if /i "%%p" == "/W" set "write_to_file=True"
 )
-set "writeMode="
-if /i "!writeToFile!" == "true" set "writeMode= ^>^> !filename_log!"
+set "new_symbol=+"
+set "deleted_symbol=-"
+set "changed_symbol=~"
+
+rem Convert to hex and format
+certutil -encodehex "!filename!_current.txt" "!filename!_current_raw.hex" > nul
+(
+    set "read_lines=0"
+    set "input_hex="
+    for /f "usebackq delims=" %%o in ("!filename!_current_raw.hex") do (
+        set "input=%%o"
+        set "input_hex=!input_hex! !input:~5,48!"
+        set /a "read_lines+=1"
+        if "!read_lines!" == "155" call :watchvar.format_hex
+    )
+    call :watchvar.format_hex
+) > "!filename!_current.hex"
+del /f /q "!filename!_current_raw.hex"
 
 rem Count variable
-set "variableCount=0"
-for /f "usebackq tokens=*" %%o in ("!filename_nowHex!") do set /a "variableCount+=1"
+set "var_count=0"
+for /f "usebackq tokens=*" %%o in ("!filename!_current.hex") do set /a "var_count+=1"
 
-rem Display variable count (if initialize only)
-if /i "!initialize!" == "true" (
-    echo Initial variables: !variableCount! %writeMode%
-    goto watchvar_cleanup
+set "WRITE_MACRO="
+if /i "!write_to_file!" == "True" set "WRITE_MACRO= ^>^> ^"!logfile!^""
+
+if /i "!initialize_only!" == "True" (
+    echo Initial variables: !var_count! %WRITE_MACRO%
+    goto watchvar.cleanup
 )
 
-rem Find new variables
-set "newCount=0"
-call 2> "!filename_newHex!"
-for /f "usebackq tokens=*" %%s in ("!filename_nowHex!") do (
-    set "found=false"
-    for /f "usebackq tokens=*" %%t in ("!filename_oldHex!") do if "%%s" == "%%t" set "found=true"
-    if /i "!found!" == "false" (
-        echo=%%s
-        set /a "newCount+=1"
+rem Compare variables
+set "new_count=0"
+set "deleted_count=0"
+set "changed_count=0"
+call 2> "!filename!_changes.hex"
+for /f "usebackq tokens=1,3 delims= " %%a in ("!filename!_current.hex") do (
+    set "old_value="
+    for /f "usebackq tokens=1,3 delims= " %%s in ("!filename!_old.hex") do if "%%a" == "%%s" set "old_value=%%t"
+    if defined old_value (
+        if not "%%b" == "!old_value!" (
+            echo 6368616e676564 20 %%a 0d0a
+            set /a "changed_count+=1"
+        )
+    ) else (
+        echo 6e6577 20 %%a 0d0a
+        set /a "new_count+=1"
     )
-) >> "!filename_newHex!"
-if exist "!filename_newTxt!" del /f /q "!filename_newTxt!"
-certutil -decodehex "!filename_newHex!" "!filename_newTxt!" > nul
+) >> "!filename!_changes.hex"
+for /f "usebackq tokens=1 delims= " %%a in ("!filename!_old.hex") do (
+    set "found_value=False"
+    for /f "usebackq tokens=1 delims= " %%s in ("!filename!_current.hex") do if "%%a" == "%%s" set "found_value=True"
+    if /i "!found_value!" == "False" (
+        echo 64656c65746564 20 %%a 0d0a
+        set /a "deleted_count+=1"
+    )
+) >> "!filename!_changes.hex"
+if exist "!filename!_changes.txt" del /f /q "!filename!_changes.txt"
+certutil -decodehex "!filename!_changes.hex" "!filename!_changes.txt" > nul
 
-rem Find deleted variables
-set "delCount=0"
-call 2> "!filename_delHex!"
-for /f "usebackq tokens=*" %%s in ("!filename_oldHex!") do (
-    set "found=false"
-    for /f "usebackq tokens=*" %%t in ("!filename_nowHex!") do if "%%s" == "%%t" set "found=true"
-    if /i "!found!" == "false" (
-        echo=%%s
-        set /a "delCount+=1"
-    )
-) >> "!filename_delHex!"
-if exist "!filename_delTxt!" del /f /q "!filename_delTxt!"
-certutil -decodehex "!filename_delHex!" "!filename_delTxt!" > nul
+(
+    if "!display_variable_names!" == "True" (
+        echo Variables: !var_count!
+        for %%t in (new deleted changed) do if not "!%%t_count!" == "0" (
+            set /p "=[!%%t_symbol!!%%t_count!] " < nul 
+            for /f "usebackq tokens=1* delims= " %%a in ("!filename!_changes.txt") do (
+                if "%%a" == "%%t" set /p "=%%b " < nul
+            )
+            echo=
+        )
+        
+    ) else echo Variables: !var_count! [+!new_count!/~!changed_count!/-!deleted_count!]
+) %WRITE_MACRO%
+goto watchvar.cleanup
 
-if "!countOnly!" == "true" (
-    echo Variables: !variableCount! [+!newCount!/-!delCount!] %writeMode%
-) else (
-    echo Variables: !variableCount!
-    rem Display new variables
-    if not "!newCount!" == "0" (
-        set /p "=[+!newCount!] " < nul 
-        for /f "usebackq tokens=*" %%o in ("!filename_newTxt!") do set /p "=%%o " < nul 
-        echo=
+:watchvar.format_hex
+set "input_hex=!input_hex! $"
+set "input_hex=!input_hex:  = !"
+set input_hex=!input_hex:0d 0a=_0d0a^
+%=REQURED=%
+!
+set "input_hex=!input_hex: 3d = .# !"
+set "input_hex=!input_hex: =!"
+set "input_hex=!input_hex:_= !"
+for /f "tokens=1* delims=." %%a in ("!input_hex!") do (
+    if "%%b" == "" (
+        set "value=%%a"
+    ) else (
+        set "value=%%b"
+        set "value=!value:.=3d!"
+        set "value=%%a 3d !value:#=!"
     )
-
-    rem Display deleted variables
-    if not "!delCount!" == "0" (
-        set /p "=[-!delCount!] " < nul 
-        for /f "usebackq tokens=*" %%o in ("!filename_delTxt!") do set /p "=%%o " < nul 
-        echo=
-    )
-) %writeMode%
-goto watchvar_cleanup
-
-:watchvar_parseHex
-set "inputHex=.!inputHex!"
-set "inputHex=!inputHex:  = !"
-set "inputHex=!inputHex:0d 0a=_@:!"
-set "inputHex=!inputHex:3d=_#:!"
-set "inputHex=!inputHex: =!"
-set "inputHex=!inputHex:_= !"
-set "inputHex=!inputHex:~1!"
-set "lastInput="
-for %%h in (!inputHex!) do (
-    if defined lastInput (
-        echo !lastInput! 0d0a
-        set "lastInput="
-    )
-    if /i "%%~dh" == "@:" set "lastInput=%%~nh"
+    if /i "!value:~-4,4!" == "0d0a" (
+        echo !value!
+    ) else set "input_hex=!value!"
 )
-set "inputHex="
-if defined lastInput set "inputHex=@:!lastInput!"
-set "readLine=0"
+set "read_lines=7"
+if not "!input_hex:~344!" == "" set "read_lines=41"
+rem If line is too long then cut off part of the line and write "%=TOO_LONG=%"
+if not "!input_hex:~2010!" == "" set "input_hex=!input_hex:~0,1972!20253d544f4f5f4c4f4e473d2520!input_hex:~-9,9!"
+set "input_hex=!input_hex:~0,-1!"
 goto :EOF
 
-:watchvar_cleanup
-rem Cleanup
-for %%t in (Txt Hex) do (
-    if exist "!filename_old%%t!" del /f /q "!filename_old%%t!"
-    ren "!filename_now%%t!" "!filename_old%%t!"
-)
-echo= %writeMode%
-endlocal
+:watchvar.cleanup
+echo= %WRITE_MACRO%
 popd
+endlocal
 exit /b
 
-rem ======================================== stripDQotes(string) ========================================
-
-#FUNCTION str stripDQotes stripDQotes (string)
-
-:stripDQotes_Scripts
-echo Remove surrounding double quotes
-echo=
-call :inputString string
-call :stripDQotes string
-echo=
-echo Stripped : !string!
-goto :EOF
-
-
-:stripDQotes   variable_name
-set _tempvar="!%~1:~1,-1!"
-if "!%~1!" == "!_tempvar!" set "%~1=!%~1:~1,-1!"
-set "_tempvar="
-exit /b
+rem Verify
+del /f /q "!filename!_current_reverse_hex.txt"
+certutil -decodehex "!filename!_current.hex" "!filename!_current_reverse_hex.txt" > nul
+fc "!filename!_current.txt" "!filename!_current_reverse_hex.txt" > nul
+if "!errorlevel!" == "1" echo WARNING: Content is not the same
 
 rem ======================================== strval(string) ========================================
 
-#FUNCTION dev strval strval (string)
+#FUNCTION dev strval
 
 
-:strval_Scripts
+:strval.Demo
 echo Determine the integer value of a variable
 echo=
-call :inputString string
+call :input_string string
 call :strval string
 echo=
 echo Integer value : !return!
@@ -1680,12 +1766,12 @@ goto :EOF
 
 rem ======================================== wcdir() ========================================
 
-#FUNCTION file wcdir wcdir (filepath)
+#FUNCTION file wcdir
 
-:wcdir_Scripts
+:wcdir.Demo
 echo List files/folders with wildcard path
 echo=
-call :inputString wildcard_path
+call :input_string wildcard_path
 call :stripDQotes wildcard_path
 call :wcdir "!wildcard_path!"
 echo=
@@ -1704,11 +1790,11 @@ set "return="
 set "_findNext=%~1"
 set "_isFile=Y"
 if "!_findNext:~-1,1!" == "\" set "_isFile="
-call :wcdir_loop
+call :wcdir.find
 set "_findNext="
 set "_isFile="
 exit /b 
-:wcdir_loop
+:wcdir.find
 for /f "tokens=1* delims=\" %%a in ("!_findNext!") do if not "%%a" == "*:" (
     if "%%b" == "" (
         if defined _isFile (
@@ -1716,21 +1802,40 @@ for /f "tokens=1* delims=\" %%a in ("!_findNext!") do if not "%%a" == "*:" (
         ) else for /f "delims=" %%f in ('dir /b /a:d "%%a" 2^> nul') do set "return=!return!%%~ff\!LF!"
     ) else for /d %%f in ("%%a") do pushd "%%~f\" 2> nul && (
         set "_findNext=%%b"
-        call :wcdir_loop
+        call :wcdir.find
         popd
     )
 ) else for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do pushd "%%l:\" 2> nul && (
     set "_findNext=%%b"
-    call :wcdir_loop
+    call :wcdir.find
     popd
 )
 exit /b
 
+
+rem Combination Wildcard Dir
+:combinwcdir   path_list1 path_list2
+for %%p in (%1 %2) do (
+    set ^"_temp=!%%p:;=%NL%!^"
+    for /f "tokens=*" %%a in ("!_temp!") do (
+        set "_is_listed="
+        for /f "tokens=*" %%b in ("!%%p!") do if "%%a" == "%%b" set "_is_listed=True"
+        if not defined _is_listed set "%%p=!%%p!%%a!LF!"
+    )
+)
+set "_found="
+for /f "tokens=*" %%a in ("!_path1!") do for /f "tokens=*" %%b in ("!_path2!") do (
+    call :wcdir "%%a\%%b"
+    set "_found=!_found!!return!"
+)
+set "return=!_found!"
+exit /b
+
 rem ======================================== setupEndlocal() ========================================
 
-#FUNCTION dev setupEndlocal setupEndlocal (filepath)
+#FUNCTION dev setupEndlocal
 
-:setupEndlocal_Scripts
+:setupEndlocal.Demo
 echo Macro version of endlocal 
 echo And make variable(s) survive endlocal
 echo=
@@ -1743,8 +1848,10 @@ echo ENDLOCAL
 set survivor
 goto :EOF
 
+
 [Prerequisites]
 call :capchar LF
+
 
 :setupEndlocal
 if "!!" == "" exit /b 1
@@ -1762,13 +1869,13 @@ exit /b 0
 
 rem ======================================== setupClearline() ========================================
 
-#FUNCTION ? setupClearline setupClearline (filepath)
+#FUNCTION ? setupClearline
 
-:setupClearline_Scripts
+:setupClearline.Demo
 echo Macro version of clear line
 echo=
 call :getScreenSize
-call :setupClearline "!screenWidth!-1"
+call :setupClearline "!screen_width!-1"
 set /p "=Press any key to continue..." < nul
 pause > nul
 echo !CL!Line cleared^^!
@@ -1782,7 +1889,7 @@ call :capchar BS CR LR
 call :getOS
 
 
-:setupClearline
+:setupClearline   length
 set /a "_length=%~1"
 call :getOS /b
 set "CL="
@@ -1792,11 +1899,11 @@ if !return! GEQ 100 (
 ) else for /l %%n in (1,1,!_length!) do set "CL=!CL!!BS!"
 goto :EOF
 
-rem ======================================== parseArgs() ========================================
+rem ======================================== parse_args() ========================================
 
-#FUNCTION dev parseArgs parseArgs (filepath)
+#FUNCTION dev parse_args
 
-:parseArgs_Scripts
+:parse_args.Demo
 echo Parse argument for required parameter and options
 echo=
 echo Example (From DEL /?) :
@@ -1817,90 +1924,95 @@ echo                I  Not content indexed          -  Prefix meaning not
 echo=
 echo This is just an example. This script will not delete any file.
 echo=
-call :inputString parameter
+call :input_string parameter
 echo=
-set "_options=P.flag:param_promptUser F.flag:param_forceDelete S.flag:param_includeSubdir 
-set "_options=!_options! Q.flag:param_wildcardPrompt A:param_attributes"
-set "_required=param_filename"
+set "_options=P.flag:param.prompt_user!LF!F.flag:param.force_delete!LF!S.flag:param.include_subdir"
+set "_options=!_options!!LF!Q.flag:param.wildcard_prompt!LF!A:param.attributes"
+set "_required=!LF!param.filename"
+
+echo ===== Parameter =====
+echo=[!parameter!]
+echo=
+echo ===== Settings =====
+set _options
+echo=
+set _required
+echo=
 
 rem Flag type arguments are initialized to "false"
 rem Initialize default value for non-flag arguments
-set "param_attributes="
-set "param_filename="
-call :parseArgs !parameter! > nul || exit /b 1
-set "param_"
+set "param.attributes="
+set "param.filename="
+echo ===== Parse result =====
+call :parse_args !parameter! > nul || exit /b 1
+set "param."
 goto :EOF
 
 
-:parseArgs   %*  [_required]  [_options]
-for %%o in (!_options!) do for /f "tokens=1* delims=:" %%a in ("%%~o") do (
+:parse_args   %*  [_required]  [_options]
+for /f "tokens=1* delims=:" %%a in ("!_options!") do (
     if /i "%%~xa" == ".flag" set "%%~b=false"
 )
 set "_prevArg="
-set "_varName="
+set "_optName="
 set "_paramCount=0"
-set "requiredCount=0"
+set "_requiredCount=0"
 for %%r in (!_required!) do (
-    set "_required!requiredCount!=%%~r"
-    set /a "requiredCount+=1"
+    set "_required!_requiredCount!=%%~r"
+    set /a "_requiredCount+=1"
 )
-:parseArgs_options
+:parse_args.options
 set "_value=%1"
-if not defined _value goto parseArgs_cleanup
+if not defined _value goto parse_args.cleanup
 set "_arg="
 if "!_value:~0,1!" == "-" set "_arg=!_value:~1!"
 if "!_value:~0,1!" == "/" set "_arg=!_value:~1!"
 if defined _arg (
-    if defined _varName (
-        echo Invalid parameter: !_prevArg! 1>&2
-        exit /b 2
-    )
+    if defined _optName echo Invalid parameter: !_prevArg! 1>&2 & exit /b 2
     set "_prevArg=%1"
-    for /f "tokens=1* delims=:" %%s in ("!_arg!") do for %%o in (!_options!) do (
-        for /f "tokens=1* delims=:" %%p in ("%%~o") do if /i "%%~s" == "%%~np" (
+    for /f "tokens=1* delims=:" %%s in ("!_arg!") do for /f "tokens=1* delims=:" %%p in ("!_options!") do (
+        if /i "%%~s" == "%%~np" (
             set "_arg="
-            if "%%~xp" == "" (
-                set "_varName=%%~q"
-                set "_value=%%~t"
-            ) else (
+            if "%%~xp" == ".flag" (
                 set "%%~q=true"
                 set "_value="
+            ) else (
+                set "_optName=%%~q"
+                set "_value=%%t"
             )
         )
     )
-) else set "_value=%~1"
-if defined _value if defined _varName (
-    set "!_varName!=!_value!"
-    set "_varName="
-) else if defined _arg (
-    echo Unknown parameter: %1 1>&2
-    exit /b 1
-) else if !_paramCount! LSS !requiredCount! (
+    if defined _arg echo Unknown parameter: %1 1>&2 & exit /b 1
+)
+if defined _value if defined _optName (
+    for /f "tokens=*" %%v in ("!_value!") do set "!_optName!=%%~v"
+    set "_optName="
+) else if not defined _arg if !_paramCount! LSS !_requiredCount! (
     for %%n in (!_paramCount!) do set "!_required%%n!=%~1"
     set /a "_paramCount+=1"
 )
-shift
-goto parseArgs_options
-:parseArgs_cleanup
+shift /1
+goto parse_args.options
+:parse_args.cleanup
 set "_arg="
 set "_prevArg="
-set "_varName="
+set "_optName="
 set "_value="
-for /l %%r in (0,1,!requiredCount!) do set "_required%%r="
+for /l %%r in (0,1,!_requiredCount!) do set "_required%%r="
 set "_paramCount="
-set "requiredCount="
+set "_requiredCount="
 exit /b 0
 
-rem ======================================== colorPrint(color,text) ========================================
+rem ======================================== colorPrint(color, text) ========================================
 
-#FUNCTION ? colorPrint colorPrint (color,text)
+#FUNCTION ? colorPrint
 
-:colorPrint_Scripts
+:colorPrint.Demo
 echo Print text with color and background color
 echo=
-call :inputString text
-call :inputString textColor
-call :inputString backgroundColor
+call :input_string text
+call :input_string textColor
+call :input_string backgroundColor
 echo=
 rem Capture Backspace Character
 for /f %%a in ('"prompt $h & echo on & for %%b in (1) do rem"') do (
@@ -1918,7 +2030,7 @@ call :capchar BS
 
 :colorPrint   color  text
 if "%~2" == "" exit /b 2
-pushd "!tempPath!"
+pushd "!temp_path!" 2> nul || exit /b 1
 (
     set /p "=!BS!!BS!" < nul > "%~2_"
     findstr /l /v /a:%~1 "." "%~2_" nul || exit /b 1
@@ -1929,9 +2041,9 @@ exit /b 0
 
 rem ======================================== getOS() ========================================
 
-#FUNCTION env getOS getOS ()
+#FUNCTION env getOS
 
-:getOS_Scripts
+:getOS.Demo
 echo Get OS version
 echo=
 call :getOS /n
@@ -1955,36 +2067,53 @@ if /i "%~1" == "/B" set "return=!return:.=!"
 exit /b
 
 
-rem ======================================== expandPath() ========================================
+rem ======================================== expand_path() ========================================
 
-#FUNCTION dev expandPath expandPath (string)
+#FUNCTION dev expand_path
 
-:expandPath_Scripts
+:expand_path.Demo
 echo Expands given path to:
 echo [D]rive letter, [A]ttributes, [T]ime stamp, si[Z]e, 
 echo [N]ame, e[X]tension, [P]ath, [F]ull path
 echo=
-call :expandPath "!cd!" currentDir_
+call :expand_path currentDir_ "!cd!"
 set currentDir_
 goto :EOF
 
 
-:expandPath   file_path  [prefix]
-set "%~2D=%~d1" Drive Letter
-set "%~2A=%~a1" Attributes
-set "%~2T=%~t1" Time Stamp
-set "%~2Z=%~z1" Size
-set "%~2N=%~n1" Name
-set "%~2X=%~x1" Extension
-set "%~2P=%~p1" Path
-set "%~2F=%~f1" Full Path
+:expand_path   prefix file_path
+set "%~1D=%~d2" Drive Letter
+set "%~1A=%~a2" Attributes
+set "%~1T=%~t2" Time Stamp
+set "%~1Z=%~z2" Size
+set "%~1N=%~n2" Name
+set "%~1X=%~x2" Extension
+set "%~1P=%~p2" Path
+set "%~1F=%~f2" Full Path
+set "%~1DP=%~dp2" D + P
+set "%~1NX=%~nx2" N + X
+exit /b
+
+
+:expand_multipath   prefix file_path1 [file_path2 ...]
+for %%a in (D P N X F DP NX) do set "%~1%%a="
+set "_continue="
+for %%f in (%*) do if defined _continue (
+    set ^"%~1Ds=!%~1Ds! "%%~df"^"
+    set ^"%~1Ps=!%~1Ps! "%%~pf"^"
+    set ^"%~1Ns=!%~1Ns! "%%~nf"^"
+    set ^"%~1Xs=!%~1Xs! "%%~xf"^"
+    set ^"%~1Fs=!%~1Fs! "%%~ff"^"
+    set ^"%~1DPs=!%~1DPs! "%%~dpf"^"
+    set ^"%~1NXs=!%~1NXs! "%%~nxf"^"
+) else set "_continue=True"
 exit /b
 
 rem ======================================== capchar() ========================================
 
-#FUNCTION dev capchar capchar (string)
+#FUNCTION dev capchar
 
-:capchar_Scripts
+:capchar.Demo
 echo Capture extended characters
 echo=
 call :capchar BS CR LF
@@ -2015,14 +2144,86 @@ shift /1
 if "%~1" == "" exit /b 0
 goto capchar
 
+rem ======================================== getExternalIP() ========================================
 
-:END_OF_FUNCTIONS
+#FUNCTION env getExternalIP
+
+:getExternalIP.Demo
+echo Get external IP address
+echo=
+call :getExternalIP
+echo=
+echo External IP: !return!
+goto :EOF
+
+
+:getExternalIP
+> nul 2> nul (
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('http://ipecho.net/plain', '!temp!\ip.txt')"
+) || exit /b !errorlevel!
+for /f "usebackq tokens=*" %%o in ("!temp!\ip.txt") do set "return=%%o"
+exit /b 0
+
+rem Download file
+powershell -Command "Invoke-WebRequest http://www.example.com/package.zip -OutFile package.zip"
+
+rem ======================================== getExternalIP() ========================================
+
+#FUNCTION env listIP
+
+:listIP.Demo
+echo List interface IP address
+echo Does not show interfaces with no IPv4 address
+echo=
+echo=
+call :listIP
+goto :EOF
+
+:listIP
+set "interface_count=0"
+for /f "tokens=* usebackq" %%o in (`ipconfig /all`) do (
+    set "output=%%o"
+    if "!output:~-1,1!" == ":" (
+        if not "!interface_count!" == "0" if defined interface_ipv4 call :listIP.output
+        set /a "interface_count+=1"
+        set "interface_name="
+        set "interface_desc="
+        set "interface_ipv4="
+        set "interface_type="
+        set "interface_dhcp_server="
+    )
+    if "!output:~-1,1!" == ":" (
+        set "_temp=!output:~0,-1!"
+        for %%n in (!_temp!) do if defined _temp (
+            if "%%n" == "adapter" (
+                set "_temp="
+            ) else set "interface_type=!interface_type! %%n"
+        ) else set "interface_name=!interface_name! %%n"
+        set "interface_name=!interface_name:~1!"
+        set "interface_type=!interface_type:~1!"
+    )
+    if "!output:~0,11!" == "Description" set "interface_desc=!output:~36!"
+    if "!output:~0,12!" == "IPv4 Address" set "interface_ipv4=!output:~36!"
+    if "!output:~0,30!" == "Autoconfiguration IPv4 Address" set "interface_ipv4=!output:~36!"
+    if "!output:~0,11!" == "DHCP Server" set "interface_dhcp_server=!output:~36!"
+)
+if not "!interface_count!" == "0" if defined interface_ipv4 call :listIP.output
+exit /b
+:listIP.output
+echo [!interface_type!] !interface_name!:
+echo Desc        : !interface_desc!
+echo IPv4        : !interface_ipv4!
+if defined interface_dhcp_server echo DHCP Server : !interface_dhcp_server!
+echo=
+goto :EOF
 
 rem ======================================== Helper Functions ========================================
+:__HELPER_FUNCTIONS__     Helper Functions (not part of Function Library)
+
 
 rem ================================ Input Number ================================
 
-:inputNumber   variable_name  minimum  maximum  [description]
+:input_number   variable_name  minimum  maximum  [description]
 echo=
 if "%~4" == "" (
     set /p "%~1=Input %~1 [%~2 to %~3]: "
@@ -2036,11 +2237,11 @@ if %~2 LEQ 0 if !%~1! GTR 0 (
     if !%~1! LEQ %~3 exit /b
     if %~3 GEQ 0 if !%~1! LSS 0 exit /b
 )
-goto inputNumber
+goto input_number
 
 rem ================================ Input String ================================
 
-:inputString   variable_name  [description]
+:input_string   variable_name  [description]
 echo=
 if "%~2" == "" (
     echo Input %~1:
@@ -2048,9 +2249,20 @@ if "%~2" == "" (
 set /p "%~1="
 exit /b
 
+rem ================================ Input Yes No ================================
+
+:input_yesno   variable_name  [description]
+echo=
+if "%~2" == "" (
+    set /p "%~1=%~1 Y/N? "
+) else set /p "%~1=%~2 Y/N? "
+if /i "!%~1!" == "Y" exit /b
+if /i "!%~1!" == "N" exit /b
+goto input_yesno
+
 rem ================================ Input Path ================================
 
-:inputPath   variable_name  [/F | /D]  [/S]
+:input_path   variable_name  [/F | /D]  [/S]
 rem /F Input is a file
 rem /D Input is a folder
 rem /S Input is skippble
@@ -2062,8 +2274,8 @@ for %%p in (%*) do (
     if /i "%%p" == "/S" set "_skippable=true"
 )
 set "%~1="
-:inputPath_in
-set "userInput="
+:input_path.input
+set "user_input="
 cls
 echo Current directory:
 echo=!cd!
@@ -2076,21 +2288,21 @@ if defined _skippable               echo Enter "\:" to skip this step
 if /i "!_inputType!" == "folder"    echo Enter ".\" to select current folder
 echo=
 echo Input !_inputType! address:
-set /p "userInput="
+set /p "user_input="
 echo=
 
-if defined _skippable               if "!userInput!" == "\:" exit /b 2
-if /i "!_inputType!" == "folder"    if "!userInput!" == ".\" set "userInput=!cd!"
-if not defined userInput            set "userInput=!lastUsed_file!"
+if defined _skippable               if "!user_input!" == "\:" exit /b 2
+if /i "!_inputType!" == "folder"    if "!user_input!" == ".\" set "user_input=!cd!"
+if not defined user_input            set "user_input=!lastUsed_file!"
 
-call :stripDQotes userInput
-if not exist "!userInput!" (
+call :stripDQotes user_input
+if not exist "!user_input!" (
     echo The !_inputType! does not exist
     pause
-    goto pathIn
+    goto input_path.input
 )
-set "%~1=!userInput!"
-call :expandPath "!userInput!" _file_
+set "%~1=!user_input!"
+call :expand_path "!user_input!" _file_
 if /i "!_file_A:~0,1!" == "d" (
     if /i "!_inputType!" == "file" (
         echo Your input is not a file...
@@ -2099,38 +2311,38 @@ if /i "!_file_A:~0,1!" == "d" (
     echo Your input is not a folder...
 ) else exit /b 0
 pause
-goto pathIn
+goto input_path.input
 
 rem ================================ Input IPv4 ================================
 
-:inputIPv4   variable_name  [/W]
+:input_ipv4   variable_name  [/W]
 rem /W Allow wildcard
 set "_allowWildcard="
 if /i "%~2" == "/W" set "_allowWildcard= (wildcard allowed)"
 echo=
-:inputIPv4_input
-set /p "userInput=Input IP adress!_allowWildcard! (0 to Quit): "
-if "!userInput!" == "0" exit /b
-set "userInput= !userInput!"
-set ^"userInput=!userInput:.=^
+:input_ipv4.input
+set /p "user_input=Input IP adress!_allowWildcard! (0 to Quit): "
+if "!user_input!" == "0" exit /b
+set "user_input= !user_input!"
+set ^"user_input=!user_input:.=^
 %=REQURED=%
 !"
-set "userInput=!userInput:~1!"
+set "user_input=!user_input:~1!"
 set "%~1="
 set "_numCount=0"
-for /f "tokens=*" %%n in ("!userInput!") do (
+for /f "tokens=*" %%n in ("!user_input!") do (
     set /a "_numCount+=1"
-    if !_numCount! GTR 4 goto inputIPv4_input
+    if !_numCount! GTR 4 goto input_ipv4.input
     if "%%n" == "*" (
-        if not defined _allowWildcard goto inputIPv4_input
+        if not defined _allowWildcard goto input_ipv4.input
     ) else (
-        set /a "_num=%%n" 2> nul || goto inputIPv4_input
-        if %%n LSS 0    goto inputIPv4_input
-        if %%n GTR 255  goto inputIPv4_input
+        set /a "_num=%%n" 2> nul || goto input_ipv4.input
+        if %%n LSS 0    goto input_ipv4.input
+        if %%n GTR 255  goto input_ipv4.input
     )
     set "%~1=!%~1!.%%n"
 )
-if not "!_numCount!" == "4" goto inputIPv4_input
+if not "!_numCount!" == "4" goto input_ipv4.input
 set "%~1=!%~1:~1!"
 exit /b
 
@@ -2143,7 +2355,7 @@ call :setupClearline
 :changeScreenSize   width  height
 mode %~1,%~2
 call :getScreenSize
-call :setupClearline "!screenWidth!-1"
+call :setupClearline "!screen_width!-1"
 goto :EOF
 
 rem ======================================== End of Script ========================================
@@ -2156,6 +2368,8 @@ rem ======================================== End of Script =====================
 
 
 rem ======================================== Other Function ========================================
+:__OTHER_FUNCTIONS__     Actually working functions but not listed
+
 
 rem Size: !puzzleRow!x!puzzleCol!
 
@@ -2219,31 +2433,65 @@ if !rowNumber! GEQ 1 if !rowNumber! LEQ !puzzleRow! (
 goto :EOF
 
 
-:viewIP_Scripts
-set "_listCount=0"
-echo Connected Networks:
-echo=
-for /f "tokens=* usebackq" %%o in (`ipconfig /all`) do (
-    set "output=%%o"
-    if "!output:~-1,1!" == ":" if not "!output:~-2,1!" == " " set "_net_name=!output:~0,-1!"
-    if /i "!output:~0,11!" == "Description"     set "_net_desc=!output:~36,75!"
-    if /i "!output:~0,12!" == "IPv4 Address"    set "_net_IPv4=!output:~36,62!"
-    if /i "!output:~0,15!" == "Default Gateway" if /i not "!output:~36,2!" == "::" (
-        set /a "_listCount+=1"
-        set "_listCount=   !_listCount!"
-        set "_listCount=!_listCount:~-3,3!"
-        echo !_listCount!. !_net_name!
-        echo     Desciption : !_net_desc!
-        echo     IPv4       : !_net_IPv4!
-        echo     Gateway    : !output:~36,62!
-        echo=
-    )
+
+:move [source] [destination_folder]
+if not exist "%~1" exit /b 1
+if not exist "%~f2" md "%~f2"
+if "%~d1" == "%~d2" (
+    for /d %%d in ("%~1") do move /y "%%~fd" "%~f2" > nul || exit /b !errorlevel!
+    if exist "%~1" for %%f in ("%~1") do move /y "%%~ff" "%~f2" > nul || exit /b !errorlevel!
+) else (
+    echo robocopy /move /e "%~1" "%~2\%~nx1"
+    exit /b 2
 )
+exit /b 0
+
+
+rem ======================================== Dynamic Menu Creator ========================================
+
+:dynamenu.read
+for /f "usebackq tokens=1,2 delims= " %%a in ("%~f0") do (
+    if "%%~xa" == ".dynamenu" set "dynamenu_%%b=!dynamenu_%%b! %%~na"
+)
+exit /b 0
+
+
+:dynamenu   menu_type number|list
+if not defined dynamenu_%~1 exit /b 1
+set "selected_menu="
+set "_menu_count=0"
+for %%m in (!dynamenu_%~1!) do call %%m.dynamenu && (
+    set /a "_menu_count+=1"
+    if /i "%~2" == "list" (
+        set "_menu_count=   !_menu_count!"
+        echo !_menu_count:~-3,3!. !dynamenu_text!
+    ) else if "%~2" == "!_menu_count!" set "selected_menu=%%m"
+)
+set "dynamenu_text="
+if defined selected_menu call !selected_menu!
 goto :EOF
 
-rem ======================================== WIP Function ========================================
+call :dynamenu.read
+call :dynamenu menu_type list
+call :dynamenu menu_type 1
 
-:Time_Done_with_Date [Start Time] [Progress done] [Total Progress] ????
+
+:menulabel.dynamenu   options
+set "dynamenu_text=Menu name here"
+rem Allow condition here
+if not "!nginx_state!" == "STOPPED" exit /b 1
+exit /b 0
+:menulabel
+rem Your function here
+exit /b 0
+
+rem ======================================== WIP Function ========================================
+:__WIP_FUNCTIONS__     Work In Progress Functions
+
+
+rem ======================================== timedatedone(start_time, progress, progress) ========================================
+
+:timedatedone   start_time progress [Total Progress] ????
 set "return=0"
 call :Time_Subtract %1 %time%
 set /a return+=%return% * (%3 - %2) / %2 2> nul
@@ -2256,7 +2504,99 @@ call :Date_Format %tempVar6%
 set "return=%return% %tempVar7%"
 goto :EOF
 
+rem =============================== convEnc(string, in_charset, string, out_charset) ===============================
+
+.#FUNCTION conv convEnc
+
+
+:convEnc.Demo
+echo Convert string from one encoding to another
+echo=
+echo Example: Convert Hexadecimal to Base64
+echo=
+set "hexadecimal=0123456789ABCDEF"
+set "base64=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+call :input_string input_string
+call :convEnc input_string hexadecimal base64
+echo=
+echo Converted string:
+echo=!return!
+goto :EOF
+
+
+:convEnc   variable_name  input_charset_variable  output_charset_variable
+set "return="
+set "_inCharsetLen=0"
+set "_outCharsetLen=0"
+set "_inBits=13"
+set "_outBits=13"
+for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1 0) do (
+    set /a "_inCharsetLen+=%%n"
+    for %%l in (!_inCharsetLen!) do if "!%~2:~%%l,1!" == "" (
+        set /a "_inCharsetLen-=%%n"
+        set /a "_inBits-=1"
+    )
+)
+set /a "_inCharsetLen+=1"
+for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1 0) do (
+    set /a "_outCharsetLen+=%%n"
+    for %%l in (!_outCharsetLen!) do if "!%~3:~%%l,1!" == "" (
+        set /a "_outCharsetLen-=%%n"
+        set /a "_outBits-=1"
+    )
+)
+set /a "_outCharsetLen+=1"
+echo IL[!_inCharsetLen!] OL[!_outCharsetLen!]
+echo IB[!_inBits!] OB[!_outBits!]
+
+call :strlen %~1
+set "_varLen=!return!"
+echo VL[!_varLen!]
+
+rem Read and get value of 1600 chars
+set "_charValues="
+for /l %%i in (0,1,!_varLen!) do if not "!%~1:~%%i,1!" == "" (
+    for /l %%n in (0,1,!_inCharsetLen!) do if "!%~1:~%%i,1!" == "!%~2:~%%n,1!" set "_charValues=!_charValues! %%n"
+)
+echo VV[!_charValues!]
+
+if not defined %1 goto :EOF
+for /l %%i in (0,1,8191) do (
+    if not "!%1:~%%i,1!" == "" (
+        set "nextValue=0"
+        for /l %%n in (0,1,!encodingLength!) do if "!%1:~%%i,1!" == "!%2:~%%n,1!" set "nextValue=%%n"
+        for /l %%l in (1,1,!encodingBit!) do (
+            set /a "remainder= !remainder! << 1   |   !nextValue! >> !encodingBit!-1 "
+            set /a "nextValue%%= 1 << !encodingBit!-1"
+            set /a "nextValue<<=1"
+            if !remainder! GEQ !requirementXOR! set /a "remainder= !remainder! - !requirementXOR! ^^ %4"
+        )
+    )
+)
+set /a "nextValue=%6 + 0"
+for /l %%l in (1,1,%3) do (
+    set /a "nextValue*=2"
+    set /a "remainder= !remainder! * 2 + !nextValue! / !requirementXOR!"
+    set /a "nextValue%%= !requirementXOR!"
+    if !remainder! GEQ !requirementXOR! set /a "remainder= !remainder! - !requirementXOR! ^^ %4"
+)
+pause
+exit /b
+
 rem ======================================== Notes ========================================
+:__NOTES__     Useful stuffs worth looking at
+
+
+rem ======================================== Notes (General) ========================================
+
+rem Date and Time
+set "dateAndTime=!date:~10!!date:~4,2!!date:~7,2!_!time:~0,2!!time:~3,2!!time:~6,2!"
+
+rem Wildcard from %~nx1
+set "_isDir=%~a1"
+set "isWildcard=%~nx1"
+if "!_isDir:~0,1!" == "-" set "_isDir="
+if not "!isWildcard:~0,1!" == "." set "isWildcard="
 
 rem Unimplemented Functions
 diffdate(x)
@@ -2281,7 +2621,7 @@ rem Delay 1s
 ping localhost -n 2 > nul
 
 rem New Line (DisableDelayedExpansion)
-set NL=^^^%LF%%LF%^%LF%%LF%
+set ^"NL=^^^%LF%%LF%^%LF%%LF%^"
 
 rem Copy to clipboard
 echo Copy with CRLF| clip
@@ -2355,7 +2695,20 @@ set "dlCorner==="
 set "drCorner==="
 goto :EOF
 
-rem ======================================== File I/O ========================================
+set "server_state=STOPPED | RUNNING | ERROR
+set "server_state_msg=!server_state_msg_%server_state%!"
+set "found_time=!date:~10!!date:~4,2!!date:~7,2!_!time:~0,2!!time:~3,2!!time:~6,2!"
+
+
+rem Label Names
+::Preset.init
+::Server.setup
+::Preset.read
+::Preset.get_item   list|number
+::Server.check_state
+::Server.edit_config
+
+rem ======================================== Notes (File I/O) ========================================
 
 rem Create 0-byte file
 call 2> "File.txt"
@@ -2390,7 +2743,48 @@ certutil -decodehex inFile outFile
 rem Hash SHA1
 certutil -hashfile fileName
 
-rem ======================================== Collect Data ========================================
+:File.generate file_id file_location
+call 2> "%~f2.b64"
+set "write_to_file=false"
+for /f "usebackq tokens=*" %%o in ("%~f0") do (
+    for /f "tokens=1,2* delims= " %%a in ("%%o") do (
+        if /i "!write_to_file!" == "TRUE" (
+            if /i "%%a" == "!file_end_tag!" goto File.generate.decode
+            echo %%o >> "%~f2.b64"
+        )
+        if /i "%%a" == "!file_start_tag!" (
+            if "%%b" == "%~1" set "write_to_file=true"
+        )
+    )
+)
+:File.generate.decode
+certutil -decode "%~f2.b64" "%~f2" > nul 2> nul && (
+    echo Generate successful
+) || (
+    echo Generate failed
+)
+del /f /q "%~f2.b64"
+goto :EOF
+
+
+:File.import filename
+call 2> "%~nx1.b64"
+certutil -encode "%~nx1" "%~nx1.b64" > nul 2> nul || (
+    echo Import failed
+    goto :EOF
+)
+set "file_id=FILE!date:~10!!date:~4,2!!date:~7,2!_!time:~0,2!!time:~3,2!!time:~6,2!"
+(
+    echo=
+    echo #file !file_id! %~nx1
+    type "%~nx1.b64"
+    echo #end
+) >> "%~f0"
+del /f /q "%~nx1.b64"
+popd
+goto :EOF
+
+rem ======================================== Notes (Data Collection) ========================================
 
 rem Get registry value
 for /f "tokens=3" %%v in ('reg query !regKeyName! /v !regVarName! ^| findstr !regVarName!') do set "regValue=%%v"
@@ -2406,7 +2800,7 @@ rem Disk drive info
 wmic diskdrive get capabilities capabilityDescription caption
 
 rem Get screen resoltion
-wmic desktopmonitor get screenheight, screenwidth
+wmic desktopmonitor get screen_height, screen_width
 
 rem Get CPU load
 wmic cpu get loadpercentage /format:list
@@ -2421,7 +2815,17 @@ reg Query "HKLM\Hardware\Description\System\CentralProcessor\0" | find /i "x86" 
 IF EXIST "%PROGRAMFILES(X86)%" (set bit=x64) ELSE (set bit=x86)
 IF "%PROCESSOR_ARCHITECTURE%"=="x86" (set bit=x86) else (set bit=x64)
 
+rem Get Downloads folder
+for /f "usebackq skip=1 tokens=1,2*" %%t in (`reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "{374DE290-123F-4565-9164-39C4925E467B}" 2^>nul`) do (
+    if /I "%%t"=="{374DE290-123F-4565-9164-39C4925E467B}" set "download_folder=%%v"
+)
+
+rem Download file
+powershell -Command "Invoke-WebRequest http://www.example.com/package.zip -OutFile package.zip"
+
 rem Others
 driverquery
 gpresult
 telnet
+
+
