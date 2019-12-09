@@ -5,11 +5,11 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.2"
+set "%~1version=2.1-a.3"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=10/21/2019"   :: mm/dd/YYYY
+set "%~1release_date=12/9/2019"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -66,13 +66,14 @@ exit /b 0
 
 
 :config.default
+rem Default/common configurations for this script
 set "temp_path=!temp!\BatchScript\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module (use absolute paths)
 set "batchlib="
 
 rem Variables below are not used here, but for reference only
-rem set "data_path=data\batchlib\"
+rem set "data_path=data\batchlib"
 rem set "default_console_width=80"
 rem set "default_console_height=25"
 rem set "console_width=!default_console_width!"
@@ -105,133 +106,10 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :changelog
-for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
-    if /i "%%a.%%b" == ":changelog.text" (
-        echo batchlib %%c
-        call :changelog.text.%%c
-        echo=
-    )
-)
-exit /b 0
-
-
-:changelog.latest
-for /f "usebackq tokens=1-2* delims=." %%a in ("%~f0") do (
-    if /i "%%a.%%b" == ":changelog.text" (
-        echo batchlib %%c
-        call :changelog.text.%%c
-        exit /b 0
-    )
-)
-exit /b 1
-
-
-:changelog.text.2.1-a.2 (2019-10-21)
-echo    Bug Fixes
-echo    - Fixed missing changes in changelog for version 2.1-a.1
-echo    - Removed external dependency macro in epoch2time()
-echo=
-echo    Changes
-echo    - Renamed 'shortcuts' to 'shortcut'
-echo    - Changed updater() category from 'Network' to 'Framework'
-echo    - Modified rules for usage of macro
-echo        - Macro should be used on '*.__demo__' and 'test.*' wherever possible
-echo        - Function to test in 'test.*' ' should not use macro
-echo    - Removed test for save_minified()
-echo=
-echo    Features
-echo    - Added specific config for entry points
-echo    - Entry point of minified script is now easier to maintain
-echo    - Added script_cli(), help(), scripts.lib-noecho() to minified script
-echo    - Added test suite to minified script
-echo    - Improved batchlib-min user interface
-echo    - batchlib-min now accepts '-h, --help' to display usage help
-echo    - Changed the UTF-8-BOM guard to label so it can be extracted using extract_func()
-echo    - Added extract failure detection on extract_func()
-echo    - Improved tests for module.entry_point()
-exit /b 0
-
-
-:changelog.text.2.1-a.1 (2019-10-20)
-echo    Bug Fixes
-echo    - Fixed incorrect release date for version 2.1-a
-echo=
-echo    Features
-echo    - Added fdate(), epoch2time()
-echo    - pow(): Added error message if integer is too large
-echo=
-echo    Changes
-echo    - scripts.main() now preserves prompt (echo) message
-echo    - Removed tester() framework (replaced by unittest())
-exit/ b 0
-
-
-:changelog.text.2.1-a (2019-10-12)
-echo    Bug Fixes
-echo    - Fixed missing parameter description of several functions
-echo    - Fixed batch script creating ']' file if EOL is Linux
-echo    - Fixed parameter conflict in Input.path()
-echo    - Fixed demo of several functions that uses Input.number()
-echo    - Fixed Input.ipv4() not returning value after a successful input
-echo    - Fixed error in module.entry_point() if first parameter is quoted and
-echo      contains special characters
-echo    - Fixed error in check_ipv4() not checking octet count if it is less than 4
-echo    - Fixed range checking errors in check_number()
-echo    - Fixed a slight inaccuracy in changelog for version 2.0
-echo=
-echo    Features
-echo    - Added size2bytes(), bytes2size(), find_label(), is_echo_on()
-echo    - Added unittest() framework
-echo    - Added a new data type for parse_args()
-echo    - Added capturing of TAB character in capchar()
-echo    - Added 'core' namespace for core functions / the "back-end"
-echo    - Added entry point 'lib-noecho' to call script without echo
-echo=
-echo    Changes
-echo    - __main__() now uses exit /b to prevent console from terminating
-echo    - Now prompt remains unchanged after running this script
-echo    - Splited check_number() to is_number() and is_in_range()
-echo    - Removed expand_path(), since using FOR directly is more preferable
-echo    - Deprecated tester() framework.
-echo    - Renamed watchvar() parameter '-l, --list' to '-n, --name'
-echo    - Renamed check_admin() to is_admin()
-echo    - Moved module.updater() out of module() framework, and listed it as
-echo      a library function and renamed it to updater()
-echo    - module.read_metadata() no longer checks if file is a module
-echo    - Input.yesno() now accepts anything that starts with 'Y' as yes, and
-echo      anything that starts with 'N' as no.
-echo=
-echo    Documentation
-echo    - Improved format of category listing
-echo    - Improved documentation of functions
-echo    - Improved demo of several functions
-exit /b 0
-
-
-:changelog.text.2.0 (2019-07-31)
-echo    Major update
-echo=
-echo    Features
-echo    - Added module (call as module) and tester (testing automation) framework
-echo    - Added many new functions
-echo    - Added tests for several functions
-echo    - Removed a few redundant and unmaintained functions
-echo    - Added function to get metadata of script
-echo    - Added UTF-8-BOM guard line at beginning of file to prevent errors
-echo      if script is encoded in UTF-8-BOM
-echo    - Added menu option to generate minified version of this script
-echo      (for minimal version and performance purposes)
-echo=
-echo    Internal
-echo    - Re-factored some functions
-echo    - Regrouped category and functions
-echo    - Now the script uses namespace structure
-echo=
-echo    Documentation
-echo    - Improved changelog structure
-echo=
-echo    Others
-echo    - No code changes from version 2.0-b.6
+echo    - Added unittest for wait()
+echo    - Added join mark '#+++' for extract_func()
+echo    - Restructured changelong to only include latest changelog
+echo    - Changlog history are now accessed through Git
 exit /b 0
 
 rem ======================================== Debug functions ========================================
@@ -279,6 +157,7 @@ call %batchlib%:Input.number age --message "Input your age: " --range 0~200
 @call :is_echo_on && @goto scripts.lib-noecho._no_echo
 @call :%*
 @exit /b %errorlevel%
+#+++
 
 :scripts.lib-noecho._no_echo
 @echo off
@@ -318,6 +197,7 @@ call %batchlib%:get_con_size console_width console_height
 call :main_menu
 if not defined no_cleanup rd /s /q "!temp_path!\.." > nul 2> nul
 @exit /b %errorlevel%
+
 
 :scripts.main.reload
 endlocal
@@ -360,11 +240,11 @@ set "user_input="
 cls
 echo 1. Browse documentation
 echo 2. Use command line
-echo 3. Test script
-echo 4. Generate minified version
+echo 3. Generate minified version
 echo=
 echo A. About script
 echo C. Change Log
+echo T. Test script
 echo 0. Exit
 echo=
 echo What do you want to do?
@@ -381,19 +261,6 @@ if "!user_input!" == "2" (
     goto main_menu
 )
 if "!user_input!" == "3" (
-    cls
-    echo Metadata:
-    set "SOFTWARE."
-    echo=
-    start "" /i /wait /b cmd /c ""%~f0" --module=lib-noecho :unittest -v" || (
-        echo=
-        echo Test module ended earlier than expected
-    )
-    echo=
-    pause
-    goto main_menu
-)
-if "!user_input!" == "4" (
     call :Input.path save_dir --exist --directory --message "Input save folder for the minified script: "
     set "minified_script=!save_dir!\!SOFTWARE.name!-min.bat"
     cls
@@ -417,7 +284,22 @@ if /i "!user_input!" == "A" (
 )
 if /i "!user_input!" == "C" (
     cls
+    echo !SOFTWARE.name! !SOFTWARE.version! ^(!SOFTWARE.release_date!^)
+    echo=
     call :changelog
+    echo=
+    pause
+    goto main_menu
+)
+if /i "!user_input!" == "T" (
+    cls
+    echo Metadata:
+    set "SOFTWARE."
+    echo=
+    start "" /i /wait /b cmd /c ""%~f0" --module=lib-noecho :unittest -v" || (
+        echo=
+        echo Test module ended earlier than expected
+    )
     echo=
     pause
     goto main_menu
@@ -551,6 +433,7 @@ rem ================================ CLI script ================================
 @echo=
 @call :script_cli._loop
 @exit /b %errorlevel%
+#+++
 
 :script_cli._loop
 @set "user_input="
@@ -818,6 +701,7 @@ set "_successful=true"
         echo @call :scripts.min %%*
         echo @exit /b %%errorlevel%%
     )
+    call :extract_func "%~f0" "EOF" || set "_successful="
 )
 if not defined _successful ( 1>&2 echo error: minify failed & exit /b 1 )
 exit /b 0
@@ -916,6 +800,7 @@ for /f "tokens=*" %%r in ("!user_input!") do (
     set "%~1=%%r"
 )
 exit /b 0
+#+++
 
 :Input.number._loop
 set "user_input="
@@ -1008,7 +893,7 @@ REM < "in\spaced" > nul 2>&1 (
 REM ) & !evaluate_result! "trim spaces [WIP]"
 
 exit /b 0
-
+#+++
 
 :test.shortcut.Input.string.evaluate_result
 if not "!result!" == "!expected_result!" (
@@ -1034,6 +919,7 @@ for /f tokens^=*^ delims^=^ eol^= %%c in ("_!user_input!_") do (
     if not defined %~1 exit /b 1
 )
 exit /b 0
+#+++
 
 :Input.string._loop
 echo=
@@ -1146,6 +1032,7 @@ if defined _result (
     if /i "%user_input:~0,1%" == "Y" exit /b 0
 )
 exit /b 1
+#+++
 
 :Input.yesno._loop
 echo=
@@ -1232,6 +1119,7 @@ for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
     set "last_used.file=%%c"
 )
 exit /b 0
+#+++
 
 :Input.path._loop
 set "user_input="
@@ -1316,7 +1204,7 @@ set "evaluate_result=call :test.shortcut.Input.ipv4.evaluate_result"
 ) & !evaluate_result! "allow wildcard"
 
 exit /b 0
-
+#+++
 
 :test.shortcut.Input.ipv4.evaluate_result
 if not "!result!" == "!expected_result!" (
@@ -1345,6 +1233,7 @@ for /f "tokens=*" %%r in ("!user_input!") do (
     set "%~1=%%r"
 )
 exit /b 0
+#+++
 
 :Input.ipv4._loop
 set /p "user_input=!_message!"
@@ -1356,6 +1245,11 @@ rem ======================================== Batch Script Library ==============
 
 :lib.__init__
 rem Functions from Batch Script Library (batchlib) or other libraries
+
+rem call %batchlib%:extract_func "batchlib.bat" ^
+rem     ^ ^"your_function_label_here ^
+rem     ^   another_function_label_here^" ^
+rem     ^ > "batchlib.lib.bat"
 exit /b 0
 
 rem ================================ GUIDES ================================
@@ -1555,7 +1449,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :yroot result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail 
+        call %batchlib%:unittest.fail
     )
 )
 exit /b 0
@@ -2116,21 +2010,21 @@ for %%a in (
     "true: -1"
     "true: 2147483647"
     "true: -2147483647"
-    
+
     "true: 00"
     "true: 010"
     "true: -07"
-    
+
     "true: 0x0"
     "true: 0x10"
     "true: 0xabcdef"
-    
+
     "false: -"
     "false: x"
     "false: 0x"
     "false: x0"
     "false: -0x"
-    
+
     "false: abcdef"
     "false: 08"
     "false: +"
@@ -2700,10 +2594,10 @@ rem ======================== test ========================
 for %%a in (
     "0:       01/01/1970"
     "30:      01/31/1970"
-    
+
     "31:      02/01/1970"
     "58:      02/28/1970"
-    
+
     "59:      03/01/1970"
     "90:      04/01/1970"
     "120:     05/01/1970"
@@ -2719,17 +2613,17 @@ for %%a in (
     "365:     01/01/1971"   "423:     02/28/1971"   "424:     03/01/1971"   "729:     12/31/1971"
     "730:     01/01/1972"   "789:     02/29/1972"   "790:     03/01/1972"   "1095:    12/31/1972"
     "1096:    01/01/1973"
-    
+
     "10956:   12/31/1999"
     "10957:   01/01/2000"   "11016:   02/29/2000"   "11017:   03/01/2000"   "11322:   12/31/2000"
     "47482:   01/01/2100"   "47540:   02/28/2100"   "47541:   03/01/2100"   "47846:   12/31/2100"
     "157054:  01/01/2400"   "157113:  02/29/2400"   "157114:  03/01/2400"   "157419:  12/31/2400"
-    
+
     "10957:   01/01/2000"
     "10988:   02/01/2000"
     "11015:   02/28/2000"
     "11017:   03/01/2000"
-    
+
     "11382:  3/01/2001"
     "12478:  3/01/2004"
 
@@ -2775,7 +2669,7 @@ rem ======================== notes ========================
 rem Days from month formula
 rem
 rem         days_from_month = (336 * (%%a-1) + 7) / 11
-rem     
+rem
 rem     In this formula we assume february to be 30 days, so we need to fix it:
 rem
 rem         if month > 2:
@@ -2830,10 +2724,10 @@ rem ======================== test ========================
 for %%a in (
     "01/01/1970:       0"
     "01/31/1970:      30"
-    
+
     "02/01/1970:      31"
     "02/28/1970:      58"
-    
+
     "03/01/1970:      59"
     "04/01/1970:      90"
     "05/01/1970:     120"
@@ -2849,7 +2743,7 @@ for %%a in (
     "01/01/1971:     365"   "02/28/1971:     423"   "03/01/1971:     424"   "12/31/1971:     729"
     "01/01/1972:     730"   "02/29/1972:     789"   "03/01/1972:     790"   "12/31/1972:    1095"
     "01/01/1973:    1096"
-    
+
     "12/31/1999:   10956"
     "01/01/2000:   10957"   "02/29/2000:   11016"   "03/01/2000:   11017"   "12/31/2000:   11322"
     "01/01/2100:   47482"   "02/28/2100:   47540"   "03/01/2100:   47541"   "12/31/2100:   47846"
@@ -3307,7 +3201,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :wait.__demo__
-call %batchlib%:wait.calibrate
+call %batchlib%:wait.calibrate > nul
 echo=
 call %batchlib%:Input.number time_in_milliseconds --range "0~10000"
 echo=
@@ -3328,13 +3222,32 @@ exit /b 0
 
 rem ======================== test ========================
 
-rem (!) make test here...
+:test.wait.main
+rem threshold: percentage of inaccuracy that is indicated as a failure
+rem It is purposely set to a very high value so we only mark the test as failure
+rem only if we have a high confidence that it is a failure.
+rem e.g.: An error occured while trying to call wait() so typically it would finish
+rem       almost immediately and it would have inaccuracy of more than 90% when delay is 1.25s
+set "threshold=70"
+set "test_delay=1250"
+
+call :wait.calibrate
+set "start_time=!time!"
+call :wait !test_delay!
+call %batchlib%:difftime time_taken !time! !start_time!
+set /a "inaccuracy=!time_taken!*10 - !test_delay!"
+set /a "fail=!inaccuracy! * !inaccuracy! * ((100 * 100) / (!threshold! * !threshold!)) / (!test_delay!*!test_delay!)"
+if not "!fail!" == "0" (
+    call %batchlib%:unittest.fail "Abnormal amount of inaccuracy in delay: expected !test_delay!s, got !inaccuracy!s"
+)
+exit /b 0
 
 rem ======================== function ========================
 
 :wait   delay
 for %%t in (%=wait=% %~1) do for /l %%w in (0,!wait._increment!,%%t00000) do call
 exit /b 0
+#+++
 
 :wait.calibrate   [delay_target]
 setlocal EnableDelayedExpansion
@@ -3810,7 +3723,7 @@ call :capchar LF
 
 call %batchlib%:Input.string wildcard_path || set "wildcard_path=C:\Windows\System32\*script.exe"
 call %batchlib%:strip_dquotes wildcard_path
-call %batchlib%:wcdir result "!wildcard_path!" 
+call %batchlib%:wcdir result "!wildcard_path!"
 echo=
 echo Wildcard path:
 echo !wildcard_path!
@@ -3838,6 +3751,7 @@ for /f "tokens=* delims=" %%r in ("!_result!") do (
     set "%~1=!%~1!%%r!LF!"
 )
 exit /b 0
+#+++
 
 :wcdir._find   wildcard_path
 for /f "tokens=1* delims=\" %%a in ("%~1") do if "%%a" == "*:" (
@@ -4444,19 +4358,25 @@ echo    input_file
 echo        Path of the input (batch) file.
 echo=
 echo    labels
-echo        The function labels to extract. The syntax is "label1 [...]"
+echo        The function labels to extract. The syntax is "label1 [...]".
 echo=
 echo DEFINITION
 echo    border line
 echo        A line that starts with 'rem ==='.
+echo=
+echo    join mark
+echo        A line that solely consist of '#+++'.
 echo=
 echo FUNCTION DETECTION
 echo    For a function to be detected, the label of the function MUST
 echo    only be preceeded by either nothing, or spaces and/or tabs.
 echo=
 echo    The function MUST end with either of the following:
-echo        - Two new lines
-echo        - One new line and one border line
+echo        - Two empty lines
+echo        - One empty line followed by one border line (see DEFINITION).
+echo=
+echo    Functions that have consist of multiple functions SHOULD end each
+echo    subroutine with the join mark (see DEFINITION).
 echo=
 echo EXIT STATUS
 echo    0:  - Extraction is successful.
@@ -4496,6 +4416,7 @@ for /f "delims=" %%a in ('findstr /n "^" "%~f1"') do (
 
     if defined _write (
         if "!line:~0,7!" == "rem ===" set "_current=BORDER"
+        if "!line:~0,5!" == "#+++" set "_current=JOIN"
         if not defined line set "_current=EOL"
         if defined _current (
             set "_mark=!_mark!!_current! "
@@ -4511,7 +4432,7 @@ for /f "delims=" %%a in ('findstr /n "^" "%~f1"') do (
     )
 
     for /f "tokens=1" %%b in ("!line!") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
-        if /i ":%%c" == "%%b" if /i "%%d" == "" (
+        if ":%%c" == "%%b" if "%%d" == "" (
             for %%l in (!_labels!) do if "%%c" == "%%~l" (
                 set "_write=true"
                 set "_labels=!_labels: %%c = !"
@@ -5110,7 +5031,7 @@ for %%t in (
     call %batchlib%:unittest.fail %%t
 )
 exit /b 0
-
+#+++
 
 :test.lib.watchvar.simulate   added  changed  deleted
 for /l %%n in (1,1,%~1) do set "simulate.added.%%n="
@@ -5405,11 +5326,13 @@ for /f "tokens=1* delims==" %%a in ("!_content!") do (
     )
 )
 exit /b 0
+#+++
 
 :endlocal._to_ede
 set "_var=^!!_var:^=^^^^!"
 set "_var=%_var:!=^^^!%"
 exit /b
+#+++
 
 :endlocal._to_dde
 set "_var=%_var%"
@@ -5823,7 +5746,7 @@ echo=
 echo 'cmd /c' is required to make sure the new window closes
 echo if it exits using the 'exit /b' command
 exit /b 0
-
+#+++
 
 :scripts.2nd_window_demo
 @echo off
@@ -5838,7 +5761,7 @@ exit 0
 
 rem ======================== test =======================
 
-:test.debug.framework.module.entry_point.main
+:test.framework.module.entry_point.main
 call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry_point.bat"
 call %batchlib%:extract_func "%~f0" "test.framework.module.entry_point.capture_args" > "capture_args"
 
@@ -5870,7 +5793,7 @@ for /f "tokens=*" %%a in ("!test_cases!") do (
     )
 )
 exit /b 0
-
+#+++
 
 :test.framework.module.entry_point.capture_args
 set args=%*
@@ -6196,7 +6119,7 @@ echo=
 echo    In unittest(), test cases that is successful is indicated by not calling
 echo    unittest.skip(), unittest.fail(), unittest.error(), and return exit code 0.
 echo=
-echo    Use unittest.skip(), unittest.fail(), unittest.error() to indicate test 
+echo    Use unittest.skip(), unittest.fail(), unittest.error() to indicate test
 echo    needs to be skipped, failed, or error, respectively. Functions with [msg]
 echo    in the argument can be used to specify the message/reason why it occured.
 echo    If an important test failed, use unittest.stop() to stop the test early.
@@ -6249,7 +6172,8 @@ set parse_args.args= ^
     ^ "-q --quiet       :flag:_verbosity=0" ^
     ^ "-f --failfast    :flag:_fail_fast=true" ^
     ^ "-p --pattern     :var:_pattern" ^
-    ^ "-l --label       :var:unittest.test_list"
+    ^ "-l --label       :var:unittest.test_list" ^
+    ^ "--_unittest      :flag:unittest._unittest=true"
 call :parse_args %*
 if not "%~1" == "" set "_module=%~f1"
 if not defined _pattern set "_pattern=test.*.main"
@@ -6278,9 +6202,9 @@ set "start_time=!time!"
 for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
     set /a "unittest.tests_run+=1"
     if "!_verbosity!" == "2" (
-        call %batchlib%:difftime _timestamp !time! !start_time!
-        call %batchlib%:ftime _timestamp !_timestamp!
-        echo !_timestamp! [!unittest.tests_run!/!unittest.tests_count!] %%t
+        call %batchlib%:difftime _elapsed_time !time! !start_time!
+        call %batchlib%:ftime _elapsed_time !_elapsed_time!
+        echo !_elapsed_time! [!unittest.tests_run!/!unittest.tests_count!] %%t
     )
     call :unittest._run  %%t
 )
@@ -6319,6 +6243,7 @@ cd /d "!temp_path!"
 rd /s /q "unittest" > nul 2> nul
 if not defined unittest.was_successful exit /b 1
 exit /b 0
+#+++
 
 :unittest._run   label
 call 2> "log\outcome.bat"
@@ -6339,30 +6264,35 @@ call "log\outcome.bat"
 call :unittest._add_result !_final_outcome! %1
 call :%~1.cleanup 2> nul
 exit /b 0
+#+++
 
 :unittest.skip   reason
 >> "log\outcome.bat" (
     echo call %%_orig_script%%:unittest._add_outcome skip %1
 )
 exit /b 0
+#+++
 
 :unittest.fail   msg
 >> "log\outcome.bat" (
     echo call %%_orig_script%%:unittest._add_outcome failure %1
 )
 exit /b 0
+#+++
 
 :unittest.error   msg
 >> "log\outcome.bat" (
     echo call %%_orig_script%%:unittest._add_outcome error %1
 )
 exit /b 0
+#+++
 
 :unittest.stop
 >> "log\outcome.bat" (
     echo set "unittest.should_stop=true"
 )
 exit /b 0
+#+++
 
 :unittest._add_outcome   {failure|error|skip}  [msg]
 set "unittest.test.!_test_name!.%~1_msg=%~2"
@@ -6375,6 +6305,7 @@ if "!_verbosity!" == "2" (
     echo [%~1] %~2
 )
 exit /b 0
+#+++
 
 :unittest._add_result   {success|failure|error|skip}  test  [msg]
 set "_list_name="
@@ -6417,38 +6348,38 @@ exit /b 0
 rem ======================== test ========================
 
 ::test.framework.unittest.main
-call :unittest -p "test.framework.unittest.test_*" -v
+call :unittest -p "test.framework.unittest.test_*" -v --_unittest
 exit /b 0
 
 rem Use on cli
 @echo off
-set batchlib="F:\Data\Programming\Language\Batch\template\batchlib.bat" --module=lib 
+set batchlib="%~f0" --module=lib
 cls & %batchlib%:unittest -l test.lib.is_number.main -v
-
+#+++
 
 :test.framework.unittest.test_success
 echo This test should be successful
 exit /b 0
-
+#+++
 
 :test.framework.unittest.test_skip
 echo This test should be skipped
 call :unittest.skip "Not implemented yet..."
 exit /b 0
-
+#+++
 
 :test.framework.unittest.test_fail1
 echo This test should fail
 call :unittest.fail "Test failure single"
 exit /b 0
-
+#+++
 
 :test.framework.unittest.test_fail2
 echo This test should fail
 call :unittest.fail "Test failure multiple 1"
 call :unittest.fail "Test failure multiple 2"
 exit /b 0
-
+#+++
 
 :test.framework.unittest.test_error
 echo This test should result in an error
@@ -6470,7 +6401,7 @@ echo    parse_args   %%*
 echo=
 echo DESCRIPTION
 echo    parse_args() is a argument parser for batch script. All arguments is passed
-echo    to parse_args() by calling it using '%%*' and it will read the parsing 
+echo    to parse_args() by calling it using '%%*' and it will read the parsing
 echo    options defined in the variable 'parse_args.args' to extract the data.
 echo    Arguments that does not match any of the options remains as positional
 echo    arguments.
@@ -6545,7 +6476,7 @@ call %batchlib%:Input.string parameters
 echo=
 call :talking_calculator !parameters!
 exit /b 0
-
+#+++
 
 :talking_calculator
 for %%v in (_say _binary _hex) do set "%%v="
@@ -6584,7 +6515,7 @@ call :test.framework.parse_args.var_n_flags arg1 -n asd -e --save-path qwe arg2 
 call :test.framework.parse_args.special_chars "" -c ":" -sc ";" -qm "?" -a "*" || exit /b 0
 call :test.framework.parse_args.list  --one --three --two --three || exit /b 0
 exit /b 0
-
+#+++
 
 :test.framework.parse_args.no_args
 setlocal EnableDelayedExpansion EnableExtensions
@@ -6594,7 +6525,7 @@ call :parse_args || (
     exit /b 1
 )
 exit /b 0
-
+#+++
 
 :test.framework.parse_args.var_n_flags
 for %%v in (_filename _save_path _exist) do set "%%v="
@@ -6611,7 +6542,7 @@ if not "!_filename!" == "asd" ( call %batchlib%:unittest.fail "var_n_flags: keyw
 if not "!_save_path!" == "qwe" ( call %batchlib%:unittest.fail "var_n_flags: keyword argument 2" & exit /b 1 )
 if not "!_exist!" == "true" ( call %batchlib%:unittest.fail "var_n_flags: flag argument 1" & exit /b 1 )
 exit /b 0
-
+#+++
 
 :test.framework.parse_args.special_chars
 for %%v in (_question_mark _asterisk _colon _semicolon) do set "%%v="
@@ -6628,7 +6559,7 @@ if not "!_asterisk!" == "*" ( call %batchlib%:unittest.fail "special_chars: pars
 if not "!_colon!" == ":" ( call %batchlib%:unittest.fail "special_chars: parsing of colon" & exit /b 1 )
 if not "!_semicolon!" == ";" ( call %batchlib%:unittest.fail "special_chars: parsing of semicolon" & exit /b 1 )
 exit /b 0
-
+#+++
 
 :test.framework.parse_args.list
 for %%v in (_numbers) do set "%%v="
@@ -6642,7 +6573,7 @@ set /a "sum=!_numbers!"
 if not "!_numbers!" == " +1 +3 +2 +3" ( call %batchlib%:unittest.fail "list: incorrect result" & exit /b 1 )
 if not "!sum!" == "9" ( call %batchlib%:unittest.fail "list: incorrect sum" & exit /b 1 )
 exit /b 0
-
+#+++
 
 :test.framework.parse_args.validate_args
 setlocal EnableDelayedExpansion
@@ -6677,6 +6608,7 @@ set "parse_args._value="
     ( call )
 )
 exit /b 1
+#+++
 
 :parse_args._loop
 set _value=%1
@@ -6789,7 +6721,7 @@ set "exit_code=!errorlevel!"
 if "!exit_code!" == "20" ( call %batchlib%:unittest.skip "Cannot connect to the test server" & exit /b 0 )
 if not "!exit_code!" == "0" call %batchlib%:unittest.fail "Update failed"
 exit /b 0
-
+#+++
 
 :test.framework.updater.update
 @echo off
@@ -6890,30 +6822,6 @@ echo=
 call :dynamenu options list
 exit /b 0
 
-rem ======================== function ========================
-
-:dynamenu   menu_name  number|list
-if not defined dynamenu_%~1 exit /b 1
-set "selected_menu="
-set "_menu_count=0"
-for %%m in (!dynamenu_%~1!) do call %%m.dynamenu && (
-    set /a "_menu_count+=1"
-    if /i "%2" == "list" (
-        set "_menu_count=   !_menu_count!"
-        echo !_menu_count:~-3,3!. !dynamenu_text!
-    ) else if "%~2" == "!_menu_count!" set "selected_menu=%%m"
-)
-set "dynamenu_text="
-if not defined selected_menu exit /b 1
-call !selected_menu!
-exit /b 0
-
-:dynamenu.read
-for /f "usebackq tokens=1,2 delims= " %%a in ("%~f0") do (
-    if "%%~xa" == ".dynamenu" if not "%%~b" == "" set "dynamenu_%%b=!dynamenu_%%b! %%~na"
-)
-exit /b 0
-
 
 call :dynamenu.read
 call :dynamenu menu_type list
@@ -6939,6 +6847,31 @@ exit /b 0
 echo Hello Odd Menu
 exit /b 0
 
+rem ======================== function ========================
+
+:dynamenu   menu_name  number|list
+if not defined dynamenu_%~1 exit /b 1
+set "selected_menu="
+set "_menu_count=0"
+for %%m in (!dynamenu_%~1!) do call %%m.dynamenu && (
+    set /a "_menu_count+=1"
+    if /i "%2" == "list" (
+        set "_menu_count=   !_menu_count!"
+        echo !_menu_count:~-3,3!. !dynamenu_text!
+    ) else if "%~2" == "!_menu_count!" set "selected_menu=%%m"
+)
+set "dynamenu_text="
+if not defined selected_menu exit /b 1
+call !selected_menu!
+exit /b 0
+#+++
+
+:dynamenu.read
+for /f "usebackq tokens=1,2 delims= " %%a in ("%~f0") do (
+    if "%%~xa" == ".dynamenu" if not "%%~b" == "" set "dynamenu_%%b=!dynamenu_%%b! %%~na"
+)
+exit /b 0
+
 rem ================================ bcom(WIP) ================================
 
 rem ======================== documentation ========================
@@ -6961,7 +6894,7 @@ call :parse_args %*
 set "bcom.name=!SOFTWARE.name!.!__name__!"
 set "bcom.id=!bcom.name!.!random!"
 exit /b 0
-
+#+++
 
 :bcom.send   id
 set "_bcom_send_date=!date!"
@@ -6977,7 +6910,7 @@ set "_bcom_send_time=!time!"
     echo exit /b 0
 )
 exit /b 0
-
+#+++
 
 rem Jump to last msg concept?
 ::sender_id
@@ -6988,7 +6921,7 @@ rem Jump to last msg concept?
     ( call )
 )
 exit /b 0
-
+#+++
 
 :bcom.receive   id
 for /f "usebackq tokens=1 delims==" %%v in (`set bcom.packet. 2^> nul`) do set "%%v="
@@ -6998,7 +6931,7 @@ for %%f in ("!bcom.file!") do (
     call "!bcom.file!" || exit /b 1
 )
 exit /b 0
-
+#+++
 
 :bcom.ping   id
 set bcom_msg=set "bcom_signal=ping"
@@ -7014,7 +6947,7 @@ if defined _bcom_send_time (
 )
 if /i "!_respond!" == "false" exit /b 1
 exit /b 0
-
+#+++
 
 :bcom.respond   id
 set "bcom_signal="
@@ -7043,6 +6976,7 @@ rem Additional data to bundle
 exit /b 0
 
 rem ======================================== End of Script ========================================
+
 :EOF     May be needed if command extenstions are disabled
 rem Anything beyond this are not part of the code
 exit /b %errorlevel%
