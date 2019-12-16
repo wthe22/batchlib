@@ -5,7 +5,7 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.4"
+set "%~1version=2.1-a.5"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -106,11 +106,10 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :changelog
-echo    - Fixed EOF() not written to minified script
-echo    - Replaced module.version_compare() with parse_version()
-echo    - Renamed category 'Formatting' to 'Command Line'
-echo    - Added a new category 'Packaging'
-echo    - Now unittest of wait() has no output
+echo    - Fixed incorrect documentation and demo in updater()
+echo    - Fixed incorrect parameter in check_path()
+echo    - Added changelog to minified script
+echo    - Now unittest of updater() has no output
 exit /b 0
 
 rem ======================================== Debug functions ========================================
@@ -683,6 +682,7 @@ set "_successful=true"
         "Metadata: metadata about"
         "License: license"
         "Configurations:  config config.default config.min config.preferences"
+        "Changelog: changelog"
         "Scripts/Entry points: scripts.__init__ scripts.lib scripts.lib-noecho scripts.min"
         "User Interfaces: ui.__init__ script_cli help"
         "Core: core.__init__ Category.init Function.read"
@@ -3444,7 +3444,7 @@ echo NAME
 echo    check_path - check if a path satisfies the given requirements
 echo=
 echo SYNOPSIS
-echo    check_path   path_var  [-e^|-n]  [-f^|-p]
+echo    check_path   path_var  [-e^|-n]  [-f^|-d]
 echo=
 echo POSITIONAL ARGUMENTS
 echo    path_var
@@ -3460,7 +3460,7 @@ echo=
 echo    -f, --file
 echo        Target must be a file (if exist).
 echo=
-echo    -p, --directory
+echo    -d, --directory
 echo        Target must be a folder (if exist).
 echo=
 echo EXIT STATUS
@@ -3499,7 +3499,7 @@ exit /b 0
 
 rem ======================== function ========================
 
-:check_path   path_var  [-e|-n]  [-f|-p]
+:check_path   path_var  [-e|-n]  [-f|-d]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_require_attrib  _require_exist) do set "%%v="
 set parse_args.args= ^
@@ -6725,43 +6725,54 @@ echo NAME
 echo    updater - update a batch script from the internet
 echo=
 echo SYNOPSIS
-echo    updater   {check ^| upgrade}  script_path
+echo    updater   script_path  [-f]  [-u]  [-d url]
 echo=
 echo DESCRIPTION
 echo    This function can detect updates, download them, and update the script.
 echo    The 'download_url' in metadata() needs to be added.
 echo=
 echo POSITIONAL ARGUMENTS
-echo    args
-echo        The parameters for the script/entry point.
+echo    script_path
+echo        Path of the (batch) file.
+echo=
+echo OPTIONS
+echo    -f, --force-upgrade
+echo        Skip version compare and upgrade script.
+echo=
+echo    -u, --upgrade
+echo        Perform an upgrade on the script (REPLACES the current file).
+echo=
+echo    -d, --download-url
+echo        Use this url instead of the download_url at the script's metadata().
 echo=
 echo ENVIRONMENT
 echo    temp_path
 echo        Path to store the update file.
 echo=
 echo DEPENDENCIES
-echo    - metadata()
-echo    - module()
-echo    - scripts.lib()
-echo    - download_file()
-echo    - diffdate()
+echo    Function:
+echo        - download_file()
+echo        - parse_version()
+echo        - diffdate()
+echo=
+echo    Script file:
+echo        - metadata()
+echo        - module()
+echo        - scripts.lib()
 exit /b 0
-
-
-rem (?) Revise
 
 rem ======================== demo ========================
 
 :updater.__demo__
 echo Checking for updates...
-call :updater check "%~f0" || exit /b 0
+call :updater "%~f0" || exit /b 0
 echo=
 echo Note:
 echo - Updating will REPLACE current script with the newer version
 echo=
 call %batchlib%:Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
 echo=
-call :updater upgrade "%~f0"
+call :updater --upgrade "%~f0"
 exit /b 0
 
 rem ======================== test ========================
@@ -6783,12 +6794,12 @@ exit /b 0
 :test.framework.updater.update
 @echo off
 setlocal EnableDelayedExpansion
-call :updater --force-upgrade "!dummy_file!" --download-url "http://localhost:6543/download/%~nx0" < "in\enter"
+call :updater --force-upgrade "!dummy_file!" --download-url "http://localhost:6543/download/%~nx0" < "in\enter" > nul
 exit /b %errorlevel%
 
 rem ======================== function ========================
 
-:updater   {check|upgrade}  script_path
+:updater   script_path  [-f]  [-u]  [-d url]
 setlocal EnableDelayedExpansion
 for %%v in (_force_upgrade _upgrade _download_url) do set "%%v="
 set parse_args.args= ^
