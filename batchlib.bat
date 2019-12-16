@@ -5,7 +5,7 @@ rem ======================================== Metadata ==========================
 
 :metadata   [prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.3"
+set "%~1version=2.1-a.4"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -106,10 +106,11 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :changelog
-echo    - Added unittest for wait()
-echo    - Added join mark '#+++' for extract_func()
-echo    - Restructured changelong to only include latest changelog
-echo    - Changlog history are now accessed through Git
+echo    - Fixed EOF() not written to minified script
+echo    - Replaced module.version_compare() with parse_version()
+echo    - Renamed category 'Formatting' to 'Command Line'
+echo    - Added a new category 'Packaging'
+echo    - Now unittest of wait() has no output
 exit /b 0
 
 rem ======================================== Debug functions ========================================
@@ -568,7 +569,7 @@ exit /b 0
 
 
 :Category.init
-set "Category.list=shortcut number string time file net env formatting framework"
+set "Category.list=shortcut number string time file net env cli packaging framework"
 
 set "Category_shortcut.name=Shortcut"
 set Category_shortcut.functions= ^
@@ -610,14 +611,17 @@ set Category_env.functions= ^
     ^ get_con_size get_sid get_os get_pid ^
     ^ watchvar is_admin is_echo_on ^
     ^ endlocal
-set "Category_formatting.name=Formatting"
-set Category_formatting.functions= ^
+set "Category_cli.name=Command Line"
+set Category_cli.functions= ^
     ^ capchar setup_clearline %=hex2char=% ^
     ^ color2seq color_print
+set "Category_packaging.name=Packaging"
+set Category_packaging.functions= ^
+    ^ module.entry_point module.read_metadata module.is_module ^
+    ^ parse_version updater
 set "Category_framework.name=Framework"
 set Category_framework.functions= ^
-    ^ module.entry_point module.read_metadata module.is_module module.version_compare ^
-    ^ unittest dynamenu updater ^
+    ^ unittest dynamenu ^
     ^ parse_args
 set "Category_others.name=Others"
 set Category_others.functions= ^
@@ -700,8 +704,11 @@ set "_successful=true"
         echo :__main__
         echo @call :scripts.min %%*
         echo @exit /b %%errorlevel%%
+        echo=
+        echo=
+
+        call :extract_func "%~f0" "EOF" || set "_successful="
     )
-    call :extract_func "%~f0" "EOF" || set "_successful="
 )
 if not defined _successful ( 1>&2 echo error: minify failed & exit /b 1 )
 exit /b 0
@@ -3231,7 +3238,7 @@ rem       almost immediately and it would have inaccuracy of more than 90% when 
 set "threshold=70"
 set "test_delay=1250"
 
-call :wait.calibrate
+call :wait.calibrate > nul
 set "start_time=!time!"
 call :wait !test_delay!
 call %batchlib%:difftime time_taken !time! !start_time!
@@ -5668,6 +5675,224 @@ pushd "!tempPath!"
 popd
 goto :EOF
 
+rem ================================ parse_version() ================================
+
+rem ======================== documentation ========================
+
+:parse_version.__doc__
+echo NAME
+echo    parse_version - versions parser for comparing versions
+echo=
+echo SYNOPSIS
+echo    parse_version   return_var  version
+echo=
+echo DESCRIPTION
+echo    Abstracts handling of project version. This function is inspired by Python
+echo    PEP 440 and packaging.version.parse(). parse_version() returns a string
+echo    representation of the version that can be used to compare different versions
+echo    using simple IF statements.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the result.
+echo=
+echo    version
+echo        The version of the script. Syntax of the version follows Python PEP 440,
+echo        except for the no Epoch support. A common example for the syntax is
+echo        '[major[.minor[.patch]][-{a^|b^|rc}[.number]]'. If the version is
+echo        undefined, it is assumed to be '0'.
+echo=
+echo ALIASES
+echo    a   : a, alpha
+echo    b   : b, beta
+echo    rc  : rc, c, pre, preview
+echo    post: r, post
+echo    dev : dev
+echo=
+echo EXIT STATUS
+echo    0:  - The condition is true.
+echo    1:  - The condition is false.
+echo    2:  - The comparison is invalid.
+echo=
+echo EXAMPLE
+echo    call :parse_version version1 "1.4.1"
+echo    call :parse_version version2 "1.4.1-a.2"
+echo    if "%%version1%%" GEQ "%%version2%%" echo True
+exit /b 0
+
+rem ======================== demo ========================
+
+:parse_version.__demo__
+call %batchlib%:Input.string comparison
+echo=
+call :parse_version !comparison! && (
+    echo It evaluates to 'true'
+) || (
+    if "!errorlevel!" == "1" echo It evaluates to 'false'
+    if "!errorlevel!" == "2" echo An invalid comparison is detected
+)
+exit /b 0
+
+rem ======================== test ========================
+
+:test.lib.parse_version.main
+call :test.lib.parse_version.representation
+call :test.lib.parse_version.comparison
+exit /b 0
+#+++
+
+:test.lib.parse_version.representation
+for %%a in (
+    "C: "
+    "C: 0"
+    "E001C: 1"
+    "E001C: 1.0"
+    "E001C: 1.0.0"
+    "E001E001C: 1.1"
+    "E001E000E000E001C: 1.0.0.1"
+    "E001Ba000C: 1.0a"
+    "E001Ba000C: 1.a"
+    "E001Ba000C: 1_a"
+    "E001Ba000C: 1-a"
+    "E001Bb000C: 1-b"
+    "E001Bc000C: 1-c"
+    "E001Bc000C: 1-rc"
+    "E001Bc000C: 1-pre"
+    "E001Bc000C: 1-preview"
+    "E001Ba000C: 1-a0"
+    "E001Ba000C: 1-a.0"
+    "E001D000C: 1.r"
+    "E001D000C: 1.post"
+    "E001D004C: 1.post4"
+    "E001A000C: 1.dev"
+    "E001A005C: 1.dev5"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :parse_version result %%c
+    if not "!result!" == "%%b" (
+        call %batchlib%:unittest.fail %%a
+    )
+)
+exit /b 0
+#+++
+
+:test.lib.parse_version.comparison
+set "return.true=0"
+set "return.false=1"
+for %%a in (
+    "true:  1 EQU 1.0"
+    "true:  1 EQU 1.0.0"
+    "true:  1 EQU 1.0.0"
+    "true:  1.1 EQU 1.1.0"
+    "true:  1.0-a EQU 1.0-a.0"
+    "true:  2.1-b.1 EQU 2.1-b.1"
+
+    "true:  1.0-a EQU 1.0-alpha"
+    "true:  1.0-b EQU 1.0-beta"
+    "true:  1.0-rc EQU 1.0-c"
+    "true:  1.0-rc EQU 1.0-pre"
+    "true:  1.0-rc EQU 1.0-preview"
+
+    "true:  1.4.1-a.5 NEQ 2.4.1-a.5"
+    "true:  1.4.1-a.5 NEQ 1.5.1-a.5"
+    "true:  1.4.1-a.5 NEQ 1.4.2-a.5"
+    "true:  1.4.1-a.5 NEQ 1.4.1-b.5"
+    "true:  1.4.1-a.5 NEQ 1.4.1-a.6"
+    "false: 1.4.1-a.5 NEQ 1.4.1-a.5"
+
+    "true:  1.4.1 LSS 1.4.2"
+    "true:  1.4.1-a LSS 1.4.1.-b"
+    "true:  1.4.1-b LSS 1.4.1.-rc"
+    "true:  1.4.1-rc LSS 1.4.1"
+    "true:  1.4.1-a LSS 1.4.1-a.1"
+
+    "false: 1.4.1 LSS 1.4.1"
+    "false: 1.4.1-a.5 LSS 1.4.1-a.5"
+
+    "true:  1.4.2 GTR 1.4.1"
+    "true:  1.4.1-b GTR 1.4.1-a"
+    "true:  1.4.1-rc GTR 1.4.1-b"
+    "true:  1.4.1 GTR 1.4.1-rc"
+    "true:  1.4.1-a.1 GTR 1.4.1-a"
+
+    "false: 1.4.1 GTR 1.4.1"
+    "false: 1.4.1-a.5 GTR 1.4.1-a.5"
+
+    "true:  1.4.1-a.5 GEQ 1.4.1-a.5"
+    "true:  1.4.1-a.5 LEQ 1.4.1-a.5"
+
+    "false: 1.4.1-b.4 GEQ 1.4.1-b.5"
+    "false: 1.4.1-b.5 LEQ 1.4.1-b.4"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :test.lib.parse_version.comparison.compare %%c
+    set "exit_code=!errorlevel!"
+    if not "!exit_code!" == "!return.%%b!" (
+        call %batchlib%:unittest.fail %%a
+    )
+)
+exit /b 0
+#+++
+
+:test.lib.parse_version.comparison.compare   version1  comparison  version2
+call :parse_version version1 "%~1"
+call :parse_version version2 "%~3"
+if "!version1!" %~2 "!version2!" exit /b 0
+exit /b 1
+
+rem ======================== function ========================
+
+:parse_version   return_var  version
+setlocal EnableDelayedExpansion
+set "_segments=v%~2"
+for %%t in (
+    " ="
+    ".= " "-=" "_="
+    "alpha=a"
+    "beta=b"
+    "preview=c" "pre=c" "rc=c"
+    "post=p" "rev=p" "r=p"
+    "dev=d"
+) do set "_segments=!_segments:%%~t!"
+for %%s in (a b c p d) do (
+    set "_segments=!_segments:%%s= %%s!"
+    set "_segments=!_segments:%%s =%%s!"
+)
+set "_segments=!_segments:~1!"
+set "_result="
+set "_buffer="
+for %%s in (!_segments!) do (
+    set "_segment=%%s"
+    set "_type="
+    set "_number="
+    if "!_segment:~0,1!" GTR "9" (
+        for %%t in (
+            "D:p"
+            "Ba:a" "Bb:b" "Bc:c"
+            "A:d"
+        ) do for /f "tokens=1-2 delims=:" %%a in (%%t) do (
+            if "!_segment:~0,1!" == "%%b" set "_type=%%a"
+        )
+        set "_number=!_segment:~1!"
+    )
+    if not defined _type (
+        set "_type=E"
+        set "_number=!_segment!"
+    )
+    set "_number=000!_number!"
+    set "_number=!_number:~-3,3!"
+    if not "!_type!" == "E" set "_buffer="
+    set "_buffer=!_buffer!!_type!!_number!"
+    if not "!_type!,!_number!" == "E,000" (
+        set "_result=!_result!!_buffer!"
+        set "_buffer="
+    )
+)
+set "_result=!_result!C"
+for /f "tokens=*" %%r in ("!_result!") do (
+    endlocal
+    set "%~1=%%r"
+)
+exit /b 0
+
 rem ======================================== Framework ========================================
 
 :framework.__init__
@@ -5692,7 +5917,6 @@ echo FUNCTIONS
 echo    - module.entry_point()
 echo    - module.read_metadata()
 echo    - module.is_module()
-echo    - module.version_compare()
 echo=
 echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
@@ -5759,7 +5983,7 @@ echo=
 pause
 exit 0
 
-rem ======================== test =======================
+rem ======================== test ========================
 
 :test.framework.module.entry_point.main
 call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry_point.bat"
@@ -5929,173 +6153,6 @@ set "_callable="
 for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
 if not defined _callable exit /b 2
 exit /b 0
-
-rem ============================ .version_compare() ============================
-
-rem ======================== documentation ========================
-
-:module.version_compare.__doc__
-echo NAME
-echo    module.version_compare - compare module version
-echo=
-echo SYNOPSIS
-echo    module.version_compare   version1 comparison version2
-echo=
-echo DESCRIPTION
-echo    This function checks if the script contains:
-echo    - module.entry_point()
-echo    - scripts.lib()
-echo    - metadata()
-echo=
-echo    This could prevent script from calling another batch file that
-echo    does not understand call as module and cause undesired result
-echo=
-echo POSITIONAL ARGUMENTS
-echo    version
-echo        The version of the script. Syntax of the version is
-echo        '[major[.minor[.patch]][-{a^|b^|rc}[.number]]'. If the version is
-echo        undefined, it is assumed to be '0.0.0'.
-echo=
-echo    comparison
-echo        The comparison operator. Valid comparisons are:
-echo        EQU, NEQ, GTR, GEQ, LSS, LEQ
-echo=
-echo ALIASES
-echo    a : a, alpha
-echo    b : b, beta
-echo    rc: rc, c, pre, preview
-echo=
-echo EXIT STATUS
-echo    0:  - The condition is true.
-echo    1:  - The condition is false.
-echo    2:  - The comparison is invalid.
-echo=
-echo EXAMPLE
-echo    call :module.version_compare "1.4.1" GEQ "1.4.1-a.2"
-echo    call :module.version_compare "2.0-b.1" GTR "2.0-b"
-exit /b 0
-
-rem ======================== demo ========================
-
-:module.version_compare.__demo__
-call %batchlib%:Input.string comparison
-echo=
-call :module.version_compare !comparison! && (
-    echo It evaluates to 'true'
-) || (
-    if "!errorlevel!" == "1" echo It evaluates to 'false'
-    if "!errorlevel!" == "2" echo An invalid comparison is detected
-)
-exit /b 0
-
-rem ======================== test ========================
-
-:test.framework.module.version_compare.main
-set "return.true=0"
-set "return.false=1"
-set "return.error=2"
-for %%a in (
-    "true:  1 EQU 1.0"
-    "true:  1 EQU 1.0.0"
-    "true:  1 EQU 1.0.0"
-    "true:  1.1 EQU 1.1.0"
-    "true:  1.0-a EQU 1.0-a.0"
-    "true:  2.1-b.1 EQU 2.1-b.1"
-
-    "true:  1.0-a EQU 1.0-alpha"
-    "true:  1.0-b EQU 1.0-beta"
-    "true:  1.0-rc EQU 1.0-c"
-    "true:  1.0-rc EQU 1.0-pre"
-    "true:  1.0-rc EQU 1.0-preview"
-
-    "true:  1.4.1-a.5 NEQ 2.4.1-a.5"
-    "true:  1.4.1-a.5 NEQ 1.5.1-a.5"
-    "true:  1.4.1-a.5 NEQ 1.4.2-a.5"
-    "true:  1.4.1-a.5 NEQ 1.4.1-b.5"
-    "true:  1.4.1-a.5 NEQ 1.4.1-a.6"
-    "false: 1.4.1-a.5 NEQ 1.4.1-a.5"
-
-    "true:  1.4.1 LSS 1.4.2"
-    "true:  1.4.1-a LSS 1.4.1.-b"
-    "true:  1.4.1-b LSS 1.4.1.-rc"
-    "true:  1.4.1-rc LSS 1.4.1"
-    "true:  1.4.1-a LSS 1.4.1-a.1"
-
-    "false: 1.4.1 LSS 1.4.1"
-    "false: 1.4.1-a.5 LSS 1.4.1-a.5"
-
-    "true:  1.4.2 GTR 1.4.1"
-    "true:  1.4.1-b GTR 1.4.1-a"
-    "true:  1.4.1-rc GTR 1.4.1-b"
-    "true:  1.4.1 GTR 1.4.1-rc"
-    "true:  1.4.1-a.1 GTR 1.4.1-a"
-
-    "false: 1.4.1 GTR 1.4.1"
-    "false: 1.4.1-a.5 GTR 1.4.1-a.5"
-
-    "true:  1.4.1-a.5 GEQ 1.4.1-a.5"
-    "true:  1.4.1-a.5 LEQ 1.4.1-a.5"
-
-    "false: 1.4.1-b.4 GEQ 1.4.1-b.5"
-    "false: 1.4.1-b.5 LEQ 1.4.1-b.4"
-
-    "error: EQU 1.0"
-    "error: 1.0 EQU"
-) do for /f "tokens=1* delims=:" %%b in (%%a) do (
-    call :module.version_compare %%c
-    set "exit_code=!errorlevel!"
-    if not "!exit_code!" == "!return.%%b!" (
-        call %batchlib%:unittest.fail %%a
-    )
-)
-exit /b 0
-
-rem ======================== function ========================
-
-:module.version_compare   version1 comparison version2
-setlocal EnableDelayedExpansion
-if /i "%3" == "" exit /b 2
-set "_found="
-for %%c in (EQU NEQ GTR GEQ LSS LEQ) do if /i "%~2" == "%%c" set "_found=true"
-if not defined _found exit /b 2
-set "_first=%~1"
-set "_second=%~3"
-for %%v in (_first _second) do for /f "tokens=1-2 delims=-" %%a in ("!%%v!") do (
-    for /f "tokens=1-3 delims=." %%c in ("%%a.0.0.0") do set "%%v=%%c.%%d.%%e"
-    set "_normalized="
-    if "%%b" == "" set "_normalized=4.0"
-    for /f "tokens=1-2 delims=." %%c in ("%%b") do (
-        for %%s in (
-            "1:a alpha"
-            "2:b beta"
-            "3:rc c pre preview"
-        ) do for /f "tokens=1-2 delims=:" %%n in (%%s) do for %%i in (%%o) do (
-            if /i "%%c" == "%%i" (
-                if "%%d" == "" (
-                    set "_normalized=%%n.0"
-                ) else set "_normalized=%%n.%%d"
-            )
-        )
-    )
-    if not defined _normalized exit /b 2
-    set "%%v=!%%v!.!_normalized!"
-)
-for %%c in (EQU NEQ) do if /i "%~2" == "%%c" if "!_first!" %~2 "!_second!" ( exit /b 0 ) else exit /b 1
-for %%c in (GEQ LEQ) do if /i "%~2" == "%%c" if "!_first!" EQU "!_second!" ( exit /b 0 )
-for %%c in (GTR LSS) do if /i "%~2" == "%%c" if "!_first!" EQU "!_second!" ( exit /b 1 )
-for /l %%i in (1,1,5) do (
-    for %%v in (_first _second) do for /f "tokens=1* delims=." %%a in ("!%%v!") do (
-        set "%%v_num=%%a"
-        set "%%v=%%b"
-    )
-    if not "!_first_num!" == "!_second_num!" (
-        if !_first_num! %~2 !_second_num! (
-            exit /b 0
-        ) else exit /b 1
-    )
-)
-endlocal
-exit /b 2
 
 rem ================================ unittest() ================================
 
@@ -6750,9 +6807,11 @@ call :module.is_module "!_downloaded!" || ( 1>&2 echo error: failed to read upda
 call :module.read_metadata _downloaded. "!_downloaded!"  || ( 1>&2 echo error: failed to read update information & exit /b 31 )
 if not defined _downloaded.version ( 1>&2 echo error: failed to read update information & exit /b 32 )
 if /i not "!_downloaded.name!" == "!_module.name!" ( 1>&2 echo error: module name does not match & exit /b 40 )
+call :parse_version _module.parsed_version "!_module.version!"
+call :parse_version _downloaded.parsed_version "!_downloaded.version!"
 if not defined _force_upgrade (
-    call :module.version_compare "!_downloaded.version!" EQU "!_module.version!" && ( echo You are using the latest version & exit /b 99 )
-    call :module.version_compare "!_downloaded.version!" GTR "!_module.version!" || ( echo No updates available & exit /b 99 )
+    if "!_downloaded.parsed_version!" EQU "!_module.parsed_version!" ( echo You are using the latest version & exit /b 99 )
+    if "!_downloaded.parsed_version!" LSS "!_module.parsed_version!" ( echo No updates available & exit /b 99 )
 )
 if defined _show (
     call %batchlib%:diffdate update_age !date:~4! !_downloaded.release_date! 2> nul && (
