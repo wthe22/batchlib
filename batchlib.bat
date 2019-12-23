@@ -3,9 +3,9 @@
 
 rem ======================================== Metadata ========================================
 
-:metadata   [prefix]
+:metadata   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.5"
+set "%~1version=2.1-a.6"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -106,10 +106,10 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :changelog
-echo    - Fixed incorrect documentation and demo in updater()
-echo    - Fixed incorrect parameter in check_path()
-echo    - Added changelog to minified script
-echo    - Now unittest of updater() has no output
+echo    - Fixed unittest not working if module is not the script file itself
+echo    - Fixed unittest of wait() not included in minified script
+echo    - Added unittest for unittest()
+echo    - Changed syntax for declaring error, failure, and skip in unittest()
 exit /b 0
 
 rem ======================================== Debug functions ========================================
@@ -474,7 +474,8 @@ exit /b 0
 
 rem ======================================== Test ========================================
 
-:test.__init__     Test the scripts
+:test.__init__
+rem Things to do before any running any tests
 exit /b 0
 
 rem ================================ auto_input ================================
@@ -491,14 +492,14 @@ rem ================================ auto_input ================================
 ) && (
     exit /b 0
 ) || (
-    call %batchlib%:unittest.fail
+    call %unittest%.fail
     exit /b 0
 )
 exit /b 1
 
 rem ================================ compatibility_check ================================
 
-:test.compatibility_check.main
+:test.core.compatibility_check.main
 set "failed="
 set "digits=0 1 2 3 4 5 6 7 8 9"
 set "alphabets=a b c d e f g h i j k l m n o p q r s t u v w x y z"
@@ -508,7 +509,7 @@ set "seperators=!seperators: =!"
 for /l %%n in (0,1,9) do set "seperators=!seperators:%%n=!"
 if not "!seperators!" == "::." (
     set "failed=true"
-    call %batchlib%:unittest.fail "Incompatible time seperator symbols"
+    call %unittest%.fail "Incompatible time seperator symbols"
 )
 exit /b 0
 
@@ -671,7 +672,7 @@ for %%c in (shortcut framework) do (
     )
 )
 set "test_functions="
-for %%c in (shortcut lib framework) do (
+for %%c in (core shortcut lib framework debug) do (
     call :find_label result -p "test.%%c.*"
     set "test_functions=!test_functions!!result!"
 )
@@ -716,7 +717,7 @@ exit /b 0
 rem ======================================== shortcut ========================================
 
 :shortcut.__init__
-rem shortcut to type less codes
+rem Shortcut to type less codes
 exit /b 0
 
 rem ================================ Input.number() ================================
@@ -782,7 +783,7 @@ for %%a in (
         call :Input.number result --range %%c
     )
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -904,7 +905,7 @@ exit /b 0
 
 :test.shortcut.Input.string.evaluate_result
 if not "!result!" == "!expected_result!" (
-    call %batchlib%:unittest.fail %1
+    call %unittest%.fail %1
 )
 exit /b
 
@@ -1215,7 +1216,7 @@ exit /b 0
 
 :test.shortcut.Input.ipv4.evaluate_result
 if not "!result!" == "!expected_result!" (
-    call %batchlib%:unittest.fail %1
+    call %unittest%.fail %1
 )
 exit /b
 
@@ -1427,7 +1428,7 @@ rem ======================== test ========================
 for /l %%p in (1,1,31) do for %%n in (0 1) do (
     call :yroot result %%n %%p
     if not "!result!" == "%%n" (
-        call %batchlib%:unittest.fail "%%n: %%n %%p"
+        call %unittest%.fail "%%n: %%n %%p"
     )
 )
 
@@ -1456,7 +1457,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :yroot result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail
+        call %unittest%.fail
     )
 )
 exit /b 0
@@ -1536,7 +1537,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :pow result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 
@@ -1552,7 +1553,7 @@ for %%a in (
     "4 16"
     "2 31"
 ) do (
-    call :pow result %%~a 2> nul && call %batchlib%:unittest.fail "unexpected success: %%~a"
+    call :pow result %%~a 2> nul && call %unittest%.fail "unexpected success: %%~a"
 )
 exit /b 0
 
@@ -2039,7 +2040,7 @@ for %%a in (
     call :is_number %%c 2> nul
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "!return.%%b!" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -2136,7 +2137,7 @@ for %%a in (
     call :is_in_range %%c 2> nul
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "!return.%%b!" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -2643,7 +2644,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :diffdate result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -2758,7 +2759,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :fdate result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -2853,7 +2854,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :what_day result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -2938,7 +2939,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :time2epoch result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -3016,7 +3017,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=#" %%b in (%%a) do (
     call :epoch2time result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -3229,7 +3230,7 @@ exit /b 0
 
 rem ======================== test ========================
 
-:test.wait.main
+:test.lib.wait.main
 rem threshold: percentage of inaccuracy that is indicated as a failure
 rem It is purposely set to a very high value so we only mark the test as failure
 rem only if we have a high confidence that it is a failure.
@@ -3245,7 +3246,7 @@ call %batchlib%:difftime time_taken !time! !start_time!
 set /a "inaccuracy=!time_taken!*10 - !test_delay!"
 set /a "fail=!inaccuracy! * !inaccuracy! * ((100 * 100) / (!threshold! * !threshold!)) / (!test_delay!*!test_delay!)"
 if not "!fail!" == "0" (
-    call %batchlib%:unittest.fail "Abnormal amount of inaccuracy in delay: expected !test_delay!s, got !inaccuracy!s"
+    call %unittest%.fail "Abnormal amount of inaccuracy in delay: expected !test_delay!s, got !inaccuracy!s"
 )
 exit /b 0
 
@@ -3400,7 +3401,7 @@ for %%a in (
     call :check_ipv4 %%c
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "!return.%%b!" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -3811,7 +3812,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :bytes2size result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -3890,7 +3891,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :size2bytes result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -3963,7 +3964,7 @@ if exist "hexlify.rebuild" del /f /q "hexlify.rebuild"
 certutil -decodehex "hexlify.hex" "hexlify.rebuild" > nul
 call %batchlib%:diffbin offset "%~f0" "hexlify.rebuild"
 for %%v in (hex rebuild) do del /f /q "hexlify.%%v"
-if not "!offset!" == "-" call %batchlib%:unittest.fail "difference detected"
+if not "!offset!" == "-" call %unittest%.fail "difference detected"
 exit /b 0
 
 rem ======================== function ========================
@@ -4306,7 +4307,7 @@ for /f "tokens=*" %%a in ("!test_cases!") do (
         set "labels_count=0"
         for %%l in (!labels!) do set /a "labels_count+=1"
         if not "!labels_count!" == "%%b" (
-            call %batchlib%:unittest.fail %%a
+            call %unittest%.fail %%a
         )
     )
 )
@@ -4614,10 +4615,10 @@ echo NAME
 echo    expand_link - expands a given URL to several smaller pieces
 echo=
 echo SYNOPSIS
-echo    expand_link   prefix  link
+echo    expand_link   return_prefix  link
 echo=
 echo POSITIONAL ARGUMENTS
-echo    prefix
+echo    return_prefix
 echo        The prefix of the variable to store the results.
 echo=
 echo    link
@@ -4652,7 +4653,7 @@ exit /b 0
 
 rem ======================== function ========================
 
-:expand_link   prefix  link
+:expand_link   return_prefix  link
 pushd "%~d0\"
 for %%v in (S H P P Q F) do set "%~1%%v="
 for /f "tokens=1* delims=#" %%a in ("%~2") do (
@@ -5035,7 +5036,7 @@ for %%t in (
     "simulate   0 0 2"
     "simulate   3 2 1"
 ) do call :test.lib.watchvar.%%~t || (
-    call %batchlib%:unittest.fail %%t
+    call %unittest%.fail %%t
 )
 exit /b 0
 #+++
@@ -5291,7 +5292,7 @@ call :endlocal %conv_vars% quotes
 for %%c in (!expected_result!) do (
     for /f "tokens=1* delims=:" %%a in ("%%~c") do (
         if not "!%%a!" == "%%b" (
-            call %batchlib%:unittest.fail %%a
+            call %unittest%.fail %%a
         )
     )
 )
@@ -5769,7 +5770,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :parse_version result %%c
     if not "!result!" == "%%b" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -5826,7 +5827,7 @@ for %%a in (
     call :test.lib.parse_version.comparison.compare %%c
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "!return.%%b!" (
-        call %batchlib%:unittest.fail %%a
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
@@ -6012,7 +6013,7 @@ for /f "tokens=*" %%a in ("!test_cases!") do (
         set "exit_code=!errorlevel!"
         if not "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!" (
             echo "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!"
-            call %batchlib%:unittest.fail %%b
+            call %unittest%.fail %%b
         )
     )
 )
@@ -6204,7 +6205,11 @@ echo        Labels to test. The syntax is "label [...]".
 echo        Mutually exclusive with '--pattern'.
 echo=
 echo NOTES
+echo    - unittest() will call test.__init__() first before running any tests
 echo    - If both label and pattern options are specified, it will use label.
+echo    - The variable name 'unittest' and variable names that starts with
+echo      'unittest.*' are reserved for unittest().
+echo    - Using reserved variables in your tests might break unittest().
 exit /b 0
 
 
@@ -6214,31 +6219,35 @@ rem     - Your code did not execute within the time limits
 rem ======================== demo ========================
 
 :unittest.__demo__
-call %batchlib%:unittest -p "test.framework.unittest.test_*" -v
+call :test.framework.unittest.init_vars
+set "expected.success.list=success"
+set "expected.failures.list=failure multi_fail"
+set "expected.errors.list=error"
+set "expected.skipped.list=skip"
+call :test.framework.unittest.make_expectation
+
+call :unittest -l "!test_list!" -v
 exit /b 0
 
 rem ======================== function ========================
 
 :unittest   [module]  [-l test_list|-p pattern]  [-v|-q]  [-f]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_fail_fast tester.test_list _pattern) do set "%%v="
-set "_verbosity=1"
-set "_module=%~f0"
+for %%v in (fail_fast test_list pattern verbosity) do set "unittest.%%v="
 set parse_args.args= ^
-    ^ "-v --verbose     :flag:_verbosity=2" ^
-    ^ "-q --quiet       :flag:_verbosity=0" ^
-    ^ "-f --failfast    :flag:_fail_fast=true" ^
-    ^ "-p --pattern     :var:_pattern" ^
-    ^ "-l --label       :var:unittest.test_list" ^
-    ^ "--_unittest      :flag:unittest._unittest=true"
+    ^ "-v --verbose     :flag:unittest.verbosity=2" ^
+    ^ "-f --failfast    :flag:unittest.fail_fast=true" ^
+    ^ "-p --pattern     :var:unittest.pattern" ^
+    ^ "-l --label       :var:unittest.test_list"
 call :parse_args %*
-if not "%~1" == "" set "_module=%~f1"
-if not defined _pattern set "_pattern=test.*.main"
+set "unittest.test_module=%~f1"
+if not defined unittest.test_module set "unittest.test_module=%~f0"
 
+rem Setup test directory
 if not defined temp_path set "temp_path=!temp!"
 if not exist "!temp_path!" md "!temp_path!"
 cd /d "!temp_path!"
-for %%d in ("unittest") do (
+for %%d in (unittest) do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
 )
@@ -6246,19 +6255,37 @@ for %%p in (
     in out log
 ) do if not exist "%%~p" md "%%~p"
 
+rem Setup test list
+if not defined unittest.pattern set "unittest.pattern=test.*.main"
 if not defined unittest.test_list (
-    call :find_label unittest.test_list -p "!_pattern!" -f "!_module!"
+    call :find_label unittest.test_list -p "!unittest.pattern!" -f "!unittest.test_module!"
 )
-set _orig_script="%~f0" --module=lib %=END%
+set "unittest.tests_count=0"
+for %%t in (!unittest.test_list!) do set /a "unittest.tests_count+=1"
+
+rem Setup stream redeirect
+set "unittest.stream_redirect=> nul 2>&1"
+if "!unittest.verbosity!" == "1" set unittest.stream_redirect=^> "log\output" 2^>^&1
+if "!unittest.verbosity!" == "2" set unittest.stream_redirect=
+
+rem Setup namespace
+set unittest="%~f0" --module=lib :unittest
+if not "!unittest.test_module!" == "%~f0" (
+    set unittest.test_namespace="!unittest.test_module!" --module=lib %=END=%
+)
+
+rem Reset test results
 for %%c in (failures errors skipped) do set "unittest.%%c="
 set "unittest.tests_run=0"
 set "unittest.should_stop="
-set "unittest.tests_count=0"
-for %%t in (!unittest.test_list!) do set /a "unittest.tests_count+=1"
+
+rem Setup test
+call :test.__init__
+
 set "start_time=!time!"
 for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
     set /a "unittest.tests_run+=1"
-    if "!_verbosity!" == "2" (
+    if "!unittest.verbosity!" == "2" (
         call %batchlib%:difftime _elapsed_time !time! !start_time!
         call %batchlib%:ftime _elapsed_time !_elapsed_time!
         echo !_elapsed_time! [!unittest.tests_run!/!unittest.tests_count!] %%t
@@ -6268,7 +6295,7 @@ for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
 set "stop_time=!time!"
 call :difftime time_taken !stop_time! !start_time!
 call :ftime time_taken !time_taken!
-if not "!_verbosity!" == "0" echo=
+if not "!unittest.verbosity!" == "0" echo=
 echo ----------------------------------------------------------------------
 echo Ran !unittest.tests_run! test!s! in !time_taken!
 echo=
@@ -6304,42 +6331,39 @@ exit /b 0
 
 :unittest._run   label
 call 2> "log\outcome.bat"
-set "_stream_redirect=> nul 2>&1"
-if "!_verbosity!" == "1" set _stream_redirect=^> "log\output" 2^>^&1
-if "!_verbosity!" == "2" set _stream_redirect=
-set "_test_name=%~1"
+set "unittest.current_test_name=%~1"
 setlocal EnableDelayedExpansion EnableExtensions
-call :%~1 %_stream_redirect%
+call %unittest.test_namespace%:%~1 %unittest.stream_redirect%
 endlocal & set "_exit_code=%errorlevel%"
 if not "!_exit_code!" == "0" (
     >> "log\outcome.bat" (
-        echo call %%_orig_script%%:unittest._add_outcome error "Test function did not exit correctly [exit code !_exit_code!]."
+        echo call %%unittest%%._add_outcome error "Test function did not exit correctly [exit code !_exit_code!]."
     )
 )
-set "_final_outcome=success"
+set "unittest.current_outcome=success"
 call "log\outcome.bat"
-call :unittest._add_result !_final_outcome! %1
+call :unittest._add_result !unittest.current_outcome! %1
 call :%~1.cleanup 2> nul
 exit /b 0
 #+++
 
 :unittest.skip   reason
 >> "log\outcome.bat" (
-    echo call %%_orig_script%%:unittest._add_outcome skip %1
+    echo call %%unittest%%._add_outcome skip %1
 )
 exit /b 0
 #+++
 
 :unittest.fail   msg
 >> "log\outcome.bat" (
-    echo call %%_orig_script%%:unittest._add_outcome failure %1
+    echo call %%unittest%%._add_outcome failure %1
 )
 exit /b 0
 #+++
 
 :unittest.error   msg
 >> "log\outcome.bat" (
-    echo call %%_orig_script%%:unittest._add_outcome error %1
+    echo call %%unittest%%._add_outcome error %1
 )
 exit /b 0
 #+++
@@ -6352,13 +6376,13 @@ exit /b 0
 #+++
 
 :unittest._add_outcome   {failure|error|skip}  [msg]
-set "unittest.test.!_test_name!.%~1_msg=%~2"
+set "unittest.test.!unittest.current_test_name!.%~1_msg=%~2"
 for %%c in (skip failure error) do (
-    for %%o in (!_final_outcome! %~1) do (
-        if "%%c" == "%%o" set "_final_outcome=%%o"
+    for %%o in (!unittest.current_outcome! %~1) do (
+        if "%%c" == "%%o" set "unittest.current_outcome=%%o"
     )
 )
-if "!_verbosity!" == "2" (
+if "!unittest.verbosity!" == "2" (
     echo [%~1] %~2
 )
 exit /b 0
@@ -6389,14 +6413,14 @@ if /i "%~1" == "error" (
 if /i "%~1" == "skip" (
     set "_list_name=skipped"
     set "_mark=s"
-    rem set "_msg=skipped '!unittest.test.%_test_name%.skip_msg!'"
-    set "_msg=test %~2 skipped '!unittest.test.%_test_name%.skip_msg!'"
+    rem set "_msg=skipped '!unittest.test.%unittest.current_test_name%.skip_msg!'"
+    set "_msg=test %~2 skipped '!unittest.test.%unittest.current_test_name%.skip_msg!'"
 )
 if defined _list_name (
     for %%c in (!_list_name!) do set "unittest.%%c=!unittest.%%c! %~2"
 )
-if "!_verbosity!" == "1" < nul set /p "=!_mark!"
-if "!_verbosity!" == "2" if defined _msg (
+if "!unittest.verbosity!" == "1" < nul set /p "=!_mark!"
+if "!unittest.verbosity!" == "2" if defined _msg (
     rem type "log\output"
     echo !_msg!
 )
@@ -6404,46 +6428,81 @@ exit /b 0
 
 rem ======================== test ========================
 
-::test.framework.unittest.main
-call :unittest -p "test.framework.unittest.test_*" -v --_unittest
-exit /b 0
+:test.debug.framework.unittest.main
+set "parent_unittest_path=!cd!"
+set "temp_path=!cd!"
+call :test.framework.unittest.init_vars
+set "expected.success.list=success"
+set "expected.failures.list=failure multi_fail"
+set "expected.errors.list=error"
+set "expected.skipped.list=skip"
+call :test.framework.unittest.make_expectation
 
-rem Use on cli
-@echo off
-set batchlib="%~f0" --module=lib
-cls & %batchlib%:unittest -l test.lib.is_number.main -v
+rem Test running internal unittest
+call :unittest -p "!test_prefix!*" -v > nul
+rem Test running unittest for external module
+call :unittest "%~f0" -p "!test_prefix!*" -v > nul
+exit /b 0
+#+++
+
+:test.framework.unittest.init_vars
+set "test_prefix=test.framework.unittest.test_"
+set "expected_skip.msg=Not implemented yet..."
+set "expected_failure.msg=Test failure single"
+set "expected_error.exit_code=1"
+set "expected_error.msg=Test function did not exit correctly [exit code !expected_error.exit_code!]."
+exit /b 0
+#+++
+
+:test.framework.unittest.make_expectation
+set "test_list="
+for %%o in (success failures errors skipped) do (
+    set "expected.%%o="
+    for %%n in (!expected.%%o.list!) do (
+        set "expected.%%o=!expected.%%o! !test_prefix!%%n"
+        set "test_list=!test_list! !test_prefix!%%n"
+    )
+)
+exit /b 0
 #+++
 
 :test.framework.unittest.test_success
-echo This test should be successful
+rem Do nothing
 exit /b 0
 #+++
 
 :test.framework.unittest.test_skip
-echo This test should be skipped
-call :unittest.skip "Not implemented yet..."
+call %unittest%.skip "!expected_skip.msg!"
 exit /b 0
 #+++
 
-:test.framework.unittest.test_fail1
-echo This test should fail
-call :unittest.fail "Test failure single"
+:test.framework.unittest.test_failure
+call %unittest%.fail "!expected_failure.msg!"
 exit /b 0
 #+++
 
-:test.framework.unittest.test_fail2
-echo This test should fail
-call :unittest.fail "Test failure multiple 1"
-call :unittest.fail "Test failure multiple 2"
+:test.framework.unittest.test_multi_fail
+rem Note: unittest can't record multiple failures in a test (yet?)
+call %unittest%.fail "Test failure multiple 1"
+call %unittest%.fail "Test failure multiple 2"
 exit /b 0
 #+++
 
 :test.framework.unittest.test_error
-echo This test should result in an error
-exit /b 1
+exit /b %expected_error.exit_code%
+#+++
 
-
-rem (!) Make output accessible for testing
+:test.framework.unittest.test_unittest
+cd /d "!parent_unittest_path!"
+for %%o in (skip failure error) do for %%n in (!test_prefix!%%o) do (
+    if not "!unittest.test.%%n.%%o_msg!" == "!expected_%%o.msg!" (
+        call %unittest%.fail "Failed to set expected message on test_%%o"
+    )
+)
+for %%o in (failures errors skipped) do (
+    if not "!unittest.%%o!" == "!expected.%%o!" call %unittest%.fail "The %%o list does not match the expected values"
+)
+exit /b 0
 
 rem ================================ parse_args() ================================
 
@@ -6578,7 +6637,7 @@ exit /b 0
 setlocal EnableDelayedExpansion EnableExtensions
 set "parse_args.args="
 call :parse_args || (
-    call %batchlib%:unittest.fail "no_args: exit state must be successful"
+    call %unittest%.fail "no_args: exit state must be successful"
     exit /b 1
 )
 exit /b 0
@@ -6591,13 +6650,13 @@ set parse_args.args= ^
     ^ "-s --save-path :var:_save_path" ^
     ^ "-e --exist     :flag:_exist=true" ^
     ^ "-n --not-exist :flag:_exist=false"
-call :test.framework.parse_args.validate_args || ( call %batchlib%:unittest.error "var_n_flags: invalid test arguments" & exit /b 1 )
+call :test.framework.parse_args.validate_args || ( call %unittest%.error "var_n_flags: invalid test arguments" & exit /b 1 )
 call :parse_args %*
-if not "%1" == "arg1" ( call %batchlib%:unittest.fail "var_n_flags: positional argument 1" & exit /b 1 )
-if not "%2" == "arg2" ( call %batchlib%:unittest.fail "var_n_flags: positional argument 2" & exit /b 1 )
-if not "!_filename!" == "asd" ( call %batchlib%:unittest.fail "var_n_flags: keyword argument 1" & exit /b 1 )
-if not "!_save_path!" == "qwe" ( call %batchlib%:unittest.fail "var_n_flags: keyword argument 2" & exit /b 1 )
-if not "!_exist!" == "true" ( call %batchlib%:unittest.fail "var_n_flags: flag argument 1" & exit /b 1 )
+if not "%1" == "arg1" ( call %unittest%.fail "var_n_flags: positional argument 1" & exit /b 1 )
+if not "%2" == "arg2" ( call %unittest%.fail "var_n_flags: positional argument 2" & exit /b 1 )
+if not "!_filename!" == "asd" ( call %unittest%.fail "var_n_flags: keyword argument 1" & exit /b 1 )
+if not "!_save_path!" == "qwe" ( call %unittest%.fail "var_n_flags: keyword argument 2" & exit /b 1 )
+if not "!_exist!" == "true" ( call %unittest%.fail "var_n_flags: flag argument 1" & exit /b 1 )
 exit /b 0
 #+++
 
@@ -6608,13 +6667,13 @@ set parse_args.args= ^
     ^ "-a     :var:_asterisk" ^
     ^ "-c     :var:_colon" ^
     ^ "-sc    :var:_semicolon"
-call :test.framework.parse_args.validate_args || ( call %batchlib%:unittest.error "special_chars: invalid test arguments" & exit /b 1 )
+call :test.framework.parse_args.validate_args || ( call %unittest%.error "special_chars: invalid test arguments" & exit /b 1 )
 call :parse_args %*
-if not "%1" == ^"^"^"^" ( call %batchlib%:unittest.fail "special_chars: parsing of empty string" & exit /b 1 )
-if not "!_question_mark!" == "?" ( call %batchlib%:unittest.fail "special_chars: parsing of question mark" & exit /b 1 )
-if not "!_asterisk!" == "*" ( call %batchlib%:unittest.fail "special_chars: parsing of asterisk" & exit /b 1 )
-if not "!_colon!" == ":" ( call %batchlib%:unittest.fail "special_chars: parsing of colon" & exit /b 1 )
-if not "!_semicolon!" == ";" ( call %batchlib%:unittest.fail "special_chars: parsing of semicolon" & exit /b 1 )
+if not "%1" == ^"^"^"^" ( call %unittest%.fail "special_chars: parsing of empty string" & exit /b 1 )
+if not "!_question_mark!" == "?" ( call %unittest%.fail "special_chars: parsing of question mark" & exit /b 1 )
+if not "!_asterisk!" == "*" ( call %unittest%.fail "special_chars: parsing of asterisk" & exit /b 1 )
+if not "!_colon!" == ":" ( call %unittest%.fail "special_chars: parsing of colon" & exit /b 1 )
+if not "!_semicolon!" == ";" ( call %unittest%.fail "special_chars: parsing of semicolon" & exit /b 1 )
 exit /b 0
 #+++
 
@@ -6624,11 +6683,11 @@ set parse_args.args= ^
     ^ "--one    :list:_numbers= +1" ^
     ^ "--two    :list:_numbers= +2" ^
     ^ "--three  :list:_numbers= +3"
-call :test.framework.parse_args.validate_args || ( call %batchlib%:unittest.fail "list: invalid test arguments" & exit /b 1 )
+call :test.framework.parse_args.validate_args || ( call %unittest%.fail "list: invalid test arguments" & exit /b 1 )
 call :parse_args %*
 set /a "sum=!_numbers!"
-if not "!_numbers!" == " +1 +3 +2 +3" ( call %batchlib%:unittest.fail "list: incorrect result" & exit /b 1 )
-if not "!sum!" == "9" ( call %batchlib%:unittest.fail "list: incorrect sum" & exit /b 1 )
+if not "!_numbers!" == " +1 +3 +2 +3" ( call %unittest%.fail "list: incorrect result" & exit /b 1 )
+if not "!sum!" == "9" ( call %unittest%.fail "list: incorrect sum" & exit /b 1 )
 exit /b 0
 #+++
 
@@ -6780,14 +6839,14 @@ rem ======================== test ========================
 :test.framework.updater.main
 set "dummy_file=!cd!\%~nx0"
 echo F | xcopy "%~f0" "!dummy_file!" /y > nul
-call :module.is_module "!dummy_file!" || ( call %batchlib%:unittest.error "This script is not a detected as a module" & exit /b 0 )
+call :module.is_module "!dummy_file!" || ( call %unittest%.error "This script is not a detected as a module" & exit /b 0 )
 > "in\enter" (
     echo=
 )
-start "" /wait /b cmd /c ""!dummy_file!" --module=lib :test.framework.updater.update" 2> nul || ( call %batchlib%:unittest.error "Start update failed" & exit /b 0 )
+start "" /wait /b cmd /c ""!dummy_file!" --module=lib :test.framework.updater.update" 2> nul || ( call %unittest%.error "Start update failed" & exit /b 0 )
 set "exit_code=!errorlevel!"
-if "!exit_code!" == "20" ( call %batchlib%:unittest.skip "Cannot connect to the test server" & exit /b 0 )
-if not "!exit_code!" == "0" call %batchlib%:unittest.fail "Update failed"
+if "!exit_code!" == "20" ( call %unittest%.skip "Cannot connect to the test server" & exit /b 0 )
+if not "!exit_code!" == "0" call %unittest%.fail "Update failed"
 exit /b 0
 #+++
 
@@ -7233,6 +7292,15 @@ set "ulCorner=  CE99    C9      ALT+0201
 set "urCorner=  C2BB    BB      ALT+0187
 set "dlCorner=  CE98    C8      ALT+0200
 set "drCorner=  CE8C    BC      ALT+0188
+
+rem Lock Folder
+CACLS "YOURPATH" /E /P everyone:N
+
+rem Unlock Folder
+CACLS "YOURPATH" /E /P everyone:F
+
+rem Do not lock C:\ OR Operating System drive using this trick
+rem otherwise Windows will not boot next time
 
 rem ======================================== Notes (File I/O) ========================================
 
