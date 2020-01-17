@@ -1,11 +1,12 @@
 :__init__ > nul 2> nul
 @goto module.entry_point
 
+
 rem ======================================== Metadata ========================================
 
 :metadata   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.7"
+set "%~1version=2.1-a.8"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -32,6 +33,7 @@ echo Licensed under !license!
 endlocal
 exit /b 0
 
+
 rem ======================================== License ========================================
 
 :license
@@ -55,6 +57,7 @@ echo LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 echo FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 echo DEALINGS IN THE SOFTWARE.
 exit /b 0
+
 
 rem ======================================== Configurations ========================================
 
@@ -103,21 +106,133 @@ rem Macros to call external module (use absolute paths)
 rem set batchlib="%~dp0batchlib-min.bat" --module=lib %=END=%
 exit /b 0
 
+
 rem ======================================== Changelog ========================================
 
 :changelog
-echo    - Fixed documentation and demo of parse_version()
-echo    - Fixed incorrect usage of join mark '#+++' in tests.
-echo    - Fixed unittest() progress not showing when '-v' flag is not given.
-echo    - Added ping_test()
-echo    - Added unittest of prime(), gcf(), bin2int()
+echo    Core
+echo    - Added __init__() label as the UTF-8-BOM guard so it can be
+echo      extracted using extract_func()
+echo    - Added method to specify different config for each entry point
+echo    - Added scripts.lib-noecho() to call script without echoing
+echo    - Added documentation_menu() for more documentation options
+echo    - Added unittest for script compatibility check
+echo    - Added 'core' namespace for core functions / the "back-end"
+echo    - Renamed 'shortcuts.*' to 'shortcut.*'
 echo    - Renamed 'test.*' to 'tests.*'
-echo    - parse_args() arguments is now case sensitive
-echo    - parse_version() now checks for valid numbers
-echo    - Reworked updater()
-echo    - Made updater() testable for users
-echo    - unittest() no longer redirects stream output
+echo    - Renamed the category 'Formatting' to 'Command Line'
+echo    - Renamed __main__() to main()
+echo    - Changed main() exit to 'exit /b' to prevent console from terminating
+echo    - Added a new category 'Packaging'
+echo    - scripts.main() now preserve prompt message after running this script
+echo    - Replaced 'goto :EOF' with 'exit /b 0'
+echo    - Function.read() no longer reads category definition
+echo    - Category definition and function cateogries is now written in Category.init()
+echo    - Improved format of internal category listing
+echo    - Fixed batch script creating ']' file on startup if EOL is Linux (!)
+echo    - Added dependency listing
+echo=
+echo    Library
+echo    - Added unittest() framework, this replaces the tester() framework.
+echo    - Added is_number(), is_in_range(), this replaces check_number().
+echo    - Added updater(), this replaces module.updater().
+echo    - Added find_label(), this replaces tester.find_tests().
+echo    - Added parse_version(), this replaces module.version_compare().
+echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
+echo      fdate(), epoch2time()
+echo    - Fixed demo of several functions that uses Input.number()
+echo    - Removed expand_path(). Using FOR directly is more preferable.
+echo    - Renamed check_admin() to is_admin()
+echo    - capchar(): Added capturing of TAB character
+echo    - check_ipv4(): Added ability to check wildcard IP
+echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
+echo    - check_path(): Fixed incorrect parameter description
+echo    - diffdate(): Simplified calculations
+echo    - difftime(): Renamed parameter '-n' to '--no-fix'
+echo    - extract_func():
+echo        - Added join mark '#+++' for 'should include' labels
+echo        - Removed implicit EOL 'rem ==='
+echo    - get_os(): Renamed parameter '-n' to '--name'
+echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
+echo      this ID is automatically generated in the function using PowerShell.
+echo    - Input.*(): Renamed parameters '-d, --description' to '-m, --message'
+echo    - Input.ipv4(): Fixed function not returning value after a successful input
+echo    - Input.path(): Fixed parameter conflict
+echo    - Input.yesno(): Accepts anything that starts with 'Y' as yes, and
+echo      anything that starts with 'N' as no
+echo    - module.entry_point(): Fixed script quitting unexpectedly
+echo      if first parameter is quoted and contains special characters
+echo    - module.read_metadata(): no longer checks if file is a module
+echo    - parse_args():
+echo        - Added 'append_const' data type
+echo        - Arguments is now case sensitive
+echo        - Renamed type 'flag' to 'store_const'
+echo        - Renamed type 'var' to 'store'
+echo    - pow(): Added error message if integer is too large
+echo    - randw(): Weights are now read from %~1 instead of %*.
+echo      Now weights needs to be surrounded by quotes.
+echo    - setup_clearline(): piped 'mode con' to prevent input stream from
+echo      being discarded
+echo    - watchvar(): Renamed parameter '-l, --list' to '-n, --name'
+echo    - what_day(): Renamed parameter '-n' to '--number', '-s' to '--short'
+echo=
+echo    Minified Script
+echo    - Included 'tests.*', changelog(), help(), scripts.lib-noecho()
+echo    - Added an interactive ui: script_cli()
+echo    - Script now uses scripts.min() as its main entry point
+echo    - The help message in main() has been moved to help(). This is significantly
+echo      makes help message easier to maintain.
+echo    - Removed unittest for save_minified(), instead the minified script
+echo      have a copy of the tests and it is able to run unittest too.
+echo=
+echo    Tests
+echo    - Migrated unit testing framework/syntax from tester() to unittest().
+echo    - Added unittest for: Input.ipv4, pow, prime, gcf, bin2int, check_ipv4, wait
+echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(), updater(),
+echo      find_label(), parse_version(), fdate(), epoch2time()
+echo    - Improved unittest for: Input.number(), module.entry_point()
+echo    - Removed hex conversion test from watchvar()
+echo=
+echo    Documentation
+echo    - Split '*.__demo__' into '*.__doc__' and '*.__demo__'. Now users can see
+echo      documentation without running the demo.
+echo    - *.__doc__() now uses man page style of documentation
+echo    - Improved demo of several functions
+echo    - Added help() to display usage help
+echo    - Added (missing) parameter description of several functions
+echo    - batchlib-min now accepts '-h, --help'
+echo    - Changed example of lib usage to use absolute paths
+echo    - Improved parameter description of several functions
+echo    - Removed changelog history for reduced log size. Only latest changelog will be
+echo      included. See Git for earlier changelog history.
+echo    - Updated guides on the library section
 exit /b 0
+
+
+:changelog.dev
+echo    - updater(): Fixed function exiting immediately after upgrade
+echo    - parse_args():
+echo        - Fixed processing of value as argument if it is a valid argument
+echo        - Fixed capturing argument that contains caret '^^'
+echo        - Improved unittest
+echo        - Added argument error checking
+echo        - Renamed type 'flag' to 'store_const'
+echo        - Renamed type 'var' to 'store'
+echo        - Renamed type 'list' to 'append'
+echo    - Added the major release changelog to script
+echo    - Renamed __main__() to main()
+echo    - Fixed incorrect dependency list in module.is_module() and module.read_metadata()
+echo    - Added dependency listing
+echo    - extract_func(): Removed implicit EOL 'rem ==='
+exit /b 0
+
+
+:changelog.todo
+echo    - add params to save_minified()
+echo    - add method to update script dependencies
+echo    - read usage of double underscore: https://docs.python.org/3/reference/datamodel.html
+exit /b 0
+
 
 rem ======================================== Debug functions ========================================
 
@@ -130,16 +245,19 @@ rem ======================================== Debug functions ===================
 @pause > nul
 @exit
 
+
 rem ======================================== Main ========================================
 
-:__main__
+:main
 @call :scripts.main %*
 @exit /b %errorlevel%
+
 
 rem ======================================== Scripts/Entry points ========================================
 
 :scripts.__init__
 @exit /b 0
+
 
 rem ================================ library script ================================
 
@@ -172,6 +290,7 @@ call %batchlib%:Input.number age --message "Input your age: " --range 0~200
 @echo on
 @exit /b %errorlevel%
 
+
 rem ================================ main script ================================
 
 :scripts.main
@@ -189,7 +308,7 @@ call :config
 
 for %%v in (no_cleanup) do set "%%v="
 set parse_args.args= ^
-    ^ "-n --no-cleanup  :flag:no_cleanup=true"
+    ^ "-n, --no-cleanup :store_const:no_cleanup=true"
 call :parse_args %*
 
 for %%p in (
@@ -210,6 +329,7 @@ if not defined no_cleanup rd /s /q "!temp_path!\.." > nul 2> nul
 endlocal
 goto scripts.main
 
+
 rem ================================ minified script ================================
 
 :scripts.min
@@ -224,7 +344,7 @@ call :config
 
 set "action=script_cli"
 set parse_args.args= ^
-    ^ "-h --help    :flag:action=help"
+    ^ "-h, --help   :store_const:action=help"
 call :parse_args %*
 
 for %%p in (
@@ -234,11 +354,13 @@ for %%p in (
 call :!action!
 @exit /b 0
 
+
 rem ======================================== User Interfaces ========================================
 
 :ui.__init__
 rem User Interfaces
 exit /b 0
+
 
 rem ================================ Main Menu ================================
 
@@ -326,6 +448,7 @@ if /i "!user_input!" == "DT" (
 )
 goto main_menu
 
+
 rem ================================ Documentation Menu ================================
 
 :documentation_menu
@@ -353,6 +476,7 @@ if "!user_input!" == "2" (
     goto documentation_menu
 )
 goto documentation_menu
+
 
 rem ================================ Select Function ================================
 
@@ -415,6 +539,7 @@ call :Function.get_item "!selected.category!" "!user_input!" && (
 )
 goto select_function.name
 
+
 rem ================================ Start Demo ================================
 
 :start_demo
@@ -430,6 +555,7 @@ echo=
 pause
 endlocal
 exit /b 0
+
 
 rem ================================ CLI script ================================
 
@@ -448,6 +574,7 @@ rem ================================ CLI script ================================
 %user_input%
 @echo=
 @goto script_cli._loop
+
 
 rem ================================ Help text ================================
 
@@ -479,11 +606,13 @@ echo     set batchlib="C:\absolute\path\to\batchlib-min.bat" --module=lib %%=END
 echo     call %%batchlib%%:Input.number age --message "Input your age: " --range 0~200
 exit /b 0
 
+
 rem ======================================== Tests ========================================
 
 :tests.__init__
 rem Things to do before any running any tests
 exit /b 0
+
 
 rem ================================ auto_input ================================
 
@@ -503,6 +632,7 @@ rem ================================ auto_input ================================
     exit /b 0
 )
 exit /b 1
+
 
 rem ================================ compatibility_check ================================
 
@@ -567,7 +697,8 @@ for /f "delims=" %%k in (%*) do for %%f in (!Category_all.functions!) do (
 )
 exit /b 1
 
-rem ======================================== Core Function ========================================
+
+rem ======================================== Core Functions ========================================
 
 :core.__init__
 rem Core Functions
@@ -709,7 +840,7 @@ set "_successful=true"
         )
     )
     >&3 (
-        echo :__main__
+        echo :main
         echo @call :scripts.min %%*
         echo @exit /b %%errorlevel%%
         echo=
@@ -721,11 +852,13 @@ set "_successful=true"
 if not defined _successful ( 1>&2 echo error: minify failed & exit /b 1 )
 exit /b 0
 
-rem ======================================== shortcut ========================================
+
+rem ======================================== Shortcuts ========================================
 
 :shortcut.__init__
 rem Shortcut to type less codes
 exit /b 0
+
 
 rem ================================ Input.number() ================================
 
@@ -752,11 +885,16 @@ echo=
 echo    -m MESSAGE, --message MESSAGE
 echo        Use MESSAGE as the prompt message.
 echo        By default, the message is generated automatically.
-echo=
-echo DEPENDENCIES
-echo    - parse_args()
-echo    - is_in_range()
 exit /b 0
+
+
+:Input.number.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ is_number ^
+    ^ is_in_range
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -764,6 +902,7 @@ rem ======================== demo ========================
 call %batchlib%:Input.number your_integer --range "-0xf0~-0xff, -99~9, 0x100~0x200,0x16 555"
 echo Your input: !your_integer!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -795,14 +934,15 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :Input.number   return_var  [-m message]  [-r range]
 setlocal EnableDelayedExpansion
 for %%v in (_message _range) do set "%%v="
 set parse_args.args= ^
-    ^ "-m --message         :var:_message" ^
-    ^ "-r --range           :var:_range"
+    ^ "-m, --message        :store:_message" ^
+    ^ "-r, --range          :store:_range"
 call :parse_args %* || exit /b 1
 if not defined _message (
     if defined _range (
@@ -824,6 +964,7 @@ set /p "user_input=!_message!"
 call :is_number "!user_input!" || goto Input.number._loop
 call :is_in_range "!user_input!" "!_range!" || goto Input.number._loop
 exit /b 0
+
 
 rem ================================ Input.string() ================================
 
@@ -851,10 +992,14 @@ echo=
 echo EXIT STATUS
 echo    0:  - Input is not empty.
 echo    1:  - Input is an empty string.
-echo=
-echo DEPENDENCIES
-echo    - parse_args()
 exit /b 0
+
+
+:Input.string.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -864,6 +1009,7 @@ echo Your input: "!your_text!"
 call %batchlib%:Input.string your_text --filled --message "Enter something: "
 echo Your input: "!your_text!"
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -916,14 +1062,15 @@ if not "!result!" == "!expected_result!" (
 )
 exit /b
 
+
 rem ======================== function ========================
 
 :Input.string   return_var  [-m message]  [-f]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_message _require_filled) do set "%%v="
 set parse_args.args= ^
-    ^ "-m --message     :var:_message" ^
-    ^ "-f --filled      :flag:_require_filled=true"
+    ^ "-m, --message    :store:_message" ^
+    ^ "-f, --filled     :store_const:_require_filled=true"
 call :parse_args %* || exit /b 1
 if not defined _message set "_message=Input %~1: "
 call :Input.string._loop
@@ -943,6 +1090,7 @@ echo=!_message!
 set /p "user_input="
 if defined _require_filled if not defined user_input goto Input.string._loop
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -993,10 +1141,14 @@ echo=
 echo EXIT STATUS
 echo    0:  - User enters any string that starts with 'Y'.
 echo    1:  - User enters any string that starts with 'N'.
-echo=
-echo DEPENDENCIES
-echo    - parse_args()
 exit /b 0
+
+
+:Input.yesno.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -1019,6 +1171,7 @@ call %batchlib%:Input.yesno your_ans --message "Is this defined? Y/N? " -y="Yes"
 echo Your input ("Yes", ""): !your_ans!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :Input.yesno   return_var  [-m message]  [-y value]  [-n value]
@@ -1027,9 +1180,9 @@ set "_message=Y/N? "
 set "_yes_value=Y"
 set "_no_value=N"
 set parse_args.args= ^
-    ^ "-m --message         :var:_message" ^
-    ^ "-y --yes             :var:_yes_value" ^
-    ^ "-n --no              :var:_no_value"
+    ^ "-m, --message        :store:_message" ^
+    ^ "-y, --yes            :store:_yes_value" ^
+    ^ "-n, --no             :store:_no_value"
 call :parse_args %*
 call :Input.yesno._loop
 set "_result="
@@ -1055,6 +1208,7 @@ set /p "user_input=!_message!"
 if /i "!user_input:~0,1!" == "Y" exit /b 0
 if /i "!user_input:~0,1!" == "N" exit /b 0
 goto Input.yesno._loop
+
 
 rem ================================ Input.path() ================================
 
@@ -1094,11 +1248,15 @@ echo=
 echo EXIT STATUS
 echo    0:  - Success.
 echo    1:  - User skips the input.
-echo=
-echo DEPENDENCIES
-echo    - parse_args()
-echo    - check_path()
 exit /b 0
+
+
+:Input.path.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ check_path
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -1113,18 +1271,19 @@ call %batchlib%:Input.path new_name --optional --not-exist --message "Input a no
 echo Result: !new_name!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :Input.path   return_var  [-m message]  [-e|-n]  [-f|-d]  [-o]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_message _is_optional _check_options) do set "%%v="
 set parse_args.args= ^
-    ^ "-m --message     :var:_message" ^
-    ^ "-o --optional    :flag:_is_optional=true" ^
-    ^ "-e --exist       :list:_check_options= -e" ^
-    ^ "-n --not-exist   :list:_check_options= -n" ^
-    ^ "-f --file        :list:_check_options= -f" ^
-    ^ "-d --directory   :list:_check_options= -d"
+    ^ "-m, --message    :store:_message" ^
+    ^ "-o, --optional   :store_const:_is_optional=true" ^
+    ^ "-e, --exist      :append_const:_check_options= -e" ^
+    ^ "-n, --not-exist  :append_const:_check_options= -n" ^
+    ^ "-f, --file       :append_const:_check_options= -f" ^
+    ^ "-d, --directory  :append_const:_check_options= -d"
 call :parse_args %*
 if not defined _message set "_message=Input %~1: "
 call :Input.path._loop
@@ -1162,6 +1321,7 @@ if defined user_input call :check_path user_input !_check_options! || (
 )
 exit /b 0
 
+
 rem ================================ Input.ipv4() ================================
 
 rem ======================== documentation ========================
@@ -1183,11 +1343,15 @@ echo        Allow wildcards in the IPv4 address.
 echo=
 echo    -m MESSAGE, --message MESSAGE
 echo        By default, the message is generated automatically.
-echo=
-echo DEPENDENCIES
-echo    - check_ipv4()
-echo    - parse_args()
 exit /b 0
+
+
+:Input.ipv4.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ check_ipv4
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -1195,6 +1359,7 @@ rem ======================== demo ========================
 call %batchlib%:Input.ipv4 -w user_input --message "Input an IPv4 (wildcard allowed): "
 echo Your input: !user_input!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1227,14 +1392,15 @@ if not "!result!" == "!expected_result!" (
 )
 exit /b
 
+
 rem ======================== function ========================
 
 :Input.ipv4   return_var  [-m message]  [-w]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_message _allow_wildcard _check_options) do set "%%v="
 set parse_args.args= ^
-    ^ "-m --message         :var:_message" ^
-    ^ "-w --allow-wildcard  :flag:_allow_wildcard=true"
+    ^ "-m, --message        :store:_message" ^
+    ^ "-w, --allow-wildcard :store_const:_allow_wildcard=true"
 call :parse_args %*
 if defined _allow_wildcard set "_check_options= --wildcard"
 if not defined _message (
@@ -1256,10 +1422,11 @@ echo=
 call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
 goto Input.ipv4._loop
 
-rem ======================================== Batch Script Library ========================================
+
+rem ======================================== Library Functions ========================================
 
 :lib.__init__
-rem Functions from Batch Script Library (batchlib) or other libraries
+rem Functions/snippets from libraries
 exit /b 0
 
 
@@ -1269,6 +1436,7 @@ rem     ^ ^"your_function_label_here ^
 rem     ^   another_function_label_here ^" ^
 rem     ^ > "batchlib.lib.bat"
 exit /b 0
+
 
 rem ================================ GUIDES ================================
 
@@ -1285,7 +1453,8 @@ rem - library functions MUST NOT have external dependencies
 rem   (e.g. this is not allowed: call %batchlib%:rand 1 9)
 rem - Functions that may have external dependencies:
 rem     - '*.__demo__'
-rem     - 'tests.*' (It is recommended that the function to test is not an external dependency)
+rem     - 'tests.*' (It is recommended that the function to test itself
+rem         is not an external dependency)
 
 rem ========================================================================
 
@@ -1315,6 +1484,12 @@ echo    rand() does not generate uniform random numbers. Its simplicity comes
 echo    along with the modulo bias. Do not use this for statistical computation.
 exit /b 0
 
+
+:rand.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :rand.__demo__
@@ -1325,11 +1500,13 @@ echo=
 echo Random Number  : !random_int!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :rand   return_var  minimum  maximum
 set /a "%~1=((!random!<<16) + (!random!<<1) + (!random!>>14)) %% ((%~3)-(%~2)+1) + (%~2)"
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -1364,6 +1541,12 @@ echo    randw() does not generate uniform random numbers. Its simplicity comes
 echo    along with the modulo bias. Do not use this for statistical computation.
 exit /b 0
 
+
+:randw.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :randw.__demo__
@@ -1372,6 +1555,7 @@ call %batchlib%:randw random_int "!weights!"
 echo=
 echo Random Number  : !random_int!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1395,6 +1579,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ yroot() ================================
 
@@ -1421,6 +1606,12 @@ echo NOTES
 echo    - In case someone needs it: yroot of x to the power of 0 does not exist.
 exit /b 0
 
+
+:yroot.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :yroot.__demo__
@@ -1431,6 +1622,7 @@ echo=
 echo Root to the power of !power! of !number! is !result!
 echo Result is round down
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1472,6 +1664,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :yroot   return_var  integer  power
@@ -1492,6 +1685,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ pow() ================================
 
@@ -1520,6 +1714,12 @@ echo    1:  - The result is too large (^> 2147483647).
 echo        - The integer is too large (^> 2147483647).
 exit /b 0
 
+
+:pow.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :pow.__demo__
@@ -1529,6 +1729,7 @@ call %batchlib%:pow result !number! !power!
 echo=
 echo !number! to the power of !power! is !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1567,6 +1768,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :pow   return_var  integer  power
@@ -1584,6 +1786,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ prime() ================================
 
@@ -1613,6 +1816,12 @@ echo NOTES
 echo    - Based on: yroot()
 exit /b 0
 
+
+:prime.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :prime.__demo__
@@ -1627,6 +1836,7 @@ if "!factor!" == "!number!" (
     echo !number! is a composite number. It is divisible by !factor!
 )
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1645,6 +1855,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1679,6 +1890,7 @@ for /f "tokens=*" %%r in ("!_factor!") do (
 )
 exit /b 0
 
+
 rem ================================ gcf() ================================
 
 rem ======================== documentation ========================
@@ -1698,6 +1910,12 @@ echo    integer
 echo        The numbers to calculate its GCF.
 exit /b 0
 
+
+:gcf.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :gcf.__demo__
@@ -1707,6 +1925,7 @@ call %batchlib%:gcf result !number1! !number2!
 echo=
 echo GCF of !number1! and !number2! is !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1721,6 +1940,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1737,6 +1957,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ bin2int() ================================
 
@@ -1757,6 +1978,12 @@ echo    unsigned_binary
 echo        The unsigned binary to convert. The maximum length supported is 31.
 exit /b 0
 
+
+:bin2int.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :bin2int.__demo__
@@ -1765,6 +1992,7 @@ call %batchlib%:bin2int result !binary!
 echo=
 echo The decimal value is !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -1787,6 +2015,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :bin2int   return_var  unsigned_binary
@@ -1800,6 +2029,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ int2bin() ================================
 
@@ -1820,6 +2050,12 @@ echo    positive_integer
 echo        The positive integer to convert.
 exit /b 0
 
+
+:int2bin.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :int2bin.__demo__
@@ -1828,6 +2064,7 @@ call %batchlib%:int2bin result !decimal!
 echo=
 echo The binary value is !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1846,6 +2083,7 @@ for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
     ) else set "%~1=%%b"
 )
 exit /b 0
+
 
 rem ================================ int2oct() ================================
 
@@ -1866,6 +2104,12 @@ echo    positive_integer
 echo        The positive integer to convert.
 exit /b 0
 
+
+:int2oct.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :int2oct.__demo__
@@ -1874,6 +2118,7 @@ call %batchlib%:int2oct result !decimal!
 echo=
 echo The octal value is !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1892,6 +2137,7 @@ for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
     ) else set "%~1=%%b"
 )
 exit /b 0
+
 
 rem ================================ int2hex() ================================
 
@@ -1912,6 +2158,12 @@ echo    positive_integer
 echo        The positive integer to convert.
 exit /b 0
 
+
+:int2hex.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :int2hex.__demo__
@@ -1920,6 +2172,7 @@ call %batchlib%:int2hex result !decimal!
 echo=
 echo The hexadecimal value is !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1940,6 +2193,7 @@ for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
 )
 exit /b 0
 
+
 rem ================================ int2roman() ================================
 
 rem ======================== documentation ========================
@@ -1959,6 +2213,12 @@ echo    integer
 echo        The integer to convert. The valid range is from 1 to 4999.
 exit /b 0
 
+
+:int2roman.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :int2roman.__demo__
@@ -1967,6 +2227,7 @@ call %batchlib%:int2roman result !number!
 echo=
 echo The roman numeral value is !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -1990,6 +2251,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
 )
 exit /b 0
 
+
 rem ================================ roman2int() ================================
 
 rem ======================== documentation ========================
@@ -2006,8 +2268,14 @@ echo    return_var
 echo        Variable to store the result.
 echo=
 echo    roman_numeral
-echo        The roman numeral to convert.
+echo        The string that contains roman numeral (IVXLCDM). Case-insensitive.
 exit /b 0
+
+
+:roman2int.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -2018,6 +2286,7 @@ echo=
 echo The decimal value is !result!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :roman2int   return_var  roman_numeral
@@ -2027,6 +2296,7 @@ for %%r in (
 ) do set "%~1=!%~1:%%~nr=+%%~xr!"
 set /a "%~1=!%~1:.=!"
 exit /b 0
+
 
 rem ================================ is_number() ================================
 
@@ -2057,6 +2327,12 @@ echo    - Hexadecimal must start with '0x' (case insensitive)
 echo    - Octal must start with '0'
 exit /b 0
 
+
+:is_number.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :is_number.__demo__
@@ -2065,6 +2341,7 @@ call %batchlib%:is_number "!string!" && (
     echo It is a number
 ) || echo It is not a number
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -2105,6 +2382,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :is_number   input_string
@@ -2137,6 +2415,7 @@ set /a "_input=%~1" || exit /b 1
 set /a "_input=!_input!" || exit /b 1
 exit /b 0
 
+
 rem ================================ is_in_range() ================================
 
 rem ======================== documentation ========================
@@ -2165,6 +2444,12 @@ echo        - The number is invalid.
 echo    2:  - The range is invalid.
 exit /b 0
 
+
+:is_in_range.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :is_in_range.__demo__
@@ -2175,6 +2460,7 @@ call %batchlib%:is_in_range "!number!" "!range!" && (
     echo Number is within range
 ) || echo Number is not within range
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -2201,6 +2487,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2234,6 +2521,7 @@ for %%r in (!_range!) do for /f "tokens=1,2 delims=~ " %%a in ("%%~r") do (
 )
 exit /b 1
 
+
 rem ================================ strlen() ================================
 
 rem ======================== documentation ========================
@@ -2257,6 +2545,12 @@ echo    - strlen uses binary search for calculating the string length
 echo      so it is significantly fast.
 exit /b 0
 
+
+:strlen.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :strlen.__demo__
@@ -2265,6 +2559,7 @@ call %batchlib%:strlen length string
 echo=
 echo The length of the string is !length! characters
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2278,6 +2573,7 @@ if defined %~2 (
     set /a "%~1+=1"
 )
 exit /b 0
+
 
 rem ================================ strval() ================================
 
@@ -2299,6 +2595,12 @@ echo        The input variable name.
 echo=
 exit /b 0
 
+
+:strval.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :strval.__demo__
@@ -2307,6 +2609,7 @@ call %batchlib%:strval result string
 echo=
 echo Integer value : !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2317,6 +2620,7 @@ for /l %%i in (31,-1,0) do (
     if !%~2! LSS !%~1! set /a "%~1-=0x1<<%%i"
 )
 exit /b 0
+
 
 rem ======================================= to_upper() ================================
 
@@ -2334,6 +2638,12 @@ echo    input_var
 echo        The input variable name.
 exit /b 0
 
+
+:to_upper.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :to_upper.__demo__
@@ -2343,6 +2653,7 @@ echo=
 echo Uppercase:
 echo=!string!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2354,6 +2665,7 @@ for %%a in (
 ) do set "%1=!%1:%%a=%%a!"
 set "%1=!%1:~1!"
 exit /b 0
+
 
 rem ======================================= to_lower() ================================
 
@@ -2371,6 +2683,12 @@ echo    input_var
 echo        The input variable name.
 exit /b 0
 
+
+:to_lower.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :to_lower.__demo__
@@ -2380,6 +2698,7 @@ echo=
 echo Lowercase:
 echo=!string!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2391,6 +2710,7 @@ for %%a in (
 ) do set "%1=!%1:%%a=%%a!"
 set "%1=!%1:~1!"
 exit /b 0
+
 
 rem ======================================= to_capital() ================================
 
@@ -2408,6 +2728,12 @@ echo    input_var
 echo        The input variable name.
 exit /b 0
 
+
+:to_capital.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :to_capital.__demo__
@@ -2417,6 +2743,7 @@ echo=
 echo Capitalcase:
 echo=!string!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2431,6 +2758,7 @@ for %%a in (
 )
 set "%1=!%1:~1!"
 exit /b 0
+
 
 rem ================================ strip_dquotes() ================================
 
@@ -2452,6 +2780,12 @@ echo    - Double quotes are stripped only if both ends of the string is a
 echo      double quote character.
 exit /b 0
 
+
+:strip_dquotes.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :strip_dquotes.__demo__
@@ -2461,11 +2795,13 @@ echo=
 echo Stripped : !string!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :strip_dquotes   input_var
 if "!%~1:~0,1!!%~1:~-1,1!" == ^"^"^"^" set "%~1=!%~1:~1,-1!"
 exit /b 0
+
 
 rem ================================ shuffle() ================================
 
@@ -2481,10 +2817,14 @@ echo=
 echo POSITIONAL ARGUMENTS
 echo    input_var
 echo        The input variable name.
-echo=
-echo DEPENDENCIES
-echo    - strlen()
 exit /b 0
+
+
+:shuffle.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ strlen
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -2495,6 +2835,7 @@ echo=
 echo Shuffled string:
 echo=!text!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2514,6 +2855,7 @@ if defined %~1 (
     )
 )
 exit /b 0
+
 
 rem ================================ difftime() =======================================
 
@@ -2547,6 +2889,11 @@ echo    - The format of the time is 'HH:MM:SS.CC'.
 exit /b 0
 
 
+:difftime.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem (!) Add support for time format: 'HH.MM.SS,CC'
 
 rem ======================== demo ========================
@@ -2559,6 +2906,7 @@ echo=
 echo Time difference: !time_taken! centiseconds
 exit /b 0
 
+
 rem ======================== function ========================
 
 :difftime   return_var  end_time  [start_time] [--no-fix]
@@ -2569,6 +2917,7 @@ for %%t in (%~2:00:00:00:00 %~3:00:00:00:00) do for /f "tokens=1-4 delims=:." %%
 )
 if /i not "%4" == "--no-fix" if "!%~1:~0,1!" == "-" set /a "%~1+=8640000"
 exit /b 0
+
 
 rem ================================ ftime() ================================
 
@@ -2592,6 +2941,12 @@ echo NOTES
 echo    - The format of the time is 'HH:MM:SS.CC'.
 exit /b 0
 
+
+:ftime.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :ftime.__demo__
@@ -2600,6 +2955,7 @@ call %batchlib%:ftime time_taken !time_in_centisecond!
 echo=
 echo Formatted time : !time_taken!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2619,6 +2975,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================== diffdate() ==================================
 
@@ -2646,6 +3003,12 @@ echo    - This function uses Gregorian calendar system.
 echo    - The date format used is 'mm/dd/YYYY'.
 exit /b 0
 
+
+:diffdate.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :diffdate.__demo__
@@ -2655,6 +3018,7 @@ call %batchlib%:diffdate difference !end_date! !start_date!
 echo=
 echo Difference : !difference! Days
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -2709,6 +3073,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :diffdate   return_var  end_date  [start_date]
@@ -2731,6 +3096,7 @@ for /f "tokens=*" %%r in ("!_difference!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -2777,6 +3143,12 @@ echo    - This function uses Gregorian calendar system.
 echo    - The format of the date is 'mm/dd/YYYY'.
 exit /b 0
 
+
+:fdate.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :fdate.__demo__
@@ -2785,6 +3157,7 @@ call %batchlib%:fdate result !days_since_epoch!
 echo=
 echo Formatted date : !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -2824,6 +3197,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :fdate   return_var  days_since_epoch
@@ -2851,6 +3225,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -2884,12 +3259,16 @@ echo    --short
 echo        Returns short date name (first 3 letters). This must be placed as
 echo        the third argument. Mutually exclusive with '--number'.
 echo=
-echo DEPENDENCIES
-echo    - diffdate()
-echo=
 echo NOTES
 echo    - This function uses Gregorian calendar system.
 exit /b 0
+
+
+:what_day.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ diffdate
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -2899,6 +3278,7 @@ call %batchlib%:what_day day "!a_date!"
 echo=
 echo That day is !day!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -2918,6 +3298,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -2942,6 +3323,7 @@ for /f "tokens=*" %%r in ("!_day!") do (
 )
 exit /b 0
 
+
 rem ================================== time2epoch() ==================================
 
 rem ======================== documentation ========================
@@ -2960,13 +3342,17 @@ echo=
 echo    date_time
 echo        The input date and time.
 echo=
-echo DEPENDENCIES
-echo    - diffdate()
-echo    - difftime()
-echo=
 echo NOTES
 echo    - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
 exit /b 0
+
+
+:time2epoch.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ diffdate ^
+    ^ difftime
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -2976,6 +3362,7 @@ call %batchlib%:time2epoch result !date_time!
 echo=
 echo Epoch time : !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3004,6 +3391,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :time2epoch   return_var  date_time
@@ -3019,6 +3407,7 @@ for /f "tokens=*" %%r in ("!_epoch!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================== epoch2time() ==================================
 
@@ -3038,13 +3427,17 @@ echo=
 echo    epoch_time
 echo        The number of seconds since epoch (January 1, 1970 00:00:00).
 echo=
-echo DEPENDENCIES
-echo    - ftime()
-echo    - fdate()
-echo=
 echo NOTES
 echo    - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
 exit /b 0
+
+
+:epoch2time.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ fdate ^
+    ^ ftime
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3054,6 +3447,7 @@ call %batchlib%:epoch2time result !seconds_since_epoch!
 echo=
 echo Formatted time: !result!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3082,6 +3476,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :epoch2time   return_var  epoch_time
@@ -3097,6 +3492,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================== timeleft() ==================================
 
@@ -3129,6 +3525,12 @@ echo      because it is much faster.
 echo    - If performance is still an issue, just integrate it
 echo      in your script (~4x faster).
 exit /b 0
+
+
+:timeleft.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3210,6 +3612,7 @@ for %%c in (without called integrated) do (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :timeleft    return_var  start_time_cs  current_progress  total_progress
@@ -3231,6 +3634,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ wait() ================================
 
@@ -3266,6 +3670,18 @@ echo    - wait.calibrate() calibrates up to 12 times before exiting.
 rem echo - Alternative for better CPU usage for long delays is sleep()
 exit /b 0
 
+
+:wait.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ wait.calibrate
+exit /b 0
+
+
+:wait.calibrate.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :wait.__demo__
@@ -3287,6 +3703,7 @@ set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3310,12 +3727,13 @@ if not "!fail!" == "0" (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :wait   delay
 for %%t in (%=wait=% %~1) do for /l %%w in (0,!wait._increment!,%%t00000) do call
 exit /b 0
-#+++
+
 
 :wait.calibrate   [delay_target]
 setlocal EnableDelayedExpansion
@@ -3344,6 +3762,7 @@ for /f "tokens=*" %%r in ("!wait._increment!") do (
 )
 exit /b 0
 
+
 rem ================================ sleep(WIP) ================================
 
 rem ======================== documentation ========================
@@ -3363,14 +3782,11 @@ echo ENVIRONMENT
 echo    wait._increment
 echo        The increment speed for sleep(). This value is set by wait.calibrate().
 echo=
-echo DEPENDENCIES
-echo    - wait()
-echo    - wait.calibrate()
-echo=
 echo NOTES
 echo    - Based on: difftime()
 echo    - This function have high CPU usage for maximum of 2 seconds on each call.
 exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3387,6 +3803,7 @@ set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -3405,6 +3822,7 @@ for %%t in (%~2:00:00:00:00 %~3:00:00:00:00) do for /f "tokens=1-4 delims=:." %%
 if /i not "%4" == "-n" if "!%~1:~0,1!" == "-" set /a "%~1+=0x83D600"
 endlocal
 exit /b 0
+
 
 rem ================================ check_ipv4() ================================
 
@@ -3427,6 +3845,12 @@ echo        Allow wildcard in the IPv4 address. This must be
 echo        placed in the second argument.
 exit /b 0
 
+
+:check_ipv4.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :check_ipv4.__demo__
@@ -3436,6 +3860,7 @@ call %batchlib%:check_ipv4 "!ip_address!" && (
     echo IP is valid
 ) || echo IP is invalid
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3466,6 +3891,7 @@ for %%a in (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :check_ipv4   string  [--wildcard]
@@ -3495,6 +3921,7 @@ for /f "tokens=*" %%n in ("!_input!") do (
     )
 )
 exit /b 0
+
 
 rem ================================ check_path() ================================
 
@@ -3532,12 +3959,16 @@ echo ENVIRONMENT
 echo    cd
 echo        Affects the base path of the path in path_var if relative path is given.
 echo=
-echo DEPENDENCIES
-echo    - parse_args()
-echo=
 echo NOTES
 echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
+
+
+:check_path.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3558,16 +3989,17 @@ call %batchlib%:check_path --not-exist new_name && (
 ) || echo Your input is invalid
 exit /b 0
 
+
 rem ======================== function ========================
 
 :check_path   path_var  [-e|-n]  [-f|-d]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_require_attrib  _require_exist) do set "%%v="
 set parse_args.args= ^
-    ^ "-e --exist       :flag:_require_exist=true" ^
-    ^ "-n --not-exist   :flag:_require_exist=false" ^
-    ^ "-f --file        :flag:_require_attrib=-" ^
-    ^ "-d --directory   :flag:_require_attrib=d"
+    ^ "-e, --exist      :store_const:_require_exist=true" ^
+    ^ "-n, --not-exist  :store_const:_require_exist=false" ^
+    ^ "-f, --file       :store_const:_require_attrib=-" ^
+    ^ "-d, --directory  :store_const:_require_attrib=d"
 call :parse_args %*
 set "_path=!%~1!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
@@ -3606,6 +4038,7 @@ for /f "tokens=* delims=" %%c in ("!_path!") do (
     set "%~1=%%c"
 )
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -3659,13 +4092,18 @@ echo    cd
 echo        Affects the base path of the search if the combination of
 echo        search path and wildcard path is a relative path.
 echo=
-echo DEPENDENCIES
-echo    - parse_args()
-echo    - capchar(LF)
-echo=
 echo NOTES
 echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
+
+
+:combi_wcdir.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ wcdir ^
+    ^ capchar
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3691,6 +4129,7 @@ echo Found List:
 echo=!result!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :combi_wcdir   return_var  [-f|-d]  [-s]  search_paths  wildcard_paths
@@ -3699,9 +4138,9 @@ set "_list_dir=true"
 set "_list_file=true"
 set "_seperator=LF"
 set parse_args.args= ^
-    ^ "-f --file        :flag:_list_dir=" ^
-    ^ "-d --directory   :flag:_list_file=" ^
-    ^ "-s --semicolon   :flag:_seperator=;"
+    ^ "-f, --file       :store_const:_list_dir=" ^
+    ^ "-d, --directory  :store_const:_list_file=" ^
+    ^ "-s, --semicolon  :store_const:_seperator=;"
 call :parse_args %*
 set "_path1=%~2"
 set "_path2=%~3"
@@ -3746,6 +4185,7 @@ if defined _result (
 )
 exit /b 0
 
+
 rem ================================ wcdir() ================================
 
 rem ======================== documentation ========================
@@ -3776,12 +4216,16 @@ echo ENVIRONMENT
 echo    cd
 echo        Affects the base path of wildcard_path if relative path is given.
 echo=
-echo DEPENDENCIES
-echo    - capchar(LF)
-echo=
 echo NOTES
 echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
+
+
+:wcdir.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ capchar
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -3799,6 +4243,7 @@ echo=
 echo Found List:
 echo=!result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -3831,6 +4276,7 @@ for /f "tokens=1* delims=\" %%a in ("%~1") do if "%%a" == "*:" (
 popd
 exit /b
 
+
 rem ================================ bytes2size() ================================
 
 rem ======================== documentation ========================
@@ -3853,6 +4299,12 @@ echo NOTES
 echo    - Only 3 significant figures will be shown.
 exit /b 0
 
+
+:bytes2size.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :bytes2size.__demo__
@@ -3861,6 +4313,7 @@ call %batchlib%:bytes2size size "!bytes!"
 echo=
 echo The human readable form is !size!
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3876,6 +4329,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -3909,6 +4363,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
 )
 exit /b 0
 
+
 rem ================================ size2bytes() ================================
 
 rem ======================== documentation ========================
@@ -3934,6 +4389,12 @@ echo    call :size2bytes   result  "1KB-5"
 echo    call :size2bytes   result  "1M * 3 / 2"
 exit /b 0
 
+
+:size2bytes.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :size2bytes.__demo__
@@ -3942,6 +4403,7 @@ call %batchlib%:size2bytes bytes "!size!"
 echo=
 echo The size is !bytes! bytes
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -3955,6 +4417,7 @@ for %%a in (
     )
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -3972,6 +4435,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
     set "%~1=%%r"
 )
 exit /b 0
+
 
 rem ================================ hexlify() ================================
 
@@ -4005,6 +4469,13 @@ echo    temp_path
 echo        Path to store the temporary conversion result.
 exit /b 0
 
+
+:hexlify.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :hexlify.__demo__
@@ -4015,6 +4486,7 @@ echo Converting to hex...
 call %batchlib%:hexlify "!source_file!" "!destination_file!" --eol "0d 0a"
 echo Done
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -4027,13 +4499,14 @@ for %%v in (hex rebuild) do del /f /q "hexlify.%%v"
 if not "!offset!" == "-" call %unittest%.fail "difference detected"
 exit /b 0
 
+
 rem ======================== function ========================
 
 :hexlify   input_file  output_file  [--eol hex]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_eol=0d 0a"
 set parse_args.args= ^
-    ^ "-e --eol     :var:_eol"
+    ^ "-e, --eol    :store:_eol"
 call :parse_args %*
 set "_eol_len=2"
 if /i "!_eol!" == "0d 0a" set "_eol_len=5"
@@ -4076,6 +4549,7 @@ if not "!_hex:~7680!" == "" (
 set "_hex=!_hex:~0,-1!"
 exit /b
 
+
 rem ================================ unzip() ================================
 
 rem ======================== documentation ========================
@@ -4107,6 +4581,12 @@ echo    - VBScript is used to extract the zip file.
 echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
 
+
+:unzip.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :unzip.__demo__
@@ -4119,6 +4599,7 @@ call %batchlib%:unzip "!zip_file!" "!destination_folder!" && (
     echo Unzip failed
 )
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4138,6 +4619,7 @@ for %%s in ("!temp!\unzip.vbs") do (
     del /f /q "%%~s"
 )
 exit /b 0
+
 
 rem ================================ checksum() ================================
 
@@ -4168,6 +4650,12 @@ echo    cd
 echo        Affects the base path of input_file if relative path is given.
 exit /b 0
 
+
+:checksum.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :checksum.__demo__
@@ -4178,6 +4666,7 @@ call %batchlib%:checksum checksum !checksum_type! "!file_path!"
 echo=
 echo Checksum: !checksum!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4209,6 +4698,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
 )
 exit /b 0
 
+
 rem ======================== notes ========================
 
 rem (!) Improve argument parsing ?
@@ -4239,6 +4729,12 @@ echo    temp_path
 echo        Path to store the temporary output.
 exit /b 0
 
+
+:diffbin.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :diffbin.__demo__
@@ -4255,6 +4751,7 @@ if "!offset:~0,1!" == "-" (
         echo First difference at offset !offset! bytes
 ) || echo unknown result: !offset!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4275,6 +4772,7 @@ for %%f in ("!temp_path!\diffbin.diff") do (
     del /f /q "%%~ff"
 )
 exit /b 0
+
 
 rem ============================ find_label() ============================
 
@@ -4314,6 +4812,13 @@ echo        - '^^' or '*' in label name
 echo    - Only Windows EOL is supported.
 exit /b 0
 
+
+:find_label.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :find_label.__demo__
@@ -4330,6 +4835,7 @@ for %%l in (!label_match!) do (
     echo !match_count!. %%l
 )
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -4373,6 +4879,7 @@ for /f "tokens=*" %%a in ("!test_cases!") do (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :find_label   return_var  [-p pattern]  [-f input_file]
@@ -4380,8 +4887,8 @@ setlocal EnableDelayedExpansion EnableExtensions
 set "_pattern=*"
 set "_input_file=%~f0"
 set parse_args.args= ^
-    ^ "-p --pattern     :var:_pattern" ^
-    ^ "-f --file        :var:_input_file"
+    ^ "-p, --pattern    :store:_pattern" ^
+    ^ "-f, --file       :store:_input_file"
 call :parse_args %*
 for %%c in (\ . $ [ ]) do set "_pattern=!_pattern:%%c=\%%c!"
 rem Replace asterisks with contents of %%p
@@ -4410,6 +4917,7 @@ for /f "tokens=* delims=" %%r in ("!_result!") do (
 )
 exit /b 0
 
+
 rem ================================ extract_func() ================================
 
 rem ======================== documentation ========================
@@ -4429,19 +4937,17 @@ echo    labels
 echo        The function labels to extract. The syntax is "label1 [...]".
 echo=
 echo DEFINITION
-echo    border line
-echo        A line that starts with 'rem ==='.
-echo=
 echo    join mark
 echo        A line that solely consist of '#+++'.
 echo=
-echo FUNCTION DETECTION
-echo    For a function to be detected, the label of the function MUST
-echo    only be preceeded by either nothing, or spaces and/or tabs.
+echo EXTRACTION
+echo    A matching label tells extract_func() to start extracting starting from
+echo    the current line. For a function to be detected, the label of the function
+echo    MUST only be preceeded by either nothing, or spaces and/or tabs.
 echo=
-echo    The function MUST end with either of the following:
-echo        - Two empty lines
-echo        - One empty line followed by one border line (see DEFINITION).
+echo    Two empty lines tells extract_func() that the function ends here and
+echo    it will stop extraction of the lines below it until it finds another
+echo    matching label.
 echo=
 echo    Functions that have consist of multiple functions SHOULD end each
 echo    subroutine with the join mark (see DEFINITION).
@@ -4459,6 +4965,13 @@ echo    - The order of the function will be based on the order of occurrence
 echo      in the source file.
 exit /b 0
 
+
+:extract_func.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :extract_func.__demo__
@@ -4468,6 +4981,7 @@ call %batchlib%:extract_func "%~f0" "!function_labels!" && (
     echo Extract successful
 ) || echo Extract failed
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4483,14 +4997,12 @@ for /f "delims=" %%a in ('findstr /n "^" "%~f1"') do (
     set "line=!line:*:=!"
 
     if defined _write (
-        if "!line:~0,7!" == "rem ===" set "_current=BORDER"
         if "!line:~0,5!" == "#+++" set "_current=JOIN"
         if not defined line set "_current=EOL"
         if defined _current (
             set "_mark=!_mark!!_current! "
             for %%p in (
                 "EOL EOL "
-                "EOL BORDER "
             ) do if /i "!_mark!" == %%p (
                 set "_write="
                 echo=
@@ -4521,6 +5033,7 @@ set "_leftover=!_labels: =!"
 if defined _leftover ( 1>&2 echo warning: label not found: !_labels! & exit /b 1 )
 exit /b 0
 
+
 rem ================================ fix_eol() ================================
 
 rem ======================== documentation ========================
@@ -4531,9 +5044,6 @@ echo    fix_eol, fix_eol.alt1, fix_eol.alt2 - convert EOL of the script to CRLF
 echo=
 echo SYNOPSIS
 echo    fix_eol
-echo=
-echo DEPENDENCIES
-echo    - check_win_eol()
 echo=
 echo EXIT STATUS
 echo    0:  - EOL conversion is not necessary.
@@ -4549,6 +5059,13 @@ echo    - Can be used to detect and fix script EOL if it was downloaded
 echo      from GitHub, since uses Unix EOL (LF).
 exit /b 0
 
+
+:fix_eol.__setup__   [return_prefix]
+set %~1install_requires=^
+    ^ check_win_eol
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :fix_eol.__demo__
@@ -4557,6 +5074,7 @@ for %%n in (1 2) do call :fix_eol.alt%%n && (
     echo [fix_eol.alt%%n] Fix not necessary
 ) || echo [fix_eol.alt%%n] Fix failed
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4583,6 +5101,7 @@ for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
 )
 ( 1>&2 echo error: failed to call check_win_eol^(^) )
 exit /b 1
+
 
 rem ================================ check_win_eol() ================================
 
@@ -4612,6 +5131,12 @@ echo    - If EOL is Mac (CR), this script would probably have crashed
 echo      in the first place.
 exit /b 0
 
+
+:check_win_eol.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :check_win_eol.__demo__
@@ -4622,6 +5147,7 @@ for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
 )
 exit /b 0
 
+
 rem ======================== function ========================
 
 :check_win_eol   [--check-exist]
@@ -4629,7 +5155,7 @@ rem The label below is an alternative label if the main label cannot be found
 :check_win_eol.alt1
 rem THIS IS REQUIRED
 :check_win_eol.alt2
-for %%f in (-c --check-exist) do if /i "%1" == "%%f" exit /b 0
+for %%f in (-c, --check-exist)do if /i "%1" == "%%f" exit /b 0
 @call :check_win_eol._test 2> nul && exit /b 0 || exit /b 1
 rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
 rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
@@ -4665,6 +5191,7 @@ rem 31                                                                          
 rem 32  LAST LINE: should be 1 character shorter than the rest                                              DO NOT MODIFY -> #
 :check_win_eol._test
 @exit /b 0
+
 
 rem ================================ expand_link() ================================
 
@@ -4704,6 +5231,10 @@ echo    - IPv6 URLs are not supported (yet).
 exit /b 0
 
 
+:expand_link.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 rem (!) improve naming?
 
 rem ======================== demo ========================
@@ -4713,6 +5244,7 @@ call %batchlib%:Input.string web_url || set "web_url=https://blog.example.com:80
 call %batchlib%:expand_link web_url "!web_url!"
 set web_url
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4753,6 +5285,7 @@ if defined %~1Q set "%~1U=!%~1U!?!%~1Q!"
 if defined %~1F set "%~1U=!%~1U!#!%~1F!"
 exit /b 0
 
+
 rem ================================ get_ext_ip() ================================
 
 rem ======================== documentation ========================
@@ -4776,6 +5309,12 @@ echo NOTES
 echo    - PowerShell is used to download the information file.
 exit /b 0
 
+
+:get_ext_ip.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :get_ext_ip.__demo__
@@ -4783,6 +5322,7 @@ call %batchlib%:get_ext_ip ext_ip
 echo=
 echo External IP    : !ext_ip!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4793,6 +5333,7 @@ rem ======================== function ========================
 for /f "usebackq tokens=*" %%o in ("!temp!\ip.txt") do set "%~1=%%o"
 del /f /q "!temp!\ip.txt"
 exit /b 0
+
 
 rem ================================ ping_test() ================================
 
@@ -4823,6 +5364,12 @@ echo    0:  - Ping test receives response (at least once).
 echo    1:  - Ping test failed.
 exit /b 0
 
+
+:ping_test.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :ping_test.__demo__
@@ -4835,6 +5382,7 @@ call %batchlib%:ping_test ping. !host! && (
 echo=
 set ping.
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4857,6 +5405,7 @@ for /f "usebackq tokens=1-8 delims=(:=, " %%a in (`ping %~2 %~3 `) do (
 )
 if "!~1loss!" == "100" exit /b 1
 exit /b 0
+
 
 rem ================================ download_file() ================================
 
@@ -4887,6 +5436,12 @@ echo    - Follows redirects automatically.
 echo    - Overwrites existing file.
 exit /b 0
 
+
+:download_file.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :download_file.__demo__
@@ -4906,6 +5461,7 @@ echo Downloading file...
 call %batchlib%:download_file "!download_url!" "!save_path!" || echo Download failed
 exit /b 0
 
+
 rem ======================== function ========================
 
 :download_file   link  save_path
@@ -4914,6 +5470,7 @@ if not exist "%~dp2" md "%~dp2"
 powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
 if not exist "%~2" exit /b 1
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -4944,6 +5501,12 @@ echo    height_return_var
 echo        Variable to store the console height.
 exit /b 0
 
+
+:get_con_size.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :get_con_size.__demo__
@@ -4951,6 +5514,7 @@ call %batchlib%:get_con_size console_width console_height
 echo=
 echo Screen buffer size    : !console_width!x!console_height!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -4969,6 +5533,7 @@ for /f "tokens=1-2 delims=x" %%a in ("!_width!x!_height!") do (
     set "%~2=%%b"
 )
 exit /b 0
+
 
 rem ================================ notes ================================
 
@@ -4992,6 +5557,12 @@ echo    return_var
 echo        Variable to store the result.
 exit /b 0
 
+
+:get_sid.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :get_sid.__demo__
@@ -5000,12 +5571,14 @@ echo=
 echo User SID : !result!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :get_sid   return_var
 set "%~1="
 for /f "tokens=2" %%s in ('whoami /user /fo table /nh') do set "%~1=%%s"
 exit /b 0
+
 
 rem ================================ get_os() ================================
 
@@ -5027,12 +5600,19 @@ echo    --name
 echo        Returns the OS name instead of the OS version number.
 exit /b 0
 
+
+:get_os.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :get_os.__demo__
 call %batchlib%:get_os result --name
 echo Your OS is !result!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -5049,6 +5629,7 @@ if /i "%~2" == "--name" (
     if "!%~1!" == "5.0" set "%~1=Windows 2000"
 )
 exit /b 0
+
 
 rem ================================ get_pid() ================================
 
@@ -5076,6 +5657,12 @@ echo      Use it if you have multiple batch script that starts at the same time 
 echo      also calls get_pid() at the same time.
 exit /b 0
 
+
+:get_pid.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :get_pid.__demo__
@@ -5095,6 +5682,7 @@ echo PID        : !result!
 echo Time taken : !time_taken!
 exit /b 0
 
+
 rem ======================== function ========================
 
 :get_pid   return_var  [unique_id]
@@ -5102,6 +5690,7 @@ for /f "usebackq tokens=*" %%a in (
     `wmic process where "name='cmd.exe' and CommandLine like '%% get_pid %random% %~1 %%'" get ParentProcessID`
 ) do for %%b in (%%a) do set "%~1=%%b"
 exit /b 0
+
 
 rem ================================ watchvar() ================================
 
@@ -5125,14 +5714,18 @@ echo ENVIRONMENT
 echo    temp_path
 echo        Path to store the variable data.
 echo=
-echo DEPENDENCIES
-echo    - parse_args()
-echo    - hexlify()
-echo=
 echo NOTES
 echo    - For variables that contains very long strings, only changes
 echo      in the first 3840 characters is can be detected
 exit /b 0
+
+
+:watchvar.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ hexlify
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -5152,6 +5745,7 @@ for /l %%n in (1,1,5) do (
     call %batchlib%:watchvar --name
 )
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -5193,6 +5787,7 @@ if not "!result_count!" == "!var_count!" exit /b 1
 if not "!changes!" == "[+%~1/~%~2/-%~3]" exit /b 1
 exit /b 0
 
+
 rem ======================== function ========================
 
 :watchvar   [-i]  [-n]
@@ -5214,8 +5809,8 @@ for %%x in (txt hex) do (
 )
 for %%v in (_init_only  _list_names) do set "%%v="
 set parse_args.args= ^
-    ^ "-i --initialize  :flag:_init_only=true" ^
-    ^ "-n --name        :flag:_list_names=true"
+    ^ "-i, --initialize :store_const:_init_only=true" ^
+    ^ "-n, --name       :store_const:_list_names=true"
 call :parse_args %*
 
 rem Convert to hex and format
@@ -5291,6 +5886,7 @@ if defined _list_names (
 ) else echo Variables: !_var_count! [+!_new_count!/~!_changed_count!/-!_deleted_count!]
 exit /b 0
 
+
 rem ================================ is_admin() ================================
 
 rem ======================== documentation ========================
@@ -5311,6 +5907,12 @@ echo    0:  - Administrator privilege is detected.
 echo    1:  - No administrator privilege is detected.
 exit /b 0
 
+
+:is_admin.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :is_admin.__demo__
@@ -5319,11 +5921,13 @@ call %batchlib%:is_admin && (
 ) || echo No administrator privilege detected
 exit /b 0
 
+
 rem ======================== function ========================
 
 :is_admin
 (net session || openfiles) > nul 2> nul || exit /b 1
 exit /b 0
+
 
 rem ================================ is_echo_on() ================================
 
@@ -5341,6 +5945,12 @@ echo    - Temporary file is used in this function.
 echo    - This function produces no output, even if error is encountered.
 exit /b 0
 
+
+:is_echo_on.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :is_echo_on.__demo__
@@ -5348,6 +5958,7 @@ call %batchlib%:is_echo_on && (
     echo Echo is on
 ) || echo Echo is off
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -5357,6 +5968,7 @@ rem ======================== function ========================
     type "%temp%\echo_test" | find /i "on" && exit /b 0
 ) > nul 2>&1
 @exit /b 1
+
 
 rem ================================ endlocal() ================================
 
@@ -5381,6 +5993,12 @@ echo    - Variables that contains Line Feed character are not supported and it
 echo      could cause unexpected errors.
 exit /b 0
 
+
+:endlocal.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :endlocal.__demo__
@@ -5399,6 +6017,7 @@ set "var_hello=I am a new variable^!"
 set var_
 @echo off
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -5473,6 +6092,7 @@ exit /b
 set "_var=%_var%"
 exit /b
 
+
 rem ================================ capchar() ================================
 
 rem ======================== documentation ========================
@@ -5508,6 +6128,12 @@ echo            without using caret (^^). Must be used as %%DQ%%, not ^^!DQ^^!.
 echo    NL      Set new line in variables
 exit /b 0
 
+
+:capchar.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :capchar.__demo__
@@ -5532,6 +6158,7 @@ echo=
 echo T!TAB!A!TAB!B
 exit /b 0
 
+
 rem ======================== function ========================
 
 :capchar   character1  [character2 [...]]
@@ -5550,6 +6177,7 @@ if /i "%~1" == "NL" call :capchar "LF" & set "NL=^^!LF!!LF!^^"
 shift /1
 if not "%1" == "" goto capchar
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -5580,11 +6208,18 @@ echo    hex
 echo        The hexadecimal representation of the character.
 exit /b 0
 
+
+:hex2char.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :hex2char.__demo__
 call %batchlib%:hex2char
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -5596,6 +6231,7 @@ for /f "tokens=* delims=" %%f in ("!_result!") do (
     calL "%%r"
 )
 exit /b 0
+
 
 rem ================================ color2seq() ================================
 
@@ -5631,6 +6267,12 @@ echo    - Used for color print in windows 10 or any other console that supports
 echo      ANSI escape sequence.
 exit /b 0
 
+
+:color2seq.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :color2seq.__demo__
@@ -5640,6 +6282,7 @@ echo=
 echo Sequence: !color_code!
 echo Color print: !ESC!!color_code!Hello World!ESC![0m
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -5657,6 +6300,7 @@ for %%t in (
 )
 exit /b 0
 
+
 rem ================================ setup_clearline() ================================
 
 rem ======================== documentation ========================
@@ -5672,13 +6316,17 @@ echo POSITIONAL ARGUMENTS
 echo    return_var
 echo        Variable to store the macro.
 echo=
-echo DEPENDENCIES
-echo    - capchar(CR, DEL)
-echo=
 echo NOTES
 echo    - Based on: get_con_size(), get_os()
 echo    - Text should not reach the end of the line.
 exit /b 0
+
+
+:setup_clearline.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ capchar
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -5702,6 +6350,7 @@ pause > nul
 < nul set /p "=!CL!Clear line failed"
 exit /b 0
 
+
 rem ======================== function ========================
 
 :setup_clearline   return_var
@@ -5721,6 +6370,7 @@ for /f "tokens=4 delims=. " %%v in ('ver') do (
 )
 exit /b 0
 
+
 rem ================================ color_print() ================================
 
 rem ======================== documentation ========================
@@ -5739,9 +6389,6 @@ echo        The format of the color is '^<background^>^<foreground^>'.
 echo=
 echo    text
 echo        The text to display in colors.
-echo=
-echo DEPENDENCIES
-echo    - capchar(BS)
 echo=
 echo COLORS
 echo    0 = Black       8 = Gray
@@ -5763,6 +6410,13 @@ echo    - Printing special characters (the invalid path characters: '"<>|?*:\/')
 echo      are not supported.
 exit /b 0
 
+
+:color_print.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ capchar
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :color_print.__demo__
@@ -5777,6 +6431,7 @@ call %batchlib%:color_print "!hexadecimal_color!" "!text!" && (
 ) || echo !LF!Print Failed. Characters not supported, or external error occured
 exit /b 0
 
+
 rem ======================== function ========================
 
 :color_print   color  text
@@ -5788,6 +6443,7 @@ rem ======================== function ========================
     popd
 )
 exit /b 0
+
 
 rem ======================== notes ========================
 
@@ -5802,6 +6458,7 @@ pushd "!tempPath!"
 ) 2> nul
 popd
 goto :EOF
+
 
 rem ================================ parse_version() ================================
 
@@ -5852,6 +6509,12 @@ echo      (e.g.: 999.999, 1.2.3.dev999)
 echo    - Numbers longer than 3 digits is truncated. (e.g.: 1.dev2345 -^> 1.dev345)
 exit /b 0
 
+
+:parse_version.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :parse_version.__demo__
@@ -5866,6 +6529,7 @@ if "!version1.parsed!" %comparison% "!version2.parsed!" (
     echo True
 ) else echo False
 exit /b 0
+
 
 rem ======================== test ========================
 
@@ -5972,6 +6636,7 @@ call :parse_version version2 "%~3"
 if "!version1!" %~2 "!version2!" exit /b 0
 exit /b 1
 
+
 rem ======================== function ========================
 
 :parse_version   return_var  version
@@ -6031,11 +6696,13 @@ for /f "tokens=*" %%r in ("!_result!") do (
 )
 exit /b 0
 
+
 rem ======================================== Framework ========================================
 
 :framework.__init__
 rem Framework of the script
 exit /b 0
+
 
 rem ================================ module ================================
 
@@ -6060,6 +6727,15 @@ echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
 exit /b 0
 
+
+:module.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ module.entry_point ^
+    ^ module.read_metadata ^
+    ^ module.is_module
+exit /b 0
+
+
 rem ============================ .entry_point() ============================
 
 rem ======================== documentation ========================
@@ -6079,7 +6755,7 @@ echo OPTIONS
 echo    --module=NAME
 echo        Specify the entry point of the script. The entry point will be called
 echo        with the arguments and exit code will be preserved upon exit.
-echo        If this option is not set, the function will GOTO __main__.
+echo        If this option is not set, the function will 'GOTO main'.
 echo=
 echo ENTRY POINTS
 echo    An entry point is a label follows the pattern ':scripts.NAME'.
@@ -6092,6 +6768,12 @@ echo=
 echo USAGE
 echo    The first command on the script should be '@goto module.entry_point'
 exit /b 0
+
+
+:module.entry_point.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -6121,6 +6803,7 @@ echo=
 pause
 exit 0
 
+
 rem ======================== test ========================
 
 :tests.framework.module.entry_point.main
@@ -6128,7 +6811,7 @@ call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry
 call %batchlib%:extract_func "%~f0" "tests.framework.module.entry_point.capture_args" > "capture_args"
 
 >> "test_entry_point.bat" (
-    echo :__main__
+    echo :main
     echo @call :scripts.main %%*
     echo @exit /b %%errorlevel%%
 
@@ -6165,11 +6848,12 @@ set "expected_exit_code=%random%"
 echo Arguments: %*
 exit /b %expected_exit_code%
 
+
 rem ======================== function ========================
 
 :module.entry_point   [--module=<name>]  [args]
-@if /i not "%~1" == "--module" @goto __main__
-@if /i #%1 == #"%~1" @goto __main__
+@if /i not "%~1" == "--module" @goto main
+@if /i #%1 == #"%~1" @goto main
 @setlocal DisableDelayedExpansion
 @set module.entry_point.args=%*
 @setlocal EnableDelayedExpansion
@@ -6179,6 +6863,7 @@ rem ======================== function ========================
     call :scripts.%%b
 )
 @exit /b %errorlevel%
+
 
 rem ============================ .read_metadata() ============================
 
@@ -6199,10 +6884,13 @@ echo        description, release_date, url, download_url.
 echo=
 echo    input_file
 echo        Path of the input (batch) file.
-echo=
-echo DEPENDENCIES
-echo    - module.is_module()
 exit /b 0
+
+
+:module.read_metadata.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -6219,6 +6907,7 @@ call :module.read_metadata script. "!script_to_check!"
 set "script."
 exit /b 0
 
+
 rem ======================== function ========================
 
 :module.read_metadata   return_prefix  script_path
@@ -6230,6 +6919,7 @@ for %%v in (
 ) do set "%~1%%v="
 call "%~2" --module=lib :metadata "%~1" || exit /b 1
 exit /b 0
+
 
 rem ============================ .is_module() ============================
 
@@ -6255,10 +6945,13 @@ echo=
 echo POSITIONAL ARGUMENTS
 echo    input_file
 echo        Path of the input file.
-echo=
-echo DEPENDENCIES
-echo    - module.is_module()
 exit /b 0
+
+
+:module.is_module.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -6274,6 +6967,7 @@ call %batchlib%:ftime time_taken !time_taken!
 echo=
 echo Done in !time_taken!
 exit /b 0
+
 
 rem ======================== function ========================
 
@@ -6293,6 +6987,7 @@ set "_callable="
 for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
 if not defined _callable exit /b 2
 exit /b 0
+
 
 rem ================================ unittest() ================================
 
@@ -6352,8 +7047,13 @@ echo    - Using reserved variables in your tests might break unittest().
 exit /b 0
 
 
-rem (!) Add time limit?
-rem     - Your code did not execute within the time limits
+:unittest.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ find_label ^
+    ^ difftime ftime
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -6368,6 +7068,7 @@ call :tests.framework.unittest.make_expectation
 call :unittest -v -l "!test_list!" -v
 exit /b 0
 
+
 rem ======================== function ========================
 
 :unittest   [module]  [-l test_list|-p pattern]  [-v|-q]  [-f]
@@ -6375,10 +7076,10 @@ setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (fail_fast test_list pattern) do set "unittest.%%v="
 set "unittest.verbosity=1"
 set parse_args.args= ^
-    ^ "-v --verbose     :flag:unittest.verbosity=2" ^
-    ^ "-f --failfast    :flag:unittest.fail_fast=true" ^
-    ^ "-p --pattern     :var:unittest.pattern" ^
-    ^ "-l --label       :var:unittest.test_list"
+    ^ "-v, --verbose    :store_const:unittest.verbosity=2" ^
+    ^ "-f, --failfast   :store_const:unittest.fail_fast=true" ^
+    ^ "-p, --pattern    :store:unittest.pattern" ^
+    ^ "-l, --label      :store:unittest.test_list"
 call :parse_args %*
 set "unittest.test_module=%~f1"
 if not defined unittest.test_module set "unittest.test_module=%~f0"
@@ -6558,6 +7259,7 @@ if "!unittest.verbosity!" == "1" < nul set /p "=!_mark!"
 if "!unittest.verbosity!" == "2" if defined _msg echo !_msg!
 exit /b 0
 
+
 rem ======================== test ========================
 
 :test.framework.unittest.main
@@ -6636,6 +7338,7 @@ for %%o in (failures errors skipped) do (
 )
 exit /b 0
 
+
 rem ================================ parse_args() ================================
 
 rem ======================== documentation ========================
@@ -6656,32 +7359,35 @@ echo    arguments.
 echo=
 echo=   Each parsing option consist of 3 parts:
 echo=
-echo        "FLAG:TYPE:VARIABLE[=VALUE]"
+echo        "FLAGS:ACTION:VARIABLE[=CONST]"
 echo=
-echo    FLAG        Flag to match.
-echo    TYPE        Data type of the argument.
-echo    VARIABLE    Variable to store the result
-echo    VALUE       Value to store at VARIABLE.
+echo    FLAGS       Flags to match.
+echo    ACTION      How to handle this argument.
+echo    VARIABLE    Variable to store/append the value
+echo    CONST       The constant/value to store/append to VARIABLE.
 echo=
-echo    There are 3 data types:
-echo        flag    Set value according to VARIABLE and VALUE.
-echo                E.g.: "-q --quiet   :flag:quite_mode=true"
-echo                      will do: set "quite_mode=true"
+echo    There are few types of actions:
+echo        store
+echo            Stores the next argument into VARIABLE.
+echo            E.g.: "--message    :store:message"
+echo            will do: set "message={next argument}"
 echo=
-echo        var     Captures the next argument into VARIABLE.
-echo                E.g.: "--message    :var:message"
-echo                      will do: set "message={next argument}"
+echo        store_const
+echo            Set value according to VARIABLE and CONST.
+echo            E.g.: "-q, --quiet  :store_const:quite_mode=true"
+echo            will do: set "quite_mode=true"
 echo=
-echo        list    Append VALUE to the VARIABLE.
-echo                E.g.: "--add_one    :list:value= +1"
-echo                      will do: set "value=^!value^! +1"
+echo        append_const
+echo            Append CONST to the VARIABLE.
+echo            E.g.: "--add_one    :append_const:value= +1"
+echo                will do: set "value=^!value^! +1"
 echo=
 echo EXAMPLE
 echo    set parse_args.args= ^^
-echo        ^^ "-q --quite      :flag:quite_mode=true" ^^
-echo        ^^ "-m --module     :var:module_name" ^^
-echo        ^^ "-0 --zero       :var:binary=0" ^^
-echo        ^^ "-1 --one        :var:binary=1"
+echo        ^^ "-q, --quite     :store_const:quite_mode=true" ^^
+echo        ^^ "-m, --module    :store:module_name" ^^
+echo        ^^ "-0, --zero      :store:binary=0" ^^
+echo        ^^ "-1, --one       :store:binary=1"
 echo    call :parse_args -m calc -q -0 hello --one --zero -1 world
 echo=
 echo    - quite_mode will be set to 'true'
@@ -6690,9 +7396,19 @@ echo    - binary will be set to '0101'
 echo    - %%1 will be 'hello'
 echo    - %%2 will be 'world'
 echo=
+echo EXIT STATUS
+echo    0:  - Success.
+echo    1:  - Invalid parameter of 'parse_args.args'.
+echo=
 echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
 exit /b 0
+
+
+:parse_args.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo ========================
 
@@ -6729,10 +7445,10 @@ exit /b 0
 :talking_calculator
 for %%v in (_say _binary _hex) do set "%%v="
 set parse_args.args= ^
-    ^ "-s --say         :var:_args._say" ^
-    ^ "-b --binary      :flag:_args._binary=true" ^
-    ^ "-h --hex         :flag:_args._hex=true" ^
-    ^ "-p --plus        :list:_args._plus= +1"
+    ^ "-s, --say        :store:_args._say" ^
+    ^ "-b, --binary     :store_const:_args._binary=true" ^
+    ^ "-h, --hex        :store_const:_args._hex=true" ^
+    ^ "-p, --plus       :append_const:_args._plus= +1"
 call :parse_args %* || exit /b 1
 echo Arguments:
 set "_args."
@@ -6755,109 +7471,140 @@ if not defined _args._say set "_args._say=The answer is"
 echo !_args._say! !_result!
 exit /b 0
 
+
 rem ======================== test ========================
 
 :tests.framework.parse_args.main
-call :tests.framework.parse_args.no_args || exit /b 0
-call :tests.framework.parse_args.var_n_flags arg1 -n asd -e --save-path qwe arg2 || exit /b 0
-call :tests.framework.parse_args.special_chars "" -c ":" -sc ";" -qm "?" -a "*" || exit /b 0
-call :tests.framework.parse_args.list  --one --three --two --three || exit /b 0
-call :tests.framework.parse_args.behavior  -c || exit /b 0
+for %%a in (alpha bravo charlie hotel tango x-ray zulu) do (
+    set "_char=%%a"
+    set "_char=!_char:~0,1!"
+    for %%c in (!_char!) do set "p_arg_%%c=-%%c, --%%a"
+)
+call :tests.framework.parse_args.test_no_args || exit /b 0
+call :tests.framework.parse_args.test_invalid_args --hello || exit /b 0
+for %%t in (store_const store append_const) do (
+    call :tests.framework.parse_args.test_%%t --bravo "--alpha" -t -c -h --x-ray zulu  || exit /b 0
+)
+call :tests.framework.parse_args.test_special_chars "" --colon ":" --semicolon ";" ^
+    ^ --question-mark "?" --askterisk "*" --caret "^" --ampersand "&" ^
+    ^ || exit /b 0
+call :tests.framework.parse_args.test_behavior  -c || exit /b 0
 exit /b 0
 
 
-:tests.framework.parse_args.no_args
+:tests.framework.parse_args.test_no_args
 setlocal EnableDelayedExpansion EnableExtensions
 set "parse_args.args="
-call :parse_args || (
-    call %unittest%.fail "no_args: exit state must be successful"
+call :parse_args %* || (
+    call %unittest%.fail "test_no_args: exit state must be successful"
     exit /b 1
 )
 exit /b 0
 
 
-:tests.framework.parse_args.var_n_flags
-for %%v in (_filename _save_path _exist) do set "%%v="
+:tests.framework.parse_args.test_invalid_args
+setlocal EnableDelayedExpansion EnableExtensions
 set parse_args.args= ^
-    ^ "-n --name      :var:_filename" ^
-    ^ "-s --save-path :var:_save_path" ^
-    ^ "-e --exist     :flag:_exist=true" ^
-    ^ "-n --not-exist :flag:_exist=false"
-call :tests.framework.parse_args.validate_args || ( call %unittest%.error "var_n_flags: invalid test arguments" & exit /b 1 )
-call :parse_args %*
-if not "%1" == "arg1" ( call %unittest%.fail "var_n_flags: positional argument 1" & exit /b 1 )
-if not "%2" == "arg2" ( call %unittest%.fail "var_n_flags: positional argument 2" & exit /b 1 )
-if not "!_filename!" == "asd" ( call %unittest%.fail "var_n_flags: keyword argument 1" & exit /b 1 )
-if not "!_save_path!" == "qwe" ( call %unittest%.fail "var_n_flags: keyword argument 2" & exit /b 1 )
-if not "!_exist!" == "true" ( call %unittest%.fail "var_n_flags: flag argument 1" & exit /b 1 )
-exit /b 0
-
-
-:tests.framework.parse_args.special_chars
-for %%v in (_question_mark _asterisk _colon _semicolon) do set "%%v="
+    ^ "--hello  :this_is_invalid:hello=true"
+call :parse_args %* 2> nul && (
+    call %unittest%.fail "test_invalid_args: type error not detected"
+    exit /b 1
+)
 set parse_args.args= ^
-    ^ "-qm    :var:_question_mark" ^
-    ^ "-a     :var:_asterisk" ^
-    ^ "-c     :var:_colon" ^
-    ^ "-sc    :var:_semicolon"
-call :tests.framework.parse_args.validate_args || ( call %unittest%.error "special_chars: invalid test arguments" & exit /b 1 )
-call :parse_args %*
-if not "%1" == ^"^"^"^" ( call %unittest%.fail "special_chars: parsing of empty string" & exit /b 1 )
-if not "!_question_mark!" == "?" ( call %unittest%.fail "special_chars: parsing of question mark" & exit /b 1 )
-if not "!_asterisk!" == "*" ( call %unittest%.fail "special_chars: parsing of asterisk" & exit /b 1 )
-if not "!_colon!" == ":" ( call %unittest%.fail "special_chars: parsing of colon" & exit /b 1 )
-if not "!_semicolon!" == ";" ( call %unittest%.fail "special_chars: parsing of semicolon" & exit /b 1 )
-exit /b 0
-
-
-:tests.framework.parse_args.list
-for %%v in (_numbers) do set "%%v="
-set parse_args.args= ^
-    ^ "--one    :list:_numbers= +1" ^
-    ^ "--two    :list:_numbers= +2" ^
-    ^ "--three  :list:_numbers= +3"
-call :tests.framework.parse_args.validate_args || ( call %unittest%.fail "list: invalid test arguments" & exit /b 1 )
-call :parse_args %*
-set /a "sum=!_numbers!"
-if not "!_numbers!" == " +1 +3 +2 +3" ( call %unittest%.fail "list: incorrect result" & exit /b 1 )
-if not "!sum!" == "9" ( call %unittest%.fail "list: incorrect sum" & exit /b 1 )
-exit /b 0
-
-
-:tests.framework.parse_args.behavior
-for %%v in (_lowercase _uppercase) do set "%%v="
-set parse_args.args= ^
-    ^ "-c   :flag:_lowercase=true" ^
-    ^ "-C   :flag:_uppercase=true"
-call :tests.framework.parse_args.validate_args || ( call %unittest%.fail "behavior: invalid test arguments" & exit /b 1 )
-call :parse_args %*
-if defined _uppercase ( call %unittest%.fail "behavior: keyword argument is not case sensitive" & exit /b 1 )
-exit /b 0
-
-
-:tests.framework.parse_args.validate_args
-setlocal EnableDelayedExpansion
-for %%o in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%o) do (
-    if "%%d" == "" ( 2>&1 echo variable to set is not defined & exit /b 1 )
-    if "%%c" == "" (
-        ( 2>&1 echo error: argument type is not defined & exit /b 1 )
-    ) else (
-        set "_valid="
-        if /i "%%c" == "flag" set "_valid=true"
-        if /i "%%c" == "var" set "_valid=true"
-        if /i "%%c" == "list" set "_valid=true"
-        if not defined _valid ( 2>&1 echo error: argument type '%%c' is not valid & exit /b 1 )
-    )
+    ^ "--hello  :store_const:"
+call :parse_args %* 2> nul && (
+    call %unittest%.fail "test_invalid_args: attribute error not detected"
+    exit /b 1
 )
 exit /b 0
+
+
+:tests.framework.parse_args.test_store_const
+for %%v in (b a t c h x z) do set "arg_%%v="
+set "parse_args.args="
+for %%c in (b a c x z) do set parse_args.args=!parse_args.args! "!p_arg_%%c!:store_const:arg_%%c=true"
+call :parse_args %* || ( call %unittest%.error "test_store_const: invalid test arguments" & exit /b 1 )
+if not "!arg_received!" == "!arg_expected!" ( call %unittest%.fail "test_store_const: positional arguments" & exit /b 1 )
+for %%v in (b c x) do (
+    if not defined arg_%%v ( call %unittest%.fail "test_store_const: false negative: %%v" & exit /b 1 )
+)
+for %%v in (a z) do (
+    if defined arg_%%v ( call %unittest%.fail "test_store_const: false positive: %%v" & exit /b 1 )
+)
+exit /b 0
+
+
+:tests.framework.parse_args.test_store
+for %%v in (b a t c h x z) do set "arg_%%v="
+set "parse_args.args="
+for %%c in (a t c x z) do set parse_args.args=!parse_args.args! "!p_arg_%%c!:store:arg_%%c"
+call :parse_args %* || ( call %unittest%.error "test_store: invalid test arguments" & exit /b 1 )
+set arg_received=[%1, %2, %3, %4]
+set arg_expected=[--bravo, "--alpha", -h, ]
+if not "!arg_received!" == "!arg_expected!" ( call %unittest%.fail "test_store: positional arguments" & exit /b 1 )
+for %%v in (a c h z) do (
+    if defined arg_%%v ( call %unittest%.fail "test_store: false positive: %%v" & exit /b 1 )
+)
+if not "!arg_t!" == "-c" ( call %unittest%.fail "test_store: keyword '-t'" & exit /b 1 )
+if not "!arg_x!" == "zulu" ( call %unittest%.fail "test_store: keyword '-x'" & exit /b 1 )
+exit /b 0
+
+
+:tests.framework.parse_args.test_append_const
+for %%v in (b a t c h x z) do set "arg_%%v="
+set "parse_args.args="
+for %%c in (b a t c h x) do set parse_args.args=!parse_args.args! "!p_arg_%%c!:append_const:word=%%c"
+call :parse_args %* || ( call %unittest%.fail "append_const: invalid test arguments" & exit /b 1 )
+set arg_received=[%1, %2, %3]
+set arg_expected=["--alpha", zulu, ]
+if not "!arg_received!" == "!arg_expected!" ( call %unittest%.fail "test_store: positional arguments" & exit /b 1 )
+if not "!word!" == "btchx" ( call %unittest%.fail "append_const: incorrect result" & exit /b 1 )
+exit /b 0
+
+
+:tests.framework.parse_args.test_special_chars
+for %%v in (question_mark asterisk colon semicolon caret) do set "%%v="
+set parse_args.args= ^
+    ^ "--question-mark  :store:question_mark" ^
+    ^ "--askterisk      :store:asterisk" ^
+    ^ "--colon          :store:colon" ^
+    ^ "--semicolon      :store:semicolon" ^
+    ^ "--caret          :store:caret" ^
+    ^ "--ampersand      :store:ampersand"
+call :parse_args %* || ( call %unittest%.error "test_special_chars: invalid test arguments" & exit /b 1 )
+if not "%1" == ^"^"^"^" ( call %unittest%.fail "test_special_chars: parsing of empty string" & exit /b 1 )
+if not "!question_mark!" == "?" ( call %unittest%.fail "test_special_chars: parsing of question mark" & exit /b 1 )
+if not "!asterisk!" == "*" ( call %unittest%.fail "test_special_chars: parsing of asterisk" & exit /b 1 )
+if not "!colon!" == ":" ( call %unittest%.fail "test_special_chars: parsing of colon" & exit /b 1 )
+if not "!semicolon!" == ";" ( call %unittest%.fail "test_special_chars: parsing of semicolon" & exit /b 1 )
+if not "!caret!" == "^" ( call %unittest%.fail "test_special_chars: parsing of caret" & exit /b 1 )
+if not "!ampersand!" == "&" ( call %unittest%.fail "test_special_chars: parsing of ampersand" & exit /b 1 )
+exit /b 0
+
+
+:tests.framework.parse_args.test_behavior
+for %%v in (_lowercase _uppercase) do set "%%v="
+set parse_args.args= ^
+    ^ "-c   :store_const:_lowercase=true" ^
+    ^ "-C   :store_const:_uppercase=true"
+call :parse_args %* || ( call %unittest%.error "test_store_const: invalid test arguments" & exit /b 1 )
+if defined _uppercase ( call %unittest%.fail "test_behavior: keyword argument is not case sensitive" & exit /b 1 )
+exit /b 0
+
 
 rem ======================== function ========================
 
 :parse_args   %*
+for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    set "_valid="
+    for %%t in (store store_const append_const) do if /i "%%c" == "%%t" set "_valid=true"
+    if not defined _valid ( 1>&2 echo error: invalid argument type '%%c' for '%%b' & exit /b 1 )
+    if "%%d" == "" ( 1>&2 echo error: variable name not defined for '%%b' & exit /b 1 )
+)
 set "_store_var="
 set "parse_args.argc=1"
 set "parse_args.shift="
-call :parse_args._loop %*
+call :parse_args._loop %* || exit /b 1
 set /a "parse_args.argc-=1"
 set "parse_args._store_var="
 set "parse_args._value="
@@ -6871,22 +7618,26 @@ exit /b 1
 #+++
 
 :parse_args._loop
-set _value=%1
-if not defined _value exit /b
+set _value=_%1
+set "_value=!_value:^^^^^^^^=^!"
+set "_value=!_value:~1!"
+if not defined _value exit /b 0
 set "_shift="
 if defined parse_args._store_var (
-    set "!parse_args._store_var!=%~1"
+    if "!_value:~0,1!!_value:~-1,1!" == ^"^"^"^" set "_value=!_value:~1,-1!"
+    set "!parse_args._store_var!=!_value!"
     set "parse_args._store_var="
     set "_shift=true"
-)
-for %%o in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%o) do (
-    for %%f in (%%b) do if "!_value!" == "%%f" (
-        if /i "%%c" == "flag" set "%%d"
-        if /i "%%c" == "var" set "parse_args._store_var=%%d"
-        if /i "%%c" == "list" (
-            for /f "tokens=1* delims==" %%v in ("%%~d") do set "%%v=!%%v!%%w"
+) else (
+    for %%o in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%o) do (
+        for %%f in (%%b) do if "!_value!" == "%%f" (
+            if /i "%%c" == "store" set "parse_args._store_var=%%d"
+            if /i "%%c" == "store_const" set "%%d"
+            if /i "%%c" == "append_const" (
+                for /f "tokens=1* delims==" %%v in ("%%d") do set "%%v=!%%v!%%w"
+            )
+            set "_shift=true"
         )
-        set "_shift=true"
     )
 )
 if defined _shift (
@@ -6895,18 +7646,31 @@ if defined _shift (
 shift /1
 goto parse_args._loop
 
+
 rem ======================== debug ========================
 
-rem Smaller version. Can only parse flags
-:parse_args.flags   %*
-(
-    goto 2> nul
+rem Stripped down version, to be embedded in function
+rem - Supports 'store_const' and 'append_const' action only
+rem - Cannot handle special characters
+:parse_args.store_const   %*
+rem This part can be removed once parameters in 'parse_args.args' are correct
+for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    set "_valid="
+    for %%t in (store_const append_const) do if /i "%%c" == "%%t" set "_valid=true"
+    if not defined _valid ( 1>&2 echo error: invalid argument type '%%c' for '%%b' & exit /b 1 )
+    if "%%d" == "" ( 1>&2 echo error: variable name not defined for '%%b' & exit /b 1 )
+)
+%= [function] parse_args.store_const =% (
+    goto 2> nul & rem Remove this line if you are copying it to your function
     set "parse_args.argc=1"
     for %%a in (%*) do (
         set "_shift="
-        for %%o in (!parse_args.args!) do for /f "tokens=1* delims=:" %%b in (%%o) do (
-            for %%f in (%%b) do if /i "%%a" == "%%f" (
-                set "%%d"
+        for %%o in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%o) do (
+            for %%f in (%%b) do if "%%a" == "%%f" (
+                if /i "%%c" == "store_const" set "%%d"
+                if /i "%%c" == "append_const" (
+                    for /f "tokens=1* delims==" %%v in ("%%d") do set "%%v=!%%v!%%w"
+                )
                 set "_shift=true"
             )
         )
@@ -6915,9 +7679,10 @@ rem Smaller version. Can only parse flags
         ) else set /a "parse_args.argc+=1"
     )
     set /a "parse_args.argc-=1"
-    set "_store_var="
+    set "parse_args.args="
 )
 exit /b 0
+
 
 rem ============================ updater() ============================
 
@@ -6954,11 +7719,6 @@ echo    temp_path
 echo        Path to store the update file.
 echo=
 echo DEPENDENCIES
-echo    Require:
-echo        - download_file()
-echo        - parse_version()
-echo        - parse_args()
-echo=
 echo    Extras:
 echo        - diffdate()
 echo=
@@ -6982,6 +7742,17 @@ echo    5:  - No update is available.
 echo    6:  - Update failed.
 exit /b 0
 
+
+:updater.__setup__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ download_file ^
+    ^ parse_version ^
+    ^ module.is_module ^
+    ^ module.read_metadata
+exit /b 0
+
+
 rem ======================== demo ========================
 
 :updater.__demo__
@@ -6993,12 +7764,17 @@ echo - Updating will REPLACE current script with the newer version
 echo=
 call %batchlib%:Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
 echo=
-call :updater --upgrade "%~f0" && exit 0
+call :updater --upgrade "%~f0" && (
+    echo Upgrade successful. Script will exit.
+    pause
+    exit 0
+)
 exit /b 0
+
 
 rem ======================== test ========================
 
-:tests.debug.framework.updater.main
+:tests.framework.updater.main
 (
     call :module.is_module "%~f0" ^
     && call :metadata SOFTWARE.
@@ -7022,7 +7798,7 @@ call %batchlib%:extract_func "%~f0" ^
     ^   tests.framework.updater.make_metadata ^" ^
     ^ > "cache"
 >> "cache" (
-    echo :__main__
+    echo :main
     echo @call :scripts.main %%*
     echo @exit /b %%errorlevel%%
     echo=
@@ -7037,7 +7813,7 @@ call %batchlib%:extract_func "%~f0" ^
     call %batchlib%:extract_func "cache" "tests.framework.updater.simulate"
 )
 call %batchlib%:extract_func "cache" ^
-    ^ ^"__init__ __main__ scripts.lib^
+    ^ ^"__init__ main scripts.lib ^
     ^   !updater! ^
     ^   metadata ^
     ^   scripts.main ^
@@ -7097,6 +7873,7 @@ exit /b 0
 for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
 exit /b 0
 
+
 rem ======================== function ========================
 
 :updater   script_path  [-f]  [-u]  [-d url]
@@ -7104,9 +7881,9 @@ setlocal EnableDelayedExpansion
 for %%v in (_upgrade _download_url) do set "%%v="
 set "_verify=true"
 set parse_args.args= ^
-    ^ "-V --skip-verification   :flag:_verify=" ^
-    ^ "-u --upgrade             :flag:_upgrade=true" ^
-    ^ "-d --download-url        :var:_download_url"
+    ^ "-V, --skip-verification  :store_const:_verify=" ^
+    ^ "-u, --upgrade            :store_const:_upgrade=true" ^
+    ^ "-d, --download-url       :store:_download_url"
 call :parse_args %*
 cd /d "!temp_path!"
 set "_other=!cd!\latest.bat"
@@ -7139,6 +7916,7 @@ if not defined _upgrade (
 move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 6 )
 exit /b 0
 
+
 rem ================================ dynamenu(!) ================================
 
 rem ======================== documentation ========================
@@ -7152,6 +7930,12 @@ echo    - dynamenu()
 echo=
 echo Documentation not available yet.
 exit /b 0
+
+
+:dynamenu.__setup__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
 
 rem ======================== demo =======================
 
@@ -7192,6 +7976,7 @@ exit /b 0
 echo Hello Odd Menu
 exit /b 0
 
+
 rem ======================== function ========================
 
 :dynamenu   menu_name  number|list
@@ -7217,6 +8002,7 @@ for /f "usebackq tokens=1,2 delims= " %%a in ("%~f0") do (
 )
 exit /b 0
 
+
 rem ================================ bcom(WIP) ================================
 
 rem ======================== documentation ========================
@@ -7229,12 +8015,13 @@ echo=
 echo Documentation not available yet.
 exit /b 0
 
+
 rem ======================== function ========================
 
 :bcom.init
 for %%v in (_unique) do set "%%v="
 set parse_args.args= ^
-    ^ "-u --unique      :flag:_unique=true"
+    ^ "-u, --unique     :store_const:_unique=true"
 call :parse_args %*
 set "bcom.name=!SOFTWARE.name!.!__name__!"
 set "bcom.id=!bcom.name!.!random!"
@@ -7314,17 +8101,20 @@ if defined _respond (
 )
 exit /b 0
 
+
 rem ======================================== Assets ========================================
 
 :assets.__init__
 rem Additional data to bundle
 exit /b 0
 
+
 rem ======================================== End of Script ========================================
 
 :EOF     May be needed if command extenstions are disabled
 rem Anything beyond this are not part of the code
 exit /b %errorlevel%
+
 
 rem ======================================== Other Function ========================================
 :notes.other_functions     Actually working functions but not listed
@@ -7353,6 +8143,7 @@ for /l %%n in (0,1,31) do if not "!_result!" == "0" (
 )
 del /f /q "!_child_name!"
 exit /b 0
+
 
 rem ================================ list_ip() ================================
 
@@ -7395,6 +8186,7 @@ if defined interface_dhcp_server echo DHCP Server : !interface_dhcp_server!
 echo=
 exit /b 0
 
+
 rem ================================ others (wip) ================================
 rem Note: some functions below are not ready to use yet
 
@@ -7417,6 +8209,7 @@ exit /b 0
 :del_tempvar
 for /f "usebackq tokens=1 delims==" %%v in (`set _ 2^> nul`) do set "%%v="
 exit /b 0
+
 
 rem ======================================== Notes ========================================
 :notes.general     Useful stuffs worth looking at
@@ -7454,9 +8247,9 @@ set /a var5=5 , var6=7+2
 set /a var7=var8=7+8
 
 rem Multi line command
-set msg=!LF!^
-    ^ Hello!LF!^
-    ^ Batch!LF!^
+set msg= !LF!^
+    ^ Hello !LF!^
+    ^ Batch !LF!^
     ^ Script
 
 rem Case insensitive comparison
