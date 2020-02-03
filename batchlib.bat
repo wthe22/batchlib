@@ -4,13 +4,13 @@
 
 rem ======================================== Metadata ========================================
 
-:metadata   [return_prefix]
+:__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.9"
+set "%~1version=2.1-a.10"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=01/19/2020"   :: mm/dd/YYYY
+set "%~1release_date=02/02/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -18,7 +18,7 @@ exit /b 0
 
 :about
 setlocal EnableDelayedExpansion
-call :metadata
+call :__metadata__
 echo A collection of functions/snippets for batch script
 echo Created to make batch scripting easier
 echo=
@@ -121,15 +121,19 @@ echo    - Added 'core' namespace for core functions / the "back-end"
 echo    - Renamed 'shortcuts.*' to 'shortcut.*'
 echo    - Renamed 'test.*' to 'tests.*'
 echo    - Renamed the category 'Formatting' to 'Console'
-echo    - Renamed __main__() to main()
-echo    - Changed main() exit to 'exit /b' to prevent console from terminating
+echo    - Renamed  metadata() to __metadata__()
+echo    - Changed __main__() exit to 'exit /b' to prevent console from terminating
 echo    - Added a new category 'Packaging'
-echo    - scripts.main() now preserve prompt message after running this script
+echo    - scripts.main():
+echo        - Prompt message are now preserved after running this script
+echo        - Now it only remove its own temp_path, instead of removing
+echo          temp_path of all modules.
 echo    - Replaced 'goto :EOF' with 'exit /b 0'
 echo    - Function.read() no longer reads category definition
 echo    - Category definition and function cateogries is now written in Category.init()
 echo    - Improved format of internal category listing
 echo    - Fixed batch script creating ']' file on startup if EOL is Linux (!)
+echo    - script_cli(): added support for multi line commands
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
@@ -149,13 +153,18 @@ echo    - capchar(): Added capturing of TAB character
 echo    - check_ipv4(): Added ability to check wildcard IP
 echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
 echo    - check_path(): Fixed incorrect parameter description
+echo    - diffbin(): Fixed error if temp_path is not defined.
 echo    - diffdate(): Simplified calculations
 echo    - difftime(): Renamed parameter '-n' to '--no-fix'
 echo    - extract_func():
 echo        - Added join mark '#+++' for 'should include' labels
 echo        - Removed implicit EOL 'rem ==='
+echo        - Improved extraction speed
+echo        - Extraction order is now according to parameter (previously according
+echo          to occurrence in file)
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
+echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
 echo      this ID is automatically generated in the function using PowerShell.
 echo    - Input.*(): Renamed parameters '-d, --description' to '-m, --message'
 echo    - Input.ipv4(): Fixed function not returning value after a successful input
@@ -175,7 +184,9 @@ echo    - randw(): Weights are now read from %~1 instead of %*.
 echo      Now weights needs to be surrounded by quotes.
 echo    - setup_clearline(): piped 'mode con' to prevent input stream from
 echo      being discarded
-echo    - watchvar(): Renamed parameter '-l, --list' to '-n, --name'
+echo    - watchvar():
+echo        - Renamed parameter '-l, --list' to '-n, --name'
+echo        - Added 'temp_path' fallback value to 'temp'
 echo    - what_day(): Renamed parameter '-n' to '--number', '-s' to '--short'
 echo=
 echo    Minified Script
@@ -197,7 +208,7 @@ echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
 echo=
 echo    Documentation
-echo    - Split '*.__demo__' into '*.__doc__' and '*.__demo__'. Now users can see
+echo    - Split '*.__demo__' into '*.__doc__' and 'demo.*'. Now users can see
 echo      documentation without running the demo.
 echo    - *.__doc__() now uses man page style of documentation
 echo    - Improved demo of several functions
@@ -213,19 +224,28 @@ exit /b 0
 
 
 :changelog.dev
-echo    - parse_version(): Added support for local version identifier
-echo    - Renamed the category 'Command Line' to 'Console'
-echo    - Added unittest for capturing of function arguments
-echo    - Renamed '*.__demo__' to 'demo.*'
-echo    - Renamed comment lines of 'test' to 'tests'
-echo    - Merged 'shortcut' and 'framework' into 'lib'
-echo    - Added resolve_dependency()
-echo    - unittest(): Improved display of test count
+echo    - Renamed main() to __main__()
+echo    - Renamed  metadata() to __metadata__()
+echo    - Renamed  '*.__setup__' to '*.__metadata__'
+echo    - Wrapped some long lines
+echo    - Changed token dummy character to 'Q'
+echo    - Added 'temp_path' fallback value to 'temp' for watchvar(), unittest(),
+echo      updater(), get_ext_ip()
+echo    - extract_func(): Reworked and improved extraction speed
+echo    - script_cli(): Added support for multi line commands
+echo    - find_label():
+echo        - Fixed return variable not set to empty if no labels are found
+echo        - Added new test case for unittest
+echo    - updater():
+echo        - Slightly reduced time needed for unittest
+echo        - Added new test case for unittest
+echo    - scripts.main(): Now it only remove its own temp_path
+echo    - updater(): Fixed incorrect relative path used for script_path
+echo    - diffbin(): Fixed error if temp_path is not defined.
 exit /b 0
 
 
 :changelog.todo
-echo    - add method to extract_func() according to order
 echo    - add params to save_minified()
 echo    - read usage of double underscore: https://docs.python.org/3/reference/datamodel.html
 echo    - check if all return var is empty if error happens
@@ -246,7 +266,7 @@ rem ======================================== Debug functions ===================
 
 rem ======================================== Main ========================================
 
-:main
+:__main__
 @call :scripts.main %*
 @exit /b %errorlevel%
 
@@ -296,7 +316,7 @@ rem ================================ main script ===============================
 @echo off
 set "__name__=main"
 prompt $$
-call :metadata SOFTWARE.
+call :__metadata__ SOFTWARE.
 title !SOFTWARE.description! !SOFTWARE.version!
 cls
 echo Loading script...
@@ -319,7 +339,7 @@ set "last_used.function="
 call %batchlib%:capchar *
 call %batchlib%:get_con_size console_width console_height
 call :main_menu
-if not defined no_cleanup rd /s /q "!temp_path!\.." > nul 2> nul
+if not defined no_cleanup rd /s /q "!temp_path!" > nul 2> nul
 @exit /b %errorlevel%
 
 
@@ -335,7 +355,7 @@ rem ================================ minified script ===========================
 @echo off
 set "__name__=min"
 prompt $$
-call :metadata SOFTWARE.
+call :__metadata__ SOFTWARE.
 
 for %%n in (1 2) do call :fix_eol.alt%%n
 call :config
@@ -388,16 +408,20 @@ if "!user_input!" == "2" (
     goto main_menu
 )
 if "!user_input!" == "3" (
-    call :Input.path save_dir --exist --directory --message "Input save folder for the minified script: "
+    call :Input.path save_dir --exist --directory ^
+        ^ --message "Input save folder for the minified script: "
     set "minified_script=!save_dir!\!SOFTWARE.name!-min.bat"
     cls
     echo Save path:
     echo !minified_script!
     echo=
     echo Extracting...
+    set "start_time=!time!"
     call :save_minified "!minified_script!"
+    call :difftime time_taken !time! !start_time!
+    call :ftime time_taken !time_taken!
     echo=
-    echo Done
+    echo Done in !time_taken!
     pause
     goto main_menu
 )
@@ -423,7 +447,10 @@ if /i "!user_input!" == "T" (
     echo Metadata:
     set "SOFTWARE."
     echo=
-    start "" /i /wait /b cmd /c ""%~f0" --module=lib-noecho :unittest -v" || (
+    start "" /i /wait /b cmd /c ^" ^
+        ^   "%~f0" --module=lib-noecho :unittest -v ^
+        ^ ^" ^
+        ^ || (
         echo=
         echo Test module ended earlier than expected
     )
@@ -436,7 +463,11 @@ if /i "!user_input!" == "DT" (
     echo Metadata:
     set "SOFTWARE."
     echo=
-    start "" /i /wait /b cmd /c ""%~f0" --module=lib-noecho :unittest --pattern "tests.debug.*.main" --failfast --verbose" || (
+    start "" /i /wait /b cmd /c ^" ^
+        ^   "%~f0" --module=lib-noecho ^
+        ^       ^ :unittest --pattern "tests.debug.*.main" --failfast --verbose ^
+        ^ ^" ^
+        ^ || (
         echo=
         echo Test module ended earlier than expected
     )
@@ -569,16 +600,24 @@ rem ================================ CLI script ================================
 :script_cli._loop
 @set "user_input="
 @set /p "user_input=$"
+if "!user_input:~-1,1!" == "^" call :script_cli._loop._more
 %user_input%
 @echo=
 @goto script_cli._loop
+#+++
 
+:script_cli._loop._more
+@set "more="
+@set /p "_more=More? "
+set "user_input=!user_input!!_more!"
+if not "!_more:~-1,1!" == "^" exit /b 0
+goto script_cli._loop._more
 
 rem ================================ Help text ================================
 
 :help
 setlocal EnableDelayedExpansion EnableExtensions
-call :metadata SOFTWARE.
+call :__metadata__ SOFTWARE.
 call :Category.init
 call :Function.read
 
@@ -597,7 +636,8 @@ for %%c in (!Category.list!) do (
 echo Some functions MUST be embedded into your script to work correctly
 echo=
 echo Example:
-echo     call batchlib-min.bat --module=lib :Input.number age --message "Input your age: " --range 0~200
+echo     call batchlib-min.bat --module=lib :Input.number age ^^
+echo        ^^ --message "Input your age: " --range 0~200
 echo=
 echo Set macro and call as external package:
 echo     set batchlib="C:\absolute\path\to\batchlib-min.bat" --module=lib %%=END=%%
@@ -632,18 +672,15 @@ rem ================================ auto_input ================================
 exit /b 1
 
 
-rem ================================ compatibility_check ================================
+rem ================================ time_format ================================
 
-:tests.core.compatibility_check.main
-set "failed="
+:tests.core.time_format.main
+rem Check time format compatibility
 set "digits=0 1 2 3 4 5 6 7 8 9"
-set "alphabets=a b c d e f g h i j k l m n o p q r s t u v w x y z"
-rem Check time format
 set "seperators=!time!"
 set "seperators=!seperators: =!"
 for /l %%n in (0,1,9) do set "seperators=!seperators:%%n=!"
 if not "!seperators!" == "::." (
-    set "failed=true"
     call %unittest%.fail "Incompatible time format"
 )
 exit /b 0
@@ -659,7 +696,9 @@ rem ================================ Function arguments ========================
 call :Category.init
 call :Function.read
 for %%f in (!Category_all.functions!) do (
-    if not defined Function_%%f.args call %unittest%.fail "Cannot capture arguments for function '%%f'"
+    if not defined Function_%%f.args (
+        call %unittest%.fail "Cannot capture arguments for function '%%f'"
+    )
 )
 exit /b 0
 
@@ -703,7 +742,9 @@ exit /b 0
 set "Category_search.functions="
 for /f "delims=" %%k in (%*) do for %%f in (!Category_all.functions!) do (
     set "_temp= !Function_%%f.args!"
-    if not "!_temp:%%k=!" == "!_temp!" set "Category_search.functions=!Category_search.functions! %%f"
+    if not "!_temp:%%k=!" == "!_temp!" (
+        set "Category_search.functions=!Category_search.functions! %%f"
+    )
 )
 exit /b 1
 
@@ -822,7 +863,7 @@ set "_successful=true"
 3> "%~f1" (
     for %%s in (
         "(none): __init__"
-        "Metadata: metadata about"
+        "Metadata: __metadata__ about"
         "License: license"
         "Configurations:  config config.default config.min config.preferences"
         "Changelog: changelog"
@@ -842,7 +883,7 @@ set "_successful=true"
         )
     )
     >&3 (
-        echo :main
+        echo :__main__
         echo @call :scripts.min %%*
         echo @exit /b %%errorlevel%%
         echo=
@@ -862,7 +903,7 @@ rem Functions/snippets from libraries
 exit /b 0
 
 
-:lib.__setup__
+:lib.__metadata__
 rem set %~1install_requires= ^
 rem     ^ your_function_label_here ^
 rem     ^ another_function_label_here
@@ -883,7 +924,7 @@ rem - external: something that is stored in other files
 rem - library functions MUST NOT have external dependencies
 rem   (e.g. this is not allowed: call %batchlib%:rand 1 9)
 rem - Functions that may have external dependencies:
-rem     - '*.__demo__'
+rem     - 'demo.*'
 rem     - 'tests.*' (It is recommended that the function to test itself
 rem         is not an external dependency)
 
@@ -917,7 +958,7 @@ echo        By default, the message is generated automatically.
 exit /b 0
 
 
-:Input.number.__setup__   [return_prefix]
+:Input.number.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ is_number ^
@@ -1024,7 +1065,7 @@ echo    1:  - Input is an empty string.
 exit /b 0
 
 
-:Input.string.__setup__   [return_prefix]
+:Input.string.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -1173,7 +1214,7 @@ echo    1:  - User enters any string that starts with 'N'.
 exit /b 0
 
 
-:Input.yesno.__setup__   [return_prefix]
+:Input.yesno.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -1280,7 +1321,7 @@ echo    1:  - User skips the input.
 exit /b 0
 
 
-:Input.path.__setup__   [return_prefix]
+:Input.path.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ check_path
@@ -1293,10 +1334,14 @@ rem ======================== demo ========================
 call %batchlib%:Input.path config_file --exist --file --message "Input an existing file: "
 echo Result: !config_file!
 pause
-call %batchlib%:Input.path save_folder --optional --directory --message "Input an existing folder or a new folder name: "
+
+call %batchlib%:Input.path save_folder --optional --directory ^
+    ^ --message "Input an existing folder or a new folder name: "
 echo Result: !save_folder!
 pause
-call %batchlib%:Input.path new_name --optional --not-exist --message "Input a non-existing file/folder: "
+
+call %batchlib%:Input.path new_name --optional --not-exist ^
+    ^ --message "Input a non-existing file/folder: "
 echo Result: !new_name!
 exit /b 0
 
@@ -1375,7 +1420,7 @@ echo        By default, the message is generated automatically.
 exit /b 0
 
 
-:Input.ipv4.__setup__   [return_prefix]
+:Input.ipv4.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ check_ipv4
@@ -1479,7 +1524,7 @@ echo    along with the modulo bias. Do not use this for statistical computation.
 exit /b 0
 
 
-:rand.__setup__   [return_prefix]
+:rand.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1536,7 +1581,7 @@ echo    along with the modulo bias. Do not use this for statistical computation.
 exit /b 0
 
 
-:randw.__setup__   [return_prefix]
+:randw.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1601,7 +1646,7 @@ echo    - In case someone needs it: yroot of x to the power of 0 does not exist.
 exit /b 0
 
 
-:yroot.__setup__   [return_prefix]
+:yroot.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1709,7 +1754,7 @@ echo        - The integer is too large (^> 2147483647).
 exit /b 0
 
 
-:pow.__setup__   [return_prefix]
+:pow.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1811,7 +1856,7 @@ echo    - Based on: yroot()
 exit /b 0
 
 
-:prime.__setup__   [return_prefix]
+:prime.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1905,7 +1950,7 @@ echo        The numbers to calculate its GCF.
 exit /b 0
 
 
-:gcf.__setup__   [return_prefix]
+:gcf.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -1973,7 +2018,7 @@ echo        The unsigned binary to convert. The maximum length supported is 31.
 exit /b 0
 
 
-:bin2int.__setup__   [return_prefix]
+:bin2int.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2045,7 +2090,7 @@ echo        The positive integer to convert.
 exit /b 0
 
 
-:int2bin.__setup__   [return_prefix]
+:int2bin.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2070,7 +2115,7 @@ for /l %%i in (0,1,31) do (
     set /a "_bits=(%~2>>%%i) & 0x1"
     set "_result=!_bits!!_result!"
 )
-for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
+for /f "tokens=1* delims=0" %%a in ("Q0!_result!") do (
     endlocal
     if "%%b" == "" (
         set "%~1=0"
@@ -2099,7 +2144,7 @@ echo        The positive integer to convert.
 exit /b 0
 
 
-:int2oct.__setup__   [return_prefix]
+:int2oct.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2124,7 +2169,7 @@ for /l %%i in (0,3,31) do (
     set /a "_bits=(%~2>>%%i) & 0x7"
     set "_result=!_bits!!_result!"
 )
-for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
+for /f "tokens=1* delims=0" %%a in ("Q0!_result!") do (
     endlocal
     if "%%b" == "" (
         set "%~1=0"
@@ -2153,7 +2198,7 @@ echo        The positive integer to convert.
 exit /b 0
 
 
-:int2hex.__setup__   [return_prefix]
+:int2hex.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2179,7 +2224,7 @@ for /l %%i in (0,4,31) do (
     set /a "_bits=(%~2>>%%i) & 0xF"
     for %%b in (!_bits!) do set "_result=!_charset:~%%b,1!!_result!"
 )
-for /f "tokens=1* delims=0" %%a in ("Z0!_result!") do (
+for /f "tokens=1* delims=0" %%a in ("Q0!_result!") do (
     endlocal
     if "%%b" == "" (
         set "%~1=0"
@@ -2208,7 +2253,7 @@ echo        The integer to convert. The valid range is from 1 to 4999.
 exit /b 0
 
 
-:int2roman.__setup__   [return_prefix]
+:int2roman.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2266,7 +2311,7 @@ echo        The string that contains roman numeral (IVXLCDM). Case-insensitive.
 exit /b 0
 
 
-:roman2int.__setup__   [return_prefix]
+:roman2int.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2322,7 +2367,7 @@ echo    - Octal must start with '0'
 exit /b 0
 
 
-:is_number.__setup__   [return_prefix]
+:is_number.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2439,7 +2484,7 @@ echo    2:  - The range is invalid.
 exit /b 0
 
 
-:is_in_range.__setup__   [return_prefix]
+:is_in_range.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2540,7 +2585,7 @@ echo      so it is significantly fast.
 exit /b 0
 
 
-:strlen.__setup__   [return_prefix]
+:strlen.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2590,7 +2635,7 @@ echo=
 exit /b 0
 
 
-:strval.__setup__   [return_prefix]
+:strval.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2633,7 +2678,7 @@ echo        The input variable name.
 exit /b 0
 
 
-:to_upper.__setup__   [return_prefix]
+:to_upper.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2678,7 +2723,7 @@ echo        The input variable name.
 exit /b 0
 
 
-:to_lower.__setup__   [return_prefix]
+:to_lower.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2723,7 +2768,7 @@ echo        The input variable name.
 exit /b 0
 
 
-:to_capital.__setup__   [return_prefix]
+:to_capital.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2775,7 +2820,7 @@ echo      double quote character.
 exit /b 0
 
 
-:strip_dquotes.__setup__   [return_prefix]
+:strip_dquotes.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2814,7 +2859,7 @@ echo        The input variable name.
 exit /b 0
 
 
-:shuffle.__setup__   [return_prefix]
+:shuffle.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ strlen
 exit /b 0
@@ -2841,7 +2886,9 @@ if defined %~1 (
     for /l %%s in (0,1,!_length!) do (
         set /a "_rand=((!random!<<0x10) + (!random!<<0x1) + (!random!>>0xE)) %% (!_length! - %%s + 1)"
         set /a "_index=!_rand!+%%s"
-        for %%r in (!_rand!) do for %%i in (!_index!) do set "_result=!_result:~0,%%s!!_result:~%%i!!_result:~%%s,%%r!"
+        for %%r in (!_rand!) do for %%i in (!_index!) do (
+            set "_result=!_result:~0,%%s!!_result:~%%i!!_result:~%%s,%%r!"
+        )
     )
     for /f "tokens=*" %%a in ("!_result!") do (
         endlocal
@@ -2883,7 +2930,7 @@ echo    - The format of the time is 'HH:MM:SS.CC'.
 exit /b 0
 
 
-:difftime.__setup__   [return_prefix]
+:difftime.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2936,7 +2983,7 @@ echo    - The format of the time is 'HH:MM:SS.CC'.
 exit /b 0
 
 
-:ftime.__setup__   [return_prefix]
+:ftime.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -2998,7 +3045,7 @@ echo    - The date format used is 'mm/dd/YYYY'.
 exit /b 0
 
 
-:diffdate.__setup__   [return_prefix]
+:diffdate.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3138,7 +3185,7 @@ echo    - The format of the date is 'mm/dd/YYYY'.
 exit /b 0
 
 
-:fdate.__setup__   [return_prefix]
+:fdate.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3258,7 +3305,7 @@ echo    - This function uses Gregorian calendar system.
 exit /b 0
 
 
-:what_day.__setup__   [return_prefix]
+:what_day.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ diffdate
 exit /b 0
@@ -3341,7 +3388,7 @@ echo    - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
 exit /b 0
 
 
-:time2epoch.__setup__   [return_prefix]
+:time2epoch.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ diffdate ^
     ^ difftime
@@ -3426,7 +3473,7 @@ echo    - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
 exit /b 0
 
 
-:epoch2time.__setup__   [return_prefix]
+:epoch2time.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ fdate ^
     ^ ftime
@@ -3521,7 +3568,7 @@ echo      in your script (~4x faster).
 exit /b 0
 
 
-:timeleft.__setup__   [return_prefix]
+:timeleft.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3665,13 +3712,13 @@ rem echo - Alternative for better CPU usage for long delays is sleep()
 exit /b 0
 
 
-:wait.__setup__   [return_prefix]
+:wait.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ wait.calibrate
 exit /b 0
 
 
-:wait.calibrate.__setup__   [return_prefix]
+:wait.calibrate.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3840,7 +3887,7 @@ echo        as the second argument.
 exit /b 0
 
 
-:check_ipv4.__setup__   [return_prefix]
+:check_ipv4.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3958,7 +4005,7 @@ echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
 
 
-:check_path.__setup__   [return_prefix]
+:check_path.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -3998,8 +4045,8 @@ call :parse_args %*
 set "_path=!%~1!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
 if "!_path:~-1,1!" == ":" set "_path=!_path!\"
-for /f tokens^=1-2*^ delims^=?^"^<^>^| %%a in ("_?_!_path!_") do if not "%%c" == "" ( 1>&2 echo Invalid path & exit /b 1 )
-for /f "tokens=1-2* delims=*" %%a in ("_*_!_path!_") do if not "%%c" == "" ( 1>&2 echo Wildcards are not allowed & exit /b 1 )
+for /f tokens^=1-2*^ delims^=?^"^<^>^| %%a in ("Q?_!_path!_") do if not "%%c" == "" ( 1>&2 echo Invalid path & exit /b 1 )
+for /f "tokens=1-2* delims=*" %%a in ("Q*_!_path!_") do if not "%%c" == "" ( 1>&2 echo Wildcards are not allowed & exit /b 1 )
 if "!_path:~1,1!" == ":" (
     if not "!_path::=!" == "!_path:~0,1!!_path:~2!" ( 1>&2 echo Invalid path & exit /b 1 )
 ) else if not "!_path::=!" == "!_path!" ( 1>&2 echo Invalid path & exit /b 1 )
@@ -4091,7 +4138,7 @@ echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
 
 
-:combi_wcdir.__setup__   [return_prefix]
+:combi_wcdir.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ wcdir ^
@@ -4215,7 +4262,7 @@ echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
 
 
-:wcdir.__setup__   [return_prefix]
+:wcdir.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ capchar
 exit /b 0
@@ -4294,7 +4341,7 @@ echo    - Only 3 significant figures will be shown.
 exit /b 0
 
 
-:bytes2size.__setup__   [return_prefix]
+:bytes2size.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -4384,7 +4431,7 @@ echo    call :size2bytes   result  "1M * 3 / 2"
 exit /b 0
 
 
-:size2bytes.__setup__   [return_prefix]
+:size2bytes.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -4461,10 +4508,13 @@ echo        if relative path is given.
 echo=
 echo    temp_path
 echo        Path to store the temporary conversion result.
+echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
 exit /b 0
 
 
-:hexlify.__setup__   [return_prefix]
+:hexlify.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -4576,7 +4626,7 @@ echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
 exit /b 0
 
 
-:unzip.__setup__   [return_prefix]
+:unzip.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -4645,7 +4695,7 @@ echo        Affects the base path of input_file if relative path is given.
 exit /b 0
 
 
-:checksum.__setup__   [return_prefix]
+:checksum.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -4721,10 +4771,13 @@ echo        Affects the base path of input_file if relative path is given.
 echo=
 echo    temp_path
 echo        Path to store the temporary output.
+echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
 exit /b 0
 
 
-:diffbin.__setup__   [return_prefix]
+:diffbin.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -4747,23 +4800,52 @@ if "!offset:~0,1!" == "-" (
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.diffbin.main
+< nul set /p "=planet" > source
+< nul set /p "=plan" > shorter
+< nul set /p "=planet" > equal
+< nul set /p "=planetarium" > longer
+< nul set /p "=plants" > different
+
+for %%a in (
+    "-:     equal"
+    "-1:    shorter"
+    "-2:    longer"
+    "4:    different"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :diffbin result source %%c
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :diffbin   return_var  input_file1  input_file2
-set "%~1="
-for %%f in ("!temp_path!\diffbin.diff") do (
-    fc /b "%~f2" "%~f3" > "%%~ff"
-    for /f "usebackq skip=1 tokens=1* delims=:" %%a in ("%%~ff") do (
-        if not defined %~1 (
-            set "%~1=%%a: %%b"
-            if /i "%%a" == "FC" (
-                if /i "%%b" == " %~f2 longer than %~f3" set "%~1=-1"
-                if /i "%%b" == " %~f3 longer than %~f2" set "%~1=-2"
-                if /i "%%b" == " no differences encountered" set "%~1=-"
-            ) else set /a "%~1=0x%%a"
-        )
+setlocal EnableDelayedExpansion
+set "file1=%~f2"
+set "file2=%~f3"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "_result="
+fc /b "!file1!" "!file2!" > "fc_diff"
+for /f "usebackq skip=1 tokens=1* delims=:" %%a in ("fc_diff") do (
+    if not defined _result (
+        set "_result=%%a: %%b"
+        if /i "%%a" == "FC" (
+            if /i "%%b" == " !file1! longer than !file2!" set "_result=-1"
+            if /i "%%b" == " !file2! longer than !file1!" set "_result=-2"
+            if /i "%%b" == " no differences encountered" set "_result=-"
+        ) else set /a "_result=0x%%a"
     )
-    del /f /q "%%~ff"
+)
+del /f /q "fc_diff"
+for /f "tokens=*" %%r in ("!_result!") do (
+    endlocal
+    set "%~1=%%r"
 )
 exit /b 0
 
@@ -4807,7 +4889,7 @@ echo    - Only Windows EOL is supported.
 exit /b 0
 
 
-:find_label.__setup__   [return_prefix]
+:find_label.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -4859,10 +4941,10 @@ set test_cases= ^
     ^ 9:    -f "in\labels" -p "*.main" !LF!^
     ^ 7:    -f "in\labels" -p "tests.*.main" !LF!^
     ^ 7:    -f "in\labels" -p "*o*" !LF!^
-    ^ 2:    -f "in\labels" -p "*$*"
+    ^ 2:    -f "in\labels" -p "*$*" !LF!^
+    ^ 0:    -f "in\labels" -p ""
 for /f "tokens=*" %%a in ("!test_cases!") do (
     for /f "tokens=1* delims=:" %%b in ("%%a") do (
-        set "labels="
         call :find_label labels %%c
         set "labels_count=0"
         for %%l in (!labels!) do set /a "labels_count+=1"
@@ -4900,12 +4982,11 @@ set "_result="
 for /f "delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
     for /f "delims=" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
         for /f "tokens=2 delims=:" %%b in ("_%%a") do for /f "tokens=1" %%c in ("%%b") do (
-            rem echo [%%c] -- [%%a]
             set "_result=!_result! %%c"
         )
     )
 )
-for /f "tokens=* delims=" %%r in ("!_result!") do (
+for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
     set "%~1=%%r"
 )
@@ -4956,11 +5037,11 @@ echo        Affects the base path of input_file if relative path is given.
 echo=
 echo NOTES
 echo    - The order of the function will be based on the order of occurrence
-echo      in the source file.
+echo      in the parameter.
 exit /b 0
 
 
-:extract_func.__setup__   [return_prefix]
+:extract_func.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args
 exit /b 0
@@ -4981,50 +5062,78 @@ rem ======================== function ========================
 
 :extract_func   source_file  labels
 setlocal EnableDelayedExpansion EnableExtensions
-set "_current="
-set "_mark="
-set "_write="
-set "_labels= %~2 "
-set "_labels=!_labels:,= !"
-for /f "delims=" %%a in ('findstr /n "^" "%~f1"') do (
-    set "line=%%a"
-    set "line=!line:*:=!"
-
-    if defined _write (
-        if "!line:~0,5!" == "#+++" set "_current=JOIN"
-        if not defined line set "_current=EOL"
-        if defined _current (
-            set "_mark=!_mark!!_current! "
-            for %%p in (
-                "EOL EOL "
-            ) do if /i "!_mark!" == %%p (
-                set "_write="
-                echo=
-            )
-            set "_current="
-        ) else if defined _mark set "_mark="
-    )
-
-    for /f "tokens=1" %%b in ("!line!") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
-        if ":%%c" == "%%b" if "%%d" == "" (
-            for %%l in (!_labels!) do if "%%c" == "%%~l" (
-                set "_write=true"
-                set "_labels=!_labels: %%c = !"
+set "_source_file=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "_to_extract= %~2 "
+set "_not_found= "
+for %%l in (!_to_extract!) do set "_not_found=!_not_found!%%l "
+set "_line_numbers=!_not_found!"
+set "_joins="
+set "_label="
+set "_line_no="
+set "_signal="
+findstr /n "^^" "!_source_file!" > "numbered"
+for /f "usebackq tokens=*" %%a in ("numbered") do (
+    set "_line=%%a"
+    set "_line=!_line:*:=!"
+    for /f "tokens=1" %%b in ("!_line!") do for /f "tokens=1 delims=:" %%c in ("%%b") do (
+        if ":%%c" == "%%b" (
+            for %%l in (!_not_found!) do if "%%c" == "%%l" (
+                if defined _label (
+                    set "_joins=!_joins!%%l "
+                ) else (
+                    set "_label=%%l"
+                    for /f "tokens=1 delims=:" %%n in ("%%a") do set /a "_line_no=%%n-1"
+                )
+                set "_not_found=!_not_found: %%c = !"
             )
         )
     )
-    if defined _write (
-        setlocal DisableDelayedExpansion
-        set "line=%%a"
-        setlocal EnableDelayedExpansion
-        set "line=!line:*:=!"
-        echo(!line!
-        endlocal
-        endlocal
+    if defined _label (
+        set "_mark="
+        if not defined _line set "_mark=EOL"
+        if "!_line!" == "#+++" set "_mark=JOIN"
+        if defined _mark (
+            set "_signal=!_signal! !_mark!"
+            for %%p in (
+                " EOL EOL"
+            ) do if "!_signal!" == %%p set "_signal=END"
+            if "!_signal!" == "END" for %%l in (!_label!) do (
+                for /f "tokens=1 delims=:" %%n in ("%%a") do set "_line_no=!_line_no!:%%n"
+                for %%n in (!_line_no!) do set "_line_numbers=!_line_numbers: %%l = %%n !"
+                set "_label="
+                set "_line_no="
+            )
+        ) else set "_signal="
     )
 )
-set "_leftover=!_labels: =!"
-if defined _leftover ( 1>&2 echo warning: label not found: !_labels! & exit /b 1 )
+if defined _label for %%l in (!_label!) do (
+    for %%n in (!_line_no!) do set "_line_numbers=!_line_numbers: %%l = %%n: !"
+)
+set "_leftover=!_not_found: =!"
+if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
+for %%l in (!_not_found! !_joins!) do set "_line_numbers=!_line_numbers: %%l = !"
+for %%a in (!_line_numbers!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+    call :extract_func.extract %%b %%c
+)
+del /f /q "numbered"
+if defined _leftover exit /b 1
+exit /b 0
+#+++
+
+:extract_func.extract   start  end
+setlocal DisableDelayedExpansion
+if "%1" == "0" (
+    set "_skip="
+) else set "_skip=skip=%1"
+for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    echo(!_line!
+    endlocal
+    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
+)
 exit /b 0
 
 
@@ -5054,7 +5163,7 @@ echo      from GitHub, since uses Unix EOL (LF).
 exit /b 0
 
 
-:fix_eol.__setup__   [return_prefix]
+:fix_eol.__metadata__   [return_prefix]
 set %~1install_requires=^
     ^ check_win_eol
 exit /b 0
@@ -5126,7 +5235,7 @@ echo      in the first place.
 exit /b 0
 
 
-:check_win_eol.__setup__   [return_prefix]
+:check_win_eol.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5225,7 +5334,7 @@ echo    - IPv6 URLs are not supported (yet).
 exit /b 0
 
 
-:expand_link.__setup__   [return_prefix]
+:expand_link.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5296,15 +5405,18 @@ echo    return_var
 echo        Variable to store the result.
 echo=
 echo ENVIRONMENT
+echo    temp_path
+echo        Path to store the temporary output.
+echo=
 echo    temp
-echo        Path to store the information file.
+echo        Fallback path for temp_path if temp_path does not exist
 echo=
 echo NOTES
 echo    - PowerShell is used to download the information file.
 exit /b 0
 
 
-:get_ext_ip.__setup__   [return_prefix]
+:get_ext_ip.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5321,11 +5433,13 @@ exit /b 0
 rem ======================== function ========================
 
 :get_ext_ip   return_var
+setlocal EnableDelayedExpansion
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 > nul 2> nul (
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('http://ipecho.net/plain', '!temp!\ip.txt')"
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('http://ipecho.net/plain', 'ipv4')"
 ) || exit /b 1
-for /f "usebackq tokens=*" %%o in ("!temp!\ip.txt") do set "%~1=%%o"
-del /f /q "!temp!\ip.txt"
+for /f "usebackq tokens=*" %%o in ("ipv4") do set "%~1=%%o"
+del /f /q "ipv4"
 exit /b 0
 
 
@@ -5359,7 +5473,7 @@ echo    1:  - Ping test failed.
 exit /b 0
 
 
-:ping_test.__setup__   [return_prefix]
+:ping_test.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5431,7 +5545,7 @@ echo    - Overwrites existing file.
 exit /b 0
 
 
-:download_file.__setup__   [return_prefix]
+:download_file.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5496,7 +5610,7 @@ echo        Variable to store the console height.
 exit /b 0
 
 
-:get_con_size.__setup__   [return_prefix]
+:get_con_size.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5552,7 +5666,7 @@ echo        Variable to store the result.
 exit /b 0
 
 
-:get_sid.__setup__   [return_prefix]
+:get_sid.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5595,7 +5709,7 @@ echo        Returns the OS name instead of the OS version number.
 exit /b 0
 
 
-:get_os.__setup__   [return_prefix]
+:get_os.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5652,7 +5766,7 @@ echo      also calls get_pid() at the same time.
 exit /b 0
 
 
-:get_pid.__setup__   [return_prefix]
+:get_pid.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5708,13 +5822,16 @@ echo ENVIRONMENT
 echo    temp_path
 echo        Path to store the variable data.
 echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
+echo=
 echo NOTES
 echo    - For variables that contains very long strings, only changes
 echo      in the first 3840 characters is can be detected
 exit /b 0
 
 
-:watchvar.__setup__   [return_prefix]
+:watchvar.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ hexlify
@@ -5786,7 +5903,7 @@ rem ======================== function ========================
 
 :watchvar   [-i]  [-n]
 setlocal EnableDelayedExpansion EnableExtensions
-cd /d "!temp_path!"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 for %%d in ("watchvar") do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
@@ -5902,7 +6019,7 @@ echo    1:  - No administrator privilege is detected.
 exit /b 0
 
 
-:is_admin.__setup__   [return_prefix]
+:is_admin.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5940,7 +6057,7 @@ echo    - This function produces no output, even if error is encountered.
 exit /b 0
 
 
-:is_echo_on.__setup__   [return_prefix]
+:is_echo_on.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -5988,7 +6105,7 @@ echo      could cause unexpected errors.
 exit /b 0
 
 
-:endlocal.__setup__   [return_prefix]
+:endlocal.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6040,6 +6157,7 @@ exit /b 0
 
 
 rem (!) Needs more test cases
+rem test if variable starts with equal sign
 
 rem ======================== function ========================
 
@@ -6123,7 +6241,7 @@ echo    NL      Set new line in variables
 exit /b 0
 
 
-:capchar.__setup__   [return_prefix]
+:capchar.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6203,7 +6321,7 @@ echo        The hexadecimal representation of the character.
 exit /b 0
 
 
-:hex2char.__setup__   [return_prefix]
+:hex2char.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6262,7 +6380,7 @@ echo      ANSI escape sequence.
 exit /b 0
 
 
-:color2seq.__setup__   [return_prefix]
+:color2seq.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6316,7 +6434,7 @@ echo    - Text should not reach the end of the line.
 exit /b 0
 
 
-:setup_clearline.__setup__   [return_prefix]
+:setup_clearline.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ capchar
 exit /b 0
@@ -6405,7 +6523,7 @@ echo      are not supported.
 exit /b 0
 
 
-:color_print.__setup__   [return_prefix]
+:color_print.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ capchar
 exit /b 0
@@ -6504,7 +6622,7 @@ echo    - Numbers longer than 3 digits is truncated. (e.g.: 1.dev2345 -^> 1.dev3
 exit /b 0
 
 
-:parse_version.__setup__   [return_prefix]
+:parse_version.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6790,7 +6908,7 @@ echo    - Function MUST be embedded into the script to work correctly.
 exit /b 0
 
 
-:module.__setup__   [return_prefix]
+:module.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ module.entry_point ^
     ^ module.read_metadata ^
@@ -6826,7 +6944,7 @@ echo OPTIONS
 echo    --module=NAME
 echo        Specify the entry point of the script. The entry point will be called
 echo        with the arguments and exit code will be preserved upon exit.
-echo        If this option is not set, the function will 'GOTO main'.
+echo        If this option is not set, the function will 'GOTO __main__'.
 echo=
 echo ENTRY POINTS
 echo    An entry point is a label follows the pattern ':scripts.NAME'.
@@ -6841,7 +6959,7 @@ echo    The first command on the script should be '@goto module.entry_point'
 exit /b 0
 
 
-:module.entry_point.__setup__   [return_prefix]
+:module.entry_point.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6882,7 +7000,7 @@ call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry
 call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" > "capture_args"
 
 >> "test_entry_point.bat" (
-    echo :main
+    echo :__main__
     echo @call :scripts.main %%*
     echo @exit /b %%errorlevel%%
 
@@ -6923,8 +7041,8 @@ exit /b %expected_exit_code%
 rem ======================== function ========================
 
 :module.entry_point   [--module=<name>]  [args]
-@if /i not "%~1" == "--module" @goto main
-@if /i #%1 == #"%~1" @goto main
+@if /i not "%~1" == "--module" @goto __main__
+@if /i #%1 == #"%~1" @goto __main__
 @setlocal DisableDelayedExpansion
 @set module.entry_point.args=%*
 @setlocal EnableDelayedExpansion
@@ -6958,7 +7076,7 @@ echo        Path of the input (batch) file.
 exit /b 0
 
 
-:module.read_metadata.__setup__   [return_prefix]
+:module.read_metadata.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -6988,7 +7106,7 @@ for %%v in (
     description release_date
     url download_url
 ) do set "%~1%%v="
-call "%~2" --module=lib :metadata "%~1" || exit /b 1
+call "%~2" --module=lib :__metadata__ "%~1" || exit /b 1
 exit /b 0
 
 
@@ -7008,7 +7126,7 @@ echo    This function checks if a script contains:
 echo    - 'GOTO module.entry_point'
 echo    - module.entry_point()
 echo    - scripts.lib()
-echo    - metadata()
+echo    - __metadata__()
 echo=
 echo    This could prevent script from calling another batch file that does not
 echo    contain the module() framework and cause undesired results.
@@ -7019,7 +7137,7 @@ echo        Path of the input file.
 exit /b 0
 
 
-:module.is_module.__setup__   [return_prefix]
+:module.is_module.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -7049,7 +7167,7 @@ for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
     for /f "tokens=1-2 delims= " %%b in ("%%a") do (
         if /i "%%b %%c" == "goto module.entry_point" set /a "_missing&=~0x1"
         if /i "%%b" == ":module.entry_point" set /a "_missing&=~0x2"
-        if /i "%%b" == ":metadata" set /a "_missing&=~0x4"
+        if /i "%%b" == ":__metadata__" set /a "_missing&=~0x4"
         if /i "%%b" == ":scripts.lib" set /a "_missing&=~0x8"
     )
 )
@@ -7109,6 +7227,13 @@ echo    -l LABELS, --label LABELS
 echo        Labels to test. The syntax is "label [...]".
 echo        Mutually exclusive with '--pattern'.
 echo=
+echo ENVIRONMENT
+echo    temp_path
+echo        Path to store the temporary test results.
+echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
+echo=
 echo NOTES
 echo    - unittest() will call tests.__init__() first before running any tests
 echo    - If both label and pattern options are specified, it will use label.
@@ -7118,7 +7243,7 @@ echo    - Using reserved variables in your tests might break unittest().
 exit /b 0
 
 
-:unittest.__setup__   [return_prefix]
+:unittest.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ find_label ^
@@ -7156,9 +7281,7 @@ set "unittest.test_module=%~f1"
 if not defined unittest.test_module set "unittest.test_module=%~f0"
 
 rem Setup test directory
-if not defined temp_path set "temp_path=!temp!"
-if not exist "!temp_path!" md "!temp_path!"
-cd /d "!temp_path!"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 for %%d in (unittest) do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
@@ -7242,7 +7365,7 @@ if defined unittest.skipped set "infos=!infos! skipped=!unittest.skipped_count!"
 set "infos=!infos:~2!"
 if defined infos < nul set /p "=(!infos!)"
 echo=
-cd /d "!temp_path!"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 rd /s /q "unittest" > nul 2> nul
 if not defined unittest.was_successful exit /b 1
 exit /b 0
@@ -7417,7 +7540,9 @@ for %%o in (skip failure error) do for %%n in (!test_prefix!%%o) do (
     )
 )
 for %%o in (failures errors skipped) do (
-    if not "!unittest.%%o!" == "!expected.%%o!" call %unittest%.fail "The %%o list does not match the expected values"
+    if not "!unittest.%%o!" == "!expected.%%o!" (
+        call %unittest%.fail "The %%o list does not match the expected values"
+    )
 )
 exit /b 0
 
@@ -7488,7 +7613,7 @@ echo    - Function MUST be embedded into the script to work correctly.
 exit /b 0
 
 
-:parse_args.__setup__   [return_prefix]
+:parse_args.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -7780,7 +7905,7 @@ echo    updater   script_path  [-f]  [-u]  [-d url]
 echo=
 echo DESCRIPTION
 echo    This function can detect updates, download them, and update the script.
-echo    The 'download_url' in metadata() needs to be added.
+echo    The 'download_url' in __metadata__() needs to be added.
 echo=
 echo POSITIONAL ARGUMENTS
 echo    script_path
@@ -7795,18 +7920,21 @@ echo        Skip verification of module name and version of downloaded update fi
 echo        Use this only if the update is not backward compatible.
 echo=
 echo    -d, --download-url
-echo        Use this url instead of the download_url at the script's metadata().
+echo        Use this url instead of the download_url at the script's __metadata__().
 echo=
 echo ENVIRONMENT
 echo    temp_path
 echo        Path to store the update file.
+echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
 echo=
 echo DEPENDENCIES
 echo    Extras:
 echo        - diffdate()
 echo=
 echo    Script file:
-echo        - metadata()
+echo        - __metadata__()
 echo        - module()
 echo        - scripts.lib()
 echo=
@@ -7826,7 +7954,7 @@ echo    6:  - Update failed.
 exit /b 0
 
 
-:updater.__setup__   [return_prefix]
+:updater.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
     ^ download_file ^
@@ -7860,12 +7988,12 @@ rem ======================== tests ========================
 :tests.lib.updater.main
 (
     call :module.is_module "%~f0" ^
-    && call :metadata SOFTWARE.
+    && call :__metadata__ SOFTWARE.
 ) || ( call %unittest%.error "Cannot read metadata of this script" & exit /b 0 )
 
 set "no_internet=true"
-for %%h in (google.com baidu.com) do if defined no_internet (
-    call :ping_test _ %%h && set "no_internet="
+for %%n in (1,1,3) do for %%h in (google.com baidu.com) do (
+    if defined no_internet call :ping_test _ %%h "-n 1" && set "no_internet="
 )
 if defined no_internet call %unittest%.skip "Cannot connect to the internet" & exit /b 0
 
@@ -7881,13 +8009,13 @@ call %batchlib%:extract_func "%~f0" ^
     ^   tests.lib.updater.make_metadata ^" ^
     ^ > "cache"
 >> "cache" (
-    echo :main
+    echo :__main__
     echo @call :scripts.main %%*
     echo @exit /b %%errorlevel%%
     echo=
     echo=
 
-    echo :metadata
+    echo :__metadata__
     < nul set /p "=@rem "
     call %batchlib%:extract_func "cache" "tests.lib.updater.make_metadata"
 
@@ -7896,13 +8024,14 @@ call %batchlib%:extract_func "%~f0" ^
     call %batchlib%:extract_func "cache" "tests.lib.updater.simulate"
 )
 call %batchlib%:extract_func "cache" ^
-    ^ ^"__init__ main scripts.lib ^
+    ^ ^"__init__ __main__ scripts.lib ^
     ^   !updater! ^
-    ^   metadata ^
+    ^   __metadata__ ^
     ^   scripts.main ^
     ^   tests.lib.updater.setup_metadata ^" ^
     ^ > "test_with_metadata"
 for %%a in (
+    "0: --upgrade --skip-verification"
     "0: --upgrade : version_lower"
     "1: --upgrade : download_url_undefined"
     "2: --upgrade : download_url_invalid"
@@ -7968,11 +8097,12 @@ set parse_args.args= ^
     ^ "-u, --upgrade            :store_const:_upgrade=true" ^
     ^ "-d, --download-url       :store:_download_url"
 call :parse_args %*
-cd /d "!temp_path!"
+set "_part=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 set "_other=!cd!\latest.bat"
 (
-    call :module.is_module "%~1" ^
-    && call :module.read_metadata _part. "%~1" ^
+    call :module.is_module "!_part!" ^
+    && call :module.read_metadata _part. "!_part!" ^
     && if not defined _download_url set "_download_url=!_part.download_url!" ^
     && if not defined _download_url ( exit /? > nul )
 ) || ( 1>&2 echo error: failed to get download url & exit /b 1 )
@@ -8037,7 +8167,7 @@ echo        - Failed to resolve dependency.
 exit /b 0
 
 
-:resolve_dependency.__setup__   [return_prefix]
+:resolve_dependency.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -8062,7 +8192,7 @@ if "%3" == "--loose" set "_loose=true"
 set "_visited= "
 set "_stack= "
 call :resolve_dependency._resolve %~2 || set "_visited="
-for /f "tokens=1*" %%a in ("Z !_visited!") do (
+for /f "tokens=1*" %%a in ("Q !_visited!") do (
     endlocal
     set "%~1=%%b"
 )
@@ -8072,7 +8202,7 @@ exit /b 0
 :resolve_dependency._resolve   label
 if not "!_stack: %~1 = !" == "!_stack!" ( 2>&1 echo error: cyclic dependencies detected: '%~1' & exit /b 1 )
 set "install_requires="
-call :%~1.__setup__ 2> nul || (
+call :%~1.__metadata__ 2> nul || (
     if defined _loose (
         ( 2>&1 echo warning: cannot resolve dependency for '%~1'. Assuming it have no dependencies... )
     ) else ( 2>&1 echo error: cannot resolve dependency for '%~1' & exit /b 1 )
@@ -8097,7 +8227,7 @@ if not "!_stack: %~1 = !" == "!_stack!" (
     echo Cyclic dependencies detected: '%~1'
     exit /b 1
 )
-call :%~1.__setup__ current. 2> nul || (
+call :%~1.__metadata__ current. 2> nul || (
     echo warning: cannot resolve dependency for '%~1'
     exit /b 0
 )
@@ -8146,7 +8276,7 @@ echo Documentation not available yet.
 exit /b 0
 
 
-:dynamenu.__setup__   [return_prefix]
+:dynamenu.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -8325,7 +8455,8 @@ exit /b 0
 
 rem ======================================== End of Script ========================================
 
-:EOF     May be needed if command extenstions are disabled
+:EOF
+rem May be needed if command extenstions are disabled
 rem Anything beyond this are not part of the code
 exit /b %errorlevel%
 
