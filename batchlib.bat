@@ -6,11 +6,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.10"
+set "%~1version=2.1-a.11"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=02/02/2020"   :: mm/dd/YYYY
+set "%~1release_date=02/08/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -130,7 +130,7 @@ echo        - Now it only remove its own temp_path, instead of removing
 echo          temp_path of all modules.
 echo    - Replaced 'goto :EOF' with 'exit /b 0'
 echo    - Function.read() no longer reads category definition
-echo    - Category definition and function cateogries is now written in Category.init()
+echo    - Category definition and its functions are now written in Category.init()
 echo    - Improved format of internal category listing
 echo    - Fixed batch script creating ']' file on startup if EOL is Linux (!)
 echo    - script_cli(): added support for multi line commands
@@ -159,7 +159,7 @@ echo    - difftime(): Renamed parameter '-n' to '--no-fix'
 echo    - extract_func():
 echo        - Added join mark '#+++' for 'should include' labels
 echo        - Removed implicit EOL 'rem ==='
-echo        - Improved extraction speed
+echo        - Greatly improved extraction speed
 echo        - Extraction order is now according to parameter (previously according
 echo          to occurrence in file)
 echo    - get_os(): Renamed parameter '-n' to '--name'
@@ -184,6 +184,11 @@ echo    - randw(): Weights are now read from %~1 instead of %*.
 echo      Now weights needs to be surrounded by quotes.
 echo    - setup_clearline(): piped 'mode con' to prevent input stream from
 echo      being discarded
+echo    - wait():
+echo        - Now the function needs to be setup using wait.setup()
+echo        - Macro version is now available
+echo    - wait.calibrate(): Prevented function from causing infinite loop if
+echo      the initial calibration value is too fast
 echo    - watchvar():
 echo        - Renamed parameter '-l, --list' to '-n, --name'
 echo        - Added 'temp_path' fallback value to 'temp'
@@ -201,8 +206,8 @@ echo=
 echo    Tests
 echo    - Migrated unit testing framework/syntax from tester() to unittest().
 echo    - Added unittest for: Input.ipv4, pow, prime, gcf, bin2int, check_ipv4, wait
-echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(), updater(),
-echo      find_label(), parse_version(), fdate(), epoch2time()
+echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
+echo       updater(), find_label(), parse_version(), fdate(), epoch2time()
 echo    - Improved unittest for: Input.number(), module.entry_point()
 echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
@@ -217,35 +222,29 @@ echo    - Added (missing) parameter description of several functions
 echo    - batchlib-min now accepts '-h, --help'
 echo    - Changed example of lib usage to use absolute paths
 echo    - Improved parameter description of several functions
-echo    - Removed changelog history for reduced log size. Only latest changelog will be
-echo      included. See Git for earlier changelog history.
+echo    - Removed changelog history for reduced log size. Only latest changelog
+echo      will be included. See Git for earlier changelog history.
 echo    - Updated guides on the library section
 exit /b 0
 
 
 :changelog.dev
-echo    - Renamed main() to __main__()
-echo    - Renamed  metadata() to __metadata__()
-echo    - Renamed  '*.__setup__' to '*.__metadata__'
-echo    - Wrapped some long lines
-echo    - Changed token dummy character to 'Q'
-echo    - Added 'temp_path' fallback value to 'temp' for watchvar(), unittest(),
-echo      updater(), get_ext_ip()
-echo    - extract_func(): Reworked and improved extraction speed
-echo    - script_cli(): Added support for multi line commands
+echo    - extract_func(): Greatly improved extraction speed
+echo    - Moved category of endlocal() from to Environment to Framework
 echo    - find_label():
-echo        - Fixed return variable not set to empty if no labels are found
-echo        - Added new test case for unittest
-echo    - updater():
-echo        - Slightly reduced time needed for unittest
-echo        - Added new test case for unittest
-echo    - scripts.main(): Now it only remove its own temp_path
-echo    - updater(): Fixed incorrect relative path used for script_path
-echo    - diffbin(): Fixed error if temp_path is not defined.
+echo        - Improved documentation
+echo        - Improved code quality
+echo    - wait():
+echo        - Now the function needs to be setup using wait.setup()
+echo        - Macro version is now available
+echo    - wait.calibrate(): Prevented function from causing infinite loop if
+echo      the initial calibration value is too fast
 exit /b 0
 
 
 :changelog.todo
+echo    - explore usage of namespace (e.g.: 'ns.*')
+echo    - consider adding prefix in parse_version()
 echo    - add params to save_minified()
 echo    - read usage of double underscore: https://docs.python.org/3/reference/datamodel.html
 echo    - check if all return var is empty if error happens
@@ -798,8 +797,7 @@ set Category_net.functions= ^
 set "Category_env.name=Environment"
 set Category_env.functions= ^
     ^ get_con_size get_sid get_os get_pid ^
-    ^ watchvar is_admin is_echo_on ^
-    ^ endlocal
+    ^ watchvar is_admin is_echo_on
 set "Category_console.name=Console"
 set Category_console.functions= ^
     ^ capchar setup_clearline %=hex2char=% ^
@@ -811,7 +809,7 @@ set Category_packaging.functions= ^
 set "Category_framework.name=Framework"
 set Category_framework.functions= ^
     ^ unittest dynamenu ^
-    ^ parse_args
+    ^ parse_args endlocal
 set "Category_others.name=Others"
 set Category_others.functions= ^
     ^ %=None=%
@@ -3687,7 +3685,9 @@ echo    wait - delay for n milliseconds
 echo=
 echo SYNOPSIS
 echo    wait.calibrate   [delay_target]
+echo    wait.setup
 echo    wait   delay
+echo    for %%t in (delay) do %%wait%%
 echo=
 echo POSITIONAL ARGUMENTS
 echo    delay
@@ -3703,9 +3703,10 @@ echo    wait._increment
 echo        The increment speed for wait(). This value is set by wait.calibrate().
 echo=
 echo NOTES
-echo    - Based on: difftime()
+echo    - wait.calibrate():
+echo        - Based on: difftime()
 echo    - wait() have high CPU usage
-echo    - Using wait() directly is more preferable than calling the function,
+echo    - Using %%wait%% macro is more preferable than calling the function
 echo      because it has more consistent results
 echo    - wait.calibrate() calibrates up to 12 times before exiting.
 rem echo - Alternative for better CPU usage for long delays is sleep()
@@ -3713,12 +3714,6 @@ exit /b 0
 
 
 :wait.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ wait.calibrate
-exit /b 0
-
-
-:wait.calibrate.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
@@ -3726,15 +3721,16 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.wait
-call %batchlib%:wait.calibrate > nul
+call :wait.setup
+call %batchlib%:wait.calibrate
 echo=
 call %batchlib%:Input.number time_in_milliseconds --range "0~10000"
 echo=
-echo Sleep for !time_in_milliseconds! milliseconds...
+echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
 
-rem Direct
-for %%t in (%=wait=% !time_in_milliseconds!) do for /l %%w in (0,!wait._increment!,%%t00000) do call
+rem Using macro
+for %%t in (!time_in_milliseconds!) do %wait%
 
 rem Called
 rem call %batchlib%:wait !time_in_milliseconds!
@@ -3748,44 +3744,62 @@ exit /b 0
 
 rem ======================== tests ========================
 
-:tests.lib.wait.main
+:tests.debug.lib.wait.main
 rem threshold: percentage of inaccuracy that is indicated as a failure
 rem It is purposely set to a very high value so we only mark the test as failure
 rem only if we have a high confidence that it is a failure.
-rem e.g.: An error occured while trying to call wait() so typically it would finish
-rem       almost immediately and it would have inaccuracy of more than 90% when delay is 1.25s
+rem e.g.: An error occured when trying to call wait() so it is expected that it
+rem       would end almost immediately and have an inaccuracy of more than 90%
+rem       when the delay is 1.25s
 set "threshold=70"
 set "test_delay=1250"
 
-call :wait.calibrate > nul
-set "start_time=!time!"
-call :wait !test_delay!
-call %batchlib%:difftime time_taken !time! !start_time!
-set /a "inaccuracy=!time_taken!*10 - !test_delay!"
-set /a "fail=!inaccuracy! * !inaccuracy! * ((100 * 100) / (!threshold! * !threshold!)) / (!test_delay!*!test_delay!)"
-if not "!fail!" == "0" (
-    call %unittest%.fail "Abnormal amount of inaccuracy in delay: expected !test_delay!s, got !inaccuracy!s"
+call :wait.setup
+call :wait.calibrate > nul || (
+    call %unittest%.fail "Calibration failed"
+    exit /b 0
 )
+for %%m in (macro call) do (
+    set "start_time=!time!"
+    call :tests.lib.wait.using_%%m
+    call %batchlib%:difftime time_taken !time! !start_time!
+    set /a "inaccuracy=!time_taken!*10 - !test_delay!"
+    set /a "fail=!inaccuracy! * !inaccuracy! * ((100 * 100) / (!threshold! * !threshold!)) / (!test_delay!*!test_delay!)"
+    if not "!fail!" == "0" (
+        call %unittest%.fail "Abnormal amount of inaccuracy in delay using %%m: expected !test_delay!s, got !inaccuracy!s"
+    )
+)
+exit /b 0
+
+
+:tests.lib.wait.using_macro
+for %%t in (!test_delay!) do %wait%
+exit /b 0
+
+
+:tests.lib.wait.using_call
+call :wait !test_delay!
 exit /b 0
 
 
 rem ======================== function ========================
 
 :wait   delay
-for %%t in (%=wait=% %~1) do for /l %%w in (0,!wait._increment!,%%t00000) do call
+for %%t in (%~1) do %wait%
 exit /b 0
 #+++
 
 :wait.calibrate   [delay_target]
 setlocal EnableDelayedExpansion
 echo Calibrating wait()
-set "wait._increment=10000"
-set "_delay_target=%~1"
+call :wait.setup
+set "wait._increment=100000"
+if not "%~1" == "" set /a "_delay_target=%~1" || exit /b 1
 set "_time_taken=-1"
-for /l %%i in (1,1,12) do if not "!_time_taken!" == "!_delay_target!" (
+for /l %%i in (1,1,12) do if not "!wait._increment!" == "-1" if not "!_time_taken!" == "!_delay_target!" (
     if "%~1" == "" set "_delay_target=!wait._increment:~0,3!"
     set "_start_time=!time!"
-    for %%t in (%=wait=% !_delay_target!) do for /l %%w in (0,!wait._increment!,%%t00000) do call
+    for %%t in (!_delay_target!) do %wait%
     set "_time_taken=0"
     for %%t in (!time!:00:00:00:00 !_start_time!:00:00:00:00) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
         set /a "_time_taken+=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
@@ -3794,13 +3808,23 @@ for /l %%i in (1,1,12) do if not "!_time_taken!" == "!_delay_target!" (
     if "!_time_taken:~0,1!" == "-" set /a "_time_taken+=0x83D600"
     set /a "_time_taken*=10"
     echo Calibration #%%i: !wait._increment!, !_delay_target! -^> ~!_time_taken! milliseconds
-    set /a "wait._increment=!wait._increment! * !_time_taken! / !_delay_target!"
+    set /a "_next=!wait._increment! * !_time_taken! / !_delay_target!"
+    if "!_next!" == "0" (
+        set /a "wait._increment=!wait._increment! / 10"
+    ) else set "wait._increment=!_next!"
+    if !wait._increment! LEQ 0 set "wait._increment=-1"
 )
 echo Calibration done: !wait._increment!
 for /f "tokens=*" %%r in ("!wait._increment!") do (
     endlocal
     set "wait._increment=%%r"
 )
+if "!wait._increment!" == "-1" exit /b 1
+exit /b 0
+#+++
+
+:wait.setup
+set wait=for /l %%w in (0,^^!wait._increment^^!,%%t00000) do call
 exit /b 0
 
 
@@ -4610,7 +4634,7 @@ echo    zip_file
 echo        Path of the zip file to extract.
 echo=
 echo    destination_folder
-echo        The folder path to extact to.
+echo        The folder path to extract to.
 echo=
 echo ENVIRONMENT
 echo    cd
@@ -4881,9 +4905,9 @@ echo    cd
 echo        Affects the base path of input_file if relative path is given.
 echo=
 echo NOTES
+echo    - The label of the function MUST only be preceeded by either nothing or
+echo      spaces (i.e.: space indentation only)
 echo    - Does not support labels that have:
-echo        - TAB indentation
-echo        - '@' or '^^' before the label
 echo        - '^^' or '*' in label name
 echo    - Only Windows EOL is supported.
 exit /b 0
@@ -4917,6 +4941,8 @@ rem ======================== tests ========================
 
 :tests.lib.find_label.main
 > "in\labels" (
+    echo :
+    echo : invalid
     echo :normal_label
     echo :normal_label.main
     echo :$dollar_label
@@ -4980,10 +5006,8 @@ for /f "delims=" %%p in ("[^^^^: ]*") do (
 )
 set "_result="
 for /f "delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
-    for /f "delims=" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
-        for /f "tokens=2 delims=:" %%b in ("_%%a") do for /f "tokens=1" %%c in ("%%b") do (
-            set "_result=!_result! %%c"
-        )
+    for /f "tokens=1" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
+        for /f "tokens=1 delims=:" %%b in ("%%a") do set "_result=!_result! %%b"
     )
 )
 for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
@@ -5024,8 +5048,8 @@ echo    Two empty lines tells extract_func() that the function ends here and
 echo    it will stop extraction of the lines below it until it finds another
 echo    matching label.
 echo=
-echo    Functions that have consist of multiple functions SHOULD end each
-echo    subroutine with the join mark (see DEFINITION).
+echo    Functions that have multiple subroutines SHOULD end each subroutine with
+echo    the join mark (see DEFINITION).
 echo=
 echo EXIT STATUS
 echo    0:  - Extraction is successful.
@@ -5067,13 +5091,20 @@ cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 set "_to_extract= %~2 "
 set "_not_found= "
 for %%l in (!_to_extract!) do set "_not_found=!_not_found!%%l "
-set "_line_numbers=!_not_found!"
+set "_label_ranges=!_not_found!"
 set "_joins="
 set "_label="
-set "_line_no="
+set "_index="
+set "_expected_index="
 set "_signal="
 findstr /n "^^" "!_source_file!" > "numbered"
-for /f "usebackq tokens=*" %%a in ("numbered") do (
+findstr /n /r ^
+    ^ /c:"^^$" ^
+    ^ /c:"^^#+++$" ^
+    ^ /c:"^^[ ]*:[^^: ]*$" ^
+    ^ /c:"^^[ ]*:[^^: ]* .*$" ^
+    ^ "!_source_file!" > "label_n_marks"
+for /f "usebackq tokens=*" %%a in ("label_n_marks") do for /f "tokens=1 delims=:" %%n in ("%%a") do (
     set "_line=%%a"
     set "_line=!_line:*:=!"
     for /f "tokens=1" %%b in ("!_line!") do for /f "tokens=1 delims=:" %%c in ("%%b") do (
@@ -5083,13 +5114,15 @@ for /f "usebackq tokens=*" %%a in ("numbered") do (
                     set "_joins=!_joins!%%l "
                 ) else (
                     set "_label=%%l"
-                    for /f "tokens=1 delims=:" %%n in ("%%a") do set /a "_line_no=%%n-1"
+                    set /a "_index=%%n-1"
                 )
                 set "_not_found=!_not_found: %%c = !"
             )
         )
     )
     if defined _label (
+        if not "%%n" == "!_expected_index!" set "_signal="
+        set /a "_expected_index=%%n+1"
         set "_mark="
         if not defined _line set "_mark=EOL"
         if "!_line!" == "#+++" set "_mark=JOIN"
@@ -5099,21 +5132,21 @@ for /f "usebackq tokens=*" %%a in ("numbered") do (
                 " EOL EOL"
             ) do if "!_signal!" == %%p set "_signal=END"
             if "!_signal!" == "END" for %%l in (!_label!) do (
-                for /f "tokens=1 delims=:" %%n in ("%%a") do set "_line_no=!_line_no!:%%n"
-                for %%n in (!_line_no!) do set "_line_numbers=!_line_numbers: %%l = %%n !"
+                set "_index=!_index!:%%n"
+                for %%n in (!_index!) do set "_label_ranges=!_label_ranges: %%l = %%n !"
                 set "_label="
-                set "_line_no="
+                set "_index="
             )
         ) else set "_signal="
     )
 )
 if defined _label for %%l in (!_label!) do (
-    for %%n in (!_line_no!) do set "_line_numbers=!_line_numbers: %%l = %%n: !"
+    for %%n in (!_index!) do set "_label_ranges=!_label_ranges: %%l = %%n: !"
 )
 set "_leftover=!_not_found: =!"
 if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
-for %%l in (!_not_found! !_joins!) do set "_line_numbers=!_line_numbers: %%l = !"
-for %%a in (!_line_numbers!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+for %%l in (!_not_found! !_joins!) do set "_label_ranges=!_label_ranges: %%l = !"
+for %%a in (!_label_ranges!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
     call :extract_func.extract %%b %%c
 )
 del /f /q "numbered"
