@@ -6,7 +6,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.12"
+set "%~1version=2.1-a.13"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -139,7 +139,7 @@ echo    - script_cli(): added support for multi line commands
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
-echo      fdate(), epoch2time(), resolve_dependency(), extract_dependency()
+echo      fdate(), epoch2time(), resolve_dependency(), extract_ns_func()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -211,7 +211,8 @@ echo    Tests
 echo    - Migrated unit testing framework/syntax from tester() to unittest().
 echo    - Added unittest for: Input.ipv4, pow, prime, gcf, bin2int, check_ipv4, wait
 echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
-echo       updater(), find_label(), parse_version(), fdate(), epoch2time()
+echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
+echo      extract_func(), resolve_dependency(), extract_ns_func()
 echo    - Improved unittest for: Input.number(), module.entry_point()
 echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
@@ -233,15 +234,16 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added extract_dependency()
-echo    - Reworked resolve_dependency() to support external dependencies resolving
-echo    - Added 'install_requires' in module.read_metadata()
-echo    - Added labels for packages
+echo    - Split extract_dependency() to resolve_dependency() and extract_ns_func()
+echo    - Reworked resolve_dependency() to support listing multiple functions in
+echo      the parameter
+echo    - Added unittest for extract_func(), resolve_dependency(), extract_ns_func()
+echo    - Fixed unittest of unittest() not included in tests
+echo    - Removed parse_args() dependency in extract_func() since it is unused
 exit /b 0
 
 
 :changelog.todo
-echo    - explore usage of namespace/context (e.g.: 'ns.*')
 echo    - consider adding prefix in parse_version()
 echo    - add params to save_minified()
 echo    - read usage of double underscore: https://docs.python.org/3/reference/datamodel.html
@@ -306,6 +308,12 @@ call %batchlib%:Input.number age --message "Input your age: " --range 0~200
 @call :%*
 @echo on
 @exit /b %errorlevel%
+
+
+:scripts.lib-noecho.__metadata__
+set %~1install_requires= ^
+    ^ is_echo_on
+exit /b 0
 
 
 rem ================================ main script ================================
@@ -809,7 +817,7 @@ set Category_console.functions= ^
 set "Category_packaging.name=Packaging"
 set Category_packaging.functions= ^
     ^ module module.entry_point module.read_metadata module.is_module ^
-    ^ parse_version updater resolve_dependency extract_dependency
+    ^ parse_version updater resolve_dependency extract_ns_func
 set "Category_framework.name=Framework"
 set Category_framework.functions= ^
     ^ unittest dynamenu ^
@@ -5072,8 +5080,7 @@ exit /b 0
 
 
 :extract_func.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ parse_args
+set "%~1install_requires="
 exit /b 0
 
 
@@ -5085,6 +5092,38 @@ echo=
 call %batchlib%:extract_func "%~f0" "!function_labels!" && (
     echo Extract successful
 ) || echo Extract failed
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.extract_func.main
+for %%a in (
+    "873b7b424821d520f2a8fe38e00cc5151bcefcec: special_characters"
+    "ea8a9a50a7516ad813cdad8466ec917863ee1b97: join_mark"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "params="
+    for %%d in (%%c) do set "params=!params! tests.lib.extract_func.%%d"
+    call :extract_func "%~f0" "!params!" > extracted 2> nul
+    call :checksum result "extracted"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
+:tests.lib.extract_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
+    @call & echo %% !a! %* > nul 2> nul
+< nul ( call ) || exit /b 1
+exit /b 0
+
+
+:tests.lib.extract_func.join_mark
+exit /b 0
+#+++
+
+:tests.lib.extract_func.join_mark.joined
 exit /b 0
 
 
@@ -5203,7 +5242,7 @@ exit /b 0
 
 
 :fix_eol.__metadata__   [return_prefix]
-set %~1install_requires=^
+set %~1install_requires= ^
     ^ check_win_eol
 exit /b 0
 
@@ -7509,7 +7548,7 @@ exit /b 0
 
 rem ======================== tests ========================
 
-:test.framework.unittest.main
+:tests.framework.unittest.main
 set "parent_unittest_path=!cd!"
 set "temp_path=!cd!"
 call :tests.lib.unittest.init_vars
@@ -8175,93 +8214,115 @@ rem ================================ resolve_dependency() ======================
 
 rem ======================== documentation ========================
 
-:extract_dependency.__doc__
+:extract_ns_func.__doc__
 echo NAME
-echo    extract_dependency - extract dependency for a function
+echo    extract_ns_func - extract function in a given namespace/context
 echo=
 echo SYNOPSIS
-echo    extract_dependency   current_module  [module:]label  [--loose]
+echo    extract_ns_func  "context:label [...]"
 echo=
 echo DESCRIPTION
-echo    This function recursively extract dependencies found in '*.__metadata__()'.
-echo    Function listing also follows order of occurrence in each install_requires.
-echo    Due to nature of batch script, calling a functions that is located below
-echo    the CALL is much faster than if it is located above the CALL. So functions
-echo    as many as possible are defined after they are used. Functions are listed
-echo    from the ones with most dependencies to the ones with no dependencies.
+echo    This function extracts labels from multiple module files. Function
+echo    listing also follows order of occurrence in the parameter.
 echo    Dependencies are ECHOed to stdout and it can be redirected to file.
 echo=
 echo POSITIONAL ARGUMENTS
-echo    current_module
-echo        Name of the current module. This value will be used if the module of
-echo        the label is not specified in the 'install_requires' and it does not
-echo        have any parent module. (i.e. it is used as default module name for
-echo        labels defined in this file, with no module specified)
-echo=
-echo    module
-echo        The module of the function. By default, it is set to the current module.
+echo    context
+echo        The context name of the function. This can also be the name of a module.
 echo=
 echo    label
 echo        The function name to resolve for dependency.
 echo=
-echo OPTIONS
-echo    --loose
-echo        Assume unresolvable dependencies to be to have no dependencies.
-echo        This must be placed as the third argument.
-echo=
 echo EXIT STATUS
-echo    0:  - Success
-echo    1:  - Resolve dependency failed
-echo        - Label conflict detected
-echo        - Extract function failed
+echo    0:  - Extraction is successful.
+echo    1:  - Label conflict detected
+echo        - Namespace abspath not defined.
+echo        - Some labels are not found.
 exit /b 0
 
 
-:extract_dependency.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ resolve_dependency
+:extract_ns_func.__metadata__   [return_prefix]
+set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.extract_dependency
-call :Input.string function_name || set "function_name=unittest"
+:demo.extract_ns_func
+call :Input.string function_name || set "function_name=batchlib:extract_ns_func"
 echo=
 echo Function: !function_name!
 echo=
-call :extract_dependency batchlib !function_name!
+call :extract_ns_func "!function_name!"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.extract_ns_func.main
+set "batchlib.abspath=%~f0"
+set "dummy.abspath=!cd!\dummy.bat"
+for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
+
+set test_args= ^
+    ^ ^"1a4061706ebf2211b523ec21aa17dd50d42be8c2: ^
+    ^   batchlib:join_mark ^
+    ^   dummy:special_characters ^"
+for %%a in (!test_args!) do ( rem
+) & for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "_to_extract="
+    set "_dummy_extract="
+    for %%d in (%%c) do ( rem
+    ) & for /f "tokens=1* delims=:" %%e in ("%%d") do (
+        set "_to_extract=!_to_extract! %%e:tests.lib.extract_ns_func.%%f"
+        if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.lib.extract_ns_func.%%f"
+    )
+    call :extract_func "%~f0" "!_dummy_extract!" > "!dummy.abspath!"
+    call :extract_ns_func "!_to_extract!" > extracted
+    call :checksum result "extracted"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail "extraction failed: %%b"
+    )
+)
+exit /b 0
+
+
+:tests.lib.extract_ns_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
+    @call & echo %% !a! %* > nul 2> nul
+< nul ( call ) || exit /b 1
+exit /b 0
+
+
+:tests.lib.extract_ns_func.join_mark
+exit /b 0
+#+++
+
+:tests.lib.extract_ns_func.join_mark.joined
 exit /b 0
 
 
 rem ======================== function ========================
 
-:extract_dependency   current_module  [module:]label  [--loose]
+:extract_ns_func  "context:label [...]"
 setlocal EnableDelayedExpansion
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-call :resolve_dependency _dependencies %1 %2 %3 || exit /b 1
+set "_raw_extract_order=%~1"
+set "_to_extract= "
 set "_extract_order= "
-set "_remaining=!_dependencies!"
-for %%a in (!_dependencies!) do ( rem
-) & for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
-    set "_remaining=!_remaining: %%a = !"
-    if not "!_remaining::%%c =!" == "!_remaining!" (
+for %%a in (!_raw_extract_order!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+    if "!_to_extract: %%b:'=!" == "!_to_extract!" (
+        if not defined %%b.abspath (
+            ( 1>&2 echo error: module '%%b' abspath not defined & exit /b 1 )
+        )
+        set "_to_extract=!_to_extract!%%b:' ' "
+    )
+    if not "!_to_extract: %%c =!" == "!_to_extract!" (
         ( 1>&2 echo error: label conflict detected: '%%c' & exit /b 1 )
     )
+    set "_to_extract=!_to_extract: %%b:' = %%b:' %%c !"
     set "_extract_order=!_extract_order!%%c "
 )
-set "_to_extract=!_dependencies!"
-for %%a in (!_to_extract!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
-    if not "%%c" == "" (
-        if "!_to_extract: %%b:'=!" == "!_to_extract!" (
-            set "_to_extract=!_to_extract!%%b:' ' "
-        )
-        set "_to_extract=!_to_extract: %%~a = !"
-        set _to_extract=!_to_extract: %%b:' = %%b:' %%c !
-    )
-)
 set _to_extract=!_to_extract:'="!
-if not defined %~1.abspath ( 1>&2 echo error: module '%~1' abspath not defined & exit /b 1 )
 > "unsorted" (
     for %%a in (!_to_extract!) do ( rem
     ) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
@@ -8281,7 +8342,8 @@ echo NAME
 echo    resolve_dependency - resolve dependency for a function
 echo=
 echo SYNOPSIS
-echo    resolve_dependency   return_var  current_module  [module:]label  [--loose]
+echo    resolve_dependency   return_var  base_context  "[context:]label [...]"
+REM echo                         --include-root
 echo=
 echo DESCRIPTION
 echo    This function recursively generates dependency list of a function.
@@ -8295,28 +8357,27 @@ echo POSITIONAL ARGUMENTS
 echo    return_var
 echo        Variable to store the result.
 echo=
-echo    current_module
-echo        Name of the current module. This value will be used if the module of
-echo        the label is not specified in the 'install_requires' and it does not
-echo        have any parent module. (i.e. it is used as default module name for
-echo        labels defined in this file, with no module specified)
+echo    base_context
+echo        The name of the context. This value is used as default context name for
+echo        labels with no context specified in that module file.
 echo=
-echo    module
-echo        The module of the function. By default, it is set to the current module.
+echo    context
+echo        The context name of the function. This can also be the name of a module.
+echo        By default, it is set to base_context.
 echo=
 echo    label
 echo        The function name to resolve for dependency.
 echo=
-echo OPTIONS
-echo    --loose
-echo        Assume unresolvable dependencies to be to have no dependencies.
-echo        This must be placed as the fourth argument.
-echo=
+REM echo OPTIONS
+REM echo    --include-root (!)
+REM echo        Include the functions in the aguments in the list of dependencies.
+REM echo        This must be placed as the fourth argument.
+REM echo=
 echo EXIT STATUS
 echo    0:  - Success.
 echo    1:  - Cyclic dependencies detected.
 echo        - Namespace error / not defined.
-echo        - Failed to resolve dependency.
+echo        - Failed to resolve dependency of a (sub)module.
 exit /b 0
 
 
@@ -8324,8 +8385,6 @@ exit /b 0
 set "%~1install_requires="
 exit /b 0
 
-
-rem (!) Add safety checking when calling external functions
 
 rem ======================== demo ========================
 
@@ -8339,16 +8398,71 @@ echo Dependencies: !result!
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.resolve_dependency.main
+set "batchlib.abspath=%~f0"
+set "dummy.abspath=!cd!\dummy.bat"
+for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
+
+call :extract_func "%~f0" ^
+    ^ ^"__init__ ^
+    ^   scripts.lib ^
+    ^   module.entry_point ^" ^
+    ^ > "base"
+
+for %%a in (
+    external
+) do (
+    call :tests.lib.resolve_dependency.%%a
+    > "!dummy.abspath!" (
+        type "base"
+        call :extract_func "%~f0" "tests.lib.resolve_dependency.%%a !to_extract!"
+    )
+    set "temp=!expected!"
+    set "expected= "
+    for %%a in (!temp!) do set "expected=!expected!%%a "
+    call :resolve_dependency result dummy tests.lib.resolve_dependency.%%a
+    if not "!result!" == "!expected!" (
+        call %unittest%.fail "%%a dependency check failed"
+    )
+)
+exit /b 0
+
+
+:tests.lib.resolve_dependency.external
+set "to_extract="
+set expected= ^
+    ^ dummy:tests.lib.resolve_dependency.external ^
+    ^ b:time2epoch b:diffdate ^
+    ^ b:module b:module.entry_point ^
+    ^ b:unittest b:find_label b:difftime b:ftime ^
+    ^ b:updater b:parse_args b:download_file b:parse_version ^
+    ^ b:module.is_module b:module.read_metadata
+set "expected=!expected: b:= batchlib:!"
+exit /b 0
+#+++
+
+:tests.lib.resolve_dependency.external.__metadata__
+set %~1install_requires= ^
+    ^ batchlib:difftime ^
+    ^ batchlib:^" ^
+    ^   time2epoch ^
+    ^   module ^
+    ^   unittest ^
+    ^   updater ^"
+exit /b 0
+
+
 rem ======================== function ========================
 
-:resolve_dependency   return_var  current_module  [module:]label  [--loose]
+:resolve_dependency   return_var  base_context  "[context:]label [...]"
 setlocal EnableDelayedExpansion
-set "_loose="
-if "%4" == "--loose" set "_loose=true"
+set "_base_module=%~2"
 set "_visited= "
 set "_stack= "
-set "_default_module=%~2"
-call :resolve_dependency._resolve %3 || set "_visited="
+set "install_requires=%~3"
+call :resolve_dependency._resolve !_params! || set "_visited="
 for /f "tokens=1*" %%a in ("Q !_visited!") do (
     endlocal
     set "%~1=%%b"
@@ -8359,44 +8473,38 @@ for /f "tokens=1*" %%a in ("Q !_visited!") do (
 exit /b 0
 #+++
 
-:resolve_dependency._resolve   function
-for %%a in (%~1) do ( rem
-) & for /f "tokens=1* delims=:" %%b in ("%%a") do ( rem
-) & for /f "tokens=1-2 delims=:" %%b in ("%%c:%%b:!_default_module!") do (
-    set "_module=%%c"
-    set "_label=%%b"
-)
-for %%m in (!_module!) do for %%l in (!_label!) do (
-    if not "!_stack: %%m:%%l =!" == "!_stack!" (
-        ( 1>&2 echo error: cyclic dependencies detected: '%%m:%%l' & exit /b 1 )
-    )
-)
-set "_stack= !_module!:!_label!!_stack!"
-if "!_module!" == "!_default_module!" (
-    set "_context="
-) else if defined !_module! (
-    for %%m in (!_module!) do set "_context=!%%m!"
-) else ( 1>&2 echo error: context for module '!_module!' is not defined & exit /b 1 )
-set "install_requires="
-call %_context%:%_label%.__metadata__ 2> nul || (
-    if defined _loose (
-        1>&2 echo warning: cannot resolve dependency for '!_module!:!_label!'
-    ) else ( 1>&2 echo error: cannot resolve dependency for '!_module!:!_label!' & exit /b 1 )
-)
-
+:resolve_dependency._resolve
 set "_normalized="
 for %%a in (!install_requires!) do ( rem
 ) & for /f "tokens=1* delims=:" %%b in ("%%a") do ( rem
-) & for /f "tokens=1-2 delims=:" %%b in ("%%c:%%b:!_module!:!_default_module!") do (
+) & for /f "tokens=1-2 delims=:" %%b in ("%%c:%%b:!_module!:!_base_module!") do (
     for %%d in (%%~b) do (
         set "_normalized=%%c:%%d !_normalized!"
     )
 )
-for %%a in (!_normalized!) do (
-    call :resolve_dependency._resolve %%a || exit /b 1
+for %%a in (!_normalized!) do ( rem
+) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
+    if not "!_stack: %%b:%%c =!" == "!_stack!" (
+        ( 1>&2 echo error: cyclic dependencies detected: '%%b:%%c' & exit /b 1 )
+    )
+    set "_stack= %%b:%%c!_stack!"
+    set "_module=%%b"
+    set "_context=!%%b!"
+    set "_label=%%c"
+    if not defined _context ( 1>&2 echo error: context for module '%%b' is not defined & exit /b 1 )
+    call :resolve_dependency._read_metadata
+    if defined install_requires call :resolve_dependency._resolve
     if "!_visited: %%a =!" == "!_visited!" set "_visited= %%a!_visited!"
+    for /f "tokens=1* delims= " %%a in ("!_stack!") do set "_stack= %%b"
 )
-for /f "tokens=1* delims= " %%a in ("!_stack!") do set "_stack= %%b"
+exit /b 0
+#+++
+
+:resolve_dependency._read_metadata
+set "install_requires="
+call %_context%:%_label%.__metadata__ || (
+    ( 1>&2 echo error: cannot resolve dependency for '!_module!:!_label!' & exit /b 1 )
+)
 exit /b 0
 
 
