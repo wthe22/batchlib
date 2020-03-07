@@ -6,11 +6,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.14"
+set "%~1version=2.1-a.15"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/06/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/07/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -75,8 +75,8 @@ set "temp_path=!temp!\BatchScript\!SOFTWARE.name!\!__name__!"
 rem Macros to call external module (use absolute paths)
 set "!SOFTWARE.name!= "
 set "!SOFTWARE.name!.abspath=%~f0"
-set "builtin= "
-set "builtin.abspath=%~f0"
+set "addons= "
+set "addons.abspath=%~f0"
 
 rem Variables below are not used here, but for reference only
 rem set "data_path=data\batchlib"
@@ -122,12 +122,12 @@ echo    - Added documentation_menu() for more documentation options
 echo    - Added unittest for script compatibility check
 echo    - Added 'core' package for core functions / the "back-end"
 echo    - Added labels for packages
+echo    - Added a new category 'Packaging'
 echo    - Renamed 'shortcuts.*' to 'shortcut.*'
 echo    - Renamed 'test.*' to 'tests.*'
 echo    - Renamed the category 'Formatting' to 'Console'
 echo    - Renamed  metadata() to __metadata__()
 echo    - Changed __main__() exit to 'exit /b' to prevent console from terminating
-echo    - Added a new category 'Packaging'
 echo    - scripts.main():
 echo        - Prompt message are now preserved after running this script
 echo        - Now it only remove its own temp_path, instead of removing
@@ -159,7 +159,10 @@ echo    - capchar(): Added capturing of TAB character
 echo    - check_ipv4(): Added ability to check wildcard IP
 echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
 echo    - check_path(): Fixed incorrect parameter description
-echo    - checksum(): Changed parameters for defining hash
+echo    - checksum():
+echo        - Changed parameters for defining hash
+echo        - Fixed error when hashing 0-byte files
+echo        - Added hash algorithm SHA384
 echo    - diffbin(): Fixed error if temp_path is not defined.
 echo    - diffdate(): Simplified calculations
 echo    - difftime(): Renamed parameter '-n' to '--no-fix'
@@ -170,6 +173,7 @@ echo        - Removed implicit EOL 'rem ==='
 echo        - Greatly improved extraction speed
 echo        - Extraction order is now according to parameter (previously according
 echo          to occurrence in file)
+echo        - Added option to specify line range
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
 echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
@@ -247,32 +251,22 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Renamed extract_ns_func() to collect_func()
-echo    - Renamed resolve_dependency() to desolve()
-echo    - parse_version():
-echo        - Improved documentation
-echo        - Added internal epoch segment
-echo    - Input.number(): Improved documentation
-echo    - Input.path():
-echo        - Removed method to re-enter previous input
-echo        - Added option to specify base directory before input
-echo        - Improved skipping on optional inputs
-echo        - Improved user interface
-echo    - Removed uneccessary variable emptying codes
-echo    - Added strip()
-echo    - unzip(): Added 'temp_path' as temporary script directory with 'temp'
-echo      as fallback directory
-echo    - checksum(): Changed parameters for defining hash
-echo    - expand_link():
-echo        - Made return variables more readable
-echo        - Added unittest
-echo    - Added VBScript and PowerShell to dependency list of functions
-echo      which needs them
-echo    - Removed unused codes
+echo    - Renamed namespace 'builtin' to 'addons'
+echo    - checksum():
+echo        - Fixed error when hashing 0-byte files
+echo        - Added hash algorithm SHA384
+echo    - collect_func(): Updated unittest to changes from extract_func()
+echo    - extract_func(): Added option to specify line range
+echo    - desolve():
+echo        - Added more debug information
+echo        - Fixed error not propagated upwards if metadata is not found
+echo        - Added unittest for error case
+echo    - module(): Improved documentation
 exit /b 0
 
 
 :changelog.todo
+echo    - desolve(): Remove test reliance on other functions
 echo    - add params to save_minified()
 exit /b 0
 
@@ -943,8 +937,8 @@ exit /b 0
 :lib.__metadata__
 rem set %~1install_requires= ^
 rem     ^ batchlib:^" ^
-rem         ^ your_function_label_here ^
-rem         ^ another_function_label_here ^"
+rem     ^   your_function_label_here ^
+rem     ^   another_function_label_here ^"
 exit /b 0
 
 
@@ -4758,7 +4752,7 @@ exit /b 0
 
 :unzip.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ builtin:VBScript
+    ^ addons:VBScript
 exit /b 0
 
 
@@ -4817,8 +4811,8 @@ echo        Path of the input file.
 echo=
 echo    hash
 echo        The algorithm of the hash. Possible values for HASH are:
-echo        MD2, MD4, MD5, SHA1, SHA256, SHA512. This option is case-insensitive.
-echo        By default, it is 'SHA1'.
+echo            MD2, MD4, MD5, SHA1, SHA256, SHA384, SHA512
+echo        This option is case-insensitive. By default, it is 'SHA1'.
 echo=
 echo ENVIRONMENT
 echo    cd
@@ -4854,13 +4848,21 @@ setlocal EnableDelayedExpansion EnableExtensions
 set "_method="
 set "_algorithm=%~3"
 if not defined _algorithm set "_algorithm=sha1"
-for %%a in (MD2 MD4 MD5 SHA1 SHA256 SHA512) do (
+for %%a in (MD2 MD4 MD5 SHA1 SHA256 SHA384 SHA512) do (
     if /i "!_algorithm!" == "%%a" set "_method=certutil"
 )
 if not defined _method ( 1>&2 echo error: no known methods to perform hash '%~3' & exit /b 1 )
 set "_result="
 if "!_method!" == "certutil" (
-    for /f "usebackq skip=1 tokens=*" %%a in (`certutil -hashfile "%~f2" !_algorithm!`) do (
+    if "%~z2" == "0" (
+        if /i "!_algorithm!" == "MD2" set "_result=8350e5a3e24c153df2275c9f80692773"
+        if /i "!_algorithm!" == "MD4" set "_result=31d6cfe0d16ae931b73c59d7e0c089c0"
+        if /i "!_algorithm!" == "MD5" set "_result=d41d8cd98f00b204e9800998ecf8427e"
+        if /i "!_algorithm!" == "SHA1" set "_result=da39a3ee5e6b4b0d3255bfef95601890afd80709"
+        if /i "!_algorithm!" == "SHA256" set "_result=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        if /i "!_algorithm!" == "SHA384" set "_result=38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
+        if /i "!_algorithm!" == "SHA512" set "_result=cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+    ) else for /f "usebackq skip=1 tokens=*" %%a in (`certutil -hashfile "%~f2" !_algorithm!`) do (
         if not defined _result set "_result=%%a"
     )
 )
@@ -5126,7 +5128,7 @@ echo NAME
 echo    extract_func - extract batch script functions from a file
 echo=
 echo SYNOPSIS
-echo    extract_func   input_file  labels
+echo    extract_func   source_file  labels  [skip_lines]  [read_lines]
 echo=
 echo POSITIONAL ARGUMENTS
 echo    input_file
@@ -5134,6 +5136,15 @@ echo        Path of the input (batch) file.
 echo=
 echo    labels
 echo        The function labels to extract. The syntax is "label1 [...]".
+echo=
+echo    skip_lines
+echo        Skip N number of lines for each function. For example, if the value
+echo        is set to 1, it will skip the function label. By default, it is 0.
+echo=
+echo    read_lines
+echo        Number of lines to read. If this argument is not specified, it
+echo        will read all lines of the function. If the value is set to a
+echo        negative number, it will skip the last N lines of the function.
 echo=
 echo DEFINITION
 echo    join mark
@@ -5186,12 +5197,17 @@ rem ======================== tests ========================
 
 :tests.lib.extract_func.main
 for %%a in (
-    "873b7b424821d520f2a8fe38e00cc5151bcefcec: special_characters"
+    "a30fc4305f5c30d2a990b3fdeb22a0ec85f4067a: special_characters"
     "ea8a9a50a7516ad813cdad8466ec917863ee1b97: join_mark"
-) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    "3a6e3b917948a418251d2286c6a4ab8e77e9c007: comments: 2"
+    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, 4"
+    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, -2"
+    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 10, 0"
+    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 0, -10"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     set "params="
-    for %%d in (%%c) do set "params=!params! tests.lib.extract_func.%%d"
-    call :extract_func "%~f0" "!params!" > extracted 2> nul
+    for %%e in (%%c) do set "params=!params! tests.lib.extract_func.%%e"
+    call :extract_func "%~f0" "!params!" %%d > "extracted" 2> nul
     call :checksum result "extracted"
     if not "!result!" == "%%b" (
         call %unittest%.fail %%a
@@ -5200,8 +5216,15 @@ for %%a in (
 exit /b 0
 
 
+:tests.lib.extract_func.comments
+rem This is a function that does nothing
+rem Second line
+exit /b 0
+
+
 :tests.lib.extract_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
     @call & echo %% !a! %* > nul 2> nul
+
 < nul ( call ) || exit /b 1
 exit /b 0
 
@@ -5216,11 +5239,21 @@ exit /b 0
 
 rem ======================== function ========================
 
-:extract_func   source_file  labels
+:extract_func   source_file  labels  [skip_lines]  [read_lines]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 set "_to_extract= %~2 "
+set /a "_skip_top=%~3 + 0"
+set "_read_lines="
+set "_exclude_lines=0"
+if not "%~4" == "" (
+    set /a "_read_lines=%~4"
+    if !_read_lines! LSS 0 (
+        set "_read_lines="
+        set /a "_exclude_lines=%~4"
+    )
+)
 set "_not_found= "
 for %%l in (!_to_extract!) do set "_not_found=!_not_found!%%l "
 set "_label_ranges=!_not_found!"
@@ -5246,15 +5279,15 @@ for /f "usebackq tokens=*" %%a in ("label_n_marks") do for /f "tokens=1 delims=:
                     set "_joins=!_joins!%%l "
                 ) else (
                     set "_label=%%l"
-                    set /a "_index=%%n-1"
+                    set /a "_start=%%n-1 + !_skip_top!"
+                    if defined _read_lines set /a "_max_end=!_start! + !_read_lines!"
                 )
                 set "_not_found=!_not_found: %%c = !"
             )
         )
     )
-    if defined _label (
+    if defined _label if not defined _end (
         if not "%%n" == "!_expected_index!" set "_signal="
-        set /a "_expected_index=%%n+1"
         set "_mark="
         if not defined _line set "_mark=EOL"
         if "!_line!" == "#+++" set "_mark=JOIN"
@@ -5262,18 +5295,27 @@ for /f "usebackq tokens=*" %%a in ("label_n_marks") do for /f "tokens=1 delims=:
             set "_signal=!_signal! !_mark!"
             for %%p in (
                 " EOL EOL"
-            ) do if "!_signal!" == %%p set "_signal=END"
-            if "!_signal!" == "END" for %%l in (!_label!) do (
-                set "_index=!_index!:%%n"
-                for %%n in (!_index!) do set "_label_ranges=!_label_ranges: %%l = %%n !"
-                set "_label="
-                set "_index="
+            ) do if "!_signal!" == %%p set "_mark=END"
+            if "!_mark!" == "END" (
+                set /a "_end=%%n + !_exclude_lines!"
+                if defined _max_end (
+                    if !_end! GTR !_max_end! set "_end=!_max_end!"
+                )
             )
         ) else set "_signal="
+        set /a "_expected_index=%%n+1"
+    )
+    if defined _label if defined _end (
+        for %%l in (!_label!) do (
+            if !_start! LSS !_end! (
+                for %%n in (!_start!:!_end!) do set "_label_ranges=!_label_ranges: %%l = %%n !"
+            ) else set "_label_ranges=!_label_ranges: %%l = !"
+            for %%v in (_label _start _end _max_end) do set "%%v="
+        )
     )
 )
 if defined _label for %%l in (!_label!) do (
-    for %%n in (!_index!) do set "_label_ranges=!_label_ranges: %%l = %%n: !"
+    for %%n in (!_start!) do set "_label_ranges=!_label_ranges: %%l = %%n: !"
 )
 set "_leftover=!_not_found: =!"
 if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
@@ -5516,7 +5558,7 @@ exit /b 0
 
 rem ======================== demo ========================
 
-:tests.debug.lib.expand_link.main
+:tests.lib.expand_link.main
 for %%a in (
     "https://blog.example.com:80/1970/01/news.html?page=1#top"
 ) do (
@@ -5595,7 +5637,7 @@ exit /b 0
 
 :get_ext_ip.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ builtin:PowerShell
+    ^ addons:PowerShell
 exit /b 0
 
 
@@ -5725,7 +5767,7 @@ exit /b 0
 
 :download_file.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ builtin:PowerShell
+    ^ addons:PowerShell
 exit /b 0
 
 
@@ -7025,11 +7067,18 @@ rem ======================== documentation ========================
 echo Module Framework
 echo=
 echo DESCRIPTION
-echo    module allow scripts to execute modules as scripts. With module framework,
+echo    module framework allows scripts to execute modules. With module framework,
 echo    a script can call function of another script as if they exist in the
-echo    caller's file. This also enable scripts to have multiple entry points.
-echo    A common example is to use module framework to start multiple batch
-echo    script windows.
+echo    caller's file (with some limitation). This also enable scripts to have
+echo    multiple entry points. A common example is to use module framework to start
+echo    multiple batch script windows.
+echo=
+echo LIMITATIONS
+echo    There are some limitations due to the behavior of batch script.
+echo    For completeness, known strange behaviors are listed below:
+echo        1. GOTO context hack behaves strangely, specific details for this
+echo           behavior is still unknown (but it breaks parse_args() when it is
+echo           when used as an external function)
 echo=
 echo FUNCTIONS
 echo    - module.entry_point()
@@ -8320,20 +8369,20 @@ set "dummy.abspath=!cd!\dummy.bat"
 for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
 
 set test_args= ^
-    ^ ^"1a4061706ebf2211b523ec21aa17dd50d42be8c2: ^
+    ^ ^"b3fc4b599f588dae2c3cee7d8750fd2232e9bfaa: ^
     ^   batchlib:join_mark ^
     ^   dummy:special_characters ^"
 for %%a in (!test_args!) do ( rem
 ) & for /f "tokens=1* delims=:" %%b in (%%a) do (
-    set "_to_extract="
+    set "params="
     set "_dummy_extract="
     for %%d in (%%c) do ( rem
     ) & for /f "tokens=1* delims=:" %%e in ("%%d") do (
-        set "_to_extract=!_to_extract! %%e:tests.lib.collect_func.%%f"
+        set "params=!params! %%e:tests.lib.collect_func.%%f"
         if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.lib.collect_func.%%f"
     )
     call :extract_func "%~f0" "!_dummy_extract!" > "!dummy.abspath!"
-    call :collect_func "!_to_extract!" > extracted
+    call :collect_func "!params!" > "extracted"
     call :checksum result "extracted"
     if not "!result!" == "%%b" (
         call %unittest%.fail "extraction failed: %%b"
@@ -8344,6 +8393,7 @@ exit /b 0
 
 :tests.lib.collect_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
     @call & echo %% !a! %* > nul 2> nul
+
 < nul ( call ) || exit /b 1
 exit /b 0
 
@@ -8451,8 +8501,9 @@ rem ======================== tests ========================
 
 :tests.lib.desolve.main
 set "batchlib.abspath=%~f0"
+set "addons.abspath=%~f0"
 set "dummy.abspath=!cd!\dummy.bat"
-for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
+for %%m in (batchlib addons dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
 
 call :extract_func "%~f0" ^
     ^ ^"__init__ ^
@@ -8462,16 +8513,19 @@ call :extract_func "%~f0" ^
 
 for %%a in (
     external
+    non_existing
 ) do (
     call :tests.lib.desolve.%%a
     > "!dummy.abspath!" (
         type "base"
         call :extract_func "%~f0" "tests.lib.desolve.%%a !to_extract!"
     )
-    set "temp=!expected!"
-    set "expected= "
-    for %%a in (!temp!) do set "expected=!expected!%%a "
-    call :desolve result dummy tests.lib.desolve.%%a
+    if defined expected (
+        set "_temp=!expected!"
+        set "expected= "
+        for %%b in (!_temp!) do set "expected=!expected!%%b "
+    )
+    call :desolve result dummy tests.lib.desolve.%%a 2> nul
     if not "!result!" == "!expected!" (
         call %unittest%.fail "%%a dependency check failed"
     )
@@ -8486,9 +8540,10 @@ set expected= ^
     ^ b:time2epoch b:diffdate ^
     ^ b:module b:module.entry_point ^
     ^ b:unittest b:find_label b:difftime b:ftime ^
-    ^ b:updater b:parse_args b:download_file b:parse_version ^
+    ^ b:updater b:parse_args b:download_file a:PowerShell b:parse_version ^
     ^ b:module.is_module b:module.read_metadata
 set "expected=!expected: b:= batchlib:!"
+set "expected=!expected: a:= addons:!"
 exit /b 0
 #+++
 
@@ -8500,6 +8555,18 @@ set %~1install_requires= ^
     ^   module ^
     ^   unittest ^
     ^   updater ^"
+exit /b 0
+
+
+:tests.lib.desolve.non_existing
+set "to_extract="
+set "expected="
+exit /b 0
+#+++
+
+:tests.lib.desolve.non_existing.__metadata__
+set %~1install_requires= ^
+    ^ non_existing
 exit /b 0
 
 
@@ -8541,8 +8608,10 @@ for %%a in (!_normalized!) do ( rem
     set "_context=!%%b!"
     set "_label=%%c"
     if not defined _context ( 1>&2 echo error: context for module '%%b' is not defined & exit /b 1 )
-    call :desolve._read_metadata
-    if defined install_requires call :desolve._resolve
+    call :desolve._read_metadata || (
+        ( 1>&2 echo error: cannot resolve dependency for node: !_stack! & exit /b 1 )
+    )
+    if defined install_requires call :desolve._resolve || exit /b 1
     if "!_visited: %%a =!" == "!_visited!" set "_visited= %%a!_visited!"
     for /f "tokens=1* delims= " %%a in ("!_stack!") do set "_stack= %%b"
 )
@@ -8551,9 +8620,33 @@ exit /b 0
 
 :desolve._read_metadata
 set "install_requires="
-call %_context%:%_label%.__metadata__ || (
-    ( 1>&2 echo error: cannot resolve dependency for '!_module!:!_label!' & exit /b 1 )
-)
+call %_context%:%_label%.__metadata__ || exit /b 1
+exit /b 0
+
+
+rem ================================ Add-ons ================================
+
+rem ======================== PowerShell ========================
+
+:PowerShell
+rem A mock function to mark presence of PowerShell in the system
+exit /b 0
+
+
+:PowerShell.__metadata__
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== VBScript ========================
+
+:VBScript
+rem A mock function to mark presence of VBScript in the system
+exit /b 0
+
+
+:VBScript.__metadata__
+set "%~1install_requires="
 exit /b 0
 
 
@@ -8747,29 +8840,6 @@ rem ======================================== Assets ============================
 :assets
 :assets.__init__
 rem Additional data to bundle
-exit /b 0
-
-
-:assets.builtin
-exit /b 0
-
-
-:PowerShell
-rem A mock function to mark presence of VBScript in system
-exit /b 0
-#+++
-
-:PowerShell.__metadata__
-set "%~1install_requires="
-exit /b 0
-
-
-:VBScript
-rem A mock function to mark presence of VBScript in system
-exit /b 0
-
-:VBScript.__metadata__
-set "%~1install_requires="
 exit /b 0
 
 
