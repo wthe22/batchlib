@@ -6,11 +6,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.15"
+set "%~1version=2.1-a.16"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/07/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -28,7 +28,7 @@ echo Feel free to use, share, or modify this script for your projects :)
 echo Visit http://winscr.blogspot.com/ for more scripts^^!
 echo=
 echo=
-echo Copyright (C) 2019 by !author!
+echo Copyright (C) 2020 by !author!
 echo Licensed under !license!
 endlocal
 exit /b 0
@@ -37,7 +37,7 @@ exit /b 0
 rem ======================================== License ========================================
 
 :license
-echo Copyright 2019 wthe22
+echo Copyright 2020 wthe22
 echo=
 echo Permission is hereby granted, free of charge, to any person obtaining a
 echo copy of this software and associated documentation files (the "Software"),
@@ -141,7 +141,7 @@ echo    - script_cli(): added support for multi line commands
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
-echo      fdate(), epoch2time(), desolve(), collect_func(), strip()
+echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -218,11 +218,13 @@ echo=
 echo    Minified Script
 echo    - Included 'tests.*', changelog(), help(), scripts.lib-noecho()
 echo    - Added an interactive ui: script_cli()
-echo    - Script now uses scripts.min() as its main entry point
+echo    - Script now uses scripts.cli() as its main entry point
 echo    - The help message in main() has been moved to help(). This is significantly
 echo      makes help message easier to maintain.
 echo    - Removed unittest for save_minified(), instead the minified script
 echo      have a copy of the tests and it is able to run unittest too.
+echo    - Added template for minified script
+echo    - Added dependency listing
 echo=
 echo    Tests
 echo    - Migrated unit testing framework/syntax from tester() to unittest().
@@ -251,23 +253,19 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Renamed namespace 'builtin' to 'addons'
-echo    - checksum():
-echo        - Fixed error when hashing 0-byte files
-echo        - Added hash algorithm SHA384
-echo    - collect_func(): Updated unittest to changes from extract_func()
-echo    - extract_func(): Added option to specify line range
+echo    - Renamed 'scripts.min' to 'scripts.cli'
+echo    - Updated copyright year
+echo    - Added textrender()
+echo    - Added template for minified script
+echo    - Added __metadata__ to  minified script
+echo    - extract_func(): Renamed '.extract' to '._extract'
 echo    - desolve():
-echo        - Added more debug information
-echo        - Fixed error not propagated upwards if metadata is not found
-echo        - Added unittest for error case
-echo    - module(): Improved documentation
+echo        - Added more debug information again
+echo        - Improved unittest
 exit /b 0
 
 
 :changelog.todo
-echo    - desolve(): Remove test reliance on other functions
-echo    - add params to save_minified()
 exit /b 0
 
 
@@ -377,7 +375,7 @@ goto scripts.main
 
 rem ================================ minified script ================================
 
-:scripts.min
+:scripts.cli
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 set "__name__=min"
@@ -445,7 +443,7 @@ if "!user_input!" == "3" (
     echo=
     echo Extracting...
     set "start_time=!time!"
-    call :save_minified "!minified_script!"
+    call :save_minified --include-tests > "!minified_script!"
     call :difftime time_taken !time! !start_time!
     call :ftime time_taken !time_taken!
     echo=
@@ -841,7 +839,11 @@ set Category_packaging.functions= ^
 set "Category_framework.name=Framework"
 set Category_framework.functions= ^
     ^ unittest dynamenu ^
+    ^ textrender ^
     ^ parse_args endlocal
+set "Category_addons.name=Add-ons"
+set Category_addons.functions= ^
+    ^ VBScript PowerShell
 set "Category_others.name=Others"
 set Category_others.functions= ^
     ^ %=None=%
@@ -879,50 +881,75 @@ if not "!Category_others.item_count!" == "0" set "Category.list=!Category.list! 
 exit /b 0
 
 
-:save_minified   output_path
+:save_minified
 setlocal EnableDelayedExpansion EnableExtensions
+for %%v in (_include_tests) do set "%%v="
+set parse_args.args= ^
+    ^ "-t, --include-tests      :store_const:_include_tests=true"
+call :parse_args %*
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 call :Function.read
-set "border_line="
-for /l %%n in (1,1,40) do set "border_line=!border_line!="
 set "test_functions="
-for %%c in (core lib debug) do (
-    call :find_label result -p "tests.%%c.*"
-    set "test_functions=!test_functions!!result!"
-)
-set "_successful=true"
-3> "%~f1" (
-    for %%s in (
-        "(none): __init__"
-        "Metadata: __metadata__ about"
-        "License: license"
-        "Configurations:  config config.default config.min config.preferences"
-        "Changelog: changelog"
-        "Scripts/Entry points: scripts.__init__ scripts.lib scripts.lib-noecho scripts.min"
-        "User Interfaces: ui.__init__ script_cli help"
-        "Core: core.__init__ Category.init Function.read"
-        "Batch Script Library: lib.__init__ !Category_all.functions!"
-        "Test: tests.__init__ !test_functions!"
-    ) do for /f "tokens=1* delims=:" %%a in (%%s) do (
-        echo %%a: %%b
-        >&3 (
-            if /i not "%%a" == "(none)" (
-                echo rem !border_line:~0,40! %%a !border_line:~0,40!
-                echo=
-            )
-            call :extract_func "%~f0" "%%b" || set "_successful="
-        )
+if defined _include_tests (
+    for %%c in (core lib debug) do (
+        call :find_label result -p "tests.%%c.*"
+        set "test_functions=!test_functions!!result!"
     )
-    >&3 (
-        echo :__main__
-        echo @call :scripts.min %%*
-        echo @exit /b %%errorlevel%%
-        echo=
-        echo=
+)
+set "lib_functions="
+for %%f in (!Category_all.functions!) do (
+    set "lib_functions=!lib_functions! %%f %%f.__metadata__"
+)
+call :extract_func "%~f0" "save_minified.template" 1 -3 > "minified_template"
+call :textrender "minified_template"|| (
+    ( 1>&2 echo error: minify failed & exit /b 1 )
+)
+exit /b 0
+#+++
 
-        call :extract_func "%~f0" "EOF" || set "_successful="
-    )
-)
-if not defined _successful ( 1>&2 echo error: minify failed & exit /b 1 )
+:save_minified.template
+extract "__init__"
+
+## Metadata
+extract "__metadata__ about"
+
+## License
+extract "license"
+
+## Configurations
+extract "config config.default config.min config.preferences"
+
+## Changelog
+extract "changelog"
+
+## Main
+`` :__main__
+`` @call :scripts.cli %*
+`` @exit /b %errorlevel%
+``
+``
+
+## Scripts/Entry points
+extract "scripts scripts.lib scripts.lib-noecho scripts.cli"
+
+## User Interfaces
+extract "ui script_cli help"
+
+## Core
+extract "core Category.init Function.read"
+
+## Batch Script Library
+extract "lib !lib_functions! !Category_addons.functions!"
+
+## Test
+extract "tests"
+extract "!test_functions!"
+
+## Assets
+extract assets
+
+## End of Script
+extract "EOF"
 exit /b 0
 
 
@@ -5321,14 +5348,14 @@ set "_leftover=!_not_found: =!"
 if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
 for %%l in (!_not_found! !_joins!) do set "_label_ranges=!_label_ranges: %%l = !"
 for %%a in (!_label_ranges!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
-    call :extract_func.extract %%b %%c
+    call :extract_func._extract %%b %%c
 )
 del /f /q "numbered"
 if defined _leftover exit /b 1
 exit /b 0
 #+++
 
-:extract_func.extract   start  end
+:extract_func._extract   start  end
 setlocal DisableDelayedExpansion
 if "%1" == "0" (
     set "_skip="
@@ -8500,73 +8527,64 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.desolve.main
-set "batchlib.abspath=%~f0"
-set "addons.abspath=%~f0"
-set "dummy.abspath=!cd!\dummy.bat"
-for %%m in (batchlib addons dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
-
 call :extract_func "%~f0" ^
     ^ ^"__init__ ^
     ^   scripts.lib ^
     ^   module.entry_point ^" ^
     ^ > "base"
 
-for %%a in (
-    external
-    non_existing
-) do (
-    call :tests.lib.desolve.%%a
-    > "!dummy.abspath!" (
+set "modules=alpha bravo charlie"
+set "alpha.functions=one two three four five"
+set "alpha.one.install_requires=four"
+set "alpha.two.install_requires=three"
+set "alpha.three.install_requires=four"
+set "alpha.four.install_requires="
+set "alpha.five.install_requires=bravo:one"
+set "bravo.functions=one"
+set "bravo.one.install_requires=alpha:four"
+set "charlie.functions=one two three"
+set "charlie.one.install_requires=two"
+set "charlie.two.install_requires=charlie:one"
+set "charlie.three.install_requires=charlie:three"
+for %%m in (!modules!) do (
+    set "%%m.abspath=!cd!\%%m.bat"
+    set %%m="!%%m.abspath!" --module=lib %=END=%
+    > "!%%m.abspath!" (
         type "base"
-        call :extract_func "%~f0" "tests.lib.desolve.%%a !to_extract!"
+        for %%f in (!%%m.functions!) do (
+            echo :%%f.__metadata__
+            echo set "%%~1install_requires=!%%m.%%f.install_requires!"
+            echo exit /b 0
+            echo=
+            echo=
+        )
     )
+)
+
+set "test_cases=mutual multi cyclic_sub cyclic_self non_existing"
+set "mutual.resolve=alpha:one alpha:two"
+set "mutual.expected=alpha:one alpha:two alpha:three alpha:four"
+set "multi.resolve=alpha:five"
+set "multi.expected=alpha:five bravo:one alpha:four"
+set "cyclic_sub.resolve=charlie:one"
+set "cyclic_sub.expected="
+set "cyclic_self.resolve=charlie:three"
+set "cyclic_self.expected="
+set "non_existing.resolve=charlie:four"
+set "non_existing.expected="
+
+for %%c in (!test_cases!) do (
+    set "expected=!%%c.expected!"
     if defined expected (
         set "_temp=!expected!"
         set "expected= "
         for %%b in (!_temp!) do set "expected=!expected!%%b "
     )
-    call :desolve result dummy tests.lib.desolve.%%a 2> nul
+    call :desolve result batchlib "!%%c.resolve!" 2> nul
     if not "!result!" == "!expected!" (
-        call %unittest%.fail "%%a dependency check failed"
+        call %unittest%.fail "%%c dependency check failed"
     )
 )
-exit /b 0
-
-
-:tests.lib.desolve.external
-set "to_extract="
-set expected= ^
-    ^ dummy:tests.lib.desolve.external ^
-    ^ b:time2epoch b:diffdate ^
-    ^ b:module b:module.entry_point ^
-    ^ b:unittest b:find_label b:difftime b:ftime ^
-    ^ b:updater b:parse_args b:download_file a:PowerShell b:parse_version ^
-    ^ b:module.is_module b:module.read_metadata
-set "expected=!expected: b:= batchlib:!"
-set "expected=!expected: a:= addons:!"
-exit /b 0
-#+++
-
-:tests.lib.desolve.external.__metadata__
-set %~1install_requires= ^
-    ^ batchlib:difftime ^
-    ^ batchlib:^" ^
-    ^   time2epoch ^
-    ^   module ^
-    ^   unittest ^
-    ^   updater ^"
-exit /b 0
-
-
-:tests.lib.desolve.non_existing
-set "to_extract="
-set "expected="
-exit /b 0
-#+++
-
-:tests.lib.desolve.non_existing.__metadata__
-set %~1install_requires= ^
-    ^ non_existing
 exit /b 0
 
 
@@ -8601,7 +8619,7 @@ for %%a in (!install_requires!) do ( rem
 for %%a in (!_normalized!) do ( rem
 ) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
     if not "!_stack: %%b:%%c =!" == "!_stack!" (
-        ( 1>&2 echo error: cyclic dependencies detected: '%%b:%%c' & exit /b 1 )
+        ( 1>&2 echo error: cyclic dependencies detected '%%b:%%c' in stack: !_stack! & exit /b 1 )
     )
     set "_stack= %%b:%%c!_stack!"
     set "_module=%%b"
@@ -8609,7 +8627,7 @@ for %%a in (!_normalized!) do ( rem
     set "_label=%%c"
     if not defined _context ( 1>&2 echo error: context for module '%%b' is not defined & exit /b 1 )
     call :desolve._read_metadata || (
-        ( 1>&2 echo error: cannot resolve dependency for node: !_stack! & exit /b 1 )
+        ( 1>&2 echo error: cannot resolve dependency '%%b:%%c' in stack: !_stack! & exit /b 1 )
     )
     if defined install_requires call :desolve._resolve || exit /b 1
     if "!_visited: %%a =!" == "!_visited!" set "_visited= %%a!_visited!"
@@ -8621,6 +8639,165 @@ exit /b 0
 :desolve._read_metadata
 set "install_requires="
 call %_context%:%_label%.__metadata__ || exit /b 1
+exit /b 0
+
+
+rem ================================ textrender() ================================
+
+rem ======================== documentation ========================
+
+:textrender.__doc__
+echo NAME
+echo    textrender - text renderer for batch script
+echo=
+echo SYNOPSIS
+echo    textrender   template_file  [renderer]
+echo=
+echo DESCRIPTION
+echo    This function render template files.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    template_file
+echo        Path of the template file.
+echo=
+echo    renderer
+echo        The function name of the renderer.
+echo        By default, it is 'textrender.renderer'
+echo=
+echo TEMPLATE SYNTAX
+echo    Syntax:
+echo        //      comment
+echo        ```     start/end of a block of code
+echo        ``      string literal
+echo=
+echo    Empty lines does not do anything, except when it is surrounded by
+echo    triple back-ticks.
+echo=
+echo    List of render commands (from textrender.render):
+echo        ##   title_text, followed by a empty line
+echo        extract   ["labels_from_this_script"]
+echo=
+echo    Variables can be used in commands.
+echo=
+echo EXIT STATUS
+echo    0:  - Success.
+echo    1:  - Template error.
+exit /b 0
+
+
+:textrender.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ extract_func
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.textrender
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "label_name=tests.lib.textrender.example"
+set "eof_label=EOF"
+echo=
+echo Label: !label_name!
+echo=
+echo Template:
+call :extract_func "%~f0" "!label_name!" 1 -3 > "template"
+type "template"
+echo=
+echo Result:
+call :textrender "template"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.textrender.example
+## Welcome to batch script
+`` This line will be literally written as-is,
+`` without the first 3 characters.     ^^^^^
+```
+extract "nothing"
+because it is in a code block!
+```
+// Make three empty lines
+``
+``
+``
+extract "textrender"
+extract "!eof_label!"
+exit /b 0
+
+
+rem ======================== function ========================
+
+setlocal DisableDelayedExpansion
+if "%1" == "0" (
+    set "_skip="
+) else set "_skip=skip=%1"
+for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    echo(!_line!
+    endlocal
+    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
+)
+exit /b 0
+
+
+:textrender   template_file  [renderer]
+setlocal EnableDelayedExpansion EnableExtensions
+set "_source_file=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+if "%~2" == "" (
+    set "_renderer=textrender.renderer"
+) else set "_renderer=%~2"
+findstr /n "^^" "!_source_file!" > "numbered"
+setlocal DisableDelayedExpansion
+set "_literal="
+for /f "usebackq tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    if "!_line!" == "```" (
+        if defined _literal (
+            set "_literal="
+        ) else set "_literal=true"
+        for %%s in ("!_literal!") do (
+            endlocal
+            set "_literal=%%~s"
+        )
+    ) else if "!_line:~0,2!" == "``" (
+        echo(!_line:~3!
+        endlocal
+    ) else (
+        if defined _literal (
+            echo(!_line!
+        ) else (
+            set "_exec=true"
+            if not defined _line set "_exec="
+            if "!_line:~0,2!" == "//" set "_exec="
+            if defined _exec call :textrender._renderer_exec || exit /b 1
+        )
+        endlocal
+    )
+)
+exit /b 0
+#+++
+
+:textrender._renderer_exec
+call :%_renderer%.%_line% || exit /b 1
+exit /b 0
+#+++
+
+:textrender.renderer.extract   labels
+call :extract_func "%~f0" %1 || exit /b 1
+exit /b 0
+#+++
+
+:textrender.renderer.##   heading
+echo rem ======================================== %* ========================================
+echo=
 exit /b 0
 
 
