@@ -6,7 +6,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.17"
+set "%~1version=2.1-a.18"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -126,6 +126,8 @@ echo    - Added a new category 'Packaging'
 echo    - Added template for new scripts
 echo    - Renamed 'shortcuts.*' to 'shortcut.*'
 echo    - Renamed 'test.*' to 'tests.*'
+echo    - Renamed the category 'Shortcut' to 'User Interface'
+echo    - Renamed the category 'Framework' to 'Development Tools'
 echo    - Renamed the category 'Formatting' to 'Console'
 echo    - Renamed  metadata() to __metadata__()
 echo    - Moved 'tests' below 'lib'
@@ -140,6 +142,8 @@ echo    - Category definition and its functions are now written in Category.init
 echo    - Improved format of internal category listing
 echo    - Fixed batch script creating ']' file on startup if EOL is Linux (!)
 echo    - script_cli(): added support for multi line commands
+echo    - Improved category listing of functions
+echo    - Reshuffled function codes according to category grouping
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
@@ -155,6 +159,7 @@ echo      which needs them
 echo    - Fixed demo of several functions that uses Input.number()
 echo    - Merged 'shortcut' and 'framework' into 'lib'
 echo    - Removed expand_path(). Using FOR directly is more preferable.
+echo    - Removed dynamenu(), it is slow and some kind of impractical
 echo    - Renamed check_admin() to is_admin()
 echo    - Renamed '*.__demo__' to 'demo.*'
 echo    - capchar(): Added capturing of TAB character
@@ -256,18 +261,11 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added template for new scripts
-echo    - Moved 'tests' below 'lib'
-echo    - textrender():
-echo        - Added new command '###' for heading 3
-echo        - Added unittest
-echo    - is_echo_on():
-echo        - Remove usage of external command 'find.exe'
-echo        - Moved category from 'Environment' to 'Console'
-exit /b 0
-
-
-:changelog.todo
+echo    - Renamed the category 'Shortcut' to 'User Interface'
+echo    - Renamed the category 'Framework' to 'Development Tools'
+echo    - Improved category listing of functions
+echo    - Reshuffled function codes according to category grouping
+echo    - Removed dynamenu(), it needs rework
 exit /b 0
 
 
@@ -749,7 +747,7 @@ exit /b 0
 :Category.init
 set "Category.list=shortcut number string time file net env console packaging framework"
 
-set "Category_shortcut.name=Shortcut"
+set "Category_shortcut.name=User Interface"
 set Category_shortcut.functions= ^
     ^ Input.number Input.string Input.yesno ^
     ^ Input.path Input.ipv4
@@ -777,9 +775,7 @@ set Category_file.functions= ^
     ^ check_path combi_wcdir wcdir ^
     ^ bytes2size size2bytes ^
     ^ hexlify unzip ^
-    ^ checksum diffbin  ^
-    ^ find_label extract_func ^
-    ^ fix_eol check_win_eol
+    ^ checksum diffbin
 set "Category_net.name=Network"
 set Category_net.functions= ^
     ^ check_ipv4 expand_link ^
@@ -796,11 +792,12 @@ set Category_console.functions= ^
 set "Category_packaging.name=Packaging"
 set Category_packaging.functions= ^
     ^ module module.entry_point module.read_metadata module.is_module ^
-    ^ parse_version updater desolve collect_func
-set "Category_framework.name=Framework"
+    ^ find_label extract_func desolve collect_func textrender ^
+    ^ parse_version updater ^
+    ^ fix_eol check_win_eol
+set "Category_framework.name=Development Tools"
 set Category_framework.functions= ^
-    ^ unittest dynamenu ^
-    ^ textrender ^
+    ^ unittest ^
     ^ parse_args endlocal
 set "Category_addons.name=Add-ons"
 set Category_addons.functions= ^
@@ -4067,105 +4064,6 @@ endlocal
 exit /b 0
 
 
-rem ================================ check_ipv4() ================================
-
-rem ======================== documentation ========================
-
-:check_ipv4.__doc__
-echo NAME
-echo    check_ipv4 - check if a string is an IPv4
-echo=
-echo SYNOPSIS
-echo    check_ipv4   input_string  [--wildcard]
-echo=
-echo POSITIONAL ARGUMENTS
-echo    input_string
-echo        The string to be checked.
-echo=
-echo OPTIONS
-echo    --wildcard
-echo        Allow wildcard in the IPv4 address. This must be placed
-echo        as the second argument.
-exit /b 0
-
-
-:check_ipv4.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.check_ipv4
-call %batchlib%:Input.string ip_address
-echo=
-call %batchlib%:check_ipv4 "!ip_address!" && (
-    echo IP is valid
-) || echo IP is invalid
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.check_ipv4.main
-set "return.true=0"
-set "return.false=1"
-for %%a in (
-    "false: "
-    "false: 0"
-    "false: 0.0.0.0.0"
-
-    "true:  0.0.0.0"
-    "true:  255.255.255.255"
-
-    "false: *.*.*.*"
-    "true:  *.*.*.* --wildcard"
-
-    "false: 0.0.0.-1"
-    "false: 0.0.0.256"
-    "false: 0.0.0.2147483647"
-    "false: 0.0.0.-2147483647"
-) do for /f "tokens=1* delims=:" %%b in (%%a) do (
-    call :check_ipv4 %%c
-    set "exit_code=!errorlevel!"
-    if not "!exit_code!" == "!return.%%b!" (
-        call %unittest%.fail %%a
-    )
-)
-exit /b 0
-
-
-rem ======================== function ========================
-
-:check_ipv4   input_string  [--wildcard]
-setlocal EnableDelayedExpansion
-set "_allow_wildcard="
-if "%~2" == "--wildcard" set "_allow_wildcard=true"
-set "_input= %~1"
-if not "!_input:..=!" == "!_input!" exit /b 1
-for /f "tokens=1,5,6 delims=." %%a in ("a.!_input!") do (
-    if "%%b" == "" exit /b 1
-    if not "%%c" == "" exit /b 1
-)
-set "_input=!_input:~1!"
-set _input=!_input:.=^
-%=REQUIRED=%
-!
-for /f "tokens=*" %%n in ("!_input!") do (
-    if "%%n" == "*" (
-        if not defined _allow_wildcard exit /b 1
-    ) else (
-        set "_evaluated="
-        set /a "_evaluated=%%n" 2> nul || exit /b 1
-        set /a "_num=!_evaluated!" 2> nul || exit /b 1
-        if not "!_num!" == "%%n" exit /b 1
-        if %%n LSS 0    exit /b 1
-        if %%n GTR 255  exit /b 1
-    )
-)
-exit /b 0
-
-
 rem ================================ check_path() ================================
 
 rem ======================== documentation ========================
@@ -5058,531 +4956,103 @@ for /f "tokens=*" %%r in ("!_result!") do (
 exit /b 0
 
 
-rem ============================ find_label() ============================
+rem ================================ check_ipv4() ================================
 
 rem ======================== documentation ========================
 
-:find_label.__doc__
+:check_ipv4.__doc__
 echo NAME
-echo    find_label - find labels that matches the specified pattern
+echo    check_ipv4 - check if a string is an IPv4
 echo=
 echo SYNOPSIS
-echo    find_label   return_var  [-p pattern]  [-f input_file]
-echo=
-echo DESCRIPTION
-echo    Find all labels that matches the pattern in the input file.
+echo    check_ipv4   input_string  [--wildcard]
 echo=
 echo POSITIONAL ARGUMENTS
-echo    return_var
-echo        Variable to store the results, each seperated by space.
+echo    input_string
+echo        The string to be checked.
 echo=
 echo OPTIONS
-echo    -p PATTERN, --pattern PATTERN
-echo        Pattern of the function label to match. Supports up to 4 wildcards '*'.
-echo        It uses path pattern matching sytle. By default, it is '*'.
-echo=
-echo    -f INPUT_FILE, --file INPUT_FILE
-echo        Path of the input file. By default, it is the current file.
-echo=
-echo ENVIRONMENT
-echo    cd
-echo        Affects the base path of input_file if relative path is given.
-echo=
-echo NOTES
-echo    - The label of the function MUST only be preceeded by either nothing or
-echo      spaces (i.e.: space indentation only)
-echo    - Does not support labels that have:
-echo        - '^^' or '*' in label name
-echo    - Only Windows EOL is supported.
+echo    --wildcard
+echo        Allow wildcard in the IPv4 address. This must be placed
+echo        as the second argument.
 exit /b 0
 
 
-:find_label.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ parse_args
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.find_label
-call :Input.string pattern
-call :Input.path input_file --file --exist
-call :find_label label_match --pattern "!pattern!" --file "!input_file!"
-echo=
-echo Found match:
-set "match_count=0"
-for %%l in (!label_match!) do (
-    set /a "match_count+=1"
-    set "match_count=   !match_count!"
-    set "match_count=!match_count:~-3,3!"
-    echo !match_count!. %%l
-)
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.find_label.main
-> "in\labels" (
-    echo :
-    echo : invalid
-    echo :normal_label
-    echo :normal_label.main
-    echo :$dollar_label
-    echo :\$escaped_dollar_label
-    echo :tests.main
-    echo :tests..main
-    echo :tests.a.main
-    echo :tests.bb.main
-    echo :tests.ccc.main
-    echo :tests.normal_label.main
-    echo :tests.dotted.label.main
-    echo    :tests.indented_label.main
-    echo :tests.normal_label.main.extra
-    echo ::comment
-    echo ::tests.comment.main
-)
-call %batchlib%:capchar LF
-set test_cases= ^
-    ^ 13:   -f "in\labels" !LF!^
-    ^ 13:   -f "in\labels" -p "*" !LF!^
-    ^ 9:    -f "in\labels" -p "tests.*" !LF!^
-    ^ 9:    -f "in\labels" -p "*.main" !LF!^
-    ^ 7:    -f "in\labels" -p "tests.*.main" !LF!^
-    ^ 7:    -f "in\labels" -p "*o*" !LF!^
-    ^ 2:    -f "in\labels" -p "*$*" !LF!^
-    ^ 0:    -f "in\labels" -p ""
-for /f "tokens=*" %%a in ("!test_cases!") do (
-    for /f "tokens=1* delims=:" %%b in ("%%a") do (
-        call :find_label labels %%c
-        set "labels_count=0"
-        for %%l in (!labels!) do set /a "labels_count+=1"
-        if not "!labels_count!" == "%%b" (
-            call %unittest%.fail %%a
-        )
-    )
-)
-exit /b 0
-
-
-rem ======================== function ========================
-
-:find_label   return_var  [-p pattern]  [-f input_file]
-setlocal EnableDelayedExpansion EnableExtensions
-set "_pattern=*"
-set "_input_file=%~f0"
-set parse_args.args= ^
-    ^ "-p, --pattern    :store:_pattern" ^
-    ^ "-f, --file       :store:_input_file"
-call :parse_args %*
-for %%c in (\ . $ [ ]) do set "_pattern=!_pattern:%%c=\%%c!"
-rem Replace asterisks with contents of %%p
-for /f "delims=" %%p in ("[^^^^: ]*") do (
-    for /f "tokens=1-4* delims=*" %%a in ("_!_pattern!_") do (
-        set "_pattern=%%a"
-        if not "%%b" == "" set "_pattern=!_pattern!%%p%%b"
-        if not "%%c" == "" set "_pattern=!_pattern!%%p%%c"
-        if not "%%d" == "" set "_pattern=!_pattern!%%p%%d"
-        if not "%%e" == "" set "_pattern=!_pattern!%%p%%e"
-        set "_pattern=!_pattern:~1,-1!"
-    )
-)
-set "_result="
-for /f "delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
-    for /f "tokens=1" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
-        for /f "tokens=1 delims=:" %%b in ("%%a") do set "_result=!_result! %%b"
-    )
-)
-for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
-    endlocal
-    set "%~1=%%r"
-)
-exit /b 0
-
-
-rem ================================ extract_func() ================================
-
-rem ======================== documentation ========================
-
-:extract_func.__doc__
-echo NAME
-echo    extract_func - extract batch script functions from a file
-echo=
-echo SYNOPSIS
-echo    extract_func   source_file  labels  [skip_lines]  [read_lines]
-echo=
-echo POSITIONAL ARGUMENTS
-echo    input_file
-echo        Path of the input (batch) file.
-echo=
-echo    labels
-echo        The function labels to extract. The syntax is "label1 [...]".
-echo=
-echo    skip_lines
-echo        Skip N number of lines for each function. For example, if the value
-echo        is set to 1, it will skip the function label. By default, it is 0.
-echo=
-echo    read_lines
-echo        Number of lines to read. If this argument is not specified, it
-echo        will read all lines of the function. If the value is set to a
-echo        negative number, it will skip the last N lines of the function.
-echo=
-echo DEFINITION
-echo    join mark
-echo        A line that solely consist of '#+++'.
-echo=
-echo EXTRACTION
-echo    A matching label tells extract_func() to start extracting starting from
-echo    the current line. For a function to be detected, the label of the function
-echo    MUST only be preceeded by either nothing, or spaces and/or tabs.
-echo=
-echo    Two empty lines tells extract_func() that the function ends here and
-echo    it will stop extraction of the lines below it until it finds another
-echo    matching label.
-echo=
-echo    Functions that have multiple subroutines SHOULD end each subroutine with
-echo    the join mark (see DEFINITION).
-echo=
-echo EXIT STATUS
-echo    0:  - Extraction is successful.
-echo    1:  - Some labels are not found.
-echo=
-echo ENVIRONMENT
-echo    cd
-echo        Affects the base path of input_file if relative path is given.
-echo=
-echo NOTES
-echo    - The order of the function will be based on the order of occurrence
-echo      in the parameter.
-echo    - Results are ECHOed to stdout and it can be redirected to file.
-exit /b 0
-
-
-:extract_func.__metadata__   [return_prefix]
+:check_ipv4.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.extract_func
-call %batchlib%:Input.string function_labels || set "function_labels=extract_func"
+:demo.check_ipv4
+call %batchlib%:Input.string ip_address
 echo=
-call %batchlib%:extract_func "%~f0" "!function_labels!" && (
-    echo Extract successful
-) || echo Extract failed
+call %batchlib%:check_ipv4 "!ip_address!" && (
+    echo IP is valid
+) || echo IP is invalid
 exit /b 0
 
 
 rem ======================== tests ========================
 
-:tests.lib.extract_func.main
+:tests.lib.check_ipv4.main
+set "return.true=0"
+set "return.false=1"
 for %%a in (
-    "a30fc4305f5c30d2a990b3fdeb22a0ec85f4067a: special_characters"
-    "ea8a9a50a7516ad813cdad8466ec917863ee1b97: join_mark"
-    "3a6e3b917948a418251d2286c6a4ab8e77e9c007: comments: 2"
-    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, 4"
-    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, -2"
-    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 10, 0"
-    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 0, -10"
-) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
-    set "params="
-    for %%e in (%%c) do set "params=!params! tests.lib.extract_func.%%e"
-    call :extract_func "%~f0" "!params!" %%d > "extracted" 2> nul
-    call :checksum result "extracted"
-    if not "!result!" == "%%b" (
+    "false: "
+    "false: 0"
+    "false: 0.0.0.0.0"
+
+    "true:  0.0.0.0"
+    "true:  255.255.255.255"
+
+    "false: *.*.*.*"
+    "true:  *.*.*.* --wildcard"
+
+    "false: 0.0.0.-1"
+    "false: 0.0.0.256"
+    "false: 0.0.0.2147483647"
+    "false: 0.0.0.-2147483647"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :check_ipv4 %%c
+    set "exit_code=!errorlevel!"
+    if not "!exit_code!" == "!return.%%b!" (
         call %unittest%.fail %%a
     )
 )
 exit /b 0
 
 
-:tests.lib.extract_func.comments
-rem This is a function that does nothing
-rem Second line
-exit /b 0
-
-
-:tests.lib.extract_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
-    @call & echo %% !a! %* > nul 2> nul
-
-< nul ( call ) || exit /b 1
-exit /b 0
-
-
-:tests.lib.extract_func.join_mark
-exit /b 0
-#+++
-
-:tests.lib.extract_func.join_mark.joined
-exit /b 0
-
-
 rem ======================== function ========================
 
-:extract_func   source_file  labels  [skip_lines]  [read_lines]
-setlocal EnableDelayedExpansion EnableExtensions
-set "_source_file=%~f1"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-set "_to_extract= %~2 "
-set /a "_skip_top=%~3 + 0"
-set "_read_lines="
-set "_exclude_lines=0"
-if not "%~4" == "" (
-    set /a "_read_lines=%~4"
-    if !_read_lines! LSS 0 (
-        set "_read_lines="
-        set /a "_exclude_lines=%~4"
+:check_ipv4   input_string  [--wildcard]
+setlocal EnableDelayedExpansion
+set "_allow_wildcard="
+if "%~2" == "--wildcard" set "_allow_wildcard=true"
+set "_input= %~1"
+if not "!_input:..=!" == "!_input!" exit /b 1
+for /f "tokens=1,5,6 delims=." %%a in ("a.!_input!") do (
+    if "%%b" == "" exit /b 1
+    if not "%%c" == "" exit /b 1
+)
+set "_input=!_input:~1!"
+set _input=!_input:.=^
+%=REQUIRED=%
+!
+for /f "tokens=*" %%n in ("!_input!") do (
+    if "%%n" == "*" (
+        if not defined _allow_wildcard exit /b 1
+    ) else (
+        set "_evaluated="
+        set /a "_evaluated=%%n" 2> nul || exit /b 1
+        set /a "_num=!_evaluated!" 2> nul || exit /b 1
+        if not "!_num!" == "%%n" exit /b 1
+        if %%n LSS 0    exit /b 1
+        if %%n GTR 255  exit /b 1
     )
 )
-set "_not_found= "
-for %%l in (!_to_extract!) do set "_not_found=!_not_found!%%l "
-set "_label_ranges=!_not_found!"
-set "_joins="
-set "_label="
-set "_index="
-set "_expected_index="
-set "_signal="
-findstr /n "^^" "!_source_file!" > "numbered"
-findstr /n /r ^
-    ^ /c:"^^$" ^
-    ^ /c:"^^#+++$" ^
-    ^ /c:"^^[ ]*:[^^: ]*$" ^
-    ^ /c:"^^[ ]*:[^^: ]* .*$" ^
-    ^ "!_source_file!" > "label_n_marks"
-for /f "usebackq tokens=*" %%a in ("label_n_marks") do for /f "tokens=1 delims=:" %%n in ("%%a") do (
-    set "_line=%%a"
-    set "_line=!_line:*:=!"
-    for /f "tokens=1" %%b in ("!_line!") do for /f "tokens=1 delims=:" %%c in ("%%b") do (
-        if ":%%c" == "%%b" (
-            for %%l in (!_not_found!) do if "%%c" == "%%l" (
-                if defined _label (
-                    set "_joins=!_joins!%%l "
-                ) else (
-                    set "_label=%%l"
-                    set /a "_start=%%n-1 + !_skip_top!"
-                    if defined _read_lines set /a "_max_end=!_start! + !_read_lines!"
-                )
-                set "_not_found=!_not_found: %%c = !"
-            )
-        )
-    )
-    if defined _label if not defined _end (
-        if not "%%n" == "!_expected_index!" set "_signal="
-        set "_mark="
-        if not defined _line set "_mark=EOL"
-        if "!_line!" == "#+++" set "_mark=JOIN"
-        if defined _mark (
-            set "_signal=!_signal! !_mark!"
-            for %%p in (
-                " EOL EOL"
-            ) do if "!_signal!" == %%p set "_mark=END"
-            if "!_mark!" == "END" (
-                set /a "_end=%%n + !_exclude_lines!"
-                if defined _max_end (
-                    if !_end! GTR !_max_end! set "_end=!_max_end!"
-                )
-            )
-        ) else set "_signal="
-        set /a "_expected_index=%%n+1"
-    )
-    if defined _label if defined _end (
-        for %%l in (!_label!) do (
-            if !_start! LSS !_end! (
-                for %%n in (!_start!:!_end!) do set "_label_ranges=!_label_ranges: %%l = %%n !"
-            ) else set "_label_ranges=!_label_ranges: %%l = !"
-            for %%v in (_label _start _end _max_end) do set "%%v="
-        )
-    )
-)
-if defined _label for %%l in (!_label!) do (
-    for %%n in (!_start!) do set "_label_ranges=!_label_ranges: %%l = %%n: !"
-)
-set "_leftover=!_not_found: =!"
-if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
-for %%l in (!_not_found! !_joins!) do set "_label_ranges=!_label_ranges: %%l = !"
-for %%a in (!_label_ranges!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
-    call :extract_func._extract %%b %%c
-)
-del /f /q "numbered"
-if defined _leftover exit /b 1
 exit /b 0
-#+++
-
-:extract_func._extract   start  end
-setlocal DisableDelayedExpansion
-if "%1" == "0" (
-    set "_skip="
-) else set "_skip=skip=%1"
-for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
-    set "_line=%%o"
-    setlocal EnableDelayedExpansion
-    set "_line=!_line:*:=!"
-    echo(!_line!
-    endlocal
-    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
-)
-exit /b 0
-
-
-rem ================================ fix_eol() ================================
-
-rem ======================== documentation ========================
-
-:fix_eol.__doc__
-echo NAME
-echo    fix_eol, fix_eol.alt1, fix_eol.alt2 - convert EOL of the script to CRLF
-echo=
-echo SYNOPSIS
-echo    fix_eol
-echo=
-echo EXIT STATUS
-echo    0:  - EOL conversion is not necessary.
-echo        - EOL conversion is successful.
-echo    1:  - EOL conversion failed.
-echo=
-echo BEHAVIOR
-echo    - Script will EXIT if EOL conversion is successful.
-echo=
-echo NOTES
-echo    - Function MUST be embedded into the script to work correctly.
-echo    - Can be used to detect and fix script EOL if it was downloaded
-echo      from GitHub, since uses Unix EOL (LF).
-exit /b 0
-
-
-:fix_eol.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ check_win_eol
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.fix_eol
-echo Fixing EOL...
-for %%n in (1 2) do call :fix_eol.alt%%n && (
-    echo [fix_eol.alt%%n] Fix not necessary
-) || echo [fix_eol.alt%%n] Fix failed
-exit /b 0
-
-
-rem ======================== function ========================
-
-:fix_eol
-rem The label below is an alternative label if the main label cannot be found
-:fix_eol.alt1
-rem THIS IS REQUIRED
-:fix_eol.alt2
-for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
-    call :check_win_eol.alt%%n || (
-        echo Converting EOL...
-        type "%~f0" | more /t4 > "%~f0.tmp" && (
-            move "%~f0.tmp" "%~f0" > nul && (
-                echo Convert EOL done
-                echo Script will exit. Press any key to continue...
-                pause > nul
-                exit 0
-            )
-        )
-        ( 1>&2 echo warning: Convert EOL failed )
-        exit /b 1
-    )
-    exit /b 0
-)
-( 1>&2 echo error: failed to call check_win_eol^(^) )
-exit /b 1
-
-
-rem ================================ check_win_eol() ================================
-
-rem ======================== documentation ========================
-
-:check_win_eol.__doc__
-echo NAME
-echo    check_win_eol, check_win_eol.alt1, check_win_eol.alt1
-echo    - check EOL type of current script
-echo=
-echo SYNOPSIS
-echo    check_win_eol   [--check-exist]
-echo=
-echo OPTIONS
-echo    -c, --check-exist
-echo        Check if function exist / is callable.
-echo=
-echo EXIT STATUS
-echo    0:  - EOL is Windows (CRLF)
-echo        - '-c' is specified, and the function is callable.
-echo    1:  - EOL is Unix (LF)
-echo        - The function is uncallable.
-echo=
-echo NOTES
-echo    - Function MUST be embedded into the script to work correctly.
-echo    - If EOL is Mac (CR), this script would probably have crashed
-echo      in the first place.
-exit /b 0
-
-
-:check_win_eol.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.check_win_eol
-for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
-    call :check_win_eol.alt%%n && (
-        echo [check_win_eol.alt%%n] EOL is Windows 'CRLF'
-    ) || echo [check_win_eol.alt%%n] EOL is Unix 'LF'
-)
-exit /b 0
-
-
-rem ======================== function ========================
-
-:check_win_eol   [--check-exist]
-rem The label below is an alternative label if the main label cannot be found
-:check_win_eol.alt1
-rem THIS IS REQUIRED
-:check_win_eol.alt2
-for %%f in (-c, --check-exist)do if /i "%1" == "%%f" exit /b 0
-@call :check_win_eol._test 2> nul && exit /b 0 || exit /b 1
-rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
-rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
-rem  3                                                                                                                        #
-rem  4  Length of this comment section should be at most 4095 characters if EOL is LF only (Unix)                             #
-rem  5  Comment could contain anything, but it is best to set it to empty space                                               #
-rem  6  so your code editor won't slow down when scrolling through this section                                               #
-rem  7                                                                                                                        #
-rem  8                                                                                                                        #
-rem  9                                                                                                                        #
-rem 10                                                                                                                        #
-rem 11                                                                                                                        #
-rem 12                                                                                                                        #
-rem 13                                                                                                                        #
-rem 14                                                                                                                        #
-rem 15                                                                                                                        #
-rem 16                                                                                                                        #
-rem 17                                                                                                                        #
-rem 18                                                                                                                        #
-rem 19                                                                                                                        #
-rem 20                                                                                                                        #
-rem 21                                                                                                                        #
-rem 22                                                                                                                        #
-rem 23                                                                                                                        #
-rem 24                                                                                                                        #
-rem 25                                                                                                                        #
-rem 26                                                                                                                        #
-rem 27                                                                                                                        #
-rem 28                                                                                                                        #
-rem 29                                                                                                                        #
-rem 30                                                                                                                        #
-rem 31                                                                                                                        #
-rem 32  LAST LINE: should be 1 character shorter than the rest                                              DO NOT MODIFY -> #
-:check_win_eol._test
-@exit /b 0
 
 
 rem ================================ expand_link() ================================
@@ -6343,171 +5813,6 @@ rem ======================== function ========================
 exit /b 0
 
 
-rem ================================ is_echo_on() ================================
-
-rem ======================== documentation ========================
-
-:is_echo_on.__doc__
-echo NAME
-echo    is_echo_on - check if echo is on
-echo=
-echo SYNOPSIS
-echo    is_echo_on
-echo=
-echo NOTES
-echo    - Temporary file is used in this function.
-echo    - This function produces no output, even if error is encountered.
-exit /b 0
-
-
-:is_echo_on.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.is_echo_on
-call %batchlib%:is_echo_on && (
-    echo Echo is on
-) || echo Echo is off
-exit /b 0
-
-
-rem ======================== function ========================
-
-:is_echo_on
-@(
-    ( for %%n in (1) do call ) > "%temp%\result"
-    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 1
-) > nul 2>&1
-@exit /b 0
-
-
-rem ================================ endlocal() ================================
-
-rem ======================== documentation ========================
-
-:endlocal.__doc__
-echo NAME
-echo    endlocal - make variables survive ENDLOCAL
-echo=
-echo SYNOPSIS
-echo    endlocal   old_name:new_name  [old_name:new_name [...]]
-echo=
-echo POSITIONAL ARGUMENTS
-echo    old_name
-echo        Variable name to keep (before endlocal).
-echo=
-echo    new_name
-echo        Variable name to use (after endlocal).
-echo=
-echo NOTES
-echo    - Variables that contains Line Feed character are not supported and it
-echo      could cause unexpected errors.
-exit /b 0
-
-
-:endlocal.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.endlocal
-@echo on
-set "var_del=This variable will be deleted"
-set "var_keep=This variable will keep its content"
-setlocal
-set "var_del="
-set "var_keep=Attempting to change it"
-set "var_hello=I am a new variable^!"
-(
-    @echo off
-    call %batchlib%:endlocal var_del var_hello:var_new_name
-    @echo on
-)
-set var_
-@echo off
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.endlocal.main
-set "old_vars=01 02"
-set "new_vars=01"
-set "conv_vars=01:01 02:03 03:02"
-set expected_result= ^
-    ^ 01:new ^
-    ^ 02: ^
-    ^ 03:old
-
-for %%v in (!old_vars!) do set "%%v=old"
-setlocal
-for %%v in (!new_vars!) do set "%%v=new"
-call :endlocal %conv_vars% quotes
-
-for %%c in (!expected_result!) do (
-    for /f "tokens=1* delims=:" %%a in ("%%~c") do (
-        if not "!%%a!" == "%%b" (
-            call %unittest%.fail %%a
-        )
-    )
-)
-exit /b 0
-
-
-rem (!) Needs more test cases
-rem test if variable starts with equal sign
-
-rem ======================== function ========================
-
-:endlocal   old_name:new_name  [old_name:new_name [...]]
-setlocal EnableDelayedExpansion
-set LF=^
-%=REQUIRED=%
-%=REQUIRED=%
-set "_content="
-for %%v in (%*) do for /f "tokens=1,2 delims=:" %%a in ("%%~v:%%~v") do (
-    set "_var=!%%a! "
-    call :endlocal._to_ede
-    set "_content=!_content!%%b=!_var:~0,-1!!LF!"
-)
-for /f "tokens=1* delims==" %%a in ("!_content!") do (
-    if defined _content (
-        goto 2> nul
-        endlocal
-    )
-    set "%%a=%%b"
-    if "!!" == "" (
-        set "%%a=!%%a:~1!"
-    ) else (
-        setlocal EnableDelayedExpansion
-        set "_var=!%%a!"
-        call :endlocal._to_dde
-        set "_var=!_var:~1!"
-        for /f "delims=" %%c in ("!_var!") do (
-            endlocal
-            set "%%a=%%c"
-        )
-    )
-)
-exit /b 0
-#+++
-
-:endlocal._to_ede
-set "_var=^!!_var:^=^^^^!"
-set "_var=%_var:!=^^^!%"
-exit /b
-#+++
-
-:endlocal._to_dde
-set "_var=%_var%"
-exit /b
-
-
 rem ================================ capchar() ================================
 
 rem ======================== documentation ========================
@@ -6604,74 +5909,6 @@ set DQ="
 set "EM=^!"
 set EM=^^!
 
-rem ================================ color2seq() ================================
-
-rem ======================== documentation ========================
-
-:color2seq.__doc__
-echo NAME
-echo    color2seq - convert hexadecimal color to ANSI escape sequence
-echo=
-echo SYNOPSIS
-echo    color2seq   return_var  color
-echo=
-echo POSITIONAL ARGUMENTS
-echo    return_var
-echo        Variable to store the result.
-echo=
-echo    color
-echo        The hexadecimal representation of the color.
-echo        The format of the color is '^<background^>^<foreground^>'.
-echo=
-echo COLORS
-echo    0 = Black       8 = Gray
-echo    1 = Blue        9 = Light Blue
-echo    2 = Green       A = Light Green
-echo    3 = Aqua        B = Light Aqua
-echo    4 = Red         C = Light Red
-echo    5 = Purple      D = Light Purple
-echo    6 = Yellow      E = Light Yellow
-echo    7 = White       F = Bright White
-echo=
-echo NOTES
-echo    - Used for color print in windows 10 or any other console that supports
-echo      ANSI escape sequence.
-exit /b 0
-
-
-:color2seq.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.color2seq
-call %batchlib%:Input.string hexadecimal_color
-call %batchlib%:color2seq color_code "!hexadecimal_color!"
-echo=
-echo Sequence: !color_code!
-echo Color print: !ESC!!color_code!Hello World!ESC![0m
-exit /b 0
-
-
-rem ======================== function ========================
-
-:color2seq   return_var  color
-set "%~1=%~2"
-set "%~1=[!%~1:~0,1!;!%~1:~1,1!m"
-for %%t in (
-    0--40-30  1--44-34  2--42-32  3--46-36
-    4--41-31  5--45-35  6--43-33  7--47-37
-    8-100-90  9-104-94  A-102-92  B-106-96
-    C-101-91  D-105-95  E-103-93  F-107-97
-) do for /f "tokens=1-3 delims=-" %%a in ("%%t") do (
-    set "%~1=!%~1:[%%a;=[%%b;!"
-    set "%~1=!%~1:;%%am=;%%cm!"
-)
-exit /b 0
-
-
 rem ================================ setup_clearline() ================================
 
 rem ======================== documentation ========================
@@ -6738,6 +5975,115 @@ for /f "tokens=4 delims=. " %%v in ('ver') do (
         for /l %%n in (1,1,%_width%) do set "%~1=!%~1! "
         set "%~1=_!CR!!%~1!!CR!"
     ) else for /l %%n in (1,1,%_width%) do set "%~1=!%~1!!DEL!"
+)
+exit /b 0
+
+
+rem ================================ is_echo_on() ================================
+
+rem ======================== documentation ========================
+
+:is_echo_on.__doc__
+echo NAME
+echo    is_echo_on - check if echo is on
+echo=
+echo SYNOPSIS
+echo    is_echo_on
+echo=
+echo NOTES
+echo    - Temporary file is used in this function.
+echo    - This function produces no output, even if error is encountered.
+exit /b 0
+
+
+:is_echo_on.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.is_echo_on
+call %batchlib%:is_echo_on && (
+    echo Echo is on
+) || echo Echo is off
+exit /b 0
+
+
+rem ======================== function ========================
+
+:is_echo_on
+@(
+    ( for %%n in (1) do call ) > "%temp%\result"
+    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 1
+) > nul 2>&1
+@exit /b 0
+
+
+rem ================================ color2seq() ================================
+
+rem ======================== documentation ========================
+
+:color2seq.__doc__
+echo NAME
+echo    color2seq - convert hexadecimal color to ANSI escape sequence
+echo=
+echo SYNOPSIS
+echo    color2seq   return_var  color
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the result.
+echo=
+echo    color
+echo        The hexadecimal representation of the color.
+echo        The format of the color is '^<background^>^<foreground^>'.
+echo=
+echo COLORS
+echo    0 = Black       8 = Gray
+echo    1 = Blue        9 = Light Blue
+echo    2 = Green       A = Light Green
+echo    3 = Aqua        B = Light Aqua
+echo    4 = Red         C = Light Red
+echo    5 = Purple      D = Light Purple
+echo    6 = Yellow      E = Light Yellow
+echo    7 = White       F = Bright White
+echo=
+echo NOTES
+echo    - Used for color print in windows 10 or any other console that supports
+echo      ANSI escape sequence.
+exit /b 0
+
+
+:color2seq.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.color2seq
+call %batchlib%:Input.string hexadecimal_color
+call %batchlib%:color2seq color_code "!hexadecimal_color!"
+echo=
+echo Sequence: !color_code!
+echo Color print: !ESC!!color_code!Hello World!ESC![0m
+exit /b 0
+
+
+rem ======================== function ========================
+
+:color2seq   return_var  color
+set "%~1=%~2"
+set "%~1=[!%~1:~0,1!;!%~1:~1,1!m"
+for %%t in (
+    0--40-30  1--44-34  2--42-32  3--46-36
+    4--41-31  5--45-35  6--43-33  7--47-37
+    8-100-90  9-104-94  A-102-92  B-106-96
+    C-101-91  D-105-95  E-103-93  F-107-97
+) do for /f "tokens=1-3 delims=-" %%a in ("%%t") do (
+    set "%~1=!%~1:[%%a;=[%%b;!"
+    set "%~1=!%~1:;%%am=;%%cm!"
 )
 exit /b 0
 
@@ -6813,6 +6159,1165 @@ rem ======================== function ========================
     del /f /q "%~2_" > nul
     popd
 )
+exit /b 0
+
+
+rem ================================ module ================================
+
+rem ======================== documentation ========================
+
+:module.__doc__
+echo Module Framework
+echo=
+echo DESCRIPTION
+echo    module framework allows scripts to execute modules. With module framework,
+echo    a script can call function of another script as if they exist in the
+echo    caller's file (with some limitation). This also enable scripts to have
+echo    multiple entry points. A common example is to use module framework to start
+echo    multiple batch script windows.
+echo=
+echo LIMITATIONS
+echo    There are some limitations due to the behavior of batch script.
+echo    For completeness, known strange behaviors are listed below:
+echo        1. GOTO context hack behaves strangely, specific details for this
+echo           behavior is still unknown (but it breaks parse_args() when it is
+echo           when used as an external function)
+echo=
+echo FUNCTIONS
+echo    - module.entry_point()
+echo    - module.read_metadata()
+echo    - module.is_module()
+echo=
+echo NOTES
+echo    - Function MUST be embedded into the script to work correctly.
+exit /b 0
+
+
+:module.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ module.entry_point ^
+    ^ module.read_metadata ^
+    ^ module.is_module
+exit /b 0
+
+
+:demo.module
+echo Demo is unavailable.
+exit /b 0
+
+
+:module
+rem Module Framework
+exit /b 0
+
+
+rem ============================ .entry_point() ============================
+
+rem ======================== documentation ========================
+
+:module.entry_point.__doc__
+echo NAME
+echo    module.entry_point - determine the script entry point and GOTO the label
+echo=
+echo SYNOPSIS
+echo    module.entry_point   [--module=name]  [args]
+echo=
+echo POSITIONAL ARGUMENTS
+echo    args
+echo        The parameters for the script/entry point.
+echo=
+echo OPTIONS
+echo    --module=NAME
+echo        Specify the entry point of the script. The entry point will be called
+echo        with the arguments and exit code will be preserved upon exit.
+echo        If this option is not set, the function will 'GOTO __main__'.
+echo=
+echo ENTRY POINTS
+echo    An entry point is a label follows the pattern ':scripts.NAME'.
+echo    For a entry point to be detected, the label of the function MUST
+echo    be preceeded by either nothing, or spaces and/or tabs.
+echo=
+echo NOTES
+echo    - Function MUST be embedded into the script to work correctly.
+echo=
+echo USAGE
+echo    The first command on the script should be '@goto module.entry_point'
+exit /b 0
+
+
+:module.entry_point.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.module.entry_point
+echo Reads the argument to determine which script/entry point to GOTO
+echo Used for scripts that has multiple entry points
+echo=
+echo Press any key to start another window...
+pause > nul
+@echo on
+start "" /i cmd /c ""%~f0" --module=2nd_window_demo   test "arg" Here"
+@echo off
+echo=
+echo 'cmd /c' is required to make sure the new window closes
+echo if it exits using the 'exit /b' command
+exit /b 0
+#+++
+
+:scripts.2nd_window_demo
+@echo off
+setlocal EnableDelayedExpansion
+title Second Window
+echo Hello! I am the second window.
+echo=
+echo Arguments  : %*
+echo=
+pause
+exit 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.module.entry_point.main
+call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry_point.bat"
+call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" > "capture_args"
+
+>> "test_entry_point.bat" (
+    echo :__main__
+    echo @call :scripts.main %%*
+    echo @exit /b %%errorlevel%%
+
+    for %%e in (main second) do (
+        echo :scripts.%%e
+        echo set "entry_point=%%e"
+        < nul set /p "=@rem "
+        type "capture_args"
+    )
+)
+
+call %batchlib%:capchar LF
+set test_cases= ^
+    ^ "no args"         :main:       !LF!^
+    ^ "quoted --module" :main:       "--module" second !LF!^
+    ^ "second module"   :second:     --module second
+for /f "tokens=*" %%a in ("!test_cases!") do (
+    for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
+        set "entry_point="
+        call "test_entry_point.bat" %%d > nul
+        set "exit_code=!errorlevel!"
+        if not "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!" (
+            echo "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!"
+            call %unittest%.fail %%b
+        )
+    )
+)
+exit /b 0
+#+++
+
+:tests.lib.module.entry_point.capture_args
+set args=%*
+set "expected_exit_code=%random%"
+echo Arguments: %*
+exit /b %expected_exit_code%
+
+
+rem ======================== function ========================
+
+:module.entry_point   [--module=<name>]  [args]
+@if /i not "%~1" == "--module" @goto __main__
+@if /i #%1 == #"%~1" @goto __main__
+@setlocal DisableDelayedExpansion
+@set module.entry_point.args=%*
+@setlocal EnableDelayedExpansion
+@for /f "tokens=1* delims== " %%a in ("!module.entry_point.args!") do @(
+    endlocal
+    endlocal
+    call :scripts.%%b
+)
+@exit /b %errorlevel%
+
+
+rem ============================ .read_metadata() ============================
+
+rem ======================== documentation ========================
+
+:module.read_metadata.__doc__
+echo NAME
+echo    module.read_metadata - read metadata of a script
+echo=
+echo SYNOPSIS
+echo    module.read_metadata   return_prefix  input_file
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_prefix
+echo        Prefix of the variable to store the metadata.
+echo        Generally metadata includes: name, version, author, license,
+echo        description, release_date, url, download_url.
+echo=
+echo    input_file
+echo        Path of the input (batch) file.
+exit /b 0
+
+
+:module.read_metadata.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.module.read_metadata
+call %batchlib%:Input.path script_to_check
+call :module.is_module "!script_to_check!" || (
+    echo Script does not support call as module
+    echo Please choose another script that supports call as module
+    exit /b 0
+)
+echo=
+echo Metadata:
+call :module.read_metadata script. "!script_to_check!"
+set "script."
+exit /b 0
+
+
+rem ======================== function ========================
+
+:module.read_metadata   return_prefix  script_path
+for %%v in (
+    name version
+    author license
+    description release_date
+    url download_url
+    install_requires
+) do set "%~1%%v="
+call "%~2" --module=lib :__metadata__ "%~1" || exit /b 1
+exit /b 0
+
+
+rem ============================ .is_module() ============================
+
+rem ======================== documentation ========================
+
+:module.is_module.__doc__
+echo NAME
+echo    module.is_module - check if a given file is a batch script module
+echo=
+echo SYNOPSIS
+echo    module.is_module   input_file
+echo=
+echo DESCRIPTION
+echo    This function checks if a script contains:
+echo    - 'GOTO module.entry_point'
+echo    - module.entry_point()
+echo    - scripts.lib()
+echo    - __metadata__()
+echo=
+echo    This could prevent script from calling another batch file that does not
+echo    contain the module() framework and cause undesired results.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    input_file
+echo        Path of the input file.
+exit /b 0
+
+
+:module.is_module.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.module.is_module
+call %batchlib%:Input.path script_to_check
+echo=
+set "start_time=!time!"
+call :module.is_module "!script_to_check!" && (
+    echo Script supports call as module
+) || echo Script does not support call as module
+call %batchlib%:difftime time_taken !time! !start_time!
+call %batchlib%:ftime time_taken !time_taken!
+echo=
+echo Done in !time_taken!
+exit /b 0
+
+
+rem ======================== function ========================
+
+:module.is_module   input_file
+setlocal EnableDelayedExpansion
+set /a "_missing=0xF"
+for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
+    for /f "tokens=1-2 delims= " %%b in ("%%a") do (
+        if /i "%%b %%c" == "goto module.entry_point" set /a "_missing&=~0x1"
+        if /i "%%b" == ":module.entry_point" set /a "_missing&=~0x2"
+        if /i "%%b" == ":__metadata__" set /a "_missing&=~0x4"
+        if /i "%%b" == ":scripts.lib" set /a "_missing&=~0x8"
+    )
+)
+if not "!_missing!" == "0" exit /b 1
+set "_callable="
+for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
+if not defined _callable exit /b 2
+exit /b 0
+
+
+rem ============================ find_label() ============================
+
+rem ======================== documentation ========================
+
+:find_label.__doc__
+echo NAME
+echo    find_label - find labels that matches the specified pattern
+echo=
+echo SYNOPSIS
+echo    find_label   return_var  [-p pattern]  [-f input_file]
+echo=
+echo DESCRIPTION
+echo    Find all labels that matches the pattern in the input file.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the results, each seperated by space.
+echo=
+echo OPTIONS
+echo    -p PATTERN, --pattern PATTERN
+echo        Pattern of the function label to match. Supports up to 4 wildcards '*'.
+echo        It uses path pattern matching sytle. By default, it is '*'.
+echo=
+echo    -f INPUT_FILE, --file INPUT_FILE
+echo        Path of the input file. By default, it is the current file.
+echo=
+echo ENVIRONMENT
+echo    cd
+echo        Affects the base path of input_file if relative path is given.
+echo=
+echo NOTES
+echo    - The label of the function MUST only be preceeded by either nothing or
+echo      spaces (i.e.: space indentation only)
+echo    - Does not support labels that have:
+echo        - '^^' or '*' in label name
+echo    - Only Windows EOL is supported.
+exit /b 0
+
+
+:find_label.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.find_label
+call :Input.string pattern
+call :Input.path input_file --file --exist
+call :find_label label_match --pattern "!pattern!" --file "!input_file!"
+echo=
+echo Found match:
+set "match_count=0"
+for %%l in (!label_match!) do (
+    set /a "match_count+=1"
+    set "match_count=   !match_count!"
+    set "match_count=!match_count:~-3,3!"
+    echo !match_count!. %%l
+)
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.find_label.main
+> "in\labels" (
+    echo :
+    echo : invalid
+    echo :normal_label
+    echo :normal_label.main
+    echo :$dollar_label
+    echo :\$escaped_dollar_label
+    echo :tests.main
+    echo :tests..main
+    echo :tests.a.main
+    echo :tests.bb.main
+    echo :tests.ccc.main
+    echo :tests.normal_label.main
+    echo :tests.dotted.label.main
+    echo    :tests.indented_label.main
+    echo :tests.normal_label.main.extra
+    echo ::comment
+    echo ::tests.comment.main
+)
+call %batchlib%:capchar LF
+set test_cases= ^
+    ^ 13:   -f "in\labels" !LF!^
+    ^ 13:   -f "in\labels" -p "*" !LF!^
+    ^ 9:    -f "in\labels" -p "tests.*" !LF!^
+    ^ 9:    -f "in\labels" -p "*.main" !LF!^
+    ^ 7:    -f "in\labels" -p "tests.*.main" !LF!^
+    ^ 7:    -f "in\labels" -p "*o*" !LF!^
+    ^ 2:    -f "in\labels" -p "*$*" !LF!^
+    ^ 0:    -f "in\labels" -p ""
+for /f "tokens=*" %%a in ("!test_cases!") do (
+    for /f "tokens=1* delims=:" %%b in ("%%a") do (
+        call :find_label labels %%c
+        set "labels_count=0"
+        for %%l in (!labels!) do set /a "labels_count+=1"
+        if not "!labels_count!" == "%%b" (
+            call %unittest%.fail %%a
+        )
+    )
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:find_label   return_var  [-p pattern]  [-f input_file]
+setlocal EnableDelayedExpansion EnableExtensions
+set "_pattern=*"
+set "_input_file=%~f0"
+set parse_args.args= ^
+    ^ "-p, --pattern    :store:_pattern" ^
+    ^ "-f, --file       :store:_input_file"
+call :parse_args %*
+for %%c in (\ . $ [ ]) do set "_pattern=!_pattern:%%c=\%%c!"
+rem Replace asterisks with contents of %%p
+for /f "delims=" %%p in ("[^^^^: ]*") do (
+    for /f "tokens=1-4* delims=*" %%a in ("_!_pattern!_") do (
+        set "_pattern=%%a"
+        if not "%%b" == "" set "_pattern=!_pattern!%%p%%b"
+        if not "%%c" == "" set "_pattern=!_pattern!%%p%%c"
+        if not "%%d" == "" set "_pattern=!_pattern!%%p%%d"
+        if not "%%e" == "" set "_pattern=!_pattern!%%p%%e"
+        set "_pattern=!_pattern:~1,-1!"
+    )
+)
+set "_result="
+for /f "delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
+    for /f "tokens=1" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
+        for /f "tokens=1 delims=:" %%b in ("%%a") do set "_result=!_result! %%b"
+    )
+)
+for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
+    endlocal
+    set "%~1=%%r"
+)
+exit /b 0
+
+
+rem ================================ extract_func() ================================
+
+rem ======================== documentation ========================
+
+:extract_func.__doc__
+echo NAME
+echo    extract_func - extract batch script functions from a file
+echo=
+echo SYNOPSIS
+echo    extract_func   source_file  labels  [skip_lines]  [read_lines]
+echo=
+echo POSITIONAL ARGUMENTS
+echo    input_file
+echo        Path of the input (batch) file.
+echo=
+echo    labels
+echo        The function labels to extract. The syntax is "label1 [...]".
+echo=
+echo    skip_lines
+echo        Skip N number of lines for each function. For example, if the value
+echo        is set to 1, it will skip the function label. By default, it is 0.
+echo=
+echo    read_lines
+echo        Number of lines to read. If this argument is not specified, it
+echo        will read all lines of the function. If the value is set to a
+echo        negative number, it will skip the last N lines of the function.
+echo=
+echo DEFINITION
+echo    join mark
+echo        A line that solely consist of '#+++'.
+echo=
+echo EXTRACTION
+echo    A matching label tells extract_func() to start extracting starting from
+echo    the current line. For a function to be detected, the label of the function
+echo    MUST only be preceeded by either nothing, or spaces and/or tabs.
+echo=
+echo    Two empty lines tells extract_func() that the function ends here and
+echo    it will stop extraction of the lines below it until it finds another
+echo    matching label.
+echo=
+echo    Functions that have multiple subroutines SHOULD end each subroutine with
+echo    the join mark (see DEFINITION).
+echo=
+echo EXIT STATUS
+echo    0:  - Extraction is successful.
+echo    1:  - Some labels are not found.
+echo=
+echo ENVIRONMENT
+echo    cd
+echo        Affects the base path of input_file if relative path is given.
+echo=
+echo NOTES
+echo    - The order of the function will be based on the order of occurrence
+echo      in the parameter.
+echo    - Results are ECHOed to stdout and it can be redirected to file.
+exit /b 0
+
+
+:extract_func.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.extract_func
+call %batchlib%:Input.string function_labels || set "function_labels=extract_func"
+echo=
+call %batchlib%:extract_func "%~f0" "!function_labels!" && (
+    echo Extract successful
+) || echo Extract failed
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.extract_func.main
+for %%a in (
+    "a30fc4305f5c30d2a990b3fdeb22a0ec85f4067a: special_characters"
+    "ea8a9a50a7516ad813cdad8466ec917863ee1b97: join_mark"
+    "3a6e3b917948a418251d2286c6a4ab8e77e9c007: comments: 2"
+    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, 4"
+    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, -2"
+    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 10, 0"
+    "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 0, -10"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    set "params="
+    for %%e in (%%c) do set "params=!params! tests.lib.extract_func.%%e"
+    call :extract_func "%~f0" "!params!" %%d > "extracted" 2> nul
+    call :checksum result "extracted"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
+:tests.lib.extract_func.comments
+rem This is a function that does nothing
+rem Second line
+exit /b 0
+
+
+:tests.lib.extract_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
+    @call & echo %% !a! %* > nul 2> nul
+
+< nul ( call ) || exit /b 1
+exit /b 0
+
+
+:tests.lib.extract_func.join_mark
+exit /b 0
+#+++
+
+:tests.lib.extract_func.join_mark.joined
+exit /b 0
+
+
+rem ======================== function ========================
+
+:extract_func   source_file  labels  [skip_lines]  [read_lines]
+setlocal EnableDelayedExpansion EnableExtensions
+set "_source_file=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "_to_extract= %~2 "
+set /a "_skip_top=%~3 + 0"
+set "_read_lines="
+set "_exclude_lines=0"
+if not "%~4" == "" (
+    set /a "_read_lines=%~4"
+    if !_read_lines! LSS 0 (
+        set "_read_lines="
+        set /a "_exclude_lines=%~4"
+    )
+)
+set "_not_found= "
+for %%l in (!_to_extract!) do set "_not_found=!_not_found!%%l "
+set "_label_ranges=!_not_found!"
+set "_joins="
+set "_label="
+set "_index="
+set "_expected_index="
+set "_signal="
+findstr /n "^^" "!_source_file!" > "numbered"
+findstr /n /r ^
+    ^ /c:"^^$" ^
+    ^ /c:"^^#+++$" ^
+    ^ /c:"^^[ ]*:[^^: ]*$" ^
+    ^ /c:"^^[ ]*:[^^: ]* .*$" ^
+    ^ "!_source_file!" > "label_n_marks"
+for /f "usebackq tokens=*" %%a in ("label_n_marks") do for /f "tokens=1 delims=:" %%n in ("%%a") do (
+    set "_line=%%a"
+    set "_line=!_line:*:=!"
+    for /f "tokens=1" %%b in ("!_line!") do for /f "tokens=1 delims=:" %%c in ("%%b") do (
+        if ":%%c" == "%%b" (
+            for %%l in (!_not_found!) do if "%%c" == "%%l" (
+                if defined _label (
+                    set "_joins=!_joins!%%l "
+                ) else (
+                    set "_label=%%l"
+                    set /a "_start=%%n-1 + !_skip_top!"
+                    if defined _read_lines set /a "_max_end=!_start! + !_read_lines!"
+                )
+                set "_not_found=!_not_found: %%c = !"
+            )
+        )
+    )
+    if defined _label if not defined _end (
+        if not "%%n" == "!_expected_index!" set "_signal="
+        set "_mark="
+        if not defined _line set "_mark=EOL"
+        if "!_line!" == "#+++" set "_mark=JOIN"
+        if defined _mark (
+            set "_signal=!_signal! !_mark!"
+            for %%p in (
+                " EOL EOL"
+            ) do if "!_signal!" == %%p set "_mark=END"
+            if "!_mark!" == "END" (
+                set /a "_end=%%n + !_exclude_lines!"
+                if defined _max_end (
+                    if !_end! GTR !_max_end! set "_end=!_max_end!"
+                )
+            )
+        ) else set "_signal="
+        set /a "_expected_index=%%n+1"
+    )
+    if defined _label if defined _end (
+        for %%l in (!_label!) do (
+            if !_start! LSS !_end! (
+                for %%n in (!_start!:!_end!) do set "_label_ranges=!_label_ranges: %%l = %%n !"
+            ) else set "_label_ranges=!_label_ranges: %%l = !"
+            for %%v in (_label _start _end _max_end) do set "%%v="
+        )
+    )
+)
+if defined _label for %%l in (!_label!) do (
+    for %%n in (!_start!) do set "_label_ranges=!_label_ranges: %%l = %%n: !"
+)
+set "_leftover=!_not_found: =!"
+if defined _leftover ( 1>&2 echo warning: label not found: !_not_found! )
+for %%l in (!_not_found! !_joins!) do set "_label_ranges=!_label_ranges: %%l = !"
+for %%a in (!_label_ranges!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+    call :extract_func._extract %%b %%c
+)
+del /f /q "numbered"
+if defined _leftover exit /b 1
+exit /b 0
+#+++
+
+:extract_func._extract   start  end
+setlocal DisableDelayedExpansion
+if "%1" == "0" (
+    set "_skip="
+) else set "_skip=skip=%1"
+for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    echo(!_line!
+    endlocal
+    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
+)
+exit /b 0
+
+
+rem ================================ desolve() ================================
+
+rem ======================== documentation ========================
+
+:desolve.__doc__
+echo NAME
+echo    desolve - function dependency resolver
+echo=
+echo SYNOPSIS
+echo    desolve   return_var  base_context  "[context:]label [...]"
+echo=
+echo DESCRIPTION
+echo    This function generates dependency list of a function recursively.
+echo    Function listing also follows order of occurrence in each install_requires.
+echo    Due to nature of batch script, calling a functions that is located below
+echo    the CALL is much faster than if it is located above the CALL. So functions
+echo    as many as possible are defined after they are used. Functions are listed
+echo    from the ones with most dependencies to the ones with no dependencies.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the result.
+echo=
+echo    base_context
+echo        The name of the context. This value is used as default context name for
+echo        labels with no context specified in that module file.
+echo=
+echo    context
+echo        The context name of the function. This can also be the name of a module.
+echo        By default, it is set to base_context.
+echo=
+echo    label
+echo        The function name to resolve for dependency.
+echo=
+echo EXIT STATUS
+echo    0:  - Success.
+echo    1:  - Cyclic dependencies detected.
+echo        - Namespace error / not defined.
+echo        - Failed to resolve dependency of a (sub)module.
+exit /b 0
+
+
+:desolve.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.desolve
+call :Input.string function_name || set "function_name=unittest"
+echo=
+echo Function: !function_name!
+echo=
+call :desolve result  batchlib !function_name!
+echo Dependencies: !result!
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.desolve.main
+call :extract_func "%~f0" ^
+    ^ ^"__init__ ^
+    ^   scripts.lib ^
+    ^   module.entry_point ^" ^
+    ^ > "base"
+
+set "modules=alpha bravo charlie"
+set "alpha.functions=one two three four five"
+set "alpha.one.install_requires=four"
+set "alpha.two.install_requires=three"
+set "alpha.three.install_requires=four"
+set "alpha.four.install_requires="
+set "alpha.five.install_requires=bravo:one"
+set "bravo.functions=one"
+set "bravo.one.install_requires=alpha:four"
+set "charlie.functions=one two three"
+set "charlie.one.install_requires=two"
+set "charlie.two.install_requires=charlie:one"
+set "charlie.three.install_requires=charlie:three"
+for %%m in (!modules!) do (
+    set "%%m.abspath=!cd!\%%m.bat"
+    set %%m="!%%m.abspath!" --module=lib %=END=%
+    > "!%%m.abspath!" (
+        type "base"
+        for %%f in (!%%m.functions!) do (
+            echo :%%f.__metadata__
+            echo set "%%~1install_requires=!%%m.%%f.install_requires!"
+            echo exit /b 0
+            echo=
+            echo=
+        )
+    )
+)
+
+set "test_cases=mutual multi cyclic_sub cyclic_self non_existing"
+set "mutual.resolve=alpha:one alpha:two"
+set "mutual.expected=alpha:one alpha:two alpha:three alpha:four"
+set "multi.resolve=alpha:five"
+set "multi.expected=alpha:five bravo:one alpha:four"
+set "cyclic_sub.resolve=charlie:one"
+set "cyclic_sub.expected="
+set "cyclic_self.resolve=charlie:three"
+set "cyclic_self.expected="
+set "non_existing.resolve=charlie:four"
+set "non_existing.expected="
+
+for %%c in (!test_cases!) do (
+    set "expected=!%%c.expected!"
+    if defined expected (
+        set "_temp=!expected!"
+        set "expected= "
+        for %%b in (!_temp!) do set "expected=!expected!%%b "
+    )
+    call :desolve result batchlib "!%%c.resolve!" 2> nul
+    if not "!result!" == "!expected!" (
+        call %unittest%.fail "%%c dependency check failed"
+    )
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:desolve   return_var  base_context  "[context:]label [...]"
+setlocal EnableDelayedExpansion
+set "_base_module=%~2"
+set "_visited= "
+set "_stack= "
+set "install_requires=%~3"
+call :desolve._resolve !_params! || set "_visited="
+for /f "tokens=1*" %%a in ("Q !_visited!") do (
+    endlocal
+    set "%~1=%%b"
+    if defined %~1 (
+        set "%~1= !%~1!"
+    ) else exit /b 1
+)
+exit /b 0
+#+++
+
+:desolve._resolve
+set "_normalized="
+for %%a in (!install_requires!) do ( rem
+) & for /f "tokens=1* delims=:" %%b in ("%%a") do ( rem
+) & for /f "tokens=1-2 delims=:" %%b in ("%%c:%%b:!_module!:!_base_module!") do (
+    for %%d in (%%~b) do (
+        set "_normalized=%%c:%%d !_normalized!"
+    )
+)
+for %%a in (!_normalized!) do ( rem
+) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
+    if not "!_stack: %%b:%%c =!" == "!_stack!" (
+        ( 1>&2 echo error: cyclic dependencies detected '%%b:%%c' in stack: !_stack! & exit /b 1 )
+    )
+    set "_stack= %%b:%%c!_stack!"
+    set "_module=%%b"
+    set "_context=!%%b!"
+    set "_label=%%c"
+    if not defined _context ( 1>&2 echo error: context for module '%%b' is not defined & exit /b 1 )
+    call :desolve._read_metadata || (
+        ( 1>&2 echo error: cannot resolve dependency '%%b:%%c' in stack: !_stack! & exit /b 1 )
+    )
+    if defined install_requires call :desolve._resolve || exit /b 1
+    if "!_visited: %%a =!" == "!_visited!" set "_visited= %%a!_visited!"
+    for /f "tokens=1* delims= " %%a in ("!_stack!") do set "_stack= %%b"
+)
+exit /b 0
+#+++
+
+:desolve._read_metadata
+set "install_requires="
+call %_context%:%_label%.__metadata__ || exit /b 1
+exit /b 0
+
+
+rem ================================ collect_func() ================================
+
+rem ======================== documentation ========================
+
+:collect_func.__doc__
+echo NAME
+echo    collect_func - extract functions in a given namespace/context
+echo=
+echo SYNOPSIS
+echo    collect_func  "context:label [...]"
+echo=
+echo DESCRIPTION
+echo    This function extracts functions from multiple module files. Function
+echo    listing also follows order of occurrence in the parameter.
+echo    Dependencies are ECHOed to stdout and it can be redirected to file.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    context
+echo        The context name of the function. This can also be the name of a module.
+echo=
+echo    label
+echo        The function name to resolve for dependency.
+echo=
+echo EXIT STATUS
+echo    0:  - Extraction is successful.
+echo    1:  - Label conflict detected
+echo        - Namespace abspath not defined.
+echo        - Some labels are not found.
+exit /b 0
+
+
+:collect_func.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.collect_func
+call :Input.string function_name || set "function_name=batchlib:collect_func"
+echo=
+echo Function: !function_name!
+echo=
+call :collect_func "!function_name!"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.collect_func.main
+set "batchlib.abspath=%~f0"
+set "dummy.abspath=!cd!\dummy.bat"
+for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
+
+set test_args= ^
+    ^ ^"b3fc4b599f588dae2c3cee7d8750fd2232e9bfaa: ^
+    ^   batchlib:join_mark ^
+    ^   dummy:special_characters ^"
+for %%a in (!test_args!) do ( rem
+) & for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "params="
+    set "_dummy_extract="
+    for %%d in (%%c) do ( rem
+    ) & for /f "tokens=1* delims=:" %%e in ("%%d") do (
+        set "params=!params! %%e:tests.lib.collect_func.%%f"
+        if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.lib.collect_func.%%f"
+    )
+    call :extract_func "%~f0" "!_dummy_extract!" > "!dummy.abspath!"
+    call :collect_func "!params!" > "extracted"
+    call :checksum result "extracted"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail "extraction failed: %%b"
+    )
+)
+exit /b 0
+
+
+:tests.lib.collect_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
+    @call & echo %% !a! %* > nul 2> nul
+
+< nul ( call ) || exit /b 1
+exit /b 0
+
+
+:tests.lib.collect_func.join_mark
+exit /b 0
+#+++
+
+:tests.lib.collect_func.join_mark.joined
+exit /b 0
+
+
+rem ======================== function ========================
+
+:collect_func  "context:label [...]"
+setlocal EnableDelayedExpansion
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "_raw_extract_order=%~1"
+set "_to_extract= "
+set "_extract_order= "
+for %%a in (!_raw_extract_order!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+    if "!_to_extract: %%b:'=!" == "!_to_extract!" (
+        if not defined %%b.abspath (
+            ( 1>&2 echo error: module '%%b' abspath not defined & exit /b 1 )
+        )
+        set "_to_extract=!_to_extract!%%b:' ' "
+    )
+    if not "!_to_extract: %%c =!" == "!_to_extract!" (
+        ( 1>&2 echo error: label conflict detected: '%%c' & exit /b 1 )
+    )
+    set "_to_extract=!_to_extract: %%b:' = %%b:' %%c !"
+    set "_extract_order=!_extract_order!%%c "
+)
+set _to_extract=!_to_extract:'="!
+> "unsorted" (
+    for %%a in (!_to_extract!) do ( rem
+    ) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
+        call :extract_func "!%%b.abspath!"  %%c 2> nul
+    )
+)
+call :extract_func "unsorted" "!_extract_order!"
+exit /b 0
+
+
+rem ================================ textrender() ================================
+
+rem ======================== documentation ========================
+
+:textrender.__doc__
+echo NAME
+echo    textrender - text renderer for batch script
+echo=
+echo SYNOPSIS
+echo    textrender   template_file  [renderer]
+echo=
+echo DESCRIPTION
+echo    This function render template files.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    template_file
+echo        Path of the template file.
+echo=
+echo    renderer
+echo        The function name of the renderer.
+echo        By default, it is 'textrender.renderer'
+echo=
+echo TEMPLATE SYNTAX
+echo    Syntax:
+echo        //      comment
+echo        ```     start/end of a block of code
+echo        ``      string literal
+echo=
+echo    Empty lines does not do anything, except when it is surrounded by
+echo    triple back-ticks.
+echo=
+echo    List of render commands (from textrender.render):
+echo        ##   title_text, followed by a empty line
+echo        extract   ["labels_from_this_script"]
+echo=
+echo    Variables can be used in commands.
+echo=
+echo EXIT STATUS
+echo    0:  - Success.
+echo    1:  - Template error.
+exit /b 0
+
+
+:textrender.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ extract_func
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.textrender
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "label_name=tests.lib.textrender.example"
+set "eof_label=EOF"
+echo=
+echo Label: !label_name!
+echo=
+echo Template:
+call :extract_func "%~f0" "!label_name!" 1 -3 > "template"
+type "template"
+echo=
+echo Result:
+call :textrender "template"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.textrender.main
+set "eof_label=EOF"
+
+for %%a in (
+    "c9aff43d2fd38cae6b2a72e8302efd0abb931cde: tests.lib.textrender.example"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    call :extract_func "%~f0" "%%c" 1 -3 > "template"
+    call :textrender "template" > "result"
+    call :checksum result "result"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail "render failed: %%b"
+    )
+)
+exit /b 0
+
+
+:tests.lib.textrender.example
+## Welcome to batch script
+`` This line will be literally written as-is,
+`` without the first 3 characters.     ^^^^^
+```
+extract "nothing"
+because it is in a code block!
+```
+// Make three empty lines
+``
+``
+``
+extract "tests.lib.textrender.comments"
+extract "!eof_label!"
+exit /b 0
+
+
+:tests.lib.textrender.comments
+rem This is a function that does nothing
+rem Second line
+exit /b 0
+
+
+rem ======================== function ========================
+
+setlocal DisableDelayedExpansion
+if "%1" == "0" (
+    set "_skip="
+) else set "_skip=skip=%1"
+for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    echo(!_line!
+    endlocal
+    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
+)
+exit /b 0
+
+
+:textrender   template_file  [renderer]
+setlocal EnableDelayedExpansion EnableExtensions
+set "_source_file=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+if "%~2" == "" (
+    set "_renderer=textrender.renderer"
+) else set "_renderer=%~2"
+findstr /n "^^" "!_source_file!" > "numbered"
+setlocal DisableDelayedExpansion
+set "_literal="
+for /f "usebackq tokens=*" %%o in ("numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    set "_line=!_line:*:=!"
+    if "!_line!" == "```" (
+        if defined _literal (
+            set "_literal="
+        ) else set "_literal=true"
+        for %%s in ("!_literal!") do (
+            endlocal
+            set "_literal=%%~s"
+        )
+    ) else if "!_line:~0,2!" == "``" (
+        echo(!_line:~3!
+        endlocal
+    ) else (
+        if defined _literal (
+            echo(!_line!
+        ) else (
+            set "_exec=true"
+            if not defined _line set "_exec="
+            if "!_line:~0,2!" == "//" set "_exec="
+            if defined _exec call :textrender._renderer_exec || exit /b 1
+        )
+        endlocal
+    )
+)
+exit /b 0
+#+++
+
+:textrender._renderer_exec
+call :%_renderer%.%_line% || exit /b 1
+exit /b 0
+#+++
+
+:textrender.renderer.extract   labels
+call :extract_func "%~f0" %1 || exit /b 1
+exit /b 0
+#+++
+
+:textrender.renderer.##   heading
+echo rem ======================================== %* ========================================
+echo=
+exit /b 0
+#+++
+
+:textrender.renderer.###   heading
+echo rem ================================ %* ================================
+echo=
 exit /b 0
 
 
@@ -7141,307 +7646,401 @@ for /f "tokens=*" %%r in ("!_result!") do (
 exit /b 0
 
 
-rem ================================ module ================================
+rem ============================ updater() ============================
 
 rem ======================== documentation ========================
 
-:module.__doc__
-echo Module Framework
-echo=
-echo DESCRIPTION
-echo    module framework allows scripts to execute modules. With module framework,
-echo    a script can call function of another script as if they exist in the
-echo    caller's file (with some limitation). This also enable scripts to have
-echo    multiple entry points. A common example is to use module framework to start
-echo    multiple batch script windows.
-echo=
-echo LIMITATIONS
-echo    There are some limitations due to the behavior of batch script.
-echo    For completeness, known strange behaviors are listed below:
-echo        1. GOTO context hack behaves strangely, specific details for this
-echo           behavior is still unknown (but it breaks parse_args() when it is
-echo           when used as an external function)
-echo=
-echo FUNCTIONS
-echo    - module.entry_point()
-echo    - module.read_metadata()
-echo    - module.is_module()
-echo=
-echo NOTES
-echo    - Function MUST be embedded into the script to work correctly.
-exit /b 0
-
-
-:module.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ module.entry_point ^
-    ^ module.read_metadata ^
-    ^ module.is_module
-exit /b 0
-
-
-:demo.module
-echo Demo is unavailable.
-exit /b 0
-
-
-:module
-rem Module Framework
-exit /b 0
-
-
-rem ============================ .entry_point() ============================
-
-rem ======================== documentation ========================
-
-:module.entry_point.__doc__
+:updater.__doc__
 echo NAME
-echo    module.entry_point - determine the script entry point and GOTO the label
+echo    updater - update a batch script from the internet
 echo=
 echo SYNOPSIS
-echo    module.entry_point   [--module=name]  [args]
+echo    updater   script_path  [-f]  [-u]  [-d url]
+echo=
+echo DESCRIPTION
+echo    This function can detect updates, download them, and update the script.
+echo    The 'download_url' in __metadata__() needs to be added.
 echo=
 echo POSITIONAL ARGUMENTS
-echo    args
-echo        The parameters for the script/entry point.
+echo    script_path
+echo        Path of the (batch) file.
 echo=
 echo OPTIONS
-echo    --module=NAME
-echo        Specify the entry point of the script. The entry point will be called
-echo        with the arguments and exit code will be preserved upon exit.
-echo        If this option is not set, the function will 'GOTO __main__'.
+echo    -u, --upgrade
+echo        Perform an upgrade on the script (REPLACES the current file).
 echo=
-echo ENTRY POINTS
-echo    An entry point is a label follows the pattern ':scripts.NAME'.
-echo    For a entry point to be detected, the label of the function MUST
-echo    be preceeded by either nothing, or spaces and/or tabs.
+echo    -V, --skip-verification
+echo        Skip verification of module name and version of downloaded update file.
+echo        Use this only if the update is not backward compatible.
+echo=
+echo    -d, --download-url
+echo        Use this url instead of the download_url at the script's __metadata__().
+echo=
+echo ENVIRONMENT
+echo    temp_path
+echo        Path to store the update file.
+echo=
+echo    temp
+echo        Fallback path for temp_path if temp_path does not exist
+echo=
+echo DEPENDENCIES
+echo    Extras:
+echo        - diffdate()
+echo=
+echo    Script file:
+echo        - __metadata__()
+echo        - module()
+echo        - scripts.lib()
 echo=
 echo NOTES
-echo    - Function MUST be embedded into the script to work correctly.
+echo    - Do not set your script version to '0.dev0' equivalent values.
+echo      Your script will unconditionally fail the unittest.
+echo    - Undefined script version is allowed.
 echo=
-echo USAGE
-echo    The first command on the script should be '@goto module.entry_point'
+echo EXIT STATUS
+echo    0:  - Success.
+echo    1:  - Failed to get download url.
+echo    2:  - Failed to get update.
+echo    3:  - Failed to read update information.
+echo    4:  - The update file does not pass the verification.
+echo    5:  - No update is available.
+echo    6:  - Update failed.
 exit /b 0
 
 
-:module.entry_point.__metadata__   [return_prefix]
-set "%~1install_requires="
+:updater.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ download_file ^
+    ^ parse_version ^
+    ^ module.is_module ^
+    ^ module.read_metadata
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.module.entry_point
-echo Reads the argument to determine which script/entry point to GOTO
-echo Used for scripts that has multiple entry points
+:demo.updater
+echo Checking for updates...
+call :updater "%~f0" || exit /b 0
 echo=
-echo Press any key to start another window...
-pause > nul
-@echo on
-start "" /i cmd /c ""%~f0" --module=2nd_window_demo   test "arg" Here"
-@echo off
+echo Note:
+echo - Updating will REPLACE current script with the newer version
 echo=
-echo 'cmd /c' is required to make sure the new window closes
-echo if it exits using the 'exit /b' command
+call %batchlib%:Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
+echo=
+call :updater --upgrade "%~f0" && (
+    echo Upgrade successful. Script will exit.
+    pause
+    exit 0
+)
 exit /b 0
-#+++
-
-:scripts.2nd_window_demo
-@echo off
-setlocal EnableDelayedExpansion
-title Second Window
-echo Hello! I am the second window.
-echo=
-echo Arguments  : %*
-echo=
-pause
-exit 0
 
 
 rem ======================== tests ========================
 
-:tests.lib.module.entry_point.main
-call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry_point.bat"
-call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" > "capture_args"
+:tests.lib.updater.main
+(
+    call :module.is_module "%~f0" ^
+    && call :__metadata__ SOFTWARE.
+) || ( call %unittest%.error "Cannot read metadata of this script" & exit /b 0 )
 
->> "test_entry_point.bat" (
+set "no_internet=true"
+for %%n in (1,1,3) do for %%h in (google.com baidu.com) do (
+    if defined no_internet call :ping_test _ %%h "-n 1" && set "no_internet="
+)
+if defined no_internet call %unittest%.skip "Cannot connect to the internet" & exit /b 0
+
+set updater= ^
+    ^   updater ^
+    ^   download_file parse_version parse_args diffdate ^
+    ^   module.entry_point module.read_metadata module.is_module
+call %batchlib%:extract_func "%~f0" ^
+    ^ ^"__init__ scripts.lib ^
+    ^   !updater! ^
+    ^   tests.lib.updater.simulate ^
+    ^   tests.lib.updater.setup_metadata ^
+    ^   tests.lib.updater.make_metadata ^" ^
+    ^ > "cache"
+>> "cache" (
     echo :__main__
     echo @call :scripts.main %%*
     echo @exit /b %%errorlevel%%
+    echo=
+    echo=
 
-    for %%e in (main second) do (
-        echo :scripts.%%e
-        echo set "entry_point=%%e"
-        < nul set /p "=@rem "
-        type "capture_args"
-    )
+    echo :__metadata__
+    < nul set /p "=@rem "
+    call %batchlib%:extract_func "cache" "tests.lib.updater.make_metadata"
+
+    echo :scripts.main
+    < nul set /p "=@rem "
+    call %batchlib%:extract_func "cache" "tests.lib.updater.simulate"
 )
-
-call %batchlib%:capchar LF
-set test_cases= ^
-    ^ "no args"         :main:       !LF!^
-    ^ "quoted --module" :main:       "--module" second !LF!^
-    ^ "second module"   :second:     --module second
-for /f "tokens=*" %%a in ("!test_cases!") do (
-    for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
-        set "entry_point="
-        call "test_entry_point.bat" %%d > nul
-        set "exit_code=!errorlevel!"
-        if not "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!" (
-            echo "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!"
-            call %unittest%.fail %%b
-        )
+call %batchlib%:extract_func "cache" ^
+    ^ ^"__init__ __main__ scripts.lib ^
+    ^   !updater! ^
+    ^   __metadata__ ^
+    ^   scripts.main ^
+    ^   tests.lib.updater.setup_metadata ^" ^
+    ^ > "test_with_metadata"
+for %%a in (
+    "0: --upgrade --skip-verification"
+    "0: --upgrade : version_lower"
+    "1: --upgrade : download_url_undefined"
+    "2: --upgrade : download_url_invalid"
+    "4: --upgrade : name_different"
+    "5: --upgrade : "
+    "5: --upgrade : version_higer"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    copy /y test_with_metadata test_updater.bat > nul
+    start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul ^
+    || ( call %unittest%.error "Cannot start test update" & exit /b 0 )
+    set "exit_code=!errorlevel!"
+    if not "!exit_code!" == "%%b" (
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
-#+++
 
-:tests.lib.module.entry_point.capture_args
-set args=%*
-set "expected_exit_code=%random%"
-echo Arguments: %*
-exit /b %expected_exit_code%
+
+:tests.lib.updater.simulate   update_params  condition
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+call :tests.lib.updater.setup_metadata %2
+(
+    call :updater %~1 "%~f0"
+    exit /b !errorlevel!
+)
+exit /b %errorlevel%
+
+
+:tests.lib.updater.setup_metadata   parameters
+set "metadata_variables=name version release_date download_url"
+for %%v in (!metadata_variables!) do (
+    set "given.%%v=!SOFTWARE.%%v!"
+)
+for %%a in (%~1) do (
+    if "%%a" == "name_different" set "given.name=.test!random!!random!!random!"
+
+    if "%%a" == "version_lower" set "given.version=.dev"
+    if "%%a" == "version_higer" set "given.version=999"
+
+    if "%%a" == "date_older" set "given.release_date=1/1/1970"
+    if "%%a" == "date_newer" set "given.release_date=12/31/9999"
+
+    if "%%a" == "download_url_undefined" set "given.download_url="
+    if "%%a" == "download_url_invalid" set "given.download_url=256.256.256.256"
+)
+exit /b 0
+
+
+:tests.lib.updater.make_metadata   [return_prefix]
+for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
+exit /b 0
 
 
 rem ======================== function ========================
 
-:module.entry_point   [--module=<name>]  [args]
-@if /i not "%~1" == "--module" @goto __main__
-@if /i #%1 == #"%~1" @goto __main__
-@setlocal DisableDelayedExpansion
-@set module.entry_point.args=%*
-@setlocal EnableDelayedExpansion
-@for /f "tokens=1* delims== " %%a in ("!module.entry_point.args!") do @(
-    endlocal
-    endlocal
-    call :scripts.%%b
+:updater   script_path  [-f]  [-u]  [-d url]
+setlocal EnableDelayedExpansion
+for %%v in (_upgrade _download_url) do set "%%v="
+set "_verify=true"
+set parse_args.args= ^
+    ^ "-V, --skip-verification  :store_const:_verify=" ^
+    ^ "-u, --upgrade            :store_const:_upgrade=true" ^
+    ^ "-d, --download-url       :store:_download_url"
+call :parse_args %*
+set "_part=%~f1"
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+set "_other=!cd!\latest.bat"
+(
+    call :module.is_module "!_part!" ^
+    && call :module.read_metadata _part. "!_part!" ^
+    && if not defined _download_url set "_download_url=!_part.download_url!" ^
+    && if not defined _download_url ( exit /? > nul )
+) || ( 1>&2 echo error: failed to get download url & exit /b 1 )
+call %batchlib%:download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 2 )
+if defined _verify (
+    (
+        call :module.is_module "!_other!" ^
+        && call :module.read_metadata _other. "!_other!" ^
+        && if not defined _other.version ( exit /? > nul )
+    ) || ( 1>&2 echo error: failed to read update information & exit /b 3 )
+    if /i not "!_other.name!" == "!_part.name!" ( 1>&2 echo error: module name does not match & exit /b 4 )
+    call :parse_version _part.parsed_version "!_part.version!"
+    call :parse_version _other.parsed_version "!_other.version!"
+    if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 5 )
+    if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 5 )
+    call %batchlib%:diffdate update_age !date:~4! !_other.release_date! 2> nul && (
+        echo !_other.description! !_other.version! is now available ^(!update_age! days ago^)
+    ) || echo !_other.description! !_other.version! is now available ^(since !_other.release_date!^)
 )
-@exit /b %errorlevel%
-
-
-rem ============================ .read_metadata() ============================
-
-rem ======================== documentation ========================
-
-:module.read_metadata.__doc__
-echo NAME
-echo    module.read_metadata - read metadata of a script
-echo=
-echo SYNOPSIS
-echo    module.read_metadata   return_prefix  input_file
-echo=
-echo POSITIONAL ARGUMENTS
-echo    return_prefix
-echo        Prefix of the variable to store the metadata.
-echo        Generally metadata includes: name, version, author, license,
-echo        description, release_date, url, download_url.
-echo=
-echo    input_file
-echo        Path of the input (batch) file.
-exit /b 0
-
-
-:module.read_metadata.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.module.read_metadata
-call %batchlib%:Input.path script_to_check
-call :module.is_module "!script_to_check!" || (
-    echo Script does not support call as module
-    echo Please choose another script that supports call as module
+if not defined _upgrade (
+    del /f /q "!_other!"
     exit /b 0
 )
+move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 6 )
+exit /b 0
+
+
+rem ================================ fix_eol() ================================
+
+rem ======================== documentation ========================
+
+:fix_eol.__doc__
+echo NAME
+echo    fix_eol, fix_eol.alt1, fix_eol.alt2 - convert EOL of the script to CRLF
 echo=
-echo Metadata:
-call :module.read_metadata script. "!script_to_check!"
-set "script."
+echo SYNOPSIS
+echo    fix_eol
+echo=
+echo EXIT STATUS
+echo    0:  - EOL conversion is not necessary.
+echo        - EOL conversion is successful.
+echo    1:  - EOL conversion failed.
+echo=
+echo BEHAVIOR
+echo    - Script will EXIT if EOL conversion is successful.
+echo=
+echo NOTES
+echo    - Function MUST be embedded into the script to work correctly.
+echo    - Can be used to detect and fix script EOL if it was downloaded
+echo      from GitHub, since uses Unix EOL (LF).
+exit /b 0
+
+
+:fix_eol.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ check_win_eol
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.fix_eol
+echo Fixing EOL...
+for %%n in (1 2) do call :fix_eol.alt%%n && (
+    echo [fix_eol.alt%%n] Fix not necessary
+) || echo [fix_eol.alt%%n] Fix failed
 exit /b 0
 
 
 rem ======================== function ========================
 
-:module.read_metadata   return_prefix  script_path
-for %%v in (
-    name version
-    author license
-    description release_date
-    url download_url
-    install_requires
-) do set "%~1%%v="
-call "%~2" --module=lib :__metadata__ "%~1" || exit /b 1
-exit /b 0
+:fix_eol
+rem The label below is an alternative label if the main label cannot be found
+:fix_eol.alt1
+rem THIS IS REQUIRED
+:fix_eol.alt2
+for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
+    call :check_win_eol.alt%%n || (
+        echo Converting EOL...
+        type "%~f0" | more /t4 > "%~f0.tmp" && (
+            move "%~f0.tmp" "%~f0" > nul && (
+                echo Convert EOL done
+                echo Script will exit. Press any key to continue...
+                pause > nul
+                exit 0
+            )
+        )
+        ( 1>&2 echo warning: Convert EOL failed )
+        exit /b 1
+    )
+    exit /b 0
+)
+( 1>&2 echo error: failed to call check_win_eol^(^) )
+exit /b 1
 
 
-rem ============================ .is_module() ============================
+rem ================================ check_win_eol() ================================
 
 rem ======================== documentation ========================
 
-:module.is_module.__doc__
+:check_win_eol.__doc__
 echo NAME
-echo    module.is_module - check if a given file is a batch script module
+echo    check_win_eol, check_win_eol.alt1, check_win_eol.alt1
+echo    - check EOL type of current script
 echo=
 echo SYNOPSIS
-echo    module.is_module   input_file
+echo    check_win_eol   [--check-exist]
 echo=
-echo DESCRIPTION
-echo    This function checks if a script contains:
-echo    - 'GOTO module.entry_point'
-echo    - module.entry_point()
-echo    - scripts.lib()
-echo    - __metadata__()
+echo OPTIONS
+echo    -c, --check-exist
+echo        Check if function exist / is callable.
 echo=
-echo    This could prevent script from calling another batch file that does not
-echo    contain the module() framework and cause undesired results.
+echo EXIT STATUS
+echo    0:  - EOL is Windows (CRLF)
+echo        - '-c' is specified, and the function is callable.
+echo    1:  - EOL is Unix (LF)
+echo        - The function is uncallable.
 echo=
-echo POSITIONAL ARGUMENTS
-echo    input_file
-echo        Path of the input file.
+echo NOTES
+echo    - Function MUST be embedded into the script to work correctly.
+echo    - If EOL is Mac (CR), this script would probably have crashed
+echo      in the first place.
 exit /b 0
 
 
-:module.is_module.__metadata__   [return_prefix]
+:check_win_eol.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.module.is_module
-call %batchlib%:Input.path script_to_check
-echo=
-set "start_time=!time!"
-call :module.is_module "!script_to_check!" && (
-    echo Script supports call as module
-) || echo Script does not support call as module
-call %batchlib%:difftime time_taken !time! !start_time!
-call %batchlib%:ftime time_taken !time_taken!
-echo=
-echo Done in !time_taken!
+:demo.check_win_eol
+for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
+    call :check_win_eol.alt%%n && (
+        echo [check_win_eol.alt%%n] EOL is Windows 'CRLF'
+    ) || echo [check_win_eol.alt%%n] EOL is Unix 'LF'
+)
 exit /b 0
 
 
 rem ======================== function ========================
 
-:module.is_module   input_file
-setlocal EnableDelayedExpansion
-set /a "_missing=0xF"
-for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
-    for /f "tokens=1-2 delims= " %%b in ("%%a") do (
-        if /i "%%b %%c" == "goto module.entry_point" set /a "_missing&=~0x1"
-        if /i "%%b" == ":module.entry_point" set /a "_missing&=~0x2"
-        if /i "%%b" == ":__metadata__" set /a "_missing&=~0x4"
-        if /i "%%b" == ":scripts.lib" set /a "_missing&=~0x8"
-    )
-)
-if not "!_missing!" == "0" exit /b 1
-set "_callable="
-for %%x in (.bat .cmd) do if "%~x1" == "%%x" set "_callable=true"
-if not defined _callable exit /b 2
-exit /b 0
+:check_win_eol   [--check-exist]
+rem The label below is an alternative label if the main label cannot be found
+:check_win_eol.alt1
+rem THIS IS REQUIRED
+:check_win_eol.alt2
+for %%f in (-c, --check-exist)do if /i "%1" == "%%f" exit /b 0
+@call :check_win_eol._test 2> nul && exit /b 0 || exit /b 1
+rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
+rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
+rem  3                                                                                                                        #
+rem  4  Length of this comment section should be at most 4095 characters if EOL is LF only (Unix)                             #
+rem  5  Comment could contain anything, but it is best to set it to empty space                                               #
+rem  6  so your code editor won't slow down when scrolling through this section                                               #
+rem  7                                                                                                                        #
+rem  8                                                                                                                        #
+rem  9                                                                                                                        #
+rem 10                                                                                                                        #
+rem 11                                                                                                                        #
+rem 12                                                                                                                        #
+rem 13                                                                                                                        #
+rem 14                                                                                                                        #
+rem 15                                                                                                                        #
+rem 16                                                                                                                        #
+rem 17                                                                                                                        #
+rem 18                                                                                                                        #
+rem 19                                                                                                                        #
+rem 20                                                                                                                        #
+rem 21                                                                                                                        #
+rem 22                                                                                                                        #
+rem 23                                                                                                                        #
+rem 24                                                                                                                        #
+rem 25                                                                                                                        #
+rem 26                                                                                                                        #
+rem 27                                                                                                                        #
+rem 28                                                                                                                        #
+rem 29                                                                                                                        #
+rem 30                                                                                                                        #
+rem 31                                                                                                                        #
+rem 32  LAST LINE: should be 1 character shorter than the rest                                              DO NOT MODIFY -> #
+:check_win_eol._test
+@exit /b 0
 
 
 rem ================================ unittest() ================================
@@ -8158,730 +8757,128 @@ for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do 
 exit /b 0
 
 
-rem ============================ updater() ============================
+rem ================================ endlocal() ================================
 
 rem ======================== documentation ========================
 
-:updater.__doc__
+:endlocal.__doc__
 echo NAME
-echo    updater - update a batch script from the internet
+echo    endlocal - make variables survive ENDLOCAL
 echo=
 echo SYNOPSIS
-echo    updater   script_path  [-f]  [-u]  [-d url]
-echo=
-echo DESCRIPTION
-echo    This function can detect updates, download them, and update the script.
-echo    The 'download_url' in __metadata__() needs to be added.
+echo    endlocal   old_name:new_name  [old_name:new_name [...]]
 echo=
 echo POSITIONAL ARGUMENTS
-echo    script_path
-echo        Path of the (batch) file.
+echo    old_name
+echo        Variable name to keep (before endlocal).
 echo=
-echo OPTIONS
-echo    -u, --upgrade
-echo        Perform an upgrade on the script (REPLACES the current file).
-echo=
-echo    -V, --skip-verification
-echo        Skip verification of module name and version of downloaded update file.
-echo        Use this only if the update is not backward compatible.
-echo=
-echo    -d, --download-url
-echo        Use this url instead of the download_url at the script's __metadata__().
-echo=
-echo ENVIRONMENT
-echo    temp_path
-echo        Path to store the update file.
-echo=
-echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
-echo=
-echo DEPENDENCIES
-echo    Extras:
-echo        - diffdate()
-echo=
-echo    Script file:
-echo        - __metadata__()
-echo        - module()
-echo        - scripts.lib()
+echo    new_name
+echo        Variable name to use (after endlocal).
 echo=
 echo NOTES
-echo    - Do not set your script version to '0.dev0' equivalent values.
-echo      Your script will unconditionally fail the unittest.
-echo    - Undefined script version is allowed.
-echo=
-echo EXIT STATUS
-echo    0:  - Success.
-echo    1:  - Failed to get download url.
-echo    2:  - Failed to get update.
-echo    3:  - Failed to read update information.
-echo    4:  - The update file does not pass the verification.
-echo    5:  - No update is available.
-echo    6:  - Update failed.
+echo    - Variables that contains Line Feed character are not supported and it
+echo      could cause unexpected errors.
 exit /b 0
 
 
-:updater.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ parse_args ^
-    ^ download_file ^
-    ^ parse_version ^
-    ^ module.is_module ^
-    ^ module.read_metadata
+:endlocal.__metadata__   [return_prefix]
+set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.updater
-echo Checking for updates...
-call :updater "%~f0" || exit /b 0
-echo=
-echo Note:
-echo - Updating will REPLACE current script with the newer version
-echo=
-call %batchlib%:Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
-echo=
-call :updater --upgrade "%~f0" && (
-    echo Upgrade successful. Script will exit.
-    pause
-    exit 0
-)
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.updater.main
+:demo.endlocal
+@echo on
+set "var_del=This variable will be deleted"
+set "var_keep=This variable will keep its content"
+setlocal
+set "var_del="
+set "var_keep=Attempting to change it"
+set "var_hello=I am a new variable^!"
 (
-    call :module.is_module "%~f0" ^
-    && call :__metadata__ SOFTWARE.
-) || ( call %unittest%.error "Cannot read metadata of this script" & exit /b 0 )
-
-set "no_internet=true"
-for %%n in (1,1,3) do for %%h in (google.com baidu.com) do (
-    if defined no_internet call :ping_test _ %%h "-n 1" && set "no_internet="
+    @echo off
+    call %batchlib%:endlocal var_del var_hello:var_new_name
+    @echo on
 )
-if defined no_internet call %unittest%.skip "Cannot connect to the internet" & exit /b 0
-
-set updater= ^
-    ^   updater ^
-    ^   download_file parse_version parse_args diffdate ^
-    ^   module.entry_point module.read_metadata module.is_module
-call %batchlib%:extract_func "%~f0" ^
-    ^ ^"__init__ scripts.lib ^
-    ^   !updater! ^
-    ^   tests.lib.updater.simulate ^
-    ^   tests.lib.updater.setup_metadata ^
-    ^   tests.lib.updater.make_metadata ^" ^
-    ^ > "cache"
->> "cache" (
-    echo :__main__
-    echo @call :scripts.main %%*
-    echo @exit /b %%errorlevel%%
-    echo=
-    echo=
-
-    echo :__metadata__
-    < nul set /p "=@rem "
-    call %batchlib%:extract_func "cache" "tests.lib.updater.make_metadata"
-
-    echo :scripts.main
-    < nul set /p "=@rem "
-    call %batchlib%:extract_func "cache" "tests.lib.updater.simulate"
-)
-call %batchlib%:extract_func "cache" ^
-    ^ ^"__init__ __main__ scripts.lib ^
-    ^   !updater! ^
-    ^   __metadata__ ^
-    ^   scripts.main ^
-    ^   tests.lib.updater.setup_metadata ^" ^
-    ^ > "test_with_metadata"
-for %%a in (
-    "0: --upgrade --skip-verification"
-    "0: --upgrade : version_lower"
-    "1: --upgrade : download_url_undefined"
-    "2: --upgrade : download_url_invalid"
-    "4: --upgrade : name_different"
-    "5: --upgrade : "
-    "5: --upgrade : version_higer"
-) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
-    copy /y test_with_metadata test_updater.bat > nul
-    start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul ^
-    || ( call %unittest%.error "Cannot start test update" & exit /b 0 )
-    set "exit_code=!errorlevel!"
-    if not "!exit_code!" == "%%b" (
-        call %unittest%.fail %%a
-    )
-)
-exit /b 0
-
-
-:tests.lib.updater.simulate   update_params  condition
-@setlocal EnableDelayedExpansion EnableExtensions
+set var_
 @echo off
-call :tests.lib.updater.setup_metadata %2
-(
-    call :updater %~1 "%~f0"
-    exit /b !errorlevel!
-)
-exit /b %errorlevel%
-
-
-:tests.lib.updater.setup_metadata   parameters
-set "metadata_variables=name version release_date download_url"
-for %%v in (!metadata_variables!) do (
-    set "given.%%v=!SOFTWARE.%%v!"
-)
-for %%a in (%~1) do (
-    if "%%a" == "name_different" set "given.name=.test!random!!random!!random!"
-
-    if "%%a" == "version_lower" set "given.version=.dev"
-    if "%%a" == "version_higer" set "given.version=999"
-
-    if "%%a" == "date_older" set "given.release_date=1/1/1970"
-    if "%%a" == "date_newer" set "given.release_date=12/31/9999"
-
-    if "%%a" == "download_url_undefined" set "given.download_url="
-    if "%%a" == "download_url_invalid" set "given.download_url=256.256.256.256"
-)
-exit /b 0
-
-
-:tests.lib.updater.make_metadata   [return_prefix]
-for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
-exit /b 0
-
-
-rem ======================== function ========================
-
-:updater   script_path  [-f]  [-u]  [-d url]
-setlocal EnableDelayedExpansion
-for %%v in (_upgrade _download_url) do set "%%v="
-set "_verify=true"
-set parse_args.args= ^
-    ^ "-V, --skip-verification  :store_const:_verify=" ^
-    ^ "-u, --upgrade            :store_const:_upgrade=true" ^
-    ^ "-d, --download-url       :store:_download_url"
-call :parse_args %*
-set "_part=%~f1"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-set "_other=!cd!\latest.bat"
-(
-    call :module.is_module "!_part!" ^
-    && call :module.read_metadata _part. "!_part!" ^
-    && if not defined _download_url set "_download_url=!_part.download_url!" ^
-    && if not defined _download_url ( exit /? > nul )
-) || ( 1>&2 echo error: failed to get download url & exit /b 1 )
-call %batchlib%:download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 2 )
-if defined _verify (
-    (
-        call :module.is_module "!_other!" ^
-        && call :module.read_metadata _other. "!_other!" ^
-        && if not defined _other.version ( exit /? > nul )
-    ) || ( 1>&2 echo error: failed to read update information & exit /b 3 )
-    if /i not "!_other.name!" == "!_part.name!" ( 1>&2 echo error: module name does not match & exit /b 4 )
-    call :parse_version _part.parsed_version "!_part.version!"
-    call :parse_version _other.parsed_version "!_other.version!"
-    if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 5 )
-    if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 5 )
-    call %batchlib%:diffdate update_age !date:~4! !_other.release_date! 2> nul && (
-        echo !_other.description! !_other.version! is now available ^(!update_age! days ago^)
-    ) || echo !_other.description! !_other.version! is now available ^(since !_other.release_date!^)
-)
-if not defined _upgrade (
-    del /f /q "!_other!"
-    exit /b 0
-)
-move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 6 )
-exit /b 0
-
-
-rem ================================ collect_func() ================================
-
-rem ======================== documentation ========================
-
-:collect_func.__doc__
-echo NAME
-echo    collect_func - extract functions in a given namespace/context
-echo=
-echo SYNOPSIS
-echo    collect_func  "context:label [...]"
-echo=
-echo DESCRIPTION
-echo    This function extracts functions from multiple module files. Function
-echo    listing also follows order of occurrence in the parameter.
-echo    Dependencies are ECHOed to stdout and it can be redirected to file.
-echo=
-echo POSITIONAL ARGUMENTS
-echo    context
-echo        The context name of the function. This can also be the name of a module.
-echo=
-echo    label
-echo        The function name to resolve for dependency.
-echo=
-echo EXIT STATUS
-echo    0:  - Extraction is successful.
-echo    1:  - Label conflict detected
-echo        - Namespace abspath not defined.
-echo        - Some labels are not found.
-exit /b 0
-
-
-:collect_func.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.collect_func
-call :Input.string function_name || set "function_name=batchlib:collect_func"
-echo=
-echo Function: !function_name!
-echo=
-call :collect_func "!function_name!"
 exit /b 0
 
 
 rem ======================== tests ========================
 
-:tests.lib.collect_func.main
-set "batchlib.abspath=%~f0"
-set "dummy.abspath=!cd!\dummy.bat"
-for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
+:tests.lib.endlocal.main
+set "old_vars=01 02"
+set "new_vars=01"
+set "conv_vars=01:01 02:03 03:02"
+set expected_result= ^
+    ^ 01:new ^
+    ^ 02: ^
+    ^ 03:old
 
-set test_args= ^
-    ^ ^"b3fc4b599f588dae2c3cee7d8750fd2232e9bfaa: ^
-    ^   batchlib:join_mark ^
-    ^   dummy:special_characters ^"
-for %%a in (!test_args!) do ( rem
-) & for /f "tokens=1* delims=:" %%b in (%%a) do (
-    set "params="
-    set "_dummy_extract="
-    for %%d in (%%c) do ( rem
-    ) & for /f "tokens=1* delims=:" %%e in ("%%d") do (
-        set "params=!params! %%e:tests.lib.collect_func.%%f"
-        if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.lib.collect_func.%%f"
-    )
-    call :extract_func "%~f0" "!_dummy_extract!" > "!dummy.abspath!"
-    call :collect_func "!params!" > "extracted"
-    call :checksum result "extracted"
-    if not "!result!" == "%%b" (
-        call %unittest%.fail "extraction failed: %%b"
+for %%v in (!old_vars!) do set "%%v=old"
+setlocal
+for %%v in (!new_vars!) do set "%%v=new"
+call :endlocal %conv_vars% quotes
+
+for %%c in (!expected_result!) do (
+    for /f "tokens=1* delims=:" %%a in ("%%~c") do (
+        if not "!%%a!" == "%%b" (
+            call %unittest%.fail %%a
+        )
     )
 )
 exit /b 0
 
 
-:tests.lib.collect_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
-    @call & echo %% !a! %* > nul 2> nul
-
-< nul ( call ) || exit /b 1
-exit /b 0
-
-
-:tests.lib.collect_func.join_mark
-exit /b 0
-#+++
-
-:tests.lib.collect_func.join_mark.joined
-exit /b 0
-
+rem (!) Needs more test cases
+rem test if variable starts with equal sign
 
 rem ======================== function ========================
 
-:collect_func  "context:label [...]"
+:endlocal   old_name:new_name  [old_name:new_name [...]]
 setlocal EnableDelayedExpansion
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-set "_raw_extract_order=%~1"
-set "_to_extract= "
-set "_extract_order= "
-for %%a in (!_raw_extract_order!) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
-    if "!_to_extract: %%b:'=!" == "!_to_extract!" (
-        if not defined %%b.abspath (
-            ( 1>&2 echo error: module '%%b' abspath not defined & exit /b 1 )
-        )
-        set "_to_extract=!_to_extract!%%b:' ' "
-    )
-    if not "!_to_extract: %%c =!" == "!_to_extract!" (
-        ( 1>&2 echo error: label conflict detected: '%%c' & exit /b 1 )
-    )
-    set "_to_extract=!_to_extract: %%b:' = %%b:' %%c !"
-    set "_extract_order=!_extract_order!%%c "
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+set "_content="
+for %%v in (%*) do for /f "tokens=1,2 delims=:" %%a in ("%%~v:%%~v") do (
+    set "_var=!%%a! "
+    call :endlocal._to_ede
+    set "_content=!_content!%%b=!_var:~0,-1!!LF!"
 )
-set _to_extract=!_to_extract:'="!
-> "unsorted" (
-    for %%a in (!_to_extract!) do ( rem
-    ) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
-        call :extract_func "!%%b.abspath!"  %%c 2> nul
-    )
-)
-call :extract_func "unsorted" "!_extract_order!"
-exit /b 0
-
-
-rem ================================ desolve() ================================
-
-rem ======================== documentation ========================
-
-:desolve.__doc__
-echo NAME
-echo    desolve - function dependency resolver
-echo=
-echo SYNOPSIS
-echo    desolve   return_var  base_context  "[context:]label [...]"
-echo=
-echo DESCRIPTION
-echo    This function generates dependency list of a function recursively.
-echo    Function listing also follows order of occurrence in each install_requires.
-echo    Due to nature of batch script, calling a functions that is located below
-echo    the CALL is much faster than if it is located above the CALL. So functions
-echo    as many as possible are defined after they are used. Functions are listed
-echo    from the ones with most dependencies to the ones with no dependencies.
-echo=
-echo POSITIONAL ARGUMENTS
-echo    return_var
-echo        Variable to store the result.
-echo=
-echo    base_context
-echo        The name of the context. This value is used as default context name for
-echo        labels with no context specified in that module file.
-echo=
-echo    context
-echo        The context name of the function. This can also be the name of a module.
-echo        By default, it is set to base_context.
-echo=
-echo    label
-echo        The function name to resolve for dependency.
-echo=
-echo EXIT STATUS
-echo    0:  - Success.
-echo    1:  - Cyclic dependencies detected.
-echo        - Namespace error / not defined.
-echo        - Failed to resolve dependency of a (sub)module.
-exit /b 0
-
-
-:desolve.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.desolve
-call :Input.string function_name || set "function_name=unittest"
-echo=
-echo Function: !function_name!
-echo=
-call :desolve result  batchlib !function_name!
-echo Dependencies: !result!
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.desolve.main
-call :extract_func "%~f0" ^
-    ^ ^"__init__ ^
-    ^   scripts.lib ^
-    ^   module.entry_point ^" ^
-    ^ > "base"
-
-set "modules=alpha bravo charlie"
-set "alpha.functions=one two three four five"
-set "alpha.one.install_requires=four"
-set "alpha.two.install_requires=three"
-set "alpha.three.install_requires=four"
-set "alpha.four.install_requires="
-set "alpha.five.install_requires=bravo:one"
-set "bravo.functions=one"
-set "bravo.one.install_requires=alpha:four"
-set "charlie.functions=one two three"
-set "charlie.one.install_requires=two"
-set "charlie.two.install_requires=charlie:one"
-set "charlie.three.install_requires=charlie:three"
-for %%m in (!modules!) do (
-    set "%%m.abspath=!cd!\%%m.bat"
-    set %%m="!%%m.abspath!" --module=lib %=END=%
-    > "!%%m.abspath!" (
-        type "base"
-        for %%f in (!%%m.functions!) do (
-            echo :%%f.__metadata__
-            echo set "%%~1install_requires=!%%m.%%f.install_requires!"
-            echo exit /b 0
-            echo=
-            echo=
-        )
-    )
-)
-
-set "test_cases=mutual multi cyclic_sub cyclic_self non_existing"
-set "mutual.resolve=alpha:one alpha:two"
-set "mutual.expected=alpha:one alpha:two alpha:three alpha:four"
-set "multi.resolve=alpha:five"
-set "multi.expected=alpha:five bravo:one alpha:four"
-set "cyclic_sub.resolve=charlie:one"
-set "cyclic_sub.expected="
-set "cyclic_self.resolve=charlie:three"
-set "cyclic_self.expected="
-set "non_existing.resolve=charlie:four"
-set "non_existing.expected="
-
-for %%c in (!test_cases!) do (
-    set "expected=!%%c.expected!"
-    if defined expected (
-        set "_temp=!expected!"
-        set "expected= "
-        for %%b in (!_temp!) do set "expected=!expected!%%b "
-    )
-    call :desolve result batchlib "!%%c.resolve!" 2> nul
-    if not "!result!" == "!expected!" (
-        call %unittest%.fail "%%c dependency check failed"
-    )
-)
-exit /b 0
-
-
-rem ======================== function ========================
-
-:desolve   return_var  base_context  "[context:]label [...]"
-setlocal EnableDelayedExpansion
-set "_base_module=%~2"
-set "_visited= "
-set "_stack= "
-set "install_requires=%~3"
-call :desolve._resolve !_params! || set "_visited="
-for /f "tokens=1*" %%a in ("Q !_visited!") do (
-    endlocal
-    set "%~1=%%b"
-    if defined %~1 (
-        set "%~1= !%~1!"
-    ) else exit /b 1
-)
-exit /b 0
-#+++
-
-:desolve._resolve
-set "_normalized="
-for %%a in (!install_requires!) do ( rem
-) & for /f "tokens=1* delims=:" %%b in ("%%a") do ( rem
-) & for /f "tokens=1-2 delims=:" %%b in ("%%c:%%b:!_module!:!_base_module!") do (
-    for %%d in (%%~b) do (
-        set "_normalized=%%c:%%d !_normalized!"
-    )
-)
-for %%a in (!_normalized!) do ( rem
-) & for /f "tokens=1* delims=:" %%b in ("%%a") do (
-    if not "!_stack: %%b:%%c =!" == "!_stack!" (
-        ( 1>&2 echo error: cyclic dependencies detected '%%b:%%c' in stack: !_stack! & exit /b 1 )
-    )
-    set "_stack= %%b:%%c!_stack!"
-    set "_module=%%b"
-    set "_context=!%%b!"
-    set "_label=%%c"
-    if not defined _context ( 1>&2 echo error: context for module '%%b' is not defined & exit /b 1 )
-    call :desolve._read_metadata || (
-        ( 1>&2 echo error: cannot resolve dependency '%%b:%%c' in stack: !_stack! & exit /b 1 )
-    )
-    if defined install_requires call :desolve._resolve || exit /b 1
-    if "!_visited: %%a =!" == "!_visited!" set "_visited= %%a!_visited!"
-    for /f "tokens=1* delims= " %%a in ("!_stack!") do set "_stack= %%b"
-)
-exit /b 0
-#+++
-
-:desolve._read_metadata
-set "install_requires="
-call %_context%:%_label%.__metadata__ || exit /b 1
-exit /b 0
-
-
-rem ================================ textrender() ================================
-
-rem ======================== documentation ========================
-
-:textrender.__doc__
-echo NAME
-echo    textrender - text renderer for batch script
-echo=
-echo SYNOPSIS
-echo    textrender   template_file  [renderer]
-echo=
-echo DESCRIPTION
-echo    This function render template files.
-echo=
-echo POSITIONAL ARGUMENTS
-echo    template_file
-echo        Path of the template file.
-echo=
-echo    renderer
-echo        The function name of the renderer.
-echo        By default, it is 'textrender.renderer'
-echo=
-echo TEMPLATE SYNTAX
-echo    Syntax:
-echo        //      comment
-echo        ```     start/end of a block of code
-echo        ``      string literal
-echo=
-echo    Empty lines does not do anything, except when it is surrounded by
-echo    triple back-ticks.
-echo=
-echo    List of render commands (from textrender.render):
-echo        ##   title_text, followed by a empty line
-echo        extract   ["labels_from_this_script"]
-echo=
-echo    Variables can be used in commands.
-echo=
-echo EXIT STATUS
-echo    0:  - Success.
-echo    1:  - Template error.
-exit /b 0
-
-
-:textrender.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ extract_func
-exit /b 0
-
-
-rem ======================== demo ========================
-
-:demo.textrender
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-set "label_name=tests.lib.textrender.example"
-set "eof_label=EOF"
-echo=
-echo Label: !label_name!
-echo=
-echo Template:
-call :extract_func "%~f0" "!label_name!" 1 -3 > "template"
-type "template"
-echo=
-echo Result:
-call :textrender "template"
-exit /b 0
-
-
-rem ======================== tests ========================
-
-:tests.lib.textrender.main
-set "eof_label=EOF"
-
-for %%a in (
-    "c9aff43d2fd38cae6b2a72e8302efd0abb931cde: tests.lib.textrender.example"
-) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
-    call :extract_func "%~f0" "%%c" 1 -3 > "template"
-    call :textrender "template" > "result"
-    call :checksum result "result"
-    if not "!result!" == "%%b" (
-        call %unittest%.fail "render failed: %%b"
-    )
-)
-exit /b 0
-
-
-:tests.lib.textrender.example
-## Welcome to batch script
-`` This line will be literally written as-is,
-`` without the first 3 characters.     ^^^^^
-```
-extract "nothing"
-because it is in a code block!
-```
-// Make three empty lines
-``
-``
-``
-extract "tests.lib.textrender.comments"
-extract "!eof_label!"
-exit /b 0
-
-
-:tests.lib.textrender.comments
-rem This is a function that does nothing
-rem Second line
-exit /b 0
-
-
-rem ======================== function ========================
-
-setlocal DisableDelayedExpansion
-if "%1" == "0" (
-    set "_skip="
-) else set "_skip=skip=%1"
-for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
-    set "_line=%%o"
-    setlocal EnableDelayedExpansion
-    set "_line=!_line:*:=!"
-    echo(!_line!
-    endlocal
-    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
-)
-exit /b 0
-
-
-:textrender   template_file  [renderer]
-setlocal EnableDelayedExpansion EnableExtensions
-set "_source_file=%~f1"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-if "%~2" == "" (
-    set "_renderer=textrender.renderer"
-) else set "_renderer=%~2"
-findstr /n "^^" "!_source_file!" > "numbered"
-setlocal DisableDelayedExpansion
-set "_literal="
-for /f "usebackq tokens=*" %%o in ("numbered") do (
-    set "_line=%%o"
-    setlocal EnableDelayedExpansion
-    set "_line=!_line:*:=!"
-    if "!_line!" == "```" (
-        if defined _literal (
-            set "_literal="
-        ) else set "_literal=true"
-        for %%s in ("!_literal!") do (
-            endlocal
-            set "_literal=%%~s"
-        )
-    ) else if "!_line:~0,2!" == "``" (
-        echo(!_line:~3!
+for /f "tokens=1* delims==" %%a in ("!_content!") do (
+    if defined _content (
+        goto 2> nul
         endlocal
+    )
+    set "%%a=%%b"
+    if "!!" == "" (
+        set "%%a=!%%a:~1!"
     ) else (
-        if defined _literal (
-            echo(!_line!
-        ) else (
-            set "_exec=true"
-            if not defined _line set "_exec="
-            if "!_line:~0,2!" == "//" set "_exec="
-            if defined _exec call :textrender._renderer_exec || exit /b 1
+        setlocal EnableDelayedExpansion
+        set "_var=!%%a!"
+        call :endlocal._to_dde
+        set "_var=!_var:~1!"
+        for /f "delims=" %%c in ("!_var!") do (
+            endlocal
+            set "%%a=%%c"
         )
-        endlocal
     )
 )
 exit /b 0
 #+++
 
-:textrender._renderer_exec
-call :%_renderer%.%_line% || exit /b 1
-exit /b 0
+:endlocal._to_ede
+set "_var=^!!_var:^=^^^^!"
+set "_var=%_var:!=^^^!%"
+exit /b
 #+++
 
-:textrender.renderer.extract   labels
-call :extract_func "%~f0" %1 || exit /b 1
-exit /b 0
-#+++
-
-:textrender.renderer.##   heading
-echo rem ======================================== %* ========================================
-echo=
-exit /b 0
-#+++
-
-:textrender.renderer.###   heading
-echo rem ================================ %* ================================
-echo=
-exit /b 0
+:endlocal._to_dde
+set "_var=%_var%"
+exit /b
 
 
 rem ================================ Add-ons ================================
@@ -8907,92 +8904,6 @@ exit /b 0
 
 :VBScript.__metadata__
 set "%~1install_requires="
-exit /b 0
-
-
-rem ================================ dynamenu(!) ================================
-
-rem ======================== documentation ========================
-
-:dynamenu.__doc__
-echo Dynamic Menu Creator
-echo=
-echo FUNCTIONS
-echo    - dynamenu.read()
-echo    - dynamenu()
-echo=
-echo Documentation not available yet.
-exit /b 0
-
-
-:dynamenu.__metadata__   [return_prefix]
-set "%~1install_requires="
-exit /b 0
-
-
-rem ======================== demo =======================
-
-:demo.dynamenu
-echo Reading menu entries...
-call :dynamenu.read
-echo Done
-echo=
-set "used_time=!time!"
-set /a "odd=!used_time:~7,1! %% 2"
-echo Time: !used_time!
-echo=
-call :dynamenu options list
-exit /b 0
-
-
-call :dynamenu.read
-call :dynamenu menu_type list
-call :dynamenu menu_type 1
-
-
-:menulabel_even.dynamenu   options
-rem Menu condition here
-if "!odd!" == "1" exit /b 1
-set "dynamenu_text=This will show on seconds that is a even number"
-exit /b 0
-:menulabel
-echo Hello Even Menu
-exit /b 0
-
-
-:menulabel_odd.dynamenu   options
-rem Menu condition here
-if "!odd!" == "0" exit /b 1
-set "dynamenu_text=This will show on seconds that is a odd number"
-exit /b 0
-:menulabel
-echo Hello Odd Menu
-exit /b 0
-
-
-rem ======================== function ========================
-
-:dynamenu   menu_name  number|list
-if not defined dynamenu_%~1 exit /b 1
-set "selected_menu="
-set "_menu_count=0"
-for %%m in (!dynamenu_%~1!) do call %%m.dynamenu && (
-    set /a "_menu_count+=1"
-    if /i "%2" == "list" (
-        set "_menu_count=   !_menu_count!"
-        echo !_menu_count:~-3,3!. !dynamenu_text!
-    ) else if "%~2" == "!_menu_count!" set "selected_menu=%%m"
-)
-set "dynamenu_text="
-if not defined selected_menu exit /b 1
-call !selected_menu!
-exit /b 0
-#+++
-
-:dynamenu.read
-for /f "usebackq tokens=1,2 delims= " %%a in ("%~f0") do (
-    if "%%~xa" == ".dynamenu" if not "%%~b" == "" set "dynamenu_%%b=!dynamenu_%%b! %%~na"
-)
 exit /b 0
 
 
