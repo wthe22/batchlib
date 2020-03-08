@@ -6,7 +6,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.16"
+set "%~1version=2.1-a.17"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -123,10 +123,12 @@ echo    - Added unittest for script compatibility check
 echo    - Added 'core' package for core functions / the "back-end"
 echo    - Added labels for packages
 echo    - Added a new category 'Packaging'
+echo    - Added template for new scripts
 echo    - Renamed 'shortcuts.*' to 'shortcut.*'
 echo    - Renamed 'test.*' to 'tests.*'
 echo    - Renamed the category 'Formatting' to 'Console'
 echo    - Renamed  metadata() to __metadata__()
+echo    - Moved 'tests' below 'lib'
 echo    - Changed __main__() exit to 'exit /b' to prevent console from terminating
 echo    - scripts.main():
 echo        - Prompt message are now preserved after running this script
@@ -231,7 +233,8 @@ echo    - Migrated unit testing framework/syntax from tester() to unittest().
 echo    - Added unittest for: Input.ipv4, pow, prime, gcf, bin2int, check_ipv4, wait
 echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
 echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
-echo      extract_func(), desolve(), collect_func(), strip(), expand_link()
+echo      extract_func(), desolve(), collect_func(), strip(), expand_link(),
+echo      textrender()
 echo    - Improved unittest for: Input.number(), module.entry_point()
 echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
@@ -253,15 +256,14 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Renamed 'scripts.min' to 'scripts.cli'
-echo    - Updated copyright year
-echo    - Added textrender()
-echo    - Added template for minified script
-echo    - Added __metadata__ to  minified script
-echo    - extract_func(): Renamed '.extract' to '._extract'
-echo    - desolve():
-echo        - Added more debug information again
-echo        - Improved unittest
+echo    - Added template for new scripts
+echo    - Moved 'tests' below 'lib'
+echo    - textrender():
+echo        - Added new command '###' for heading 3
+echo        - Added unittest
+echo    - is_echo_on():
+echo        - Remove usage of external command 'find.exe'
+echo        - Moved category from 'Environment' to 'Console'
 exit /b 0
 
 
@@ -288,7 +290,7 @@ rem ======================================== Main ==============================
 @exit /b %errorlevel%
 
 
-rem ======================================== Scripts/Entry points ========================================
+rem ======================================== Entry points ========================================
 
 :scripts
 :scripts.__init__
@@ -296,7 +298,7 @@ rem Entry points of the script
 @exit /b 0
 
 
-rem ================================ library script ================================
+rem ================================ Library script ================================
 
 rem Call script as library module and call the function
 call your_file_name.bat --module=lib <function> [arg1 [arg2 [...]]]
@@ -334,7 +336,7 @@ set %~1install_requires= ^
 exit /b 0
 
 
-rem ================================ main script ================================
+rem ================================ Main script ================================
 
 :scripts.main
 @setlocal EnableDelayedExpansion EnableExtensions
@@ -414,6 +416,7 @@ cls
 echo 1. Browse documentation
 echo 2. Use command line
 echo 3. Generate minified version
+echo 4. Generate new script template
 echo=
 echo A. About script
 echo C. Change Log
@@ -444,6 +447,23 @@ if "!user_input!" == "3" (
     echo Extracting...
     set "start_time=!time!"
     call :save_minified --include-tests > "!minified_script!"
+    call :difftime time_taken !time! !start_time!
+    call :ftime time_taken !time_taken!
+    echo=
+    echo Done in !time_taken!
+    pause
+    goto main_menu
+)
+if "!user_input!" == "4" (
+    call :Input.path save_file --not-exist --file ^
+        ^ --message "Input new template file path: "
+    cls
+    echo New script template path:
+    echo !save_file!
+    echo=
+    echo Generating...
+    set "start_time=!time!"
+    call :make_template > "!save_file!"
     call :difftime time_taken !time! !start_time!
     call :ftime time_taken !time_taken!
     echo=
@@ -671,65 +691,6 @@ echo     call %%batchlib%%:Input.number age --message "Input your age: " --range
 exit /b 0
 
 
-rem ======================================== Tests ========================================
-
-:tests
-:tests.__init__
-rem Things to do before any running any tests
-exit /b 0
-
-
-rem ================================ auto_input ================================
-
-:tests.auto_input.main
-> "in\ignore_n_quit" (
-    echo ignore1
-    echo ignore2
-    echo ignore3
-    echo 0
-)
-> "out\ignore_n_quit" 2>&1 (
-    start "" /i /wait /b cmd /c ""%~f0" --no-cleanup" < "in\ignore_n_quit"
-) && (
-    exit /b 0
-) || (
-    call %unittest%.fail
-    exit /b 0
-)
-exit /b 1
-
-
-rem ================================ time_format ================================
-
-:tests.core.time_format.main
-rem Check time format compatibility
-set "digits=0 1 2 3 4 5 6 7 8 9"
-set "seperators=!time!"
-set "seperators=!seperators: =!"
-for /l %%n in (0,1,9) do set "seperators=!seperators:%%n=!"
-if not "!seperators!" == "::." (
-    call %unittest%.fail "Incompatible time format"
-)
-exit /b 0
-
-
-rem Date (DD/MM/YYYY)   : 09/10/2019
-rem Time (HH.MM.SS,CC)  : 16.11.08,72
-
-
-rem ================================ Function arguments ================================
-
-:tests.core.capture_function_arguments.main
-call :Category.init
-call :Function.read
-for %%f in (!Category_all.functions!) do (
-    if not defined Function_%%f.args (
-        call %unittest%.fail "Cannot capture arguments for function '%%f'"
-    )
-)
-exit /b 0
-
-
 rem ======================================== Utilities ========================================
 
 :utils
@@ -827,10 +788,10 @@ set Category_net.functions= ^
 set "Category_env.name=Environment"
 set Category_env.functions= ^
     ^ get_con_size get_sid get_os get_pid ^
-    ^ watchvar is_admin is_echo_on
+    ^ watchvar is_admin
 set "Category_console.name=Console"
 set Category_console.functions= ^
-    ^ capchar setup_clearline %=hex2char=% ^
+    ^ capchar setup_clearline is_echo_on ^
     ^ color2seq color_print
 set "Category_packaging.name=Packaging"
 set Category_packaging.functions= ^
@@ -929,14 +890,14 @@ extract "changelog"
 ``
 ``
 
-## Scripts/Entry points
+## Entry points
 extract "scripts scripts.lib scripts.lib-noecho scripts.cli"
 
 ## User Interfaces
 extract "ui script_cli help"
 
 ## Core
-extract "core Category.init Function.read"
+extract "core Category.init Function.read make_template"
 
 ## Batch Script Library
 extract "lib !lib_functions! !Category_addons.functions!"
@@ -953,7 +914,104 @@ extract "EOF"
 exit /b 0
 
 
-rem ======================================== Library Functions ========================================
+:make_template
+setlocal EnableDelayedExpansion EnableExtensions
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+call :extract_func "%~f0" "make_template.template.min" 1 -3 > "template"
+call :textrender "template"|| (
+    ( 1>&2 echo error: rendering failed & exit /b 1 )
+)
+exit /b 0
+#+++
+
+:make_template.template.min
+// Template for new script - minimal edition
+//
+// Features:
+// - Module framework support
+// - Structured configuration
+// - Library dependency listing
+
+extract "__init__"
+
+## Metadata
+`` :__metadata__   [return_prefix]
+`` set "%~1name=<package_name>"
+`` set "%~1version=0.0"
+`` set "%~1author=<author>"
+`` set "%~1license=<license>"
+`` set "%~1description=<package_title>"
+`` set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
+`` set "%~1url=https://example.com/path/to/page.html"
+`` set "%~1download_url=https://gist.github.com/username/repo/file/raw"
+`` exit /b 0
+``
+``
+
+## Configurations
+`` :config
+`` call :config.default
+`` call :config.preferences
+`` exit /b 0
+``
+``
+`` :config.default
+`` rem Default/common configurations for this script
+`` exit /b 0
+``
+``
+`` :config.preferences
+`` rem Define your preferences or config modifications here
+`` exit /b 0
+``
+``
+
+## Main
+`` :__main__
+`` @call :scripts.main %*
+`` @exit /b %errorlevel%
+``
+``
+
+## Entry points
+extract "scripts"
+
+### Library script
+extract "scripts.lib scripts.lib-noecho"
+
+### Main script
+`` :scripts.main
+`` @setlocal EnableDelayedExpansion EnableExtensions
+`` @echo off
+`` set "__name__=main"
+`` prompt $$
+`` call :__metadata__ SOFTWARE.
+`` call :config
+``
+`` rem Write your code here...
+``
+`` exit /b 0
+``
+``
+
+## Library
+extract "lib"
+`` :lib.__metadata__
+`` set %~1install_requires= ^
+``     ^ batchlib:^" ^
+``     ^   is_echo_on ^
+``     ^   module.entry_point ^"
+`` exit /b 0
+``
+``
+extract "is_echo_on module.entry_point"
+
+## End of Script
+extract "EOF"
+exit /b 0
+
+
+rem ======================================== Library ========================================
 
 :lib
 :lib.__init__
@@ -962,10 +1020,7 @@ exit /b 0
 
 
 :lib.__metadata__
-rem set %~1install_requires= ^
-rem     ^ batchlib:^" ^
-rem     ^   your_function_label_here ^
-rem     ^   another_function_label_here ^"
+set "%~1install_requires="
 exit /b 0
 
 
@@ -6323,10 +6378,10 @@ rem ======================== function ========================
 
 :is_echo_on
 @(
-    echo > "%temp%\echo_test"
-    type "%temp%\echo_test" | find /i "on" && exit /b 0
+    ( for %%n in (1) do call ) > "%temp%\result"
+    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 1
 ) > nul 2>&1
-@exit /b 1
+@exit /b 0
 
 
 rem ================================ endlocal() ================================
@@ -8711,6 +8766,22 @@ exit /b 0
 
 rem ======================== tests ========================
 
+:tests.lib.textrender.main
+set "eof_label=EOF"
+
+for %%a in (
+    "c9aff43d2fd38cae6b2a72e8302efd0abb931cde: tests.lib.textrender.example"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    call :extract_func "%~f0" "%%c" 1 -3 > "template"
+    call :textrender "template" > "result"
+    call :checksum result "result"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail "render failed: %%b"
+    )
+)
+exit /b 0
+
+
 :tests.lib.textrender.example
 ## Welcome to batch script
 `` This line will be literally written as-is,
@@ -8723,8 +8794,14 @@ because it is in a code block!
 ``
 ``
 ``
-extract "textrender"
+extract "tests.lib.textrender.comments"
 extract "!eof_label!"
+exit /b 0
+
+
+:tests.lib.textrender.comments
+rem This is a function that does nothing
+rem Second line
 exit /b 0
 
 
@@ -8797,6 +8874,12 @@ exit /b 0
 
 :textrender.renderer.##   heading
 echo rem ======================================== %* ========================================
+echo=
+exit /b 0
+#+++
+
+:textrender.renderer.###   heading
+echo rem ================================ %* ================================
 echo=
 exit /b 0
 
@@ -9007,6 +9090,65 @@ if defined _respond (
             set "bcom_msg="
             call :bcom.send "%~1"
         )
+    )
+)
+exit /b 0
+
+
+rem ======================================== Tests ========================================
+
+:tests
+:tests.__init__
+rem Things to do before any running any tests
+exit /b 0
+
+
+rem ================================ auto_input ================================
+
+:tests.auto_input.main
+> "in\ignore_n_quit" (
+    echo ignore1
+    echo ignore2
+    echo ignore3
+    echo 0
+)
+> "out\ignore_n_quit" 2>&1 (
+    start "" /i /wait /b cmd /c ""%~f0" --no-cleanup" < "in\ignore_n_quit"
+) && (
+    exit /b 0
+) || (
+    call %unittest%.fail
+    exit /b 0
+)
+exit /b 1
+
+
+rem ================================ time_format ================================
+
+:tests.core.time_format.main
+rem Check time format compatibility
+set "digits=0 1 2 3 4 5 6 7 8 9"
+set "seperators=!time!"
+set "seperators=!seperators: =!"
+for /l %%n in (0,1,9) do set "seperators=!seperators:%%n=!"
+if not "!seperators!" == "::." (
+    call %unittest%.fail "Incompatible time format"
+)
+exit /b 0
+
+
+rem Date (DD/MM/YYYY)   : 09/10/2019
+rem Time (HH.MM.SS,CC)  : 16.11.08,72
+
+
+rem ================================ Function arguments ================================
+
+:tests.core.capture_function_arguments.main
+call :Category.init
+call :Function.read
+for %%f in (!Category_all.functions!) do (
+    if not defined Function_%%f.args (
+        call %unittest%.fail "Cannot capture arguments for function '%%f'"
     )
 )
 exit /b 0
