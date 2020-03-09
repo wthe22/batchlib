@@ -6,11 +6,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.18"
+set "%~1version=2.1-a.19"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/09/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -119,7 +119,7 @@ echo      extracted using extract_func()
 echo    - Added method to specify different config for each entry point
 echo    - Added scripts.lib-noecho() to call script without echoing
 echo    - Added documentation_menu() for more documentation options
-echo    - Added unittest for script compatibility check
+echo    - Added unittest for script core functions
 echo    - Added 'core' package for core functions / the "back-end"
 echo    - Added labels for packages
 echo    - Added a new category 'Packaging'
@@ -148,6 +148,7 @@ echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
 echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
+echo      sleep()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -156,6 +157,8 @@ echo    - Added parse_version(), this replaces module.version_compare().
 echo    - Added dependency listing
 echo    - Added VBScript and PowerShell to dependency list of functions
 echo      which needs them
+echo    - Added support for comma and space time seperators in difftime(),
+echo      timeleft(), wait.calibrate()
 echo    - Fixed demo of several functions that uses Input.number()
 echo    - Merged 'shortcut' and 'framework' into 'lib'
 echo    - Removed expand_path(). Using FOR directly is more preferable.
@@ -165,14 +168,19 @@ echo    - Renamed '*.__demo__' to 'demo.*'
 echo    - capchar(): Added capturing of TAB character
 echo    - check_ipv4(): Added ability to check wildcard IP
 echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
-echo    - check_path(): Fixed incorrect parameter description
+echo    - check_path():
+echo        - Fixed incorrect parameter description
+echo        - Improved checking and consistency of path
 echo    - checksum():
 echo        - Changed parameters for defining hash
 echo        - Fixed error when hashing 0-byte files
 echo        - Added hash algorithm SHA384
 echo    - diffbin(): Fixed error if temp_path is not defined.
 echo    - diffdate(): Simplified calculations
-echo    - difftime(): Renamed parameter '-n' to '--no-fix'
+echo    - difftime():
+echo        - Renamed parameter '-n' to '--no-fix'
+echo        - If milliseconds (or higher precision) are provided, it will be
+echo          truncated to centiseconds.
 echo    - expand_link(): Made return variables more readable
 echo    - extract_func():
 echo        - Added join mark '#+++' for 'should include' labels
@@ -235,11 +243,12 @@ echo    - Added dependency listing
 echo=
 echo    Tests
 echo    - Migrated unit testing framework/syntax from tester() to unittest().
-echo    - Added unittest for: Input.ipv4, pow, prime, gcf, bin2int, check_ipv4, wait
+echo    - Added unittest for: Input.ipv4(), pow(), prime(), gcf(), bin2int(),
+echo      check_ipv4(), wait(), difftime(), expand_link(), extract_func(),
+echo      check_path()
 echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
 echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
-echo      extract_func(), desolve(), collect_func(), strip(), expand_link(),
-echo      textrender()
+echo      desolve(), collect_func(), strip(), textrender(), sleep()
 echo    - Improved unittest for: Input.number(), module.entry_point()
 echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
@@ -253,6 +262,7 @@ echo    - Added help() to display usage help
 echo    - Added (missing) parameter description of several functions
 echo    - batchlib-min now accepts '-h, --help'
 echo    - Changed example of lib usage to use absolute paths
+echo    - Changed incorrect time format in documentation
 echo    - Improved parameter description of several functions
 echo    - Removed changelog history for reduced log size. Only latest changelog
 echo      will be included. See Git for earlier changelog history.
@@ -261,11 +271,22 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Renamed the category 'Shortcut' to 'User Interface'
-echo    - Renamed the category 'Framework' to 'Development Tools'
-echo    - Improved category listing of functions
-echo    - Reshuffled function codes according to category grouping
-echo    - Removed dynamenu(), it needs rework
+echo    - Added sleep()
+echo    - Added unittest of sleep(), check_path()
+echo    - Added support for comma and space time seperators in difftime(),
+echo      timeleft(), wait.calibrate(), sleep()
+echo    - Removed unittest to check for time format, since now it supports
+echo      comma and space time seperators.
+echo    - Fixed tests exit code not propagated back to main script.
+echo    - Improved unittest of wait()
+echo    - Changed incorrect time format in documentation
+echo    - check_path(): Improved checking and consistency of path
+echo    - difftime():
+echo        - If milliseconds (or higher precision) are provided, it will be
+echo          truncated to centiseconds.
+echo        - Added unittest
+echo    - unittest(): Fixed error displaying error/failure/skip message if it
+echo      contains special characters.
 exit /b 0
 
 
@@ -438,14 +459,14 @@ if "!user_input!" == "3" (
     call :Input.path save_dir --exist --directory ^
         ^ --message "Input save folder for the minified script: "
     set "minified_script=!save_dir!\!SOFTWARE.name!-min.bat"
-    cls
+    echo=
     echo Save path:
     echo !minified_script!
     echo=
-    echo Extracting...
+    echo Generating...
     set "start_time=!time!"
     call :save_minified --include-tests > "!minified_script!"
-    call :difftime time_taken !time! !start_time!
+    call :difftime time_taken "!time!" "!start_time!"
     call :ftime time_taken !time_taken!
     echo=
     echo Done in !time_taken!
@@ -455,14 +476,14 @@ if "!user_input!" == "3" (
 if "!user_input!" == "4" (
     call :Input.path save_file --not-exist --file ^
         ^ --message "Input new template file path: "
-    cls
+    echo=
     echo New script template path:
     echo !save_file!
     echo=
     echo Generating...
     set "start_time=!time!"
     call :make_template > "!save_file!"
-    call :difftime time_taken !time! !start_time!
+    call :difftime time_taken "!time!" "!start_time!"
     call :ftime time_taken !time_taken!
     echo=
     echo Done in !time_taken!
@@ -491,10 +512,9 @@ if /i "!user_input!" == "T" (
     echo Metadata:
     set "SOFTWARE."
     echo=
-    start "" /i /wait /b cmd /c ^" ^
-        ^   "%~f0" --module=lib-noecho :unittest -v ^
-        ^ ^" ^
-        ^ || (
+    (
+        cmd /c ^""%~f0" --module=lib-noecho :unittest -v ^"
+    ) || (
         echo=
         echo Test module ended earlier than expected
     )
@@ -507,11 +527,10 @@ if /i "!user_input!" == "DT" (
     echo Metadata:
     set "SOFTWARE."
     echo=
-    start "" /i /wait /b cmd /c ^" ^
-        ^   "%~f0" --module=lib-noecho ^
-        ^       ^ :unittest --pattern "tests.debug.*.main" --failfast --verbose ^
-        ^ ^" ^
-        ^ || (
+    (
+        cmd /c ^""%~f0" --module=lib-noecho :unittest ^
+            ^ --pattern "tests.debug.*.main" --failfast --verbose ^"
+    ) || (
         echo=
         echo Test module ended earlier than expected
     )
@@ -769,7 +788,7 @@ set Category_time.functions= ^
     ^ difftime ftime ^
     ^ diffdate fdate what_day ^
     ^ time2epoch epoch2time ^
-    ^ timeleft wait %=sleep=%
+    ^ timeleft wait sleep
 set "Category_file.name=File and Folder"
 set Category_file.functions= ^
     ^ check_path combi_wcdir wcdir ^
@@ -3106,7 +3125,10 @@ echo        Don't fix negative centiseconds. This must be placed
 echo        as the fourth argument.
 echo=
 echo NOTES
-echo    - The format of the time is 'HH:MM:SS.CC'.
+echo    - The format of the time is 'HH:MM:SS.SS'.
+echo    - Supported time seperators: colon ':', dot '.', comma ',' space ' '
+echo    - If milliseconds (or higher precision) are provided, it will be
+echo      truncated to centiseconds.
 exit /b 0
 
 
@@ -3115,16 +3137,57 @@ set "%~1install_requires="
 exit /b 0
 
 
-rem (!) Add support for time format: 'HH.MM.SS,CC'
-
 rem ======================== demo ========================
 
 :demo.difftime
 call %batchlib%:Input.string start_time
 call %batchlib%:Input.string end_time
-call %batchlib%:difftime time_taken !end_time! !start_time!
+call %batchlib%:difftime time_taken "!end_time!" "!start_time!"
 echo=
 echo Time difference: !time_taken! centiseconds
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.difftime.main
+for %%a in (
+    "0#"
+
+    "2928808#08:08:08.08"
+    "2928800#08:08:08"
+    "2928000#08:08"
+    "2880000#08"
+
+    "2928808# 8:08:08.08"
+    "2928808#08.08.08,08"
+    "2928808#8:8:8.08"
+    "2928880#8:8:8.8"
+    "2928887#8:8:8.876"
+) do for /f "tokens=1* delims=#" %%b in (%%a) do (
+    call :difftime result "%%c"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+for %%a in (
+    "1:         00:00:00.09  00:00:00.08"
+    "100:       00:00:09.00  00:00:08.00"
+    "6000:      00:09:00.00  00:08:00.00"
+    "360000:    09:00:00.00  08:00:00.00"
+
+    "1:         00:00:01.00  00:00:00.99"
+    "100:       00:01:00.00  00:00:59.00"
+    "6000:      01:00:00.00  00:59:00.00"
+
+    "1:         00:00:00.00  23:59:59.99"
+    "8639999:   00:00:00.00  00:00:00.01"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :difftime result %%c
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
 
 
@@ -3132,13 +3195,18 @@ rem ======================== function ========================
 
 :difftime   return_var  end_time  [start_time] [--no-fix]
 set "%~1=0"
-for %%t in (%~2:00:00:00:00 %~3:00:00:00:00) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
-    set /a "%~1+=24%%a %% 24 *360000 +1%%b*6000 +1%%c*100 +1%%d -610100"
+for %%t in ("%~2.0" "%~3.0") do for /f "tokens=1-4 delims=:., " %%a in ("%%~t.0.0.0.0") do (
+    set /a "%~1+=(1%%a*2-2%%a)*360000 + (1%%b*2-2%%b)*6000 + (1%%c*2-2%%c)*100 + (1%%d*2-2%%d)*100/(2%%d-1%%d)"
     set /a "%~1*=-1"
 )
 if /i not "%4" == "--no-fix" if "!%~1:~0,1!" == "-" set /a "%~1+=8640000"
 exit /b 0
 
+
+rem ======================== function ========================
+
+rem This is faster, assuming minutes, seconds, and centiseconds is always 2 digits
+set /a "_centiseconds=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
 
 rem ================================ ftime() ================================
 
@@ -3159,7 +3227,7 @@ echo    centiseconds
 echo        The time in centiseconds (1/100 second).
 echo=
 echo NOTES
-echo    - The format of the time is 'HH:MM:SS.CC'.
+echo    - The format of the time is 'HH:MM:SS.SS'.
 exit /b 0
 
 
@@ -3722,7 +3790,7 @@ echo    timeleft    return_var  start_time_cs  current_progress  total_progress
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
-echo        Variable to store the time remaining. The time format is 'HH:MM:SS.CC'.
+echo        Variable to store the time remaining. The time format is 'HH:MM:SS.SS'.
 echo=
 echo    start_time_cs
 echo        The start time of the task (centiseconds since '00:00:00.00').
@@ -3754,7 +3822,7 @@ set "total_test=1000"
 for %%c in (without called integrated) do (
     echo Simulate Primality Test [1 - !total_test!] %%c timeleft
     set "start_time=!time!"
-    call %batchlib%:difftime start_time_cs !start_time!
+    call %batchlib%:difftime start_time_cs "!start_time!"
 
     for /l %%i in (1,1,!total_test!) do (
         set "_factor=0"
@@ -3791,7 +3859,7 @@ for %%c in (without called integrated) do (
 
             if /i "%%c" == "integrated" (
                 setlocal EnableDelayedExpansion
-                for /f "tokens=1-4 delims=:. " %%a in ("!time!") do (
+                for /f "tokens=1-4 delims=:., " %%a in ("!time!") do (
                     set /a "_remainder=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34 -!start_time_cs!"
                 )
                 if "!_remainder:~0,1!" == "-" set /a "_remainder+=0x83D600"
@@ -3814,7 +3882,7 @@ for %%c in (without called integrated) do (
     )
     echo=
 
-    call %batchlib%:difftime time_taken !time! !start_time!
+    call %batchlib%:difftime time_taken "!time!" "!start_time!"
     if /i "%%c" == "without" set "base_time=!time_taken!"
     set /a "overhead_time+=!time_taken! - !base_time!"
     call %batchlib%:ftime time_taken !time_taken!
@@ -3832,7 +3900,7 @@ rem ======================== function ========================
 
 :timeleft    return_var  start_time_cs  current_progress  total_progress
 setlocal EnableDelayedExpansion
-for /f "tokens=1-4 delims=:. " %%a in ("!time!") do (
+for /f "tokens=1-4 delims=:., " %%a in ("!time!") do (
     set /a "_remainder=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34 -%~2"
 )
 if "!_remainder:~0,1!" == "-" set /a "_remainder+=0x83D600"
@@ -3910,7 +3978,7 @@ for %%t in (!time_in_milliseconds!) do %wait%
 rem Called
 rem call %batchlib%:wait !time_in_milliseconds!
 
-call %batchlib%:difftime time_taken !time! !start_time!
+call %batchlib%:difftime time_taken "!time!" "!start_time!"
 set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
@@ -3920,14 +3988,8 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.wait.main
-rem threshold: percentage of inaccuracy that is indicated as a failure
-rem It is purposely set to a very high value so we only mark the test as failure
-rem only if we have a high confidence that it is a failure.
-rem e.g.: An error occured when trying to call wait() so it is expected that it
-rem       would end almost immediately and have an inaccuracy of more than 90%
-rem       when the delay is 1.25s
-set "threshold=70"
-set "test_delay=1250"
+set "threshold=125"  milliseconds
+set "test_delay=1250"  milliseconds
 
 call :wait.setup
 call :wait.calibrate > nul || (
@@ -3937,11 +3999,12 @@ call :wait.calibrate > nul || (
 for %%m in (macro call) do (
     set "start_time=!time!"
     call :tests.lib.wait.using_%%m
-    call %batchlib%:difftime time_taken !time! !start_time!
-    set /a "inaccuracy=!time_taken!*10 - !test_delay!"
-    set /a "fail=!inaccuracy! * !inaccuracy! * ((100 * 100) / (!threshold! * !threshold!)) / (!test_delay!*!test_delay!)"
+    call %batchlib%:difftime time_taken "!time!" "!start_time!"
+    set /a "time_taken*=10"
+    set /a "inaccuracy=!time_taken! - !test_delay!"
+    set /a "fail=!inaccuracy!/!threshold!"
     if not "!fail!" == "0" (
-        call %unittest%.fail "Abnormal amount of inaccuracy in delay using %%m: expected !test_delay!s, got !inaccuracy!s"
+        call %unittest%.fail "Abnormal amount of inaccuracy in delay using %%m: expected !test_delay!s, got !time_taken!s"
     )
 )
 exit /b 0
@@ -3976,7 +4039,7 @@ for /l %%i in (1,1,12) do if not "!wait._increment!" == "-1" if not "!_time_take
     set "_start_time=!time!"
     for %%t in (!_delay_target!) do %wait%
     set "_time_taken=0"
-    for %%t in (!time!:00:00:00:00 !_start_time!:00:00:00:00) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
+    for %%t in ("!time!" "!_start_time!") do for /f "tokens=1-4 delims=:., " %%a in ("%%~t") do (
         set /a "_time_taken+=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
         set /a "_time_taken*=0xffffffff"
     )
@@ -4003,13 +4066,13 @@ set wait=for /l %%w in (0,^^!wait._increment^^!,%%t00000) do call
 exit /b 0
 
 
-rem ================================ sleep(WIP) ================================
+rem ================================ sleep() ================================
 
 rem ======================== documentation ========================
 
 :sleep.__doc__
 echo NAME
-echo    sleep - delay for n milliseconds (WIP)
+echo    sleep - delay for n milliseconds
 echo=
 echo SYNOPSIS
 echo    sleep   milliseconds
@@ -4024,43 +4087,78 @@ echo        The increment speed for sleep(). This value is set by wait.calibrate
 echo=
 echo NOTES
 echo    - Based on: difftime()
-echo    - This function have high CPU usage for maximum of 2 seconds on each call.
+echo    - This function have high CPU usage for maximum of 1 seconds on each call
+echo      because it is uses wait()
+exit /b 0
+
+
+:sleep.__metadata__   [return_prefix]
+set %~1install_requires= ^
+    ^ wait
 exit /b 0
 
 
 rem ======================== demo ========================
 
 :demo.sleep
-call %batchlib%:wait.calibrate 500
+call %batchlib%:wait.setup
+call %batchlib%:wait.calibrate
 echo=
 call %batchlib%:Input.number time_in_milliseconds --range "0~2147483647"
 echo=
-echo Sleep for !time_in_milliseconds! milliseconds...
+echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
+
 call %batchlib%:sleep !time_in_milliseconds!
-call %batchlib%:difftime time_taken !time! !start_time!
+
+call %batchlib%:difftime time_taken "!time!" "!start_time!"
 set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.sleep.main
+set "threshold=120"  milliseconds
+set "test_delay=2000"  milliseconds
+
+call :wait.setup
+call :wait.calibrate > nul || (
+    call %unittest%.fail "Calibration failed"
+    exit /b 0
+)
+
+set "start_time=!time!"
+call :sleep !test_delay!
+call %batchlib%:difftime time_taken "!time!" "!start_time!"
+set /a "time_taken*=10"
+set /a "inaccuracy=!time_taken! - !test_delay!"
+set /a "fail=!inaccuracy!/!threshold!"
+if not "!fail!" == "0" (
+    call %unittest%.fail "Abnormal amount of inaccuracy in delay: expected !test_delay!s, got !time_taken!s"
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :sleep   milliseconds
-setlocal EnableDelayedExpansion
-set /a "_sec=%~1 / 1000"
-set /a "_sec-=1"
-if not "!_sec:~0,1!" == "-" timeout /t !_sec! / nobreak
-for %%t in (%=wait=% %~1) do for /l %%w in (0,!wait._increment!,%%t00000) do call
-
-set "%~1=0"
-for %%t in (%~2:00:00:00:00 %~3:00:00:00:00) do for /f "tokens=1-4 delims=:." %%a in ("%%t") do (
-    set /a "%~1+=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
-    set /a "%~1*=0xffffffff"
+(
+    setlocal EnableDelayedExpansion
+    set "_start=!time!"
+    set /a "_sec=%~1 / 1000"
+    if not "!_sec:~0,1!" == "-" timeout /t !_sec! /nobreak > nul
+    set "_remaining=0"
+    for %%t in ("!time!" "!_start!") do for /f "tokens=1-4 delims=:., " %%a in ("%%~t") do (
+        set /a "_remaining+=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
+        set /a "_remaining*=0xffffffff"
+    )
+    if "!_remaining:~0,1!" == "-" set /a "_remaining+=0x83D600"
+    set /a "_remaining=%~1 - !_remaining! * 10"
+    for %%t in (!_remaining!) do %wait%
 )
-if /i not "%4" == "-n" if "!%~1:~0,1!" == "-" set /a "%~1+=0x83D600"
-endlocal
 exit /b 0
 
 
@@ -4094,7 +4192,8 @@ echo        Target must be a folder (if exist).
 echo=
 echo EXIT STATUS
 echo    0:  - The path satisfy the requirements.
-echo    1:  - The path does not satisfy the requirements.
+echo    1:  - The path is invalid.
+echo    2:  - The path does not satisfy the requirements.
 echo=
 echo ENVIRONMENT
 echo    cd
@@ -4132,6 +4231,91 @@ call %batchlib%:check_path --not-exist new_name && (
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.check_path.main
+set "char.wc=C:\hello*world"
+set "char.colon=C:\hello:world"
+set "char.pipe=C:\hello|world"
+set "char.qm=C:\hello?world"
+set "char.lab=C:\hello<world"
+set "char.rab=C:\hello>world"
+set char.dquote=C:\hello"world
+for %%a in (wc colon pipe qm lab rab dquote) do (
+    call :check_path char.%%a 2> nul && (
+        call %unittest%.fail "unexpected success with invalid character: %%a"
+    )
+)
+
+if exist "hello" (
+    rd /s /q "hello" || del /f /q "hello"
+) 2> nul || ( call :unittest.error "cannot setup dummy directory" & exit /b 1 )
+md "hello"
+if exist "world" (
+    del /f /q "world" || rd /s /q "world"
+) 2> nul || ( call :unittest.error "cannot setup dummy file" & exit /b 1 )
+call 2> "world"
+if exist "none" (
+    del /f /q "none" || rd /s /q "none"
+) 2> nul || ( call :unittest.error "cannot setup non-existing file" & exit /b 1 )
+for %%a in (
+    "0: -e  :%~d0\"
+    "0: -e  :%~d0"
+    "0: -e  :hello\"
+    "0: -e  :hello"
+    "2: -e  :world\"
+    "0: -e  :world"
+    "2: -e  :none"
+
+    "2: -n  :%~d0\"
+    "2: -n  :hello"
+    "2: -n  :world"
+    "0: -n  :none"
+
+    "2: -f  :%~d0"
+    "2: -f  :hello"
+    "0: -f  :world"
+    "0: -f  :none"
+
+    "0: -d  :%~d0"
+    "0: -d  :hello"
+    "2: -d  :world"
+    "0: -d  :none"
+
+    "2: -e -f   :none"
+    "2: -e -d   :none"
+
+    "0: -e  : none\..\hello"
+    "0: -e  : none\..\world"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    set "input_path=%%d"
+    call :check_path input_path %%c 2> nul
+    set "result=!errorlevel!"
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+for %%a in (
+    "%~d0|%~d0\"
+    "%~d0\|%~d0\"
+    "hello|!cd!\hello"
+    "hello\|!cd!\hello"
+    "world|!cd!\world"
+    "none|!cd!\none"
+    "none\.|!cd!\none"
+    "none\.\none|!cd!\none\none"
+    "none\..|!cd!"
+    "none\..\empty|!cd!\empty"
+) do for /f "tokens=1* delims=|" %%b in (%%a) do (
+    set "input_path=%%b"
+    call :check_path input_path %%c 2> nul
+    if not "!input_path!" == "%%c" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :check_path   path_var  [-e|-n]  [-f|-d]
@@ -4145,35 +4329,42 @@ set parse_args.args= ^
 call :parse_args %*
 set "_path=!%~1!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
-if "!_path:~-1,1!" == ":" set "_path=!_path!\"
-for /f tokens^=1-2*^ delims^=?^"^<^>^| %%a in ("Q?_!_path!_") do if not "%%c" == "" ( 1>&2 echo Invalid path & exit /b 1 )
-for /f "tokens=1-2* delims=*" %%a in ("Q*_!_path!_") do if not "%%c" == "" ( 1>&2 echo Wildcards are not allowed & exit /b 1 )
-if "!_path:~1,1!" == ":" (
-    if not "!_path::=!" == "!_path:~0,1!!_path:~2!" ( 1>&2 echo Invalid path & exit /b 1 )
-) else if not "!_path::=!" == "!_path!" ( 1>&2 echo Invalid path & exit /b 1 )
-set "file_exist=false"
+if not defined _path ( 1>&2 echo error: Path not defined & exit /b 1 )
+set "_temp=!_path!"
+if "!_path:~1,1!" == ":" set "_temp=!_path:~0,1!!_path:~2!"
+for /f tokens^=1-2*^ delims^=:?^"^<^>^| %%a in ("Q?_!_temp!_") do (
+    if not "%%c" == "" ( 1>&2 echo error: Invalid path characters & exit /b 1 )
+)
+for /f "tokens=1-2* delims=*" %%a in ("Q*_!_temp!_") do (
+    if not "%%c" == "" ( 1>&2 echo error: Wildcards are not allowed & exit /b 1 )
+)
+if "!_path:~1!" == ":" set "_path=!_path!\"
+set "_file_exist=false"
 for %%f in ("!_path!") do (
     set "_path=%%~ff"
     set "_attrib=%%~af"
 )
 if defined _attrib (
     set "_attrib=!_attrib:~0,1!"
-    set "file_exist=true"
+    set "_file_exist=true"
 )
-if defined _require_exist if not "!file_exist!" == "!_require_exist!" (
-    if "!_require_exist!" == "true" 1>&2 echo Input does not exist
-    if "!_require_exist!" == "false" 1>&2 echo Input already exist
-    exit /b 1
+if "!_attrib!" == "d" (
+    for %%f in ("!_path!\.") do set "_path=%%~ff"
 )
-if "!file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
+if defined _require_exist if not "!_file_exist!" == "!_require_exist!" (
+    if "!_require_exist!" == "true" 1>&2 echo error: Input does not exist
+    if "!_require_exist!" == "false" 1>&2 echo error: Input already exist
+    exit /b 2
+)
+if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
     if defined _require_exist (
-        if "!_require_attrib!" == "d" 1>&2 echo Input is not a folder
-        if "!_require_attrib!" == "-" 1>&2 echo Input is not a file
+        if "!_require_attrib!" == "d" 1>&2 echo error: Input is not a folder
+        if "!_require_attrib!" == "-" 1>&2 echo error: Input is not a file
     ) else (
-        if "!_require_attrib!" == "d" 1>&2 echo Input must be a new or existing folder, not a file
-        if "!_require_attrib!" == "-" 1>&2 echo Input must be a new or existing file, not a folder
+        if "!_require_attrib!" == "d" 1>&2 echo error: Input must be a new or existing folder, not a file
+        if "!_require_attrib!" == "-" 1>&2 echo error: Input must be a new or existing file, not a folder
     )
-    exit /b 1
+    exit /b 2
 )
 for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
@@ -5549,7 +5740,7 @@ rem ======================== demo ========================
 :demo.get_pid
 set "start_time=!time!"
 call %batchlib%:get_pid result
-call :difftime time_taken !time! !start_time!
+call :difftime time_taken "!time!" "!start_time!"
 echo Using random number
 echo PID        : !result!
 echo Time taken : !time_taken!
@@ -5557,7 +5748,7 @@ echo=
 
 set "start_time=!time!"
 for /f %%g in ('powershell -command "$([guid]::NewGuid().ToString())"') do call %batchlib%:get_pid result %%g
-call :difftime time_taken !time! !start_time!
+call :difftime time_taken "!time!" "!start_time!"
 echo Using PowerShell GUID
 echo PID        : !result!
 echo Time taken : !time_taken!
@@ -6438,7 +6629,7 @@ set "start_time=!time!"
 call :module.is_module "!script_to_check!" && (
     echo Script supports call as module
 ) || echo Script does not support call as module
-call %batchlib%:difftime time_taken !time! !start_time!
+call %batchlib%:difftime time_taken "!time!" "!start_time!"
 call %batchlib%:ftime time_taken !time_taken!
 echo=
 echo Done in !time_taken!
@@ -8191,7 +8382,7 @@ set "start_time=!time!"
 for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
     set /a "unittest.tests_run+=1"
     if "!unittest.verbosity!" == "2" (
-        call %batchlib%:difftime _elapsed_time !time! !start_time!
+        call %batchlib%:difftime _elapsed_time "!time!" "!start_time!"
         call %batchlib%:ftime _elapsed_time !_elapsed_time!
         set "unittest.tests_run=%_num_padding%!unittest.tests_run!"
         set "unittest.tests_run=!unittest.tests_run:~-%_num_digits%,%_num_digits%!"
@@ -8200,7 +8391,7 @@ for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
     call :unittest._run  %%t
 )
 set "stop_time=!time!"
-call :difftime time_taken !stop_time! !start_time!
+call :difftime time_taken "!stop_time!" "!start_time!"
 call :ftime time_taken !time_taken!
 echo=
 echo ----------------------------------------------------------------------
@@ -8237,46 +8428,46 @@ exit /b 0
 #+++
 
 :unittest._run   label
-call 2> "log\outcome.bat"
+call 2> "log\_outcome.bat"
 set "unittest.current_test_name=%~1"
 setlocal EnableDelayedExpansion EnableExtensions
 call %unittest.test_context%:%~1
 endlocal & set "_exit_code=%errorlevel%"
 if not "!_exit_code!" == "0" (
-    >> "log\outcome.bat" (
+    >> "log\_outcome.bat" (
         echo call %%unittest%%._add_outcome error "Test function did not exit correctly [exit code !_exit_code!]."
     )
 )
 set "unittest.current_outcome=success"
-call "log\outcome.bat"
+call "log\_outcome.bat"
 call :unittest._add_result !unittest.current_outcome! %1
 call :%~1.cleanup 2> nul
 exit /b 0
 #+++
 
 :unittest.skip   reason
->> "log\outcome.bat" (
+>> "log\_outcome.bat" (
     echo call %%unittest%%._add_outcome skip %1
 )
 exit /b 0
 #+++
 
 :unittest.fail   msg
->> "log\outcome.bat" (
+>> "log\_outcome.bat" (
     echo call %%unittest%%._add_outcome failure %1
 )
 exit /b 0
 #+++
 
 :unittest.error   msg
->> "log\outcome.bat" (
+>> "log\_outcome.bat" (
     echo call %%unittest%%._add_outcome error %1
 )
 exit /b 0
 #+++
 
 :unittest.stop
->> "log\outcome.bat" (
+>> "log\_outcome.bat" (
     echo set "unittest.should_stop=true"
 )
 exit /b 0
@@ -8289,8 +8480,9 @@ for %%c in (skip failure error) do (
         if "%%c" == "%%o" set "unittest.current_outcome=%%o"
     )
 )
+set "_text=%~2"
 if "!unittest.verbosity!" == "2" (
-    echo [%~1] %~2
+    echo [%~1] !_text!
 )
 exit /b 0
 #+++
@@ -8309,19 +8501,19 @@ if /i "%~1" == "failure" (
     set "_list_name=failures"
     set "_mark=F"
     rem set "_msg=FAIL"
-    set "_msg=test %~2 failed"
+    set "_msg=test '%~2' failed"
 )
 if /i "%~1" == "error" (
     set "_list_name=errors"
     set "_mark=E"
     rem set "_msg=ERROR"
-    set "_msg=test %~2 failed -- an error occurred"
+    set "_msg=test '%~2' failed -- an error occurred"
 )
 if /i "%~1" == "skip" (
     set "_list_name=skipped"
     set "_mark=s"
     rem set "_msg=skipped '!unittest.test.%unittest.current_test_name%.skip_msg!'"
-    set "_msg=test %~2 skipped '!unittest.test.%unittest.current_test_name%.skip_msg!'"
+    set "_msg=test '%~2' skipped '!unittest.test.%unittest.current_test_name%.skip_msg!'"
 )
 if defined _list_name (
     for %%c in (!_list_name!) do set "unittest.%%c=!unittest.%%c! %~2"
@@ -8333,7 +8525,7 @@ exit /b 0
 
 rem ======================== tests ========================
 
-:tests.framework.unittest.main
+:tests.lib.unittest.main
 set "parent_unittest_path=!cd!"
 set "temp_path=!cd!"
 call :tests.lib.unittest.init_vars
@@ -9032,24 +9224,6 @@ rem ================================ auto_input ================================
     exit /b 0
 )
 exit /b 1
-
-
-rem ================================ time_format ================================
-
-:tests.core.time_format.main
-rem Check time format compatibility
-set "digits=0 1 2 3 4 5 6 7 8 9"
-set "seperators=!time!"
-set "seperators=!seperators: =!"
-for /l %%n in (0,1,9) do set "seperators=!seperators:%%n=!"
-if not "!seperators!" == "::." (
-    call %unittest%.fail "Incompatible time format"
-)
-exit /b 0
-
-
-rem Date (DD/MM/YYYY)   : 09/10/2019
-rem Time (HH.MM.SS,CC)  : 16.11.08,72
 
 
 rem ================================ Function arguments ================================
