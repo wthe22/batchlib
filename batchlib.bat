@@ -6,7 +6,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.19"
+set "%~1version=2.1-a.20"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -73,10 +73,10 @@ rem Default/common configurations for this script
 set "temp_path=!temp!\BatchScript\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module (use absolute paths)
-set "!SOFTWARE.name!= "
-set "!SOFTWARE.name!.abspath=%~f0"
-set "addons= "
+set "batchlib.abspath=%~f0"
+set "batchlib= "
 set "addons.abspath=%~f0"
+set "addons= "
 
 rem Variables below are not used here, but for reference only
 rem set "data_path=data\batchlib"
@@ -94,11 +94,12 @@ rem Specific config for 'scirpt.main'
 exit /b 0
 
 
-:config.min
+:config.cli
 rem Specific config for 'scirpt.min'
 
 rem Macros to call external module (use absolute paths)
-set !SOFTWARE.name!="%~f0" --module=lib %=END=%
+set "batchlib.abspath=%~f0"
+set batchlib="!batchlib.abspath!" --module=lib %=END=%
 exit /b 0
 
 
@@ -182,13 +183,6 @@ echo        - Renamed parameter '-n' to '--no-fix'
 echo        - If milliseconds (or higher precision) are provided, it will be
 echo          truncated to centiseconds.
 echo    - expand_link(): Made return variables more readable
-echo    - extract_func():
-echo        - Added join mark '#+++' for 'should include' labels
-echo        - Removed implicit EOL 'rem ==='
-echo        - Greatly improved extraction speed
-echo        - Extraction order is now according to parameter (previously according
-echo          to occurrence in file)
-echo        - Added option to specify line range
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
 echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
@@ -271,22 +265,11 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added sleep()
-echo    - Added unittest of sleep(), check_path()
-echo    - Added support for comma and space time seperators in difftime(),
-echo      timeleft(), wait.calibrate(), sleep()
-echo    - Removed unittest to check for time format, since now it supports
-echo      comma and space time seperators.
-echo    - Fixed tests exit code not propagated back to main script.
-echo    - Improved unittest of wait()
-echo    - Changed incorrect time format in documentation
-echo    - check_path(): Improved checking and consistency of path
-echo    - difftime():
-echo        - If milliseconds (or higher precision) are provided, it will be
-echo          truncated to centiseconds.
-echo        - Added unittest
-echo    - unittest(): Fixed error displaying error/failure/skip message if it
-echo      contains special characters.
+echo    - Input.path(): Fixed base_dir parameter parsing error
+echo    - Adjusted config with previous structure changes
+echo    - Removed changelog of extract_func(), since the function itself does
+echo      not exist in previous major release.
+echo    - script_cli(): Fixed ugly display if echo is on
 exit /b 0
 
 
@@ -399,7 +382,7 @@ rem ================================ minified script ===========================
 :scripts.cli
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
-set "__name__=min"
+set "__name__=cli"
 prompt $$
 call :__metadata__ SOFTWARE.
 
@@ -663,7 +646,7 @@ rem ================================ CLI script ================================
 :script_cli._loop
 @set "user_input="
 @set /p "user_input=$"
-if "!user_input:~-1,1!" == "^" call :script_cli._loop._more
+@if "!user_input:~-1,1!" == "^" @call :script_cli._loop._more
 %user_input%
 @echo=
 @goto script_cli._loop
@@ -672,9 +655,10 @@ if "!user_input:~-1,1!" == "^" call :script_cli._loop._more
 :script_cli._loop._more
 @set "more="
 @set /p "_more=More? "
-set "user_input=!user_input!!_more!"
-if not "!_more:~-1,1!" == "^" exit /b 0
-goto script_cli._loop._more
+@set "user_input=!user_input!!_more!"
+@if not "!_more:~-1,1!" == "^" @exit /b 0
+@goto script_cli._loop._more
+
 
 rem ================================ Help text ================================
 
@@ -894,7 +878,7 @@ extract "__metadata__ about"
 extract "license"
 
 ## Configurations
-extract "config config.default config.min config.preferences"
+extract "config config.default config.cli config.preferences"
 
 ## Changelog
 extract "changelog"
@@ -1476,7 +1460,7 @@ echo Current directory: !cd!
 
 echo=
 echo=
-call %batchlib%:Input.path target_file --exist --file --message "Input an existing file: "
+call %batchlib%:Input.path target_file -b "!temp!" --exist --file --message "Input an existing file: "
 echo Result: "!target_file!"
 
 echo=
@@ -1500,8 +1484,8 @@ setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_message _optional _base_dir _check_options) do set "%%v="
 set parse_args.args= ^
     ^ "-m, --message    :store:_message" ^
+    ^ "-b, --base-dir   :store:_base_dir" ^
     ^ "-o, --optional   :store_const:_optional=true" ^
-    ^ "-b, --base-dir   :store_const:_base_dir" ^
     ^ "-e, --exist      :append_const:_check_options= -e" ^
     ^ "-n, --not-exist  :append_const:_check_options= -n" ^
     ^ "-f, --file       :append_const:_check_options= -f" ^
