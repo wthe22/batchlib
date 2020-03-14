@@ -1,16 +1,17 @@
 :__init__ > nul 2> nul
-@goto module.entry_point
+@for %%n in (1 2) do @call :module.entry_point.alt%%n > nul 2> nul
+@exit /b 1
 
 
 rem ======================================== Metadata ========================================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.20"
+set "%~1version=2.1-a.21"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/09/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/14/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -72,11 +73,9 @@ exit /b 0
 rem Default/common configurations for this script
 set "temp_path=!temp!\BatchScript\!SOFTWARE.name!\!__name__!"
 
-rem Macros to call external module (use absolute paths)
-set "batchlib.abspath=%~f0"
-set "batchlib= "
-set "addons.abspath=%~f0"
-set "addons= "
+rem Macros to call external module
+call :module.make_context batchlib "%~f0"
+call :module.make_context addons "%~f0"
 
 rem Variables below are not used here, but for reference only
 rem set "data_path=data\batchlib"
@@ -97,9 +96,8 @@ exit /b 0
 :config.cli
 rem Specific config for 'scirpt.min'
 
-rem Macros to call external module (use absolute paths)
-set "batchlib.abspath=%~f0"
-set batchlib="!batchlib.abspath!" --module=lib %=END=%
+rem Macros to call external module
+call :module.make_context batchlib "%~f0" "lib"
 exit /b 0
 
 
@@ -172,6 +170,7 @@ echo    - check_ipv4(): Fixed error not checking octet count if it is less than 
 echo    - check_path():
 echo        - Fixed incorrect parameter description
 echo        - Improved checking and consistency of path
+echo    - check_win_eol(): Fixed syntax error in code
 echo    - checksum():
 echo        - Changed parameters for defining hash
 echo        - Fixed error when hashing 0-byte files
@@ -183,6 +182,7 @@ echo        - Renamed parameter '-n' to '--no-fix'
 echo        - If milliseconds (or higher precision) are provided, it will be
 echo          truncated to centiseconds.
 echo    - expand_link(): Made return variables more readable
+echo    - fix_eol(): Improved control over display message
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
 echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
@@ -197,8 +197,12 @@ echo        - Improved skipping on optional inputs
 echo        - Improved user interface
 echo    - Input.yesno(): Accepts anything that starts with 'Y' as yes, and
 echo      anything that starts with 'N' as no
-echo    - module.entry_point(): Fixed script quitting unexpectedly
+echo    - module.entry_point():
+echo        - Fixed script quitting unexpectedly
+echo        - It is now callable even if the EOL is Linux
+echo        - Adjusted unittest
 echo      if first parameter is quoted and contains special characters
+echo    - module.is_module(): Adjusted with changes in module.entry_point()
 echo    - module.read_metadata():
 echo        - No longer checks if file is a module
 echo        - Addedd 'install_requires' in metadata
@@ -265,11 +269,16 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Input.path(): Fixed base_dir parameter parsing error
-echo    - Adjusted config with previous structure changes
-echo    - Removed changelog of extract_func(), since the function itself does
-echo      not exist in previous major release.
-echo    - script_cli(): Fixed ugly display if echo is on
+echo    - Added module.make_context()
+echo    - Removed config section in template, it is rarely useful in
+echo      temporary scripts
+echo    - fix_eol(): Improved control over display message
+echo    - check_win_eol(): Fixed syntax error in code
+echo    - module.entry_point():
+echo        - It is now callable even if the EOL is Linux
+echo        - Adjusted unittest
+echo    - module.is_module(): Adjusted with changes in module.entry_point()
+echo    - updater(): Modified exit status code
 exit /b 0
 
 
@@ -350,7 +359,13 @@ title !SOFTWARE.description! !SOFTWARE.version!
 cls
 echo Loading script...
 
-for %%n in (1 2) do call :fix_eol.alt%%n
+for %%n in (1 2) do call :fix_eol.alt%%n && (
+    echo Convert EOL done
+    echo Script will exit. Press any key to continue...
+    pause > nul
+    exit 0
+)
+
 call :config
 
 for %%v in (no_cleanup) do set "%%v="
@@ -794,7 +809,7 @@ set Category_console.functions= ^
     ^ color2seq color_print
 set "Category_packaging.name=Packaging"
 set Category_packaging.functions= ^
-    ^ module module.entry_point module.read_metadata module.is_module ^
+    ^ module module.entry_point module.make_context module.read_metadata module.is_module ^
     ^ find_label extract_func desolve collect_func textrender ^
     ^ parse_version updater ^
     ^ fix_eol check_win_eol
@@ -929,7 +944,6 @@ exit /b 0
 //
 // Features:
 // - Module framework support
-// - Structured configuration
 // - Library dependency listing
 
 extract "__init__"
@@ -944,24 +958,6 @@ extract "__init__"
 `` set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
 `` set "%~1url=https://example.com/path/to/page.html"
 `` set "%~1download_url=https://gist.github.com/username/repo/file/raw"
-`` exit /b 0
-``
-``
-
-## Configurations
-`` :config
-`` call :config.default
-`` call :config.preferences
-`` exit /b 0
-``
-``
-`` :config.default
-`` rem Default/common configurations for this script
-`` exit /b 0
-``
-``
-`` :config.preferences
-`` rem Define your preferences or config modifications here
 `` exit /b 0
 ``
 ``
@@ -986,7 +982,6 @@ extract "scripts.lib scripts.lib-noecho"
 `` set "__name__=main"
 `` prompt $$
 `` call :__metadata__ SOFTWARE.
-`` call :config
 ``
 `` rem Write your code here...
 ``
@@ -6416,7 +6411,7 @@ echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
 echo=
 echo USAGE
-echo    The first command on the script should be '@goto module.entry_point'
+echo    The first command on the script should be '@call module.entry_point'
 exit /b 0
 
 
@@ -6457,18 +6452,13 @@ exit 0
 rem ======================== tests ========================
 
 :tests.lib.module.entry_point.main
-call %batchlib%:extract_func "%~f0" "__init__ module.entry_point " > "test_entry_point.bat"
-call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" > "capture_args"
+call %batchlib%:extract_func "%~f0" "__init__ module.entry_point __main__ " > "test_entry_point.bat"
+call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" 1 > "capture_args"
 
 >> "test_entry_point.bat" (
-    echo :__main__
-    echo @call :scripts.main %%*
-    echo @exit /b %%errorlevel%%
-
     for %%e in (main second) do (
         echo :scripts.%%e
         echo set "entry_point=%%e"
-        < nul set /p "=@rem "
         type "capture_args"
     )
 )
@@ -6502,6 +6492,10 @@ exit /b %expected_exit_code%
 rem ======================== function ========================
 
 :module.entry_point   [--module=<name>]  [args]
+:module.entry_point.alt1
+:module.entry_point.alt2
+( goto 2> nul & goto module.entry_point._call )
+:module.entry_point._call
 @if /i not "%~1" == "--module" @goto __main__
 @if /i #%1 == #"%~1" @goto __main__
 @setlocal DisableDelayedExpansion
@@ -6513,6 +6507,62 @@ rem ======================== function ========================
     call :scripts.%%b
 )
 @exit /b %errorlevel%
+
+
+rem ============================ .make_context() ============================
+
+rem ======================== documentation ========================
+
+:module.make_context.__doc__
+echo NAME
+echo    module.make_context - create context to call functions in another script
+echo=
+echo SYNOPSIS
+echo    module.make_context   return_var  script_path  entry_point
+echo=
+echo DESCRIPTION
+echo    Creates a variable that contains code to call function from another script
+echo    and setup other necessary information such as absolute path of the script.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the result.
+echo=
+echo    script_path
+echo        Path of the script file.
+echo=
+echo    entry_point
+echo        The 'script.*' label name to be called.
+exit /b 0
+
+
+:module.make_context.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.module.make_context
+call %batchlib%:Input.string context_name
+call %batchlib%:Input.path --exist --file script_path
+call %batchlib%:Input.string entry_point
+echo=
+call :module.make_context !context_name! "!script_path!" "!entry_point!"
+echo=
+set "!context_name!"
+exit /b 0
+
+
+rem ======================== function ========================
+
+:module.make_context   return_var  script_path  entry_point
+if not exist "%~f2" exit /b 1
+set "%~1.abspath=%~f2"
+if "%~3" == "" (
+    set "%~1= "
+) else set %~1="%~f2" --module=%~3 %=END=%
+exit /b 0
 
 
 rem ============================ .read_metadata() ============================
@@ -6625,13 +6675,11 @@ rem ======================== function ========================
 :module.is_module   input_file
 setlocal EnableDelayedExpansion
 set /a "_missing=0xF"
-for /f "usebackq tokens=* delims=@ " %%a in ("%~f1") do (
-    for /f "tokens=1-2 delims= " %%b in ("%%a") do (
-        if /i "%%b %%c" == "goto module.entry_point" set /a "_missing&=~0x1"
-        if /i "%%b" == ":module.entry_point" set /a "_missing&=~0x2"
-        if /i "%%b" == ":__metadata__" set /a "_missing&=~0x4"
-        if /i "%%b" == ":scripts.lib" set /a "_missing&=~0x8"
-    )
+for /f "usebackq tokens=1" %%a in ("%~f1") do (
+    if /i "%%a" == ":__init__" set /a "_missing&=~0x1"
+    if /i "%%a" == ":module.entry_point" set /a "_missing&=~0x2"
+    if /i "%%a" == ":__metadata__" set /a "_missing&=~0x4"
+    if /i "%%a" == ":scripts.lib" set /a "_missing&=~0x8"
 )
 if not "!_missing!" == "0" exit /b 1
 set "_callable="
@@ -7874,12 +7922,12 @@ echo    - Undefined script version is allowed.
 echo=
 echo EXIT STATUS
 echo    0:  - Success.
-echo    1:  - Failed to get download url.
-echo    2:  - Failed to get update.
-echo    3:  - Failed to read update information.
-echo    4:  - The update file does not pass the verification.
-echo    5:  - No update is available.
-echo    6:  - Update failed.
+echo    2:  - No update is available.
+echo    3:  - Failed to get download url.
+echo    4:  - Failed to get update.
+echo    5:  - Failed to read update information.
+echo    6:  - The update file does not pass the verification.
+echo    7:  - Update failed.
 exit /b 0
 
 
@@ -7962,11 +8010,11 @@ call %batchlib%:extract_func "cache" ^
 for %%a in (
     "0: --upgrade --skip-verification"
     "0: --upgrade : version_lower"
-    "1: --upgrade : download_url_undefined"
-    "2: --upgrade : download_url_invalid"
-    "4: --upgrade : name_different"
-    "5: --upgrade : "
-    "5: --upgrade : version_higer"
+    "2: --upgrade : "
+    "2: --upgrade : version_higer"
+    "3: --upgrade : download_url_undefined"
+    "4: --upgrade : download_url_invalid"
+    "6: --upgrade : name_different"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     copy /y test_with_metadata test_updater.bat > nul
     start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul ^
@@ -8034,19 +8082,19 @@ set "_other=!cd!\latest.bat"
     && call :module.read_metadata _part. "!_part!" ^
     && if not defined _download_url set "_download_url=!_part.download_url!" ^
     && if not defined _download_url ( exit /? > nul )
-) || ( 1>&2 echo error: failed to get download url & exit /b 1 )
-call %batchlib%:download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 2 )
+) || ( 1>&2 echo error: failed to get download url & exit /b 3 )
+call %batchlib%:download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 4 )
 if defined _verify (
     (
         call :module.is_module "!_other!" ^
         && call :module.read_metadata _other. "!_other!" ^
         && if not defined _other.version ( exit /? > nul )
-    ) || ( 1>&2 echo error: failed to read update information & exit /b 3 )
-    if /i not "!_other.name!" == "!_part.name!" ( 1>&2 echo error: module name does not match & exit /b 4 )
+    ) || ( 1>&2 echo error: failed to read update information & exit /b 5 )
+    if /i not "!_other.name!" == "!_part.name!" ( 1>&2 echo error: module name does not match & exit /b 6 )
     call :parse_version _part.parsed_version "!_part.version!"
     call :parse_version _other.parsed_version "!_other.version!"
-    if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 5 )
-    if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 5 )
+    if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 2 )
+    if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 2 )
     call %batchlib%:diffdate update_age !date:~4! !_other.release_date! 2> nul && (
         echo !_other.description! !_other.version! is now available ^(!update_age! days ago^)
     ) || echo !_other.description! !_other.version! is now available ^(since !_other.release_date!^)
@@ -8055,7 +8103,7 @@ if not defined _upgrade (
     del /f /q "!_other!"
     exit /b 0
 )
-move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 6 )
+move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 7 )
 exit /b 0
 
 
@@ -8071,9 +8119,9 @@ echo SYNOPSIS
 echo    fix_eol
 echo=
 echo EXIT STATUS
-echo    0:  - EOL conversion is not necessary.
-echo        - EOL conversion is successful.
-echo    1:  - EOL conversion failed.
+echo    0:  - EOL conversion is successful.
+echo    2:  - EOL conversion is not necessary.
+echo    3:  - EOL conversion failed.
 echo=
 echo BEHAVIOR
 echo    - Script will EXIT if EOL conversion is successful.
@@ -8095,37 +8143,33 @@ rem ======================== demo ========================
 
 :demo.fix_eol
 echo Fixing EOL...
-for %%n in (1 2) do call :fix_eol.alt%%n && (
-    echo [fix_eol.alt%%n] Fix not necessary
-) || echo [fix_eol.alt%%n] Fix failed
+for %%n in (1 2) do call :fix_eol.alt%%n & (
+    set "result=!errorlevel!"
+    echo=
+    echo Called [fix_eol.alt%%n]
+    if "!result!" == "0" echo Fix successful
+    if "!result!" == "2" echo Fix not necessary
+    if "!result!" == "3" echo Fix failed
+)
 exit /b 0
 
 
 rem ======================== function ========================
 
 :fix_eol
-rem The label below is an alternative label if the main label cannot be found
 :fix_eol.alt1
-rem THIS IS REQUIRED
 :fix_eol.alt2
 for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
-    call :check_win_eol.alt%%n || (
-        echo Converting EOL...
-        type "%~f0" | more /t4 > "%~f0.tmp" && (
-            move "%~f0.tmp" "%~f0" > nul && (
-                echo Convert EOL done
-                echo Script will exit. Press any key to continue...
-                pause > nul
-                exit 0
-            )
-        )
-        ( 1>&2 echo warning: Convert EOL failed )
-        exit /b 1
+    call :check_win_eol.alt%%n && exit /b 2
+    echo Converting EOL...
+    type "%~f0" | more /t4 > "%~f0.tmp" && (
+        move "%~f0.tmp" "%~f0" > nul && exit /b 0
     )
-    exit /b 0
+    ( 1>&2 echo warning: Convert EOL failed )
+    exit /b 3
 )
 ( 1>&2 echo error: failed to call check_win_eol^(^) )
-exit /b 1
+exit /b 3
 
 
 rem ================================ check_win_eol() ================================
@@ -8176,11 +8220,9 @@ exit /b 0
 rem ======================== function ========================
 
 :check_win_eol   [--check-exist]
-rem The label below is an alternative label if the main label cannot be found
 :check_win_eol.alt1
-rem THIS IS REQUIRED
 :check_win_eol.alt2
-for %%f in (-c, --check-exist)do if /i "%1" == "%%f" exit /b 0
+for %%f in (-c, --check-exist) do if /i "%1" == "%%f" exit /b 0
 @call :check_win_eol._test 2> nul && exit /b 0 || exit /b 1
 rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
 rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
