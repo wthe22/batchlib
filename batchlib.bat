@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.21"
+set "%~1version=2.1-a.22"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/14/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/17/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -147,7 +147,7 @@ echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
 echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
-echo      sleep()
+echo      sleep(), timeit()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -269,16 +269,20 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added module.make_context()
-echo    - Removed config section in template, it is rarely useful in
-echo      temporary scripts
-echo    - fix_eol(): Improved control over display message
-echo    - check_win_eol(): Fixed syntax error in code
-echo    - module.entry_point():
-echo        - It is now callable even if the EOL is Linux
-echo        - Adjusted unittest
-echo    - module.is_module(): Adjusted with changes in module.entry_point()
-echo    - updater(): Modified exit status code
+echo    - Added namespace of test aseets
+echo    - Added timeit()
+echo    - bytes2size(): Fixed decimal places calculation
+echo    - module.entry_point(): Fixed regression test
+echo    - Adjusted innacuracy threshold for wait() and sleep()
+echo    - textrender():
+echo        - Reworked template syntax
+echo        - Added support for multi-line commands
+echo    - unittest(): Added errorlevel to indicate if an unexpected error occured
+exit /b 0
+
+
+:changelog.todo
+echo    - Check parameters related to 'input_file' and 'script_path'
 exit /b 0
 
 
@@ -512,9 +516,9 @@ if /i "!user_input!" == "T" (
     echo=
     (
         cmd /c ^""%~f0" --module=lib-noecho :unittest -v ^"
-    ) || (
+    ) || if not "!errorlevel!" == "2" (
         echo=
-        echo Test module ended earlier than expected
+        echo An unexpected error occured while running unittest
     )
     echo=
     pause
@@ -528,9 +532,9 @@ if /i "!user_input!" == "DT" (
     (
         cmd /c ^""%~f0" --module=lib-noecho :unittest ^
             ^ --pattern "tests.debug.*.main" --failfast --verbose ^"
-    ) || (
+    ) || if not "!errorlevel!" == "2" (
         echo=
-        echo Test module ended earlier than expected
+        echo An unexpected error occured while running unittest
     )
     echo=
     pause
@@ -787,7 +791,8 @@ set Category_time.functions= ^
     ^ difftime ftime ^
     ^ diffdate fdate what_day ^
     ^ time2epoch epoch2time ^
-    ^ timeleft wait sleep
+    ^ timeit timeleft ^
+    ^ wait sleep
 set "Category_file.name=File and Folder"
 set Category_file.functions= ^
     ^ check_path combi_wcdir wcdir ^
@@ -867,7 +872,7 @@ cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 call :Function.read
 set "test_functions="
 if defined _include_tests (
-    for %%c in (core lib debug) do (
+    for %%c in (core lib debug assets) do (
         call :find_label result -p "tests.%%c.*"
         set "test_functions=!test_functions!!result!"
     )
@@ -884,48 +889,71 @@ exit /b 0
 #+++
 
 :save_minified.template
-extract "__init__"
+- extract "__init__"
 
 ## Metadata
-extract "__metadata__ about"
+- extract "__metadata__ about"
 
 ## License
-extract "license"
+- extract "license"
 
 ## Configurations
-extract "config config.default config.cli config.preferences"
+- extract
+    " config
+      config.default
+      config.cli
+      config.preferences "
 
 ## Changelog
-extract "changelog"
+- extract "changelog"
 
 ## Main
+``` batchfile ~3
 `` :__main__
 `` @call :scripts.cli %*
 `` @exit /b %errorlevel%
 ``
 ``
+```
 
 ## Entry points
-extract "scripts scripts.lib scripts.lib-noecho scripts.cli"
+- extract scripts
+
+### Library script
+- extract "scripts.lib scripts.lib-noecho"
+
+### CLI script
+- extract scripts.cli
 
 ## User Interfaces
-extract "ui script_cli help"
+- extract
+    " ui
+      script_cli
+      help "
 
 ## Core
-extract "core Category.init Function.read make_template"
+- extract
+    " core
+      Category.init
+      Function.read
+      make_template "
 
-## Batch Script Library
-extract "lib !lib_functions! !Category_addons.functions!"
+## Library
+- extract
+    " lib
+      !lib_functions!
+      !Category_addons.functions! "
 
 ## Test
-extract "tests"
-extract "!test_functions!"
+- extract
+    " tests
+      !test_functions! "
 
 ## Assets
-extract assets
+- extract assets
 
 ## End of Script
-extract "EOF"
+- extract "EOF"
 exit /b 0
 
 
@@ -940,15 +968,16 @@ exit /b 0
 #+++
 
 :make_template.template.min
-// Template for new script - minimal edition
-//
-// Features:
-// - Module framework support
-// - Library dependency listing
+[comment]: # (Template for new script - minimal edition)
+[comment]: # ()
+[comment]: # (Features:)
+[comment]: # (- Module framework support)
+[comment]: # (- Library dependency listing)
 
-extract "__init__"
+- extract "__init__"
 
 ## Metadata
+``` batchfile ~3
 `` :__metadata__   [return_prefix]
 `` set "%~1name=<package_name>"
 `` set "%~1version=0.0"
@@ -961,21 +990,25 @@ extract "__init__"
 `` exit /b 0
 ``
 ``
+```
 
 ## Main
+``` batchfile ~3
 `` :__main__
 `` @call :scripts.main %*
 `` @exit /b %errorlevel%
 ``
 ``
+```
 
 ## Entry points
-extract "scripts"
+- extract "scripts"
 
 ### Library script
-extract "scripts.lib scripts.lib-noecho"
+- extract "scripts.lib scripts.lib-noecho"
 
 ### Main script
+``` batchfile ~3
 `` :scripts.main
 `` @setlocal EnableDelayedExpansion EnableExtensions
 `` @echo off
@@ -988,9 +1021,11 @@ extract "scripts.lib scripts.lib-noecho"
 `` exit /b 0
 ``
 ``
+```
 
 ## Library
-extract "lib"
+- extract "lib"
+``` batchfile ~3
 `` :lib.__metadata__
 `` set %~1install_requires= ^
 ``     ^ batchlib:^" ^
@@ -999,10 +1034,13 @@ extract "lib"
 `` exit /b 0
 ``
 ``
-extract "is_echo_on module.entry_point"
+```
+- extract
+    " is_echo_on
+      module.entry_point "
 
 ## End of Script
-extract "EOF"
+- extract "EOF"
 exit /b 0
 
 
@@ -3756,6 +3794,204 @@ for /f "tokens=*" %%r in ("!_result!") do (
 exit /b 0
 
 
+rem ================================== timeit() ==================================
+
+rem ======================== documentation ========================
+
+:timeit.__doc__
+echo NAME
+echo    timeit - measure execution time of code
+echo=
+echo SYNOPSIS
+echo    timeit   code  [-n N]  [-r N]
+echo    timeit.setup_macro
+echo    %%timeit[: $args= [-n N] [-r N]]%%   code
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the result.
+echo=
+echo    code
+echo        Code to execute. Single quotes in code is converted
+echo        to double quotes when not used as macro.
+echo=
+echo OPTIONS
+echo    -n N, --number N
+echo        How many times to execute function.
+echo=
+echo    -r N, --repeat N
+echo        How many times to repeat the timer (default 5).
+exit /b 0
+
+
+:timeit.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.timeit
+call :timeit.setup_macro
+
+echo Measure time taken to run "REM"
+call :timeit "rem"
+echo=
+echo Measure time taken to run "CALL"
+call :timeit "call"
+echo=
+echo Measure time taken to read this file line by line
+call :timeit "for /f 'usebackq tokens=*' %%%%o in ('%~f0') do rem"
+echo=
+echo Measure time taken to read this file line by line (using macro)
+%timeit% for /f "usebackq tokens=*" %%o in ("%~f0") do rem
+exit /b 0
+
+
+rem ======================== function ========================
+
+:timeit   code  [-n N] [-r N]
+setlocal EnableDelayedExpansion
+call :timeit.parse_args %*
+if defined _as_macro (
+    endlocal
+    call :timeit.parse_args %*
+)
+if defined _loops (
+    set "_start_repeat=1"
+) else (
+    set "_loops=1"
+    set "_start_repeat=-5"
+)
+set "_min_time=20"
+set "_best_time=2147483647"
+set "_result=0"
+if defined _as_macro exit /b 0
+
+set "_code= %~1"
+set _code=!_code:'="!
+set "_code=!_code:~1!"
+call :timeit.measure
+call :timeit.result
+exit /b 0
+#+++
+
+:timeit.parse_args
+(
+    goto 2> nul
+    for %%v in (_as_macro _loops) do set "%%v="
+    set "_repeat=5"
+    set parse_args.args= ^
+        ^ "--as-macro       :store_const:_as_macro=true" ^
+        ^ "-n, --number     :store:_loops" ^
+        ^ "-r, --repeat     :store:_repeat"
+    call :parse_args %*
+)
+exit /b 0
+#+++
+
+:timeit.measure
+for /l %%r in (!_start_repeat!,1,!_repeat!) do (
+    set "_measure=true"
+    if %%r LEQ 0 if !_result! GEQ !_min_time! set "_measure="
+    if defined _measure (
+        set "_start_time=!time!"
+        for /l %%l in (1,1,!_loops!) do %_code%
+        call :difftime _result "!time!" "!_start_time!"
+        if %%r LEQ 0 (
+            if !_result! LSS !_min_time! (
+                set /a "_loops=!_loops! * !_min_time!1 / !_result!1"
+                set /a "_loops=1!_loops! - 9!_loops:~1!"
+            )
+        ) else if !_result! LSS !_best_time! set "_best_time=!_result!"
+    )
+)
+exit /b 0
+#+++
+
+:timeit.result
+set "_sf=1"
+set "_nodot=-2"
+set "_temp=!_best_time!"
+for /l %%n in (1,1,10) do (
+    set /a "_temp/=10"
+    if not "!_temp!" == "0" set /a "_sf+=1"
+)
+for %%t in (3) do if !_sf! LEQ %%t (
+    for /l %%n in (1,1,%%t) do set /a "_best_time*=10"
+    set /a "_nodot-=%%t"
+)
+set /a "_best_time/=!_loops:~0,1!"
+set "_temp=!_loops!"
+for /l %%n in (1,1,5) do (
+    set /a "_temp/=10"
+    if not "!_temp!" == "0" set /a "_nodot-=1"
+)
+set "_unit="
+for %%a in (
+    "nsec:-9"
+    "usec:-6"
+    "msec:-3"
+    "sec:0"
+    "min:60"
+    "hour:3600  :last"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do ( rem
+) & if not defined _unit (
+    if %%c LEQ 0 (
+        set "_div=1"
+        for /l %%n in (!_nodot!,1,%%c) do set "_div=10*!_div!"
+    ) else (
+        set "_div=%%c"
+        for /l %%n in (!_nodot!,1,0) do set "_div=10*!_div!"
+    )
+    set /a "_div=!_div!/10"
+    if "!_div!" == "0" set "_div=1"
+    set /a "_whole=!_best_time!/!_div!"
+    if !_whole! LSS 1000 set "_unit=%%b"
+    if "%%c" == "last" set "_unit=%%b"
+)
+set /a "_remainder=!_best_time! %% !_div! * 100 / !_div!"
+set "_remainder=00!_remainder!"
+set "_remainder=!_remainder:~-2,2!"
+set "_result=!_whole!.!_remainder!"
+set "_result=!_result:~0,4!"
+if "!_result:~3,1!" == "." set "_result=!_result:~0,3!"
+echo !_loops! loops, best of !_repeat!: !_result! !_unit! per loop
+exit /b 0
+#+++
+
+:timeit.setup_macro
+rem Mostly derived from timeit.measure()
+set timeit= ^( call !LF!^
+    ^ ^) ^& for /l %%Q in (1,1,4) do if "%%Q" == "0" ^( call !LF!^
+    ^ ^) else if "%%Q" == "1" ^( !LF!^
+    ^     setlocal EnableDelayedExpansion EnableExtensions !LF!^
+    ^     set "_args_valid=" !LF!^
+    ^     call :timeit --as-macro  $args  %=END=% ^&^& set "_args_valid=true" !LF!^
+    ^ ^) else if "%%Q" == "3" ^( !LF!^
+    ^     if defined _args_valid call :timeit.result !LF!^
+    ^ ^) else if "%%Q" == "4" ^( !LF!^
+    ^     endlocal !LF!^
+    ^ ^) else if "%%Q" == "2" if defined _args_valid ^( call !LF!^
+    ^ ^) ^& for /l %%r in ^(^^!_start_repeat^^!,1,^^!_repeat^^!^) do ^( !LF!^
+    ^     set "_measure=true" !LF!^
+    ^     if %%r LEQ 0 if ^^!_result^^! GEQ ^^!_min_time^^! set "_measure=" !LF!^
+    ^ ^) ^& if defined _measure ^( call !LF!^
+    ^ ^) ^& for /l %%Q in ^(1,1,2^) do if "%%Q" == "0" ^( call !LF!^
+    ^ ^) else if "%%Q" == "2" ^( !LF!^
+    ^     call :difftime _result ^"^^!time^^!^" ^"^^!_start_time^^!^" !LF!^
+    ^     if %%r LEQ 0 ^( !LF!^
+    ^         if ^^!_result^^! LSS ^^!_min_time^^! ^( !LF!^
+    ^             set /a ^"_loops=^^!_loops^^! * ^^!_min_time^^!1 / ^^!_result^^!1^" !LF!^
+    ^             set /a ^"_loops=1^^!_loops^^! - 9^^!_loops:~1^^!^" !LF!^
+    ^         ^) !LF!^
+    ^     ^) else if ^^!_result^^! LSS ^^!_best_time^^! set ^"_best_time=^^!_result^^!^" !LF!^
+    ^ ^) else if "%%Q" == "1" ^( !LF!^
+    ^     set ^"_start_time=^^!time^^!^" !LF!^
+    ^ ^) ^& for /l %%l in ^(1,1,^^!_loops^^!^) do
+exit /b 0
+
+
 rem ================================== timeleft() ==================================
 
 rem ======================== documentation ========================
@@ -3967,7 +4203,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.wait.main
-set "threshold=125"  milliseconds
+set "threshold=200"  milliseconds
 set "test_delay=1250"  milliseconds
 
 call :wait.setup
@@ -4100,7 +4336,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.sleep.main
-set "threshold=120"  milliseconds
+set "threshold=300"  milliseconds
 set "test_delay=2000"  milliseconds
 
 call :wait.setup
@@ -4633,6 +4869,7 @@ rem ======================== tests ========================
 for %%a in (
     "1.00 GB:   1076892679"
     "1.00 GB:   1073741824"
+    "1.42 GB:   1533916891"
     "100 MB:    104857600"
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     call :bytes2size result %%c
@@ -4650,20 +4887,24 @@ set "%~1="
 setlocal EnableDelayedExpansion
 set "_result="
 set "_remainder=0"
-for %%c in (
-    30.GB 20.MB 10.KB 0.bytes
-) do if not defined _result (
-    set /a "_digits=(%~2) / (1<<%%~nc)"
+for %%a in (
+    "30:GB"
+    "20:MB"
+    "10:KB"
+    "0:bytes"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do ( rem
+) & if not defined _result (
+    set /a "_digits=(%~2) / (1<<%%b)"
     if not "!_digits!" == "0" (
         set "_result=!_digits!"
-        if not "%%~nc" == "0" (
-            set /a "_digits=(%~2) / (1<<(%%~nc - 10)) %% 1024 * 100 / 1024"
+        if not "%%b" == "0" (
+            set /a "_remainder=(%~2) / (1<<(%%b - 10)) %% 1024 * 100 / 1024"
             set "_remainder=00!_remainder!"
             set "_remainder=!_remainder:~-2,2!"
             set "_result=!_result!.!_remainder!"
             set "_result=!_result:~0,4!"
         )
-        set "_result=!_result! %%~xc"
+        set "_result=!_result! %%c"
     )
 )
 if not defined _result set "_result=0 bytes"
@@ -6452,15 +6693,11 @@ exit 0
 rem ======================== tests ========================
 
 :tests.lib.module.entry_point.main
-call %batchlib%:extract_func "%~f0" "__init__ module.entry_point __main__ " > "test_entry_point.bat"
-call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.capture_args" 1 > "capture_args"
-
->> "test_entry_point.bat" (
-    for %%e in (main second) do (
-        echo :scripts.%%e
-        echo set "entry_point=%%e"
-        type "capture_args"
-    )
+> "template" (
+    call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.test_template" 1,-3
+)
+> "test_entry_point.bat" (
+    call %batchlib%:textrender "template"
 )
 
 call %batchlib%:capchar LF
@@ -6471,10 +6708,10 @@ set test_cases= ^
 for /f "tokens=*" %%a in ("!test_cases!") do (
     for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
         set "entry_point="
-        call "test_entry_point.bat" %%d > nul
+        call "test_entry_point.bat" %%d
         set "exit_code=!errorlevel!"
-        if not "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!" (
-            echo "!entry_point!/!exit_code!" == "%%c/!expected_exit_code!"
+        if not "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!" (
+            echo "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!"
             call %unittest%.fail %%b
         )
     )
@@ -6482,11 +6719,27 @@ for /f "tokens=*" %%a in ("!test_cases!") do (
 exit /b 0
 #+++
 
-:tests.lib.module.entry_point.capture_args
-set args=%*
-set "expected_exit_code=%random%"
-echo Arguments: %*
-exit /b %expected_exit_code%
+:tests.lib.module.entry_point.test_template
+- extract "__init__ module.entry_point"
+
+``` batchfile ~3
+`` :__main__
+`` @call :scripts.main %*
+`` @exit /b %errorlevel%
+``
+``
+`` :scripts.main
+`` :scripts.second
+`` goto capture_args
+``
+``
+`` :capture_args
+`` set "entry_point=%~0"
+`` set args=%*
+`` set "expected_exit_code=%random%"
+`` exit /b %expected_exit_code%
+```
+exit /b 0
 
 
 rem ======================== function ========================
@@ -6909,43 +7162,22 @@ rem ======================== tests ========================
 
 :tests.lib.extract_func.main
 for %%a in (
-    "a30fc4305f5c30d2a990b3fdeb22a0ec85f4067a: special_characters"
-    "ea8a9a50a7516ad813cdad8466ec917863ee1b97: join_mark"
+    "9f54cd14729a19602a5c1c277f92d1d736b2cb1c: special_characters"
+    "c75df2b1ef6fe5c363c7b1d2756cef16beb35e29: join_mark"
     "3a6e3b917948a418251d2286c6a4ab8e77e9c007: comments: 2"
-    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, 4"
-    "b71350c6954b4cb9f109a1c3f94c2b1b13d7c6f5: comments: 0, -2"
+    "890e953fc6fa33a61d3f3d2f2dd41511787a58c7: comments: 0, 4"
+    "890e953fc6fa33a61d3f3d2f2dd41511787a58c7: comments: 0, -2"
     "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 10, 0"
     "da39a3ee5e6b4b0d3255bfef95601890afd80709: comments: 0, -10"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     set "params="
-    for %%e in (%%c) do set "params=!params! tests.lib.extract_func.%%e"
+    for %%e in (%%c) do set "params=!params! tests.assets.dummy_func.%%e"
     call :extract_func "%~f0" "!params!" %%d > "extracted" 2> nul
     call :checksum result "extracted"
     if not "!result!" == "%%b" (
         call %unittest%.fail %%a
     )
 )
-exit /b 0
-
-
-:tests.lib.extract_func.comments
-rem This is a function that does nothing
-rem Second line
-exit /b 0
-
-
-:tests.lib.extract_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
-    @call & echo %% !a! %* > nul 2> nul
-
-< nul ( call ) || exit /b 1
-exit /b 0
-
-
-:tests.lib.extract_func.join_mark
-exit /b 0
-#+++
-
-:tests.lib.extract_func.join_mark.joined
 exit /b 0
 
 
@@ -7288,17 +7520,17 @@ set "dummy.abspath=!cd!\dummy.bat"
 for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
 
 set test_args= ^
-    ^ ^"b3fc4b599f588dae2c3cee7d8750fd2232e9bfaa: ^
-    ^   batchlib:join_mark ^
-    ^   dummy:special_characters ^"
+    ^ ^"0172e420b1fb0a0dd1de5d5a9d8f03f49dad8b30: ^
+    ^       batchlib:join_mark ^
+    ^       dummy:special_characters ^"
 for %%a in (!test_args!) do ( rem
 ) & for /f "tokens=1* delims=:" %%b in (%%a) do (
     set "params="
     set "_dummy_extract="
     for %%d in (%%c) do ( rem
     ) & for /f "tokens=1* delims=:" %%e in ("%%d") do (
-        set "params=!params! %%e:tests.lib.collect_func.%%f"
-        if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.lib.collect_func.%%f"
+        set "params=!params! %%e:tests.assets.dummy_func.%%f"
+        if "%%e" == "dummy" set "_dummy_extract=!_dummy_extract! tests.assets.dummy_func.%%f"
     )
     call :extract_func "%~f0" "!_dummy_extract!" > "!dummy.abspath!"
     call :collect_func "!params!" > "extracted"
@@ -7307,21 +7539,6 @@ for %%a in (!test_args!) do ( rem
         call %unittest%.fail "extraction failed: %%b"
     )
 )
-exit /b 0
-
-
-:tests.lib.collect_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
-    @call & echo %% !a! %* > nul 2> nul
-
-< nul ( call ) || exit /b 1
-exit /b 0
-
-
-:tests.lib.collect_func.join_mark
-exit /b 0
-#+++
-
-:tests.lib.collect_func.join_mark.joined
 exit /b 0
 
 
@@ -7380,23 +7597,55 @@ echo        The function name of the renderer.
 echo        By default, it is 'textrender.renderer'
 echo=
 echo TEMPLATE SYNTAX
-echo    Syntax:
-echo        //      comment
-echo        ```     start/end of a block of code
-echo        ``      string literal
+echo    Each line represents a command to execute. Syntax for template is designed
+echo    to be somewhat similar to and compatible with markdown, with some modifications to
+echo    simplify parsing and improve interoperability within script (e.g.: with no
+echo    modifications in syntax, labels in
+echo    template might be interpreted as an actual label in the script).
+echo    These are the list of syntax (or supported markdown):
+echo=
+echo        COMMAND [args]
+echo            Command to be executed by the renderer.
+echo=
+echo        - COMMAND  [args]
+echo            Multi-line command and for listing commands in markdown.
+echo            This is the preferred syntax for renderer commands.
+echo=
+echo        [comment] your comment here
+echo        [comment]: # (your comment here)
+echo            Write comments in template. The 2nd one is preferred because
+echo            it is also compatible in markdown.
+echo=
+echo        ``` [NAME] [FILTER]
+echo        your code here...
+echo        ```
+echo            Mark text as blocks of code. Texts in these section are ouput
+echo            exactly as seen in the text editor. When substring filter is
+echo            applied, the result of each line will be the substring of the line.
+echo            (e.g.: if filter is "~3,-1", the first 3 and last 1 characters are
+echo            removed from each line in the block). Currently the name have no
+echo            effect and only exist there to specify language of code in markdown.
 echo=
 echo    Empty lines does not do anything, except when it is surrounded by
 echo    triple back-ticks.
 echo=
-echo    List of render commands (from textrender.render):
-echo        ##   title_text, followed by a empty line
-echo        extract   ["labels_from_this_script"]
+echo RENDERER COMMANDS
+echo    Each line represents a command to execute. The first word represents the
+echo    name of the function to call. The built-in renderer for templates is
+echo    textrender.renderer() and this is the list of the renderer commands:
+echo=
+echo        ## heading 2 text
+echo        ### heading 3 text
+echo            The text of the heading. Note: it does not remove closing hashtags.
+echo=
+echo        extract "label [label [...]]"
+echo            Label names to extract for rendering template.
 echo=
 echo    Variables can be used in commands.
 echo=
 echo EXIT STATUS
 echo    0:  - Success.
-echo    1:  - Template error.
+echo    1:  - Template rendering error.
 exit /b 0
 
 
@@ -7411,9 +7660,12 @@ rem ======================== demo ========================
 :demo.textrender
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 set "label_name=tests.lib.textrender.example"
-set "eof_label=EOF"
+set "variable_label=tests.assets.dummy_func.comments"
 echo=
 echo Label: !label_name!
+echo=
+echo Variables:
+set "variable_label"
 echo=
 echo Template:
 call :extract_func "%~f0" "!label_name!" 1 -3 > "template"
@@ -7427,10 +7679,10 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.textrender.main
-set "eof_label=EOF"
+set "variable_label=tests.assets.dummy_func.comments"
 
 for %%a in (
-    "c9aff43d2fd38cae6b2a72e8302efd0abb931cde: tests.lib.textrender.example"
+    "381ba9af675663e266bd783fb2ee2e850e45a237: tests.lib.textrender.example"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     call :extract_func "%~f0" "%%c" 1 -3 > "template"
     call :textrender "template" > "result"
@@ -7444,43 +7696,32 @@ exit /b 0
 
 :tests.lib.textrender.example
 ## Welcome to batch script
-`` This line will be literally written as-is,
-`` without the first 3 characters.     ^^^^^
+
+### Block of codes
 ```
-extract "nothing"
+- extract "nothing"
 because it is in a code block!
 ```
-// Make three empty lines
-``
-``
-``
-extract "tests.lib.textrender.comments"
-extract "!eof_label!"
-exit /b 0
-
-
-:tests.lib.textrender.comments
-rem This is a function that does nothing
-rem Second line
+### Block of codes with filter
+``` text ~3
+:: This line will be literally written as-is,
+:: without the first 3 characters.     ^^^^^
+```
+[comment]: # (Make three empty lines)
+``` text ~3
+::
+::
+::
+```
+### Call Renderer Functions
+- extract
+    "tests.assets.dummy_func.comments
+     tests.assets.dummy_func.special_characters"
+- extract "!variable_label!"
 exit /b 0
 
 
 rem ======================== function ========================
-
-setlocal DisableDelayedExpansion
-if "%1" == "0" (
-    set "_skip="
-) else set "_skip=skip=%1"
-for /f "usebackq %_skip% tokens=*" %%o in ("numbered") do (
-    set "_line=%%o"
-    setlocal EnableDelayedExpansion
-    set "_line=!_line:*:=!"
-    echo(!_line!
-    endlocal
-    for /f "tokens=1 delims=:" %%n in ("%%o") do if "%%n" == "%2" exit /b 0
-)
-exit /b 0
-
 
 :textrender   template_file  [renderer]
 setlocal EnableDelayedExpansion EnableExtensions
@@ -7491,44 +7732,85 @@ if "%~2" == "" (
 ) else set "_renderer=%~2"
 findstr /n "^^" "!_source_file!" > "numbered"
 setlocal DisableDelayedExpansion
-set "_literal="
+set "_literal_mode="
+set "_cmd="
 for /f "usebackq tokens=*" %%o in ("numbered") do (
     set "_line=%%o"
+    set "_continue="
     setlocal EnableDelayedExpansion
     set "_line=!_line:*:=!"
-    if "!_line!" == "```" (
-        if defined _literal (
-            set "_literal="
-        ) else set "_literal=true"
-        for %%s in ("!_literal!") do (
-            endlocal
-            set "_literal=%%~s"
-        )
-    ) else if "!_line:~0,2!" == "``" (
-        echo(!_line:~3!
-        endlocal
-    ) else (
-        if defined _literal (
-            echo(!_line!
+    set "_op="
+    if not defined _op if "!_line:~0,3!" == "```" set "_op=backquote"
+    if not defined _op if defined _literal_mode set "_op=literal"
+    if not defined _op if not defined _line if not defined _cmd set "_op=pass"
+    if not defined _op if not defined _line if defined _cmd set "_op=cmd_exec_on_blank"
+    if not defined _op if "!_line:~0,2!" == "- " set "_op=cmd_new_multiline"
+    if not defined _op if defined _line if defined _cmd set "_op=cmd_append"
+    if not defined _op if "!_line:~0,9!" == "[comment]" set "_op=pass"
+    if not defined _op set "_op=exec_line"
+
+    if "!_op!" == "backquote" (
+        if defined _cmd call :textrender._renderer_exec || exit /b 1
+        if defined _literal_mode (
+            set "_literal_mode="
         ) else (
-            set "_exec=true"
-            if not defined _line set "_exec="
-            if "!_line:~0,2!" == "//" set "_exec="
-            if defined _exec call :textrender._renderer_exec || exit /b 1
+            set "_literal_mode=~0"
+            for /f "tokens=2 delims=` " %%a in ("!_line!") do set "_literal_mode=%%a"
         )
+        for %%s in ("!_literal_mode!") do (
+            endlocal
+            set "_cmd="
+            set "_literal_mode=%%~s"
+        )
+    )
+    if "!_op!" == "literal" (
+        set "_line=!_line! "
+        for %%a in ("!_literal_mode!") do set "_line= !_line:%%~a!"
+        echo(!_line:~1,-1!
+        endlocal
+    )
+    if "!_op!" == "cmd_new_multiline" (
+        if defined _cmd (
+            call :textrender._renderer_exec || exit /b 1
+        )
+        set "_cmd=!_line:~2!"
+        for /f "tokens=*" %%a in ("!_cmd!") do (
+            endlocal
+            set "_cmd=%%a"
+        )
+    )
+    if "!_op!" == "cmd_append" (
+        for /f "tokens=*" %%a in ("!_cmd! !_line!") do (
+            endlocal
+            set "_cmd=%%a"
+        )
+        set "_continue=true"
+    )
+    if "!_op!" == "cmd_exec_on_blank" (
+        call :textrender._renderer_exec || exit /b 1
+        endlocal
+        set "_cmd="
+    )
+    if "!_op!" == "exec_line" (
+        set "_cmd=!_line!"
+        call :textrender._renderer_exec || exit /b 1
+        endlocal
+    )
+    if "!_op!" == "pass" (
         endlocal
     )
 )
+if defined _cmd call :textrender._renderer_exec || exit /b 1
 exit /b 0
 #+++
 
 :textrender._renderer_exec
-call :%_renderer%.%_line% || exit /b 1
+call :%_renderer%.%_cmd% || exit /b 1
 exit /b 0
 #+++
 
 :textrender.renderer.extract   labels
-call :extract_func "%~f0" %1 || exit /b 1
+call :extract_func "%~f0" %* || exit /b 1
 exit /b 0
 #+++
 
@@ -8316,6 +8598,11 @@ echo=
 echo    temp
 echo        Fallback path for temp_path if temp_path does not exist
 echo=
+echo EXIT STATUS
+echo    0:  - Unittest passed.
+echo    1:  - An unexpected error occured.
+echo    2:  - Unittest failed.
+echo=
 echo NOTES
 echo    - unittest() will call tests.__init__() first before running any tests
 echo    - If both label and pattern options are specified, it will use label.
@@ -8449,7 +8736,7 @@ if defined infos < nul set /p "=(!infos!)"
 echo=
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 rd /s /q "unittest" > nul 2> nul
-if not defined unittest.was_successful exit /b 1
+if not defined unittest.was_successful exit /b 2
 exit /b 0
 #+++
 
@@ -9262,6 +9549,29 @@ for %%f in (!Category_all.functions!) do (
         call %unittest%.fail "Cannot capture arguments for function '%%f'"
     )
 )
+exit /b 0
+
+
+rem ================================ Shared test assets ================================
+
+:tests.assets.dummy_func.comments
+rem This is a function that does nothing
+rem Second line
+exit /b 0
+
+
+:tests.assets.dummy_func.special_characters   arg_1a|arg_1b  arg2 [arg3]
+    @call & echo %% !a! %* > nul 2> nul
+
+< nul ( call ) || exit /b 1
+exit /b 0
+
+
+:tests.assets.dummy_func.join_mark
+exit /b 0
+#+++
+
+:tests.assets.dummy_func.join_mark.joined
 exit /b 0
 
 
