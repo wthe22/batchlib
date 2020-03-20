@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.22"
+set "%~1version=2.1-a.23"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/17/2020"   :: mm/dd/YYYY
+set "%~1release_date=03/20/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -71,11 +71,11 @@ exit /b 0
 
 :config.default
 rem Default/common configurations for this script
-set "temp_path=!temp!\BatchScript\!SOFTWARE.name!\!__name__!"
+set "temp_path=data\tmp\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module
 call :module.make_context batchlib "%~f0"
-call :module.make_context addons "%~f0"
+call :module.make_context feature "%~f0"
 
 rem Variables below are not used here, but for reference only
 rem set "data_path=data\batchlib"
@@ -139,15 +139,16 @@ echo    - Replaced 'goto :EOF' with 'exit /b 0'
 echo    - Function.read() no longer reads category definition
 echo    - Category definition and its functions are now written in Category.init()
 echo    - Improved format of internal category listing
-echo    - Fixed batch script creating ']' file on startup if EOL is Linux (!)
+echo    - Fixed batch script creating ']' file on startup if EOL is Linux
 echo    - script_cli(): added support for multi line commands
 echo    - Improved category listing of functions
 echo    - Reshuffled function codes according to category grouping
+echo    - Changed location of temp_path to use path relative to current directory
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
 echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
-echo      sleep(), timeit()
+echo      sleep(), timeit(), normalize_spaces(), while_true_macro()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -158,19 +159,26 @@ echo    - Added VBScript and PowerShell to dependency list of functions
 echo      which needs them
 echo    - Added support for comma and space time seperators in difftime(),
 echo      timeleft(), wait.calibrate()
+echo    - Added capture of LF in: timeit.setup_macro(), combi_wcdir(), wcdir()
+echo      and removed capchar() from dependencies.
 echo    - Fixed demo of several functions that uses Input.number()
 echo    - Merged 'shortcut' and 'framework' into 'lib'
 echo    - Removed expand_path(). Using FOR directly is more preferable.
 echo    - Removed dynamenu(), it is slow and some kind of impractical
-echo    - Renamed check_admin() to is_admin()
-echo    - Renamed '*.__demo__' to 'demo.*'
-echo    - capchar(): Added capturing of TAB character
+echo    - capchar():
+echo        - Added capturing of TAB character
+echo        - Improved demo and capture speed
+echo        - Weights are now read from %%~1 instead of %%*.
+echo          Now weights needs to be surrounded by quotes.
 echo    - check_ipv4(): Added ability to check wildcard IP
 echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
 echo    - check_path():
 echo        - Fixed incorrect parameter description
 echo        - Improved checking and consistency of path
-echo    - check_win_eol(): Fixed syntax error in code
+echo    - check_admin(): Renamed to is_admin()
+echo    - check_win_eol():
+echo        - Fixed syntax error in code
+echo        - Renamed to is_crlf()
 echo    - checksum():
 echo        - Changed parameters for defining hash
 echo        - Fixed error when hashing 0-byte files
@@ -181,8 +189,12 @@ echo    - difftime():
 echo        - Renamed parameter '-n' to '--no-fix'
 echo        - If milliseconds (or higher precision) are provided, it will be
 echo          truncated to centiseconds.
-echo    - expand_link(): Made return variables more readable
-echo    - fix_eol(): Improved control over display message
+echo    - expand_link():
+echo        - Made return variables more readable
+echo        - Renamed to expand_url()
+echo    - fix_eol():
+echo        - Improved control over display message
+echo        - Renamed to to_crlf()
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
 echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
@@ -212,9 +224,12 @@ echo        - Arguments is now case sensitive
 echo        - Renamed type 'flag' to 'store_const'
 echo        - Renamed type 'var' to 'store'
 echo    - pow(): Added error message if integer is too large
-echo    - randw(): Weights are now read from %~1 instead of %*.
-echo      Now weights needs to be surrounded by quotes.
-echo    - setup_clearline(): piped 'mode con' to prevent input stream from
+echo    - randw(): Parameters are now read from %%~1 instead of %%*.
+echo      Now parameters needs to be surrounded by quotes.
+echo    - setup_clearline():
+echo        - Piped 'mode con' to prevent input stream from
+echo        - Added default return_var value
+echo        - Renamed to clear_line_macro()
 echo      being discarded
 echo    - unzip(): Added 'temp_path' as temporary script directory with 'temp'
 echo      as fallback directory
@@ -269,20 +284,37 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added namespace of test aseets
-echo    - Added timeit()
-echo    - bytes2size(): Fixed decimal places calculation
-echo    - module.entry_point(): Fixed regression test
-echo    - Adjusted innacuracy threshold for wait() and sleep()
-echo    - textrender():
-echo        - Reworked template syntax
-echo        - Added support for multi-line commands
-echo    - unittest(): Added errorlevel to indicate if an unexpected error occured
+echo    - Added normalize_spaces(), while_true_macro()
+echo    - Renamed namespace 'addons' to 'feature'
+echo    - Updated codes to use module.make_context()
+echo    - Simplified errorlevel passing
+echo    - Improved read function argument speed
+echo    - Slightly improved documentation
+echo    - Added capture of LF in: timeit.setup_macro(), combi_wcdir(), wcdir()
+echo      and removed capchar() from dependencies.
+echo    - Changed location of temp_path to use path relative to current directory
+echo    - capchar():
+echo        - Improved demo and capture speed
+echo        - Parameters are now read from %%~1 instead of %%*.
+echo          Now parameters needs to be surrounded by quotes.
+echo    - check_win_eol(): Renamed to is_crlf()
+echo    - checksum(): Improved demo
+echo    - download_file(): Improved demo
+echo    - expand_link(): Renamed  to expand_url()
+echo    - fix_eol(): Renamed to to_crlf()
+echo    - Input.path(): Fixed errorlevel not set to 1 if input is skipped
+echo    - module.make_context(): Now file is not required to exist
+echo    - setup_clearline():
+echo        - Added default return_var value
+echo        - Renamed to clear_line_macro()
+echo    - timeit():
+echo        - Now it display error message if no command is given
+echo        - Fixed dependency listing
+echo    - updater(): Simplified unittest
 exit /b 0
 
 
 :changelog.todo
-echo    - Check parameters related to 'input_file' and 'script_path'
 exit /b 0
 
 
@@ -302,7 +334,7 @@ rem ======================================== Main ==============================
 
 :__main__
 @call :scripts.main %*
-@exit /b %errorlevel%
+@exit /b
 
 
 rem ======================================== Entry points ========================================
@@ -329,20 +361,20 @@ call %batchlib%:Input.number age --message "Input your age: " --range 0~200
 
 :scripts.lib
 @call :%*
-@exit /b %errorlevel%
+@exit /b
 
 
 :scripts.lib-noecho
 @call :is_echo_on && @goto scripts.lib-noecho._no_echo
 @call :%*
-@exit /b %errorlevel%
+@exit /b
 #+++
 
 :scripts.lib-noecho._no_echo
 @echo off
 @call :%*
 @echo on
-@exit /b %errorlevel%
+@exit /b
 
 
 :scripts.lib-noecho.__metadata__
@@ -363,11 +395,10 @@ title !SOFTWARE.description! !SOFTWARE.version!
 cls
 echo Loading script...
 
-for %%n in (1 2) do call :fix_eol.alt%%n && (
-    echo Convert EOL done
-    echo Script will exit. Press any key to continue...
-    pause > nul
-    exit 0
+for %%n in (1 2) do call :to_crlf.alt%%n && (
+    echo Convert EOL done.
+    endlocal
+    goto scripts.main
 )
 
 call :config
@@ -384,16 +415,11 @@ for %%p in (
 call :Category.init
 call :Function.read
 set "last_used.function="
-call %batchlib%:capchar *
-call %batchlib%:get_con_size console_width console_height
+call :capchar *
+call :get_con_size console_width console_height
 call :main_menu
 if not defined no_cleanup rd /s /q "!temp_path!" > nul 2> nul
-@exit /b %errorlevel%
-
-
-:scripts.main.reload
-endlocal
-goto scripts.main
+@exit /b
 
 
 rem ================================ minified script ================================
@@ -405,7 +431,7 @@ set "__name__=cli"
 prompt $$
 call :__metadata__ SOFTWARE.
 
-for %%n in (1 2) do call :fix_eol.alt%%n
+for %%n in (1 2) do call :to_crlf.alt%%n
 call :config
 
 set "action=script_cli"
@@ -433,6 +459,7 @@ rem ================================ Main Menu ================================
 
 :main_menu
 set "user_input="
+title !SOFTWARE.description! !SOFTWARE.version!
 cls
 echo 1. Browse documentation
 echo 2. Use command line
@@ -494,7 +521,6 @@ if "!user_input!" == "4" (
 )
 if /i "!user_input!" == "A" (
     cls
-    title !SOFTWARE.description! !SOFTWARE.version!
     call :about
     echo=
     pause
@@ -659,7 +685,7 @@ rem ================================ CLI script ================================
 @echo Type 'call :help', 'call :about' or 'call :license' for more information, 'exit /b' to quit.
 @echo=
 @call :script_cli._loop
-@exit /b %errorlevel%
+@exit /b
 #+++
 
 :script_cli._loop
@@ -767,7 +793,12 @@ exit /b 0
 
 
 :Category.init
-set "Category.list=shortcut number string time file net env console packaging framework"
+set Category.list= ^
+    ^ shortcut ^
+    ^ number string time file net ^
+    ^ env ^
+    ^ console packaging framework ^
+    ^ %=feature=%
 
 set "Category_shortcut.name=User Interface"
 set Category_shortcut.functions= ^
@@ -785,7 +816,8 @@ set "Category_string.name=String"
 set Category_string.functions= ^
     ^ strlen strval ^
     ^ to_upper to_lower to_capital ^
-    ^ strip_dquotes strip shuffle
+    ^ strip_dquotes strip ^
+    ^ normalize_spaces shuffle
 set "Category_time.name=Date and Time"
 set Category_time.functions= ^
     ^ difftime ftime ^
@@ -801,7 +833,7 @@ set Category_file.functions= ^
     ^ checksum diffbin
 set "Category_net.name=Network"
 set Category_net.functions= ^
-    ^ check_ipv4 expand_link ^
+    ^ check_ipv4 expand_url ^
     ^ get_ext_ip ping_test ^
     ^ download_file
 set "Category_env.name=Environment"
@@ -810,20 +842,21 @@ set Category_env.functions= ^
     ^ watchvar is_admin
 set "Category_console.name=Console"
 set Category_console.functions= ^
-    ^ capchar setup_clearline is_echo_on ^
+    ^ capchar clear_line_macro is_echo_on ^
     ^ color2seq color_print
 set "Category_packaging.name=Packaging"
 set Category_packaging.functions= ^
     ^ module module.entry_point module.make_context module.read_metadata module.is_module ^
     ^ find_label extract_func desolve collect_func textrender ^
     ^ parse_version updater ^
-    ^ fix_eol check_win_eol
+    ^ to_crlf is_crlf
 set "Category_framework.name=Development Tools"
 set Category_framework.functions= ^
     ^ unittest ^
-    ^ parse_args endlocal
-set "Category_addons.name=Add-ons"
-set Category_addons.functions= ^
+    ^ parse_args while_true_macro ^
+    ^ endlocal
+set "Category_feature.name=Feature"
+set Category_feature.functions= ^
     ^ VBScript PowerShell
 set "Category_others.name=Others"
 set Category_others.functions= ^
@@ -832,32 +865,30 @@ exit /b 0
 
 
 :Function.read
+set "Category_all.name=All"
 set "Category_all.functions="
 for %%c in (!Category.list!) do (
     set "Category_all.functions=!Category_all.functions! !Category_%%c.functions!"
 )
+set "to_normalize=Category.list"
 for %%c in (all !Category.list! others) do (
+    set "to_normalize=!to_normalize! Category_%%c.functions"
     set "Category_%%c.item_count=0"
-    set "_temp="
     for %%f in (!Category_%%c.functions!) do (
         set /a "Category_%%c.item_count+=1"
-        set "_temp=!_temp! %%f"
     )
-    set "Category_%%c.functions=!_temp!"
 )
+call :normalize_spaces "!to_normalize!"
 for /f "usebackq tokens=*" %%a in ("%~f0") do (
     for /f "tokens=1" %%b in ("%%a") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
         if /i ":%%c" == "%%b" if /i "%%d" == "" (
-            for %%f in (!Category_all.functions!) do if "%%c" == "%%f" (
+            if not "!Category_all.functions: %%c = !" == "!Category_all.functions!" (
                 set "_temp=%%a"
-                set "Function_%%f.args=!_temp:~1!"
+                set "Function_%%c.args=!_temp:~1!"
             )
         )
     )
 )
-set "Category_all.name=All"
-set "Category.list=!Category.list!"
-for %%v in (_temp _category _function _handled) do set "%%v="
 if not "!Category_others.item_count!" == "0" set "Category.list=!Category.list! others"
 exit /b 0
 
@@ -911,7 +942,7 @@ exit /b 0
 ``` batchfile ~3
 `` :__main__
 `` @call :scripts.cli %*
-`` @exit /b %errorlevel%
+`` @exit /b
 ``
 ``
 ```
@@ -942,7 +973,7 @@ exit /b 0
 - extract
     " lib
       !lib_functions!
-      !Category_addons.functions! "
+      !Category_feature.functions! "
 
 ## Test
 - extract
@@ -996,7 +1027,7 @@ exit /b 0
 ``` batchfile ~3
 `` :__main__
 `` @call :scripts.main %*
-`` @exit /b %errorlevel%
+`` @exit /b
 ``
 ``
 ```
@@ -1493,7 +1524,8 @@ echo Current directory: !cd!
 
 echo=
 echo=
-call %batchlib%:Input.path target_file -b "!temp!" --exist --file --message "Input an existing file: "
+call %batchlib%:Input.path target_file --base-dir "!temp!" --exist --file ^
+    ^ --message "Input an existing file: "
 echo Result: "!target_file!"
 
 echo=
@@ -1526,7 +1558,11 @@ set parse_args.args= ^
 call :parse_args %*
 if defined _base_dir cd /d "!_base_dir!"
 if not defined _message set "_message=Input %~1: "
-call :Input.path._loop
+call :Input.path._loop || (
+    endlocal
+    set "%~1="
+    exit /b 1
+)
 for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
     endlocal
     set "%~1=%%c"
@@ -1540,7 +1576,7 @@ echo=
 set /p "user_input=!_message!"
 if not defined user_input (
     if defined _optional (
-        exit /b 0
+        exit /b 1
     ) else goto Input.path._loop
 )
 call :check_path user_input !_check_options! || goto Input.path._loop
@@ -3058,6 +3094,92 @@ for /f "tokens=1* delims==" %%c in ("%~2= ") do ( rem
 exit /b 0
 
 
+rem ================================ normalize_spaces() ================================
+
+rem ======================== documentation ========================
+
+:normalize_spaces.__doc__
+echo NAME
+echo    normalize_spaces - normalize spaces in a variable to its compact form
+echo=
+echo SYNOPSIS
+echo    normalize_spaces   "input_var1 [input_var2 [...]]"
+echo=
+echo DESCRIPTION
+echo    Adds a single space to the beginning and the end of the string and
+echo    replace multiple spaces with a single space. Maximum number of
+echo    consecutive space that can be replaced to a single space is 459 spaces.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    input_var
+echo        The input variable name.
+exit /b 0
+
+
+:normalize_spaces.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.normalize_spaces
+call %batchlib%:Input.string multi_space_text || (
+    set "multi_space_text= hello     world,  how     are    you  ?"
+)
+set "result=!multi_space_text!"
+call %batchlib%:normalize_spaces "result"
+echo=
+echo Original list:
+echo "!multi_space_text!"
+echo=
+echo Normalized list:
+echo "!result!"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.normalize_spaces.main
+call :timeit.setup_macro
+set "spaces="
+set "start=1"
+set "end=125"
+for %%t in (front back) do (
+    set "%%t="
+    set "%%t.expected= "
+)
+for /l %%n in (1,1,!start!) do set "spaces=!spaces! "
+for /l %%n in (!start!,1,!end!) do (
+    set "front=!front!%%n!spaces!"
+    set "front.expected=!front.expected!%%n "
+    set "back=!spaces!%%n!back!"
+    set "back.expected= %%n!back.expected!"
+    set "spaces=!spaces! "
+)
+call :normalize_spaces "front back"
+for %%t in (front back) do (
+    if not "!%%t!" == "!%%t.expected!" call %unittest%.fail "%%t"
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:normalize_spaces   "input_var1 [input_var2 [...]]"
+for %%l in (%~1) do (
+    set "%%l= !%%l! "
+    for %%s in (
+        "                     "
+        "      "
+        "   "
+        "  "
+        "  "
+    ) do set "%%l=!%%l:%%~s= !"
+)
+exit /b 0
+
+
 rem ================================ shuffle() ================================
 
 rem ======================== documentation ========================
@@ -3803,9 +3925,9 @@ echo NAME
 echo    timeit - measure execution time of code
 echo=
 echo SYNOPSIS
-echo    timeit   code  [-n N]  [-r N]
+echo    timeit   code  [-n loops] [-r repetitions]
 echo    timeit.setup_macro
-echo    %%timeit[: $args= [-n N] [-r N]]%%   code
+echo    %%timeit[: $args= [-n loops] [-r repetitions]]%%   code
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
@@ -3821,11 +3943,18 @@ echo        How many times to execute function.
 echo=
 echo    -r N, --repeat N
 echo        How many times to repeat the timer (default 5).
+echo=
+echo NOTES
+echo    - Code is executed inside a SETLOCAL so no variables are affected.
+echo    - Macro can be used inside a FOR loop.
+echo    - The FOR loop parameter '%%%%_' is used internally.
 exit /b 0
 
 
 :timeit.__metadata__   [return_prefix]
-set "%~1install_requires="
+set %~1install_requires= ^
+    ^ parse_args ^
+    ^ difftime
 exit /b 0
 
 
@@ -3850,7 +3979,7 @@ exit /b 0
 
 rem ======================== function ========================
 
-:timeit   code  [-n N] [-r N]
+:timeit   code  [-n loops] [-r repetitions]
 setlocal EnableDelayedExpansion
 call :timeit.parse_args %*
 if defined _as_macro (
@@ -3870,6 +3999,7 @@ if defined _as_macro exit /b 0
 
 set "_code= %~1"
 set _code=!_code:'="!
+if "!_code: =!" == "" ( 1>&2 echo error: No command to execute & exit /b 1 )
 set "_code=!_code:~1!"
 call :timeit.measure
 call :timeit.result
@@ -3962,23 +4092,26 @@ exit /b 0
 
 :timeit.setup_macro
 rem Mostly derived from timeit.measure()
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 set timeit= ^( call !LF!^
-    ^ ^) ^& for /l %%Q in (1,1,4) do if "%%Q" == "0" ^( call !LF!^
-    ^ ^) else if "%%Q" == "1" ^( !LF!^
+    ^ ^) ^& for /l %%_ in (1,1,4) do if "%%_" == "0" ^( call !LF!^
+    ^ ^) else if "%%_" == "1" ^( !LF!^
     ^     setlocal EnableDelayedExpansion EnableExtensions !LF!^
     ^     set "_args_valid=" !LF!^
     ^     call :timeit --as-macro  $args  %=END=% ^&^& set "_args_valid=true" !LF!^
-    ^ ^) else if "%%Q" == "3" ^( !LF!^
+    ^ ^) else if "%%_" == "3" ^( !LF!^
     ^     if defined _args_valid call :timeit.result !LF!^
-    ^ ^) else if "%%Q" == "4" ^( !LF!^
+    ^ ^) else if "%%_" == "4" ^( !LF!^
     ^     endlocal !LF!^
-    ^ ^) else if "%%Q" == "2" if defined _args_valid ^( call !LF!^
+    ^ ^) else if "%%_" == "2" if defined _args_valid ^( call !LF!^
     ^ ^) ^& for /l %%r in ^(^^!_start_repeat^^!,1,^^!_repeat^^!^) do ^( !LF!^
     ^     set "_measure=true" !LF!^
     ^     if %%r LEQ 0 if ^^!_result^^! GEQ ^^!_min_time^^! set "_measure=" !LF!^
     ^ ^) ^& if defined _measure ^( call !LF!^
-    ^ ^) ^& for /l %%Q in ^(1,1,2^) do if "%%Q" == "0" ^( call !LF!^
-    ^ ^) else if "%%Q" == "2" ^( !LF!^
+    ^ ^) ^& for /l %%_ in ^(1,1,2^) do if "%%_" == "0" ^( call !LF!^
+    ^ ^) else if "%%_" == "2" ^( !LF!^
     ^     call :difftime _result ^"^^!time^^!^" ^"^^!_start_time^^!^" !LF!^
     ^     if %%r LEQ 0 ^( !LF!^
     ^         if ^^!_result^^! LSS ^^!_min_time^^! ^( !LF!^
@@ -3986,7 +4119,7 @@ set timeit= ^( call !LF!^
     ^             set /a ^"_loops=1^^!_loops^^! - 9^^!_loops:~1^^!^" !LF!^
     ^         ^) !LF!^
     ^     ^) else if ^^!_result^^! LSS ^^!_best_time^^! set ^"_best_time=^^!_result^^!^" !LF!^
-    ^ ^) else if "%%Q" == "1" ^( !LF!^
+    ^ ^) else if "%%_" == "1" ^( !LF!^
     ^     set ^"_start_time=^^!time^^!^" !LF!^
     ^ ^) ^& for /l %%l in ^(1,1,^^!_loops^^!^) do
 exit /b 0
@@ -4648,17 +4781,13 @@ exit /b 0
 :combi_wcdir.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ parse_args ^
-    ^ wcdir ^
-    ^ capchar
+    ^ wcdir
 exit /b 0
 
 
 rem ======================== demo ========================
 
 :demo.combi_wcdir
-rem Satisfy dependencies
-call :capchar LF
-
 call %batchlib%:Input.string search_paths || set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
 call %batchlib%:Input.string wildcard_paths || set "wildcard_paths=*script.exe"
 call %batchlib%:combi_wcdir result "!search_paths!" "!wildcard_paths!"
@@ -4692,6 +4821,9 @@ set parse_args.args= ^
 call :parse_args %*
 set "_path1=%~2"
 set "_path2=%~3"
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 for %%v in (_path1 _path2) do (
     set "%%v=!%%v:/=\!"
     set ^"%%v=!%%v:;=%NL%!^"
@@ -4770,17 +4902,13 @@ exit /b 0
 
 
 :wcdir.__metadata__   [return_prefix]
-set %~1install_requires= ^
-    ^ capchar
+set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
 :demo.wcdir
-rem Satisfy dependencies
-call :capchar LF
-
 call %batchlib%:Input.string wildcard_path || set "wildcard_path=C:\Windows\System32\*script.exe"
 call %batchlib%:strip_dquotes wildcard_path
 call %batchlib%:wcdir result "!wildcard_path!"
@@ -4805,6 +4933,9 @@ if "%~3" == "-f" set "_list_dir="
 set "_args=%~2"
 set "_args=!_args:/=\!"
 set "_result="
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 pushd "!temp!"
 call :wcdir._find "!_args!"
 for /f "tokens=* delims=" %%r in ("!_result!") do (
@@ -5063,20 +5194,18 @@ set "_eol=0d 0a"
 set parse_args.args= ^
     ^ "-e, --eol    :store:_eol"
 call :parse_args %*
+set "_input_file=%~f1"
+set "_output_file=%~f2"
 set "_eol_len=2"
 if /i "!_eol!" == "0d 0a" set "_eol_len=5"
 
-set "raw_hex_file=raw_hex"
-pushd "!temp_path!" && (
-    for %%f in ("!raw_hex_file!") do set "raw_hex_file=%%~ff"
-    popd
-)
-if exist "!raw_hex_file!" del /f /q "!raw_hex_file!"
-certutil -encodehex "%~f1" "!raw_hex_file!" > nul || exit /b 1
+cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+if exist "raw_hex" del /f /q "raw_hex"
+certutil -encodehex "!_input_file!" "raw_hex" > nul || exit /b 1
 rem Group hex according to EOL
-> "%~f2" (
+> "!_output_file!" (
     set "_hex="
-    for /f "usebackq tokens=1*" %%a in ("!raw_hex_file!") do (
+    for /f "usebackq tokens=1*" %%a in ("raw_hex") do (
         set "_input=%%b"
         set "_hex=!_hex! !_input:~0,48!"
         if not "!_hex:~7680!" == "" call :hexlify._format
@@ -5143,7 +5272,7 @@ exit /b 0
 
 :unzip.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ addons:VBScript
+    ^ feature:VBScript
 exit /b 0
 
 
@@ -5223,7 +5352,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.checksum
-call %batchlib%:Input.path file_path
+call %batchlib%:Input.path --exist --file file_path
 call %batchlib%:Input.string checksum_type
 call %batchlib%:checksum checksum "!file_path!" !checksum_type!
 echo=
@@ -5466,16 +5595,16 @@ for /f "tokens=*" %%n in ("!_input!") do (
 exit /b 0
 
 
-rem ================================ expand_link() ================================
+rem ================================ expand_url() ================================
 
 rem ======================== documentation ========================
 
-:expand_link.__doc__
+:expand_url.__doc__
 echo NAME
-echo    expand_link - expands a given URL to several smaller pieces
+echo    expand_url - expands a given URL to several smaller pieces
 echo=
 echo SYNOPSIS
-echo    expand_link   return_prefix  link
+echo    expand_url   return_prefix  url
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_prefix
@@ -5505,28 +5634,28 @@ echo    - The 'url' variable is the rebuild of the original url.
 exit /b 0
 
 
-:expand_link.__metadata__   [return_prefix]
+:expand_url.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.expand_link
+:demo.expand_url
 call %batchlib%:Input.string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
-call %batchlib%:expand_link web_url. "!web_url!"
+call %batchlib%:expand_url web_url. "!web_url!"
 set web_url
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:tests.lib.expand_link.main
+:tests.lib.expand_url.main
 for %%a in (
     "https://blog.example.com:80/1970/01/news.html?page=1#top"
 ) do (
     set "result="
-    call :expand_link result. %%a
+    call :expand_url result. %%a
     if not "!result.url!" == "%%~a" call %unittest%.fail %%a
 )
 exit /b 0
@@ -5534,7 +5663,7 @@ exit /b 0
 
 rem ======================== function ========================
 
-:expand_link   return_prefix  link
+:expand_url   return_prefix  url
 pushd "%~d0\"
 for %%v in (url scheme host port path name ext query fragment) do set "%~1%%v="
 for /f "tokens=1* delims=#" %%a in ("%~2") do (
@@ -5600,7 +5729,7 @@ exit /b 0
 
 :get_ext_ip.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ addons:PowerShell
+    ^ feature:PowerShell
 exit /b 0
 
 
@@ -5707,7 +5836,7 @@ echo NAME
 echo    download_file - download file from the internet
 echo=
 echo SYNOPSIS
-echo    download_file   link  save_path
+echo    download_file   download_url  save_path
 echo=
 echo POSITIONAL ARGUMENTS
 echo    link
@@ -5725,12 +5854,13 @@ echo    - PowerShell is used to download the information file.
 echo    - Download is buffered to disk.
 echo    - Follows redirects automatically.
 echo    - Overwrites existing file.
+echo    - Supports HTTP, HTTPS, FTP.
 exit /b 0
 
 
 :download_file.__metadata__   [return_prefix]
 set %~1install_requires=^
-    ^ addons:PowerShell
+    ^ feature:PowerShell
 exit /b 0
 
 
@@ -5738,10 +5868,10 @@ rem ======================== demo ========================
 
 :demo.download_file
 echo For this demo, file will be saved to "!cd!"
-echo Enter nothing to download laravel v4.2.11 (41 KB)
+echo Enter nothing to download the logo of Git (1.87 KB)
 echo=
-call %batchlib%:Input.string download_url || set "download_url=https://codeload.github.com/laravel/laravel/zip/v4.2.11"
-call %batchlib%:Input.string save_path || set "save_path=downloaded.zip"
+call %batchlib%:Input.string download_url || set "download_url=https://git-scm.com/images/logo.png"
+call %batchlib%:Input.path --file --optional save_path || set "save_path=logo.png"
 echo=
 echo Download url:
 echo=!download_url!
@@ -5750,13 +5880,15 @@ echo Save path:
 echo=!save_path!
 echo=
 echo Downloading file...
-call %batchlib%:download_file "!download_url!" "!save_path!" || echo Download failed
+call %batchlib%:download_file "!download_url!" "!save_path!" && (
+    echo Download success
+)|| echo Download failed
 exit /b 0
 
 
 rem ======================== function ========================
 
-:download_file   link  save_path
+:download_file   download_url  save_path
 if exist "%~2" del /f /q "%~2"
 if not exist "%~dp2" md "%~dp2"
 powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
@@ -6233,15 +6365,16 @@ echo NAME
 echo    capchar - capture control characters
 echo=
 echo SYNOPSIS
-echo    capchar   character1  [character2 [...]]
+echo    capchar   "char1  [char2 [...]]"
 echo=
 echo POSITIONAL ARGUMENTS
-echo    character
+echo    char
 echo        The character to capture. See 'LIST OF CHARACTERS'
 echo        and 'LIST OF MACROS' for list of valid options.
+echo        Use '*' to capture all available characters and macros.
 echo=
 echo LIST OF CHARACTERS
-echo    var     Hex     Name
+echo    Var     Hex     Name
 echo    ------------------------------
 echo    BS      07      Backspace
 echo    TAB     09      Tab
@@ -6250,7 +6383,7 @@ echo    CR      0D      Carriage Return
 echo    ESC     1B      Escape
 echo=
 echo LIST OF MACROS
-echo    var     Description
+echo    Var     Description
 echo    ------------------------------
 echo    _       'Base' for SET /P so it can start with whitespace characters
 echo    DEL     Delete previous character (in console)
@@ -6271,12 +6404,12 @@ rem ======================== demo ========================
 echo Capture control characters
 echo=
 echo ======================== CODE ========================
-call %batchlib%:capchar *
+call :capchar *
 echo Hello^^!LF^^!World^^!CR^^!.
 echo Clean^^!BS^^!r
 echo %%DQ%%^|No^&Escape^|^^^<Characters^>^^
 echo ^^!ESC^^![104;97m Windows 10 ^^!ESC^^![0m
-< nul set /p "=^!_^!   Whitespace first"
+< nul set /p "=^!_^! A Whitespace at front"
 echo=
 echo T^^!TAB^^!A^^!TAB^^!B
 echo ======================== RESULT ========================
@@ -6284,7 +6417,7 @@ echo Hello!LF!World!CR!.
 echo Clean!BS!r
 echo %DQ%|No&Escape|^<Characters>^
 echo !ESC![104;97m Windows 10 !ESC![0m
-< nul set /p "=!_!   Whitespace first"
+< nul set /p "=!_! A Whitespace at front"
 echo=
 echo T!TAB!A!TAB!B
 exit /b 0
@@ -6292,21 +6425,42 @@ exit /b 0
 
 rem ======================== function ========================
 
-:capchar   character1  [character2 [...]]
-if "%~1" == "*" call :capchar BS TAB LF CR ESC _ DEL DQ NL
-if /i "%~1" == "BS" for /f %%a in ('"prompt $h & for %%b in (1) do rem"') do set "BS=%%a"
-if /i "%~1" == "TAB" for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
-if /i "%~1" == "LF" set LF=^
+:capchar   "char1  [char2 [...]]"
+setlocal EnableDelayedExpansion
+rem NOTE: ORDER SENSITIVE, LEAST DEPENDENCY FIRST
+for %%d in (
+    "CR"
+    "LF"
+    "BS"
+    "TAB"
+    "ESC"
+    "_: BS"
+    "DEL: BS"
+    "DQ: BS"
+    "NL: LF"
+) do for /f "tokens=1* delims=:" %%e in (%%d) do (
+    if "%~1" == "*" (
+        set "%%e=true"
+    ) else (
+        set "%%e="
+        for %%a in (%~1) do if /i "%%a" == "%%e" (
+            for %%c in (%%e %%f) do set "%%c=true"
+        )
+    )
+)
+endlocal & (
+if /i "%CR%" == "true" for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
+if /i "%LF%" == "true" set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-if /i "%~1" == "CR" for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
-if /i "%~1" == "ESC" for /f %%a in ('"prompt $E & for %%b in (1) do rem"') do set "ESC=%%a"
-if /i "%~1" == "_" call :capchar "BS" & set "_=_!BS! !BS!"
-if /i "%~1" == "DEL" call :capchar "BS" & set "DEL=!BS! !BS!"
-if /i "%~1" == "DQ" call :capchar "BS" & set DQ="!BS! !BS!
-if /i "%~1" == "NL" call :capchar "LF" & set "NL=^^!LF!!LF!^^"
-shift /1
-if not "%1" == "" goto capchar
+if /i "%BS%" == "true" for /f %%a in ('"prompt $H & for %%b in (1) do rem"') do set "BS=%%a"
+if /i "%TAB%" == "true" for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
+if /i "%ESC%" == "true" for /f %%a in ('"prompt $E & for %%b in (1) do rem"') do set "ESC=%%a"
+if /i "%_%" == "true" set "_=_!BS! !BS!"
+if /i "%DEL%" == "true" set "DEL=!BS! !BS!"
+if /i "%DQ%" == "true" set DQ="!BS! !BS!
+if /i "%NL%" == "true" set "NL=^^!LF!!LF!^^"
+)
 exit /b 0
 
 
@@ -6320,20 +6474,22 @@ set DQ="
 set "EM=^!"
 set EM=^^!
 
-rem ================================ setup_clearline() ================================
+rem ================================ clear_line_macro() ================================
 
 rem ======================== documentation ========================
 
-:setup_clearline.__doc__
+:clear_line_macro.__doc__
 echo NAME
-echo    setup_clearline - create a macro to clear current line
+echo    clear_line_macro - create a macro to clear current line
 echo=
 echo SYNOPSIS
-echo    setup_clearline   return_var
+echo    clear_line_macro   return_var
+echo    echo ^^!CL^^![text]
+echo    ^< nul set /p "=^!CL^![text]"
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
-echo        Variable to store the macro.
+echo        Variable to store the macro. By default, it is 'CL'.
 echo=
 echo NOTES
 echo    - Based on: get_con_size(), get_os()
@@ -6341,7 +6497,7 @@ echo    - Text should not reach the end of the line.
 exit /b 0
 
 
-:setup_clearline.__metadata__   [return_prefix]
+:clear_line_macro.__metadata__   [return_prefix]
 set %~1install_requires= ^
     ^ capchar
 exit /b 0
@@ -6349,11 +6505,11 @@ exit /b 0
 
 rem ======================== demo ========================
 
-:demo.setup_clearline
+:demo.clear_line_macro
 rem Satisfy dependencies
 call :capchar CR DEL
 
-call %batchlib%:setup_clearline CL
+call %batchlib%:clear_line_macro
 echo=
 echo First test: end of the line not reached
 < nul set /p "=Press any key to clear this line"
@@ -6362,30 +6518,32 @@ pause > nul
 < nul set /p "=!CL!Line cleared"
 echo=
 echo=
-echo Second test: end of the line reached
+echo Second test: end of the line reached, failure expected
 < nul set /p "=Press any key to clear this line"
 for /l %%n in (33,1,!console_width!) do < nul set /p "=."
 pause > nul
-< nul set /p "=!CL!Clear line failed"
+< nul set /p "=!CL!Did it fail?"
 exit /b 0
 
 
 rem ======================== function ========================
 
-:setup_clearline   return_var
+:clear_line_macro   return_var
 setlocal EnableDelayedExpansion
 set "_index=0"
 for /f "usebackq tokens=2 delims=:" %%a in (`call ^| mode con`) do (
     set /a "_index+=1"
     if "!_index!" == "2" set /a "_width=%%a"
 )
-for /f "tokens=4 delims=. " %%v in ('ver') do (
+for /f "tokens=4 delims=. " %%w in ('ver') do (
     endlocal
-    set "%~1="
-    if %%v GEQ 10 (
-        for /l %%n in (1,1,%_width%) do set "%~1=!%~1! "
-        set "%~1=_!CR!!%~1!!CR!"
-    ) else for /l %%n in (1,1,%_width%) do set "%~1=!%~1!!DEL!"
+    for /f "tokens=1 delims==" %%v in ("%~1=CL") do (
+        set "%%v="
+        if %%w GEQ 10 (
+            for /l %%n in (1,1,%_width%) do set "%%v=!%%v! "
+            set "%%v=_!CR!!%%v!!CR!"
+        ) else for /l %%n in (1,1,%_width%) do set "%%v=!%%v!!DEL!"
+    )
 )
 exit /b 0
 
@@ -6652,7 +6810,7 @@ echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
 echo=
 echo USAGE
-echo    The first command on the script should be '@call module.entry_point'
+echo    The first command on the script should be 'call :module.entry_point'
 exit /b 0
 
 
@@ -6725,7 +6883,7 @@ exit /b 0
 ``` batchfile ~3
 `` :__main__
 `` @call :scripts.main %*
-`` @exit /b %errorlevel%
+`` @exit /b
 ``
 ``
 `` :scripts.main
@@ -6758,8 +6916,9 @@ rem ======================== function ========================
     endlocal
     endlocal
     call :scripts.%%b
+    exit /b
 )
-@exit /b %errorlevel%
+@exit /b
 
 
 rem ============================ .make_context() ============================
@@ -6810,7 +6969,6 @@ exit /b 0
 rem ======================== function ========================
 
 :module.make_context   return_var  script_path  entry_point
-if not exist "%~f2" exit /b 1
 set "%~1.abspath=%~f2"
 if "%~3" == "" (
     set "%~1= "
@@ -7093,7 +7251,7 @@ echo NAME
 echo    extract_func - extract batch script functions from a file
 echo=
 echo SYNOPSIS
-echo    extract_func   source_file  labels  [skip_lines]  [read_lines]
+echo    extract_func   script_path  labels  [skip_lines]  [read_lines]
 echo=
 echo POSITIONAL ARGUMENTS
 echo    input_file
@@ -7183,7 +7341,7 @@ exit /b 0
 
 rem ======================== function ========================
 
-:extract_func   source_file  labels  [skip_lines]  [read_lines]
+:extract_func   script_path  labels  [skip_lines]  [read_lines]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
@@ -7370,8 +7528,7 @@ set "charlie.one.install_requires=two"
 set "charlie.two.install_requires=charlie:one"
 set "charlie.three.install_requires=charlie:three"
 for %%m in (!modules!) do (
-    set "%%m.abspath=!cd!\%%m.bat"
-    set %%m="!%%m.abspath!" --module=lib %=END=%
+    call :module.make_context %%m "%%m.bat" lib
     > "!%%m.abspath!" (
         type "base"
         for %%f in (!%%m.functions!) do (
@@ -7515,10 +7672,8 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.collect_func.main
-set "batchlib.abspath=%~f0"
-set "dummy.abspath=!cd!\dummy.bat"
-for %%m in (batchlib dummy) do set %%m="!%%m.abspath!" --module=lib %=END=%
-
+call :module.make_context batchlib "%~f0" lib
+call :module.make_context dummy "dummy.bat" lib
 set test_args= ^
     ^ ^"0172e420b1fb0a0dd1de5d5a9d8f03f49dad8b30: ^
     ^       batchlib:join_mark ^
@@ -7864,7 +8019,7 @@ echo    C       End of string
 echo=
 echo    Although the Epoch segment in version is not supported, but it still have
 echo    its own internal representation in the result string.
-echo    Repr is the internal representation of the version.
+echo    The 'Repr' column is the internal representation of the version.
 echo=
 echo ALIASES
 echo    a   : a, alpha
@@ -8256,39 +8411,15 @@ for %%n in (1,1,3) do for %%h in (google.com baidu.com) do (
 )
 if defined no_internet call %unittest%.skip "Cannot connect to the internet" & exit /b 0
 
-set updater= ^
-    ^   updater ^
-    ^   download_file parse_version parse_args diffdate ^
-    ^   module.entry_point module.read_metadata module.is_module
-call %batchlib%:extract_func "%~f0" ^
-    ^ ^"__init__ scripts.lib ^
-    ^   !updater! ^
-    ^   tests.lib.updater.simulate ^
-    ^   tests.lib.updater.setup_metadata ^
-    ^   tests.lib.updater.make_metadata ^" ^
-    ^ > "cache"
->> "cache" (
-    echo :__main__
-    echo @call :scripts.main %%*
-    echo @exit /b %%errorlevel%%
-    echo=
-    echo=
-
-    echo :__metadata__
-    < nul set /p "=@rem "
-    call %batchlib%:extract_func "cache" "tests.lib.updater.make_metadata"
-
-    echo :scripts.main
-    < nul set /p "=@rem "
-    call %batchlib%:extract_func "cache" "tests.lib.updater.simulate"
+call :desolve _dependencies batchlib "updater"
+set "updater_func="
+for %%a in (!_dependencies!) do (
+    for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
+        set "updater_func=!updater_func! %%c"
+    )
 )
-call %batchlib%:extract_func "cache" ^
-    ^ ^"__init__ __main__ scripts.lib ^
-    ^   !updater! ^
-    ^   __metadata__ ^
-    ^   scripts.main ^
-    ^   tests.lib.updater.setup_metadata ^" ^
-    ^ > "test_with_metadata"
+call :extract_func "%~f0" "test.lib.updater.template" 1, -3 > "template"
+call :textrender "template" > "base.bat"
 for %%a in (
     "0: --upgrade --skip-verification"
     "0: --upgrade : version_lower"
@@ -8298,7 +8429,7 @@ for %%a in (
     "4: --upgrade : download_url_invalid"
     "6: --upgrade : name_different"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
-    copy /y test_with_metadata test_updater.bat > nul
+    copy /y "base.bat" "test_updater.bat" > nul
     start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul ^
     || ( call %unittest%.error "Cannot start test update" & exit /b 0 )
     set "exit_code=!errorlevel!"
@@ -8309,15 +8440,32 @@ for %%a in (
 exit /b 0
 
 
-:tests.lib.updater.simulate   update_params  condition
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :tests.lib.updater.setup_metadata %2
-(
-    call :updater %~1 "%~f0"
-    exit /b !errorlevel!
-)
-exit /b %errorlevel%
+:test.lib.updater.template
+- extract
+    " __init__
+      module.entry_point
+      scripts.lib
+      !updater_func! "
+``` batchfile ~3
+`` :__metadata__
+`` for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
+`` exit /b 0
+``
+``
+`` :__main__
+`` @setlocal EnableDelayedExpansion EnableExtensions
+`` @echo off
+`` call :tests.lib.updater.setup_metadata %2
+`` (
+``     call :updater %~1 "%~f0"
+``     exit /b
+`` )
+`` exit /b
+``
+``
+```
+- extract "tests.lib.updater.setup_metadata"
+exit /b 0
 
 
 :tests.lib.updater.setup_metadata   parameters
@@ -8337,11 +8485,6 @@ for %%a in (%~1) do (
     if "%%a" == "download_url_undefined" set "given.download_url="
     if "%%a" == "download_url_invalid" set "given.download_url=256.256.256.256"
 )
-exit /b 0
-
-
-:tests.lib.updater.make_metadata   [return_prefix]
-for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
 exit /b 0
 
 
@@ -8389,16 +8532,16 @@ move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 7
 exit /b 0
 
 
-rem ================================ fix_eol() ================================
+rem ================================ to_crlf() ================================
 
 rem ======================== documentation ========================
 
-:fix_eol.__doc__
+:to_crlf.__doc__
 echo NAME
-echo    fix_eol, fix_eol.alt1, fix_eol.alt2 - convert EOL of the script to CRLF
+echo    to_crlf, to_crlf.alt1, to_crlf.alt2 - convert EOL of the script to CRLF
 echo=
 echo SYNOPSIS
-echo    fix_eol
+echo    to_crlf
 echo=
 echo EXIT STATUS
 echo    0:  - EOL conversion is successful.
@@ -8406,29 +8549,30 @@ echo    2:  - EOL conversion is not necessary.
 echo    3:  - EOL conversion failed.
 echo=
 echo BEHAVIOR
-echo    - Script will EXIT if EOL conversion is successful.
+echo    - Script will EXIT (not 'EXIT /b') if EOL conversion is successful.
 echo=
 echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
+echo    - Tabs are converted to 4 spaces
 echo    - Can be used to detect and fix script EOL if it was downloaded
 echo      from GitHub, since uses Unix EOL (LF).
 exit /b 0
 
 
-:fix_eol.__metadata__   [return_prefix]
+:to_crlf.__metadata__   [return_prefix]
 set %~1install_requires= ^
-    ^ check_win_eol
+    ^ is_crlf
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.fix_eol
+:demo.to_crlf
 echo Fixing EOL...
-for %%n in (1 2) do call :fix_eol.alt%%n & (
+for %%n in (1 2) do call :to_crlf.alt%%n & (
     set "result=!errorlevel!"
     echo=
-    echo Called [fix_eol.alt%%n]
+    echo Called [to_crlf.alt%%n]
     if "!result!" == "0" echo Fix successful
     if "!result!" == "2" echo Fix not necessary
     if "!result!" == "3" echo Fix failed
@@ -8438,11 +8582,11 @@ exit /b 0
 
 rem ======================== function ========================
 
-:fix_eol
-:fix_eol.alt1
-:fix_eol.alt2
-for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
-    call :check_win_eol.alt%%n && exit /b 2
+:to_crlf
+:to_crlf.alt1
+:to_crlf.alt2
+for %%n in (1 2) do call :is_crlf.alt%%n --check-exist 2> nul && (
+    call :is_crlf.alt%%n && exit /b 2
     echo Converting EOL...
     type "%~f0" | more /t4 > "%~f0.tmp" && (
         move "%~f0.tmp" "%~f0" > nul && exit /b 0
@@ -8450,21 +8594,21 @@ for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
     ( 1>&2 echo warning: Convert EOL failed )
     exit /b 3
 )
-( 1>&2 echo error: failed to call check_win_eol^(^) )
+( 1>&2 echo error: failed to call is_crlf^(^) )
 exit /b 3
 
 
-rem ================================ check_win_eol() ================================
+rem ================================ is_crlf() ================================
 
 rem ======================== documentation ========================
 
-:check_win_eol.__doc__
+:is_crlf.__doc__
 echo NAME
-echo    check_win_eol, check_win_eol.alt1, check_win_eol.alt1
+echo    is_crlf, is_crlf.alt1, is_crlf.alt1
 echo    - check EOL type of current script
 echo=
 echo SYNOPSIS
-echo    check_win_eol   [--check-exist]
+echo    is_crlf   [--check-exist]
 echo=
 echo OPTIONS
 echo    -c, --check-exist
@@ -8483,29 +8627,29 @@ echo      in the first place.
 exit /b 0
 
 
-:check_win_eol.__metadata__   [return_prefix]
+:is_crlf.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.check_win_eol
-for %%n in (1 2) do call :check_win_eol.alt%%n --check-exist 2> nul && (
-    call :check_win_eol.alt%%n && (
-        echo [check_win_eol.alt%%n] EOL is Windows 'CRLF'
-    ) || echo [check_win_eol.alt%%n] EOL is Unix 'LF'
+:demo.is_crlf
+for %%n in (1 2) do call :is_crlf.alt%%n --check-exist 2> nul && (
+    call :is_crlf.alt%%n && (
+        echo [is_crlf.alt%%n] EOL is Windows 'CRLF'
+    ) || echo [is_crlf.alt%%n] EOL is Unix 'LF'
 )
 exit /b 0
 
 
 rem ======================== function ========================
 
-:check_win_eol   [--check-exist]
-:check_win_eol.alt1
-:check_win_eol.alt2
+:is_crlf   [--check-exist]
+:is_crlf.alt1
+:is_crlf.alt2
 for %%f in (-c, --check-exist) do if /i "%1" == "%%f" exit /b 0
-@call :check_win_eol._test 2> nul && exit /b 0 || exit /b 1
+@call :is_crlf._test 2> nul && exit /b 0 || exit /b 1
 rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
 rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
 rem  3                                                                                                                        #
@@ -8538,7 +8682,7 @@ rem 29                                                                          
 rem 30                                                                                                                        #
 rem 31                                                                                                                        #
 rem 32  LAST LINE: should be 1 character shorter than the rest                                              DO NOT MODIFY -> #
-:check_win_eol._test
+:is_crlf._test
 @exit /b 0
 
 
@@ -8859,7 +9003,7 @@ exit /b 0
 set "test_prefix=tests.lib.unittest.test_"
 set "expected_skip.msg=Not implemented yet..."
 set "expected_failure.msg=Test failure single"
-set "expected_error.exit_code=1"
+set "expected_error.exit_code=333"
 set "expected_error.msg=Test function did not exit correctly [exit code !expected_error.exit_code!]."
 exit /b 0
 
@@ -9262,6 +9406,72 @@ for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do 
 exit /b 0
 
 
+rem ================================ while_true_macro() ================================
+
+rem ======================== documentation ========================
+
+:while_true_macro.__doc__
+echo NAME
+echo    while_true_macro - setup macro for while true loop
+echo=
+echo SYNOPSIS
+echo    while_true_macro   [return_var]  [exponent]
+echo    %%while_true%%   code
+echo=
+echo DESCRIPTION
+echo    This macro is actually a FOR loop that will terminate after it
+echo    reaches certain number of loops. It is designed to exit the FOR
+echo    loop quickly when the 'EXIT /b' command is executed.
+echo=
+echo POSITIONAL ARGUMENTS
+echo    return_var
+echo        Variable to store the macro. By default, it is 'while_true'.
+echo=
+echo    exponent
+echo        The exponent of the loop. The higher the number, the longer it takes to
+echo        exhaust the loop. The loops needed to exhaust the loop is calculated as:
+echo        '256[^^2 [...]]'. By default, it is '2' (4294967296 loops to exhaust).
+echo=
+echo NOTES
+echo    - Variables that contains Line Feed character are not supported and it
+echo      could cause unexpected errors.
+exit /b 0
+
+
+:while_true_macro.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.while_true_macro
+call :while_true_macro
+call :test.lib.while_true_macro
+echo [!time!] Stopped
+exit /b 0
+
+
+:test.lib.while_true_macro
+echo This loop will stop when the number is 0.
+%while_true% (
+    set /a "number=!random! %% 10"
+    echo [!time!] !number!
+    if "!number!" == "0" exit /b 0
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:while_true_macro   return_var  power
+for /f "tokens=1 delims==" %%v in ("%~1=while_true") do (
+    set "%%v=for /l %%_ in (0,1,255) do "
+    for /l %%n in (1,1,%~2,2) do set "%%v=!%%v!!%%v!"
+)
+exit /b 0
+
+
 rem ================================ endlocal() ================================
 
 rem ======================== documentation ========================
@@ -9588,7 +9798,7 @@ rem ======================================== End of Script =====================
 :EOF
 rem May be needed if command extenstions are disabled
 rem Anything beyond this are not part of the code
-exit /b %errorlevel%
+exit /b
 
 
 rem ======================================== Other Function ========================================
@@ -9672,8 +9882,8 @@ rem Make: Copy / Move / Sync
 if not exist "%~1" exit /b 1
 if not exist "%~f2" md "%~f2"
 if "%~d1" == "%~d2" (
-    for /d %%d in ("%~1") do move /y "%%~fd" "%~f2" > nul || exit /b !errorlevel!
-    if exist "%~1" for %%f in ("%~1") do move /y "%%~ff" "%~f2" > nul || exit /b !errorlevel!
+    for /d %%d in ("%~1") do move /y "%%~fd" "%~f2" > nul || exit /b
+    if exist "%~1" for %%f in ("%~1") do move /y "%%~ff" "%~f2" > nul || exit /b
 ) else (
     echo robocopy /move /e "%~1" "%~2\%~nx1"
     exit /b 2
