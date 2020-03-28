@@ -7,7 +7,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.23"
+set "%~1version=2.1-a.24"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -148,7 +148,8 @@ echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
 echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
-echo      sleep(), timeit(), normalize_spaces(), while_true_macro()
+echo      sleep(), timeit(), normalize_spaces(), while_true_macro(), list2set(),
+echo      sprintrow()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
 echo    - Added updater(), this replaces module.updater().
@@ -269,6 +270,7 @@ echo=
 echo    Documentation
 echo    - Split '*.__demo__' into '*.__doc__' and 'demo.*'. Now users can see
 echo      documentation without running the demo.
+echo    - Removed usage of macro in 'demo.*'
 echo    - *.__doc__() now uses man page style of documentation
 echo    - Improved demo of several functions
 echo    - Added help() to display usage help
@@ -284,33 +286,12 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added normalize_spaces(), while_true_macro()
-echo    - Renamed namespace 'addons' to 'feature'
-echo    - Updated codes to use module.make_context()
-echo    - Simplified errorlevel passing
-echo    - Improved read function argument speed
-echo    - Slightly improved documentation
-echo    - Added capture of LF in: timeit.setup_macro(), combi_wcdir(), wcdir()
-echo      and removed capchar() from dependencies.
-echo    - Changed location of temp_path to use path relative to current directory
-echo    - capchar():
-echo        - Improved demo and capture speed
-echo        - Parameters are now read from %%~1 instead of %%*.
-echo          Now parameters needs to be surrounded by quotes.
-echo    - check_win_eol(): Renamed to is_crlf()
-echo    - checksum(): Improved demo
-echo    - download_file(): Improved demo
-echo    - expand_link(): Renamed  to expand_url()
-echo    - fix_eol(): Renamed to to_crlf()
-echo    - Input.path(): Fixed errorlevel not set to 1 if input is skipped
-echo    - module.make_context(): Now file is not required to exist
-echo    - setup_clearline():
-echo        - Added default return_var value
-echo        - Renamed to clear_line_macro()
-echo    - timeit():
-echo        - Now it display error message if no command is given
-echo        - Fixed dependency listing
-echo    - updater(): Simplified unittest
+echo    - Added list2set(), sprintrow()
+echo    - Input.string():
+echo        - Improved code to return errorlevel
+echo        - Added unittest for errorlevel
+echo    - normalize_spaces(): Added new parameter '--not-null'
+echo    - Removed usage of macro in 'demo.*', unittest(), and updater()
 exit /b 0
 
 
@@ -784,6 +765,14 @@ for /f "delims=" %%k in (%*) do for %%f in (!Category_all.functions!) do (
 exit /b 1
 
 
+:getlib   script_path
+setlocal EnableDelayedExpansion
+call :module.make_context script %1 lib
+call :desolve dependencies script lib
+call :collect_func "!dependencies!"
+exit /b 0
+
+
 rem ======================================== Core Functions ========================================
 
 :core
@@ -817,7 +806,9 @@ set Category_string.functions= ^
     ^ strlen strval ^
     ^ to_upper to_lower to_capital ^
     ^ strip_dquotes strip ^
-    ^ normalize_spaces shuffle
+    ^ normalize_spaces list2set ^
+    ^ sprintrow ^
+    ^ shuffle
 set "Category_time.name=Date and Time"
 set Category_time.functions= ^
     ^ difftime ftime ^
@@ -1102,7 +1093,6 @@ rem - external: something that is stored in other files
 rem - library functions MUST NOT have external dependencies
 rem   (e.g. this is not allowed: call %batchlib%:rand 1 9)
 rem - Functions that may have external dependencies:
-rem     - 'demo.*'
 rem     - 'tests.*' (It is recommended that the function to test itself
 rem         is not an external dependency)
 
@@ -1148,7 +1138,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.Input.number
-call %batchlib%:Input.number your_integer --range "-0xf0~-0xff, -99~9, 0x100~0x200,0x16 555"
+call :Input.number your_integer --range "-0xf0~-0xff, -99~9, 0x100~0x200,0x16 555"
 echo Your input: !your_integer!
 exit /b 0
 
@@ -1253,9 +1243,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.Input.string
-call %batchlib%:Input.string your_text --message "Enter anything: "
+call :Input.string your_text --message "Enter anything: "
 echo Your input: "!your_text!"
-call %batchlib%:Input.string your_text --filled --message "Enter something: "
+call :Input.string your_text --filled --message "Enter something: "
 echo Your input: "!your_text!"
 exit /b 0
 
@@ -1297,11 +1287,17 @@ set "evaluate_result=call :tests.lib.Input.string.evaluate_result"
     call :Input.string result --filled
 ) & !evaluate_result! "ignore null"
 
-REM < "in\spaced" > nul 2>&1 (
-    REM set "expected_result=world"
-    REM call :Input.string result --trim
-REM ) & !evaluate_result! "trim spaces [WIP]"
+< "in\empty" > nul 2>&1 (
+    call :Input.string result --filled || (
+        call %unittest%.fail "errorlevel 1 if empty"
+    )
+)
 
+< "in\empty" > nul 2>&1 (
+    call :Input.string result && (
+        call %unittest%.fail "errorlevel 1 if empty"
+    )
+)
 exit /b 0
 #+++
 
@@ -1322,12 +1318,15 @@ set parse_args.args= ^
     ^ "-f, --filled     :store_const:_require_filled=true"
 call :parse_args %* || exit /b 1
 if not defined _message set "_message=Input %~1: "
-call :Input.string._loop
+call :Input.string._loop || (
+    endlocal
+    set "%~1="
+    exit /b 1
+)
 for /f tokens^=*^ delims^=^ eol^= %%c in ("_!user_input!_") do (
     endlocal
     set "%~1=%%~c"
     set "%~1=!%~1:~1,-1!"
-    if not defined %~1 exit /b 1
 )
 exit /b 0
 #+++
@@ -1337,7 +1336,10 @@ echo=
 set "user_input="
 echo=!_message!
 set /p "user_input="
-if defined _require_filled if not defined user_input goto Input.string._loop
+if not defined user_input (
+    if defined _require_filled goto Input.string._loop
+    exit /b 1
+)
 exit /b 0
 
 
@@ -1402,21 +1404,21 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.Input.yesno
-call %batchlib%:Input.yesno your_ans --message "Do you like programming? Y/N? " && (
+call :Input.yesno your_ans --message "Do you like programming? Y/N? " && (
     echo Its a yes^^!
 ) || echo Its a no...
 echo Your input: !your_ans!
 
-call %batchlib%:Input.yesno your_ans --message "Is it true? Y/N? " --yes "true" --no "false"
+call :Input.yesno your_ans --message "Is it true? Y/N? " --yes "true" --no "false"
 echo Your input ("true", "false"): !your_ans!
 
-call %batchlib%:Input.yesno your_ans --message "Do you like to eat? Y/N? " --yes="Yes" --no="No"
+call :Input.yesno your_ans --message "Do you like to eat? Y/N? " --yes="Yes" --no="No"
 echo Your input ("Yes", "No"): !your_ans!
 
-call %batchlib%:Input.yesno your_ans --message "Do you excercise? Y/N? " -y "1" -n "0"
+call :Input.yesno your_ans --message "Do you excercise? Y/N? " -y "1" -n "0"
 echo Your input ("1", "0"): !your_ans!
 
-call %batchlib%:Input.yesno your_ans --message "Is this defined? Y/N? " -y="Yes" -n=""
+call :Input.yesno your_ans --message "Is this defined? Y/N? " -y="Yes" -n=""
 echo Your input ("Yes", ""): !your_ans!
 exit /b 0
 
@@ -1524,19 +1526,19 @@ echo Current directory: !cd!
 
 echo=
 echo=
-call %batchlib%:Input.path target_file --base-dir "!temp!" --exist --file ^
+call :Input.path target_file --base-dir "!temp!" --exist --file ^
     ^ --message "Input an existing file: "
 echo Result: "!target_file!"
 
 echo=
 echo=
-call %batchlib%:Input.path save_folder --optional --directory ^
+call :Input.path save_folder --optional --directory ^
     ^ --message "Input an existing folder or a new folder name (optional): "
 echo Result: "!save_folder!"
 
 echo=
 echo=
-call %batchlib%:Input.path new_name --optional --not-exist ^
+call :Input.path new_name --optional --not-exist ^
     ^ --message "Input a non-existing file/folder (optional): "
 echo Result: "!new_name!"
 exit /b 0
@@ -1617,7 +1619,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.Input.ipv4
-call %batchlib%:Input.ipv4 -w user_input --message "Input an IPv4 (wildcard allowed): "
+call :Input.ipv4 -w user_input --message "Input an IPv4 (wildcard allowed): "
 echo Your input: !user_input!
 exit /b 0
 
@@ -1719,9 +1721,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.rand
-call %batchlib%:Input.number minimum --range "0~2147483647"
-call %batchlib%:Input.number maximum --range "0~2147483647"
-call %batchlib%:rand random_int !minimum! !maximum!
+call :Input.number minimum --range "0~2147483647"
+call :Input.number maximum --range "0~2147483647"
+call :rand random_int !minimum! !maximum!
 echo=
 echo Random Number  : !random_int!
 exit /b 0
@@ -1776,8 +1778,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.randw
-call %batchlib%:Input.string weights
-call %batchlib%:randw random_int "!weights!"
+call :Input.string weights
+call :randw random_int "!weights!"
 echo=
 echo Random Number  : !random_int!
 exit /b 0
@@ -1841,9 +1843,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.yroot
-call %batchlib%:Input.number number --range "0~2147483647"
-call %batchlib%:Input.number power --range "0~2147483647"
-call %batchlib%:yroot result !number! !power!
+call :Input.number number --range "0~2147483647"
+call :Input.number power --range "0~2147483647"
+call :yroot result !number! !power!
 echo=
 echo Root to the power of !power! of !number! is !result!
 echo Result is round down
@@ -1949,9 +1951,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.pow
-call %batchlib%:Input.number number --range "0~2147483647"
-call %batchlib%:Input.number power --range "0~2147483647"
-call %batchlib%:pow result !number! !power!
+call :Input.number number --range "0~2147483647"
+call :Input.number power --range "0~2147483647"
+call :pow result !number! !power!
 echo=
 echo !number! to the power of !power! is !result!
 exit /b 0
@@ -2051,8 +2053,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.prime
-call %batchlib%:Input.number number --range "0~2147483647"
-call %batchlib%:prime factor !number!
+call :Input.number number --range "0~2147483647"
+call :prime factor !number!
 echo=
 if "!factor!" == "!number!" (
     echo !number! is a prime number
@@ -2144,9 +2146,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.gcf
-call %batchlib%:Input.number number1 --range "0~2147483647"
-call %batchlib%:Input.number number2 --range "0~2147483647"
-call %batchlib%:gcf result !number1! !number2!
+call :Input.number number1 --range "0~2147483647"
+call :Input.number number2 --range "0~2147483647"
+call :gcf result !number1! !number2!
 echo=
 echo GCF of !number1! and !number2! is !result!
 exit /b 0
@@ -2212,8 +2214,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.bin2int
-call %batchlib%:Input.string binary
-call %batchlib%:bin2int result !binary!
+call :Input.string binary
+call :bin2int result !binary!
 echo=
 echo The decimal value is !result!
 exit /b 0
@@ -2283,8 +2285,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.int2bin
-call %batchlib%:Input.number decimal --range "0~2147483647"
-call %batchlib%:int2bin result !decimal!
+call :Input.number decimal --range "0~2147483647"
+call :int2bin result !decimal!
 echo=
 echo The binary value is !result!
 exit /b 0
@@ -2336,8 +2338,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.int2oct
-call %batchlib%:Input.number decimal --range "0~2147483647"
-call %batchlib%:int2oct result !decimal!
+call :Input.number decimal --range "0~2147483647"
+call :int2oct result !decimal!
 echo=
 echo The octal value is !result!
 exit /b 0
@@ -2389,8 +2391,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.int2hex
-call %batchlib%:Input.number decimal --range "0~2147483647"
-call %batchlib%:int2hex result !decimal!
+call :Input.number decimal --range "0~2147483647"
+call :int2hex result !decimal!
 echo=
 echo The hexadecimal value is !result!
 exit /b 0
@@ -2443,8 +2445,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.int2roman
-call %batchlib%:Input.number number --range "1~4999"
-call %batchlib%:int2roman result !number!
+call :Input.number number --range "1~4999"
+call :int2roman result !number!
 echo=
 echo The roman numeral value is !result!
 exit /b 0
@@ -2500,8 +2502,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.roman2int
-call %batchlib%:Input.string roman_numeral
-call %batchlib%:roman2int result !roman_numeral!
+call :Input.string roman_numeral
+call :roman2int result !roman_numeral!
 echo=
 echo The decimal value is !result!
 exit /b 0
@@ -2556,8 +2558,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.is_number
-call %batchlib%:Input.string string
-call %batchlib%:is_number "!string!" && (
+call :Input.string string
+call :is_number "!string!" && (
     echo It is a number
 ) || echo It is not a number
 exit /b 0
@@ -2673,10 +2675,10 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.is_in_range
-call %batchlib%:Input.number number
-call %batchlib%:Input.string range
+call :Input.number number
+call :Input.string range
 echo=
-call %batchlib%:is_in_range "!number!" "!range!" && (
+call :is_in_range "!number!" "!range!" && (
     echo Number is within range
 ) || echo Number is not within range
 exit /b 0
@@ -2774,8 +2776,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.strlen
-call %batchlib%:Input.string string
-call %batchlib%:strlen length string
+call :Input.string string
+call :strlen length string
 echo=
 echo The length of the string is !length! characters
 exit /b 0
@@ -2824,8 +2826,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.strval
-call %batchlib%:Input.string string
-call %batchlib%:strval result string
+call :Input.string string
+call :strval result string
 echo=
 echo Integer value : !result!
 exit /b 0
@@ -2867,8 +2869,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.to_upper
-call %batchlib%:Input.string string
-call %batchlib%:to_upper string
+call :Input.string string
+call :to_upper string
 echo=
 echo Uppercase:
 echo=!string!
@@ -2912,8 +2914,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.to_lower
-call %batchlib%:Input.string string
-call %batchlib%:to_lower string
+call :Input.string string
+call :to_lower string
 echo=
 echo Lowercase:
 echo=!string!
@@ -2957,8 +2959,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.to_capital
-call %batchlib%:Input.string string
-call %batchlib%:to_capital string
+call :Input.string string
+call :to_capital string
 echo=
 echo Capitalcase:
 echo=!string!
@@ -3010,8 +3012,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.strip_dquotes
-call %batchlib%:Input.string string
-call %batchlib%:strip_dquotes string
+call :Input.string string
+call :strip_dquotes string
 echo=
 echo Stripped : !string!
 exit /b 0
@@ -3049,9 +3051,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.strip
-call %batchlib%:Input.string string
-call %batchlib%:Input.string character
-call %batchlib%:strip string "!character!"
+call :Input.string string
+call :Input.string character
+call :strip string "!character!"
 echo=
 echo Stripped : "!string!"
 exit /b 0
@@ -3103,16 +3105,23 @@ echo NAME
 echo    normalize_spaces - normalize spaces in a variable to its compact form
 echo=
 echo SYNOPSIS
-echo    normalize_spaces   "input_var1 [input_var2 [...]]"
+echo    normalize_spaces   "input_var1 [input_var2 [...]]"  [--not-null]
 echo=
 echo DESCRIPTION
-echo    Adds a single space to the beginning and the end of the string and
-echo    replace multiple spaces with a single space. Maximum number of
-echo    consecutive space that can be replaced to a single space is 459 spaces.
+echo    Adds a single space to the beginning and the end of the string
+echo    and replace multiple spaces with a single space. Maximum number
+echo    of consecutive space that can be replaced to a single space is
+echo    459 spaces. By default, if the resulting variable only contains
+echo    one space, the variable is set to undefined/null.
 echo=
 echo POSITIONAL ARGUMENTS
 echo    input_var
 echo        The input variable name.
+echo=
+echo OPTIONS
+echo    --not-null
+echo        Do not set variable to null even if the result only contains
+echo        a single space. This must be placed as the second argument.
 exit /b 0
 
 
@@ -3124,11 +3133,11 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.normalize_spaces
-call %batchlib%:Input.string multi_space_text || (
+call :Input.string multi_space_text || (
     set "multi_space_text= hello     world,  how     are    you  ?"
 )
 set "result=!multi_space_text!"
-call %batchlib%:normalize_spaces "result"
+call :normalize_spaces "result"
 echo=
 echo Original list:
 echo "!multi_space_text!"
@@ -3141,7 +3150,6 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.normalize_spaces.main
-call :timeit.setup_macro
 set "spaces="
 set "start=1"
 set "end=125"
@@ -3161,12 +3169,42 @@ call :normalize_spaces "front back"
 for %%t in (front back) do (
     if not "!%%t!" == "!%%t.expected!" call %unittest%.fail "%%t"
 )
+
+set "spaces.input=        "
+set "spaces.output="
+set "undefined.input="
+set "undefined.output="
+set "spaces_not_null.input=        "
+set "spaces_not_null.output= "
+set "undefined_not_null.input="
+set "undefined_not_null.output= "
+for %%a in (
+    "spaces"
+    "undefined"
+    "spaces_not_null: --not-null"
+    "undefined_not_null: --not-null"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "test_lists="
+    for %%l in (%%b) do (
+        set "%%l.result=!%%l.input!"
+        set "test_lists=!test_lists! %%l.result"
+    )
+    call :normalize_spaces "!test_lists!" %%c
+    set "fail="
+    for %%l in (%%b) do (
+        if not "!%%l.result!" == "!%%l.output!" set "fail=true"
+    )
+    if defined fail (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
+
 
 
 rem ======================== function ========================
 
-:normalize_spaces   "input_var1 [input_var2 [...]]"
+:normalize_spaces   "input_var1 [input_var2 [...]]"  [--not-null]
 for %%l in (%~1) do (
     set "%%l= !%%l! "
     for %%s in (
@@ -3176,6 +3214,241 @@ for %%l in (%~1) do (
         "  "
         "  "
     ) do set "%%l=!%%l:%%~s= !"
+    if not "%2" == "--not-null" if "!%%l!" == " " set "%%l="
+)
+exit /b 0
+
+
+rem ================================ list2set() ================================
+
+rem ======================== documentation ========================
+
+:list2set.__doc__
+echo NAME
+echo    list2set - remove duplicate items in a list
+echo=
+echo SYNOPSIS
+echo    list2set   "input_var1 [input_var2 [...]]"  [--not-null]
+echo=
+echo POSITIONAL ARGUMENTS
+echo    input_var
+echo        The input variable name.
+echo=
+echo OPTIONS
+echo    --not-null
+echo        Do not set variable to null even if the list is empty.
+echo        This must be placed as the second argument.
+echo=
+echo NOTES
+echo    - Special characters are not supported. Using it might result in
+echo      unexpected behaviors.
+exit /b 0
+
+
+:list2set.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.list2set
+call :Input.string list_with_duplicates || (
+    set list_with_duplicates= "hello" hello world? how are you *.bat
+)
+set "result=!list_with_duplicates!"
+call :list2set "result"
+echo=
+echo Original list:
+echo "!list_with_duplicates!"
+echo=
+echo Converted set:
+echo "!result!"
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.list2set.main
+set "basic.input=a a b c b cc ddd dd e "
+set "basic.output= a b c cc ddd dd e "
+set quoted.input=a "a" "b" " b " " b " c "c" c:"c"
+set quoted.output= a "a" "b" " b " c "c" c:"c" %=END=%
+set "spaces.input=        "
+set "spaces.output="
+set "undefined.input="
+set "undefined.output="
+set "spaces_not_null.input=        "
+set "spaces_not_null.output= "
+set "undefined_not_null.input="
+set "undefined_not_null.output= "
+for %%a in (
+    "basic"
+    "quoted"
+    "spaces"
+    "undefined"
+    "spaces_not_null: --not-null"
+    "undefined_not_null: --not-null"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "test_lists="
+    for %%l in (%%b) do (
+        set "%%l.result=!%%l.input!"
+        set "test_lists=!test_lists! %%l.result"
+    )
+    call :list2set "!test_lists!" %%c
+    set "fail="
+    for %%l in (%%b) do (
+        if not "!%%l.result!" == "!%%l.output!" set "fail=true"
+    )
+    if defined fail (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:list2set   "input_var1 [input_var2 [...]]"  [--not-null]
+for %%l in (%~1) do (
+    for /f "tokens=1* delims=?" %%b in ("Q?!%%l!") do (
+        set "%%l= "
+        for %%i in (%%c) do (
+            set "%%l= %%i!%%l!"
+        )
+    )
+    for /f "tokens=1* delims=?" %%b in ("Q?!%%l!") do (
+        set "%%l= "
+        for %%i in (%%c) do (
+            set "%%l= %%i!%%l: %%i = !"
+        )
+    )
+    if not "%2" == "--not-null" if "!%%l!" == " " set "%%l="
+)
+exit /b 0
+
+
+rem ================================ sprintrow() ================================
+
+rem ======================== documentation ========================
+
+:sprintrow.__doc__
+echo NAME
+echo    sprintrow - write formatted row data to variable
+echo=
+echo SYNOPSIS
+echo    sprintrow   buffer_var  seperator  cell_sizes  "text1" ["text2" [...]]
+echo=
+echo POSITIONAL ARGUMENTS
+echo    buffer_var
+echo        The variable name to append the results.
+echo=
+echo    seperator
+echo        The string to seperate each cell
+echo=
+echo    cell_sizes
+echo        Size of each cells.
+echo        - Positive    : Left justify
+echo        - Negative    : Right justify
+echo        - Zero        : No justify
+echo=
+echo    text
+echo        Text for each cells
+echo=
+echo NOTES
+echo    - This function uses global variables '_first', '_spaces' and '_value'.
+exit /b 0
+
+
+:sprintrow.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.sprintrow
+set "row1.first_name=John"
+set "row1.last_name=Doe"
+set "row1.age=8"
+set "row1.score=99"
+set "row2.first_name=Jane"
+set "row2.last_name=Doe"
+set "row2.age=12"
+set "row2.score=100"
+
+echo ================ Example #1 ================
+set "display="
+call :sprintrow display " | " ^
+    ^ "10 10 3 5" ^
+    ^ "First Name" "Last Name" "Age" "Score"
+echo !display!
+for /l %%n in (1,1,2) do (
+    set "display="
+    call :sprintrow display " | " ^
+        ^ "10 10 -3 -5" ^
+        ^ "!row%%n.first_name!" ^
+        ^ "!row%%n.last_name!" ^
+        ^ "!row%%n.age!" ^
+        ^ "!row%%n.score!"
+    echo !display!
+)
+echo=
+
+echo ================ Example #2 ================
+set "column_sizes=12 2 12 12 2 12"
+for /l %%n in (1,1,2) do (
+    echo=
+    echo Record #%%n
+    set "display="
+    call :sprintrow display "" ^
+        ^ "!column_sizes!" ^
+        ^ "First Name" ": " "!row%%n.first_name!" ^
+        ^ "Last Name" ": " "!row%%n.last_name!"
+    echo !display!
+    set "display="
+    call :sprintrow display "" ^
+        ^ "!column_sizes!" ^
+        ^ "Age" ": " "!row%%n.age!" ^
+        ^ "Score" ": " "!row%%n.score!"
+    echo !display!
+)
+echo=
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.sprintrow.main
+set "result="
+call :sprintrow result "#" ^
+    ^ "3 -3 5 -5" ^
+    ^ "a" "b" " c c " "dddddd"
+if not "!result!" == "a  #  b# c c #ddddd" (
+    call %unittest%.fail "basic"
+)
+exit /b 0
+
+
+rem ======================== function ========================
+
+:sprintrow   buffer_var  seperator  cell_sizes  "text1" ["text2" [...]]
+set "_spaces= "
+for /l %%n in (1,1,6) do set "_spaces=!_spaces!!_spaces!"
+set "_first=true"
+for %%l in (%~3) do (
+    if %%l GTR 0 (
+        call set "_value=%%~4!_spaces!"
+        set "_value=!_value:~0,%%l!"
+    ) else if %%l LSS 0 (
+        call set "_value=!_spaces!%%~4"
+        set "_value=!_value:~%%l!"
+    ) else call set "_value=%%~4"
+    if defined _first (
+        set "%~1=!%~1!!_value!"
+        set "_first="
+    ) else set "%~1=!%~1!%~2!_value!"
+    shift /4
 )
 exit /b 0
 
@@ -3206,8 +3479,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.shuffle
-call %batchlib%:Input.string text
-call %batchlib%:shuffle text
+call :Input.string text
+call :shuffle text
 echo=
 echo Shuffled string:
 echo=!text!
@@ -3279,9 +3552,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.difftime
-call %batchlib%:Input.string start_time
-call %batchlib%:Input.string end_time
-call %batchlib%:difftime time_taken "!end_time!" "!start_time!"
+call :Input.string start_time
+call :Input.string end_time
+call :difftime time_taken "!end_time!" "!start_time!"
 echo=
 echo Time difference: !time_taken! centiseconds
 exit /b 0
@@ -3378,8 +3651,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.ftime
-call %batchlib%:Input.string time_in_centisecond
-call %batchlib%:ftime time_taken !time_in_centisecond!
+call :Input.string time_in_centisecond
+call :ftime time_taken !time_in_centisecond!
 echo=
 echo Formatted time : !time_taken!
 exit /b 0
@@ -3439,9 +3712,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.diffdate
-call %batchlib%:Input.string start_date
-call %batchlib%:Input.string end_date
-call %batchlib%:diffdate difference !end_date! !start_date!
+call :Input.string start_date
+call :Input.string end_date
+call :diffdate difference !end_date! !start_date!
 echo=
 echo Difference : !difference! Days
 exit /b 0
@@ -3578,8 +3851,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.fdate
-call %batchlib%:Input.string days_since_epoch
-call %batchlib%:fdate result !days_since_epoch!
+call :Input.string days_since_epoch
+call :fdate result !days_since_epoch!
 echo=
 echo Formatted date : !result!
 exit /b 0
@@ -3698,8 +3971,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.what_day
-call %batchlib%:Input.string a_date || set "a_date=!date:* =!"
-call %batchlib%:what_day day "!a_date!"
+call :Input.string a_date || set "a_date=!date:* =!"
+call :what_day day "!a_date!"
 echo=
 echo That day is !day!
 exit /b 0
@@ -3781,8 +4054,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.time2epoch
-call %batchlib%:Input.string date_time || set "date_time=!date:* =!_!time!"
-call %batchlib%:time2epoch result !date_time!
+call :Input.string date_time || set "date_time=!date:* =!_!time!"
+call :time2epoch result !date_time!
 echo=
 echo Epoch time : !result!
 exit /b 0
@@ -3865,8 +4138,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.epoch2time
-call %batchlib%:Input.string seconds_since_epoch
-call %batchlib%:epoch2time result !seconds_since_epoch!
+call :Input.string seconds_since_epoch
+call :epoch2time result !seconds_since_epoch!
 echo=
 echo Formatted time: !result!
 exit /b 0
@@ -4170,7 +4443,7 @@ set "total_test=1000"
 for %%c in (without called integrated) do (
     echo Simulate Primality Test [1 - !total_test!] %%c timeleft
     set "start_time=!time!"
-    call %batchlib%:difftime start_time_cs "!start_time!"
+    call :difftime start_time_cs "!start_time!"
 
     for /l %%i in (1,1,!total_test!) do (
         set "_factor=0"
@@ -4203,7 +4476,7 @@ for %%c in (without called integrated) do (
         if /i not "%%c" == "without" if not "!time!"  == "!_call_time!" (
             set "_call_time=!time!"
 
-            if /i "%%c" == "called" call %batchlib%:timeleft time_remaining !start_time_cs! %%i !total_test!
+            if /i "%%c" == "called" call :timeleft time_remaining !start_time_cs! %%i !total_test!
 
             if /i "%%c" == "integrated" (
                 setlocal EnableDelayedExpansion
@@ -4230,11 +4503,11 @@ for %%c in (without called integrated) do (
     )
     echo=
 
-    call %batchlib%:difftime time_taken "!time!" "!start_time!"
+    call :difftime time_taken "!time!" "!start_time!"
     if /i "%%c" == "without" set "base_time=!time_taken!"
     set /a "overhead_time+=!time_taken! - !base_time!"
-    call %batchlib%:ftime time_taken !time_taken!
-    call %batchlib%:ftime overhead_time !overhead_time!
+    call :ftime time_taken !time_taken!
+    call :ftime overhead_time !overhead_time!
     echo=
     echo Actual time taken  : !time_taken!
     echo Overhead time      : !overhead_time!
@@ -4312,10 +4585,10 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.wait
-call %batchlib%:wait.setup
-call %batchlib%:wait.calibrate
+call :wait.setup
+call :wait.calibrate
 echo=
-call %batchlib%:Input.number time_in_milliseconds --range "0~10000"
+call :Input.number time_in_milliseconds --range "0~10000"
 echo=
 echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
@@ -4324,9 +4597,9 @@ rem Using macro
 for %%t in (!time_in_milliseconds!) do %wait%
 
 rem Called
-rem call %batchlib%:wait !time_in_milliseconds!
+rem call :wait !time_in_milliseconds!
 
-call %batchlib%:difftime time_taken "!time!" "!start_time!"
+call :difftime time_taken "!time!" "!start_time!"
 set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
@@ -4347,7 +4620,7 @@ call :wait.calibrate > nul || (
 for %%m in (macro call) do (
     set "start_time=!time!"
     call :tests.lib.wait.using_%%m
-    call %batchlib%:difftime time_taken "!time!" "!start_time!"
+    call :difftime time_taken "!time!" "!start_time!"
     set /a "time_taken*=10"
     set /a "inaccuracy=!time_taken! - !test_delay!"
     set /a "fail=!inaccuracy!/!threshold!"
@@ -4449,17 +4722,17 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.sleep
-call %batchlib%:wait.setup
-call %batchlib%:wait.calibrate
+call :wait.setup
+call :wait.calibrate
 echo=
-call %batchlib%:Input.number time_in_milliseconds --range "0~2147483647"
+call :Input.number time_in_milliseconds --range "0~2147483647"
 echo=
 echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
 
-call %batchlib%:sleep !time_in_milliseconds!
+call :sleep !time_in_milliseconds!
 
-call %batchlib%:difftime time_taken "!time!" "!start_time!"
+call :difftime time_taken "!time!" "!start_time!"
 set /a "time_taken*=10"
 echo=
 echo Actual time taken: ~!time_taken! milliseconds
@@ -4562,18 +4835,18 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.check_path
-call %batchlib%:Input.string config_file  --message "Input an existing file: "
-call %batchlib%:check_path --exist --file config_file && (
+call :Input.string config_file  --message "Input an existing file: "
+call :check_path --exist --file config_file && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call %batchlib%:Input.string folder  --message "Input an existing folder or a new folder name: "
-call %batchlib%:check_path --directory folder && (
+call :Input.string folder  --message "Input an existing folder or a new folder name: "
+call :check_path --directory folder && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call %batchlib%:Input.string new_name  --message "Input an existing folder or a new folder name: "
-call %batchlib%:check_path --not-exist new_name && (
+call :Input.string new_name  --message "Input an existing folder or a new folder name: "
+call :check_path --not-exist new_name && (
     echo Your input is valid
 ) || echo Your input is invalid
 exit /b 0
@@ -4788,9 +5061,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.combi_wcdir
-call %batchlib%:Input.string search_paths || set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
-call %batchlib%:Input.string wildcard_paths || set "wildcard_paths=*script.exe"
-call %batchlib%:combi_wcdir result "!search_paths!" "!wildcard_paths!"
+call :Input.string search_paths || set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
+call :Input.string wildcard_paths || set "wildcard_paths=*script.exe"
+call :combi_wcdir result "!search_paths!" "!wildcard_paths!"
 echo=
 echo Search paths:
 echo !search_paths:;=^
@@ -4909,9 +5182,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.wcdir
-call %batchlib%:Input.string wildcard_path || set "wildcard_path=C:\Windows\System32\*script.exe"
-call %batchlib%:strip_dquotes wildcard_path
-call %batchlib%:wcdir result "!wildcard_path!"
+call :Input.string wildcard_path || set "wildcard_path=C:\Windows\System32\*script.exe"
+call :strip_dquotes wildcard_path
+call :wcdir result "!wildcard_path!"
 echo=
 echo Wildcard path:
 echo !wildcard_path!
@@ -4987,8 +5260,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.bytes2size
-call %batchlib%:Input.string bytes
-call %batchlib%:bytes2size size "!bytes!"
+call :Input.string bytes
+call :bytes2size size "!bytes!"
 echo=
 echo The human readable form is !size!
 exit /b 0
@@ -5082,8 +5355,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.size2bytes
-call %batchlib%:Input.string size
-call %batchlib%:size2bytes bytes "!size!"
+call :Input.string size
+call :size2bytes bytes "!size!"
 echo=
 echo The size is !bytes! bytes
 exit /b 0
@@ -5165,11 +5438,11 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.hexlify
-call %batchlib%:Input.path --exist --file source_file
-call %batchlib%:Input.path --not-exist destination_file
+call :Input.path --exist --file source_file
+call :Input.path --not-exist destination_file
 echo=
 echo Converting to hex...
-call %batchlib%:hexlify "!source_file!" "!destination_file!" --eol "0d 0a"
+call :hexlify "!source_file!" "!destination_file!" --eol "0d 0a"
 echo Done
 exit /b 0
 
@@ -5279,10 +5552,10 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.unzip
-call %batchlib%:Input.path --exist --file zip_file
-call %batchlib%:Input.path --directory destination_folder
+call :Input.path --exist --file zip_file
+call :Input.path --directory destination_folder
 echo=
-call %batchlib%:unzip "!zip_file!" "!destination_folder!" && (
+call :unzip "!zip_file!" "!destination_folder!" && (
     echo Unzip successful
 ) || (
     echo Unzip failed
@@ -5352,9 +5625,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.checksum
-call %batchlib%:Input.path --exist --file file_path
-call %batchlib%:Input.string checksum_type
-call %batchlib%:checksum checksum "!file_path!" !checksum_type!
+call :Input.path --exist --file file_path
+call :Input.string checksum_type
+call :checksum checksum "!file_path!" !checksum_type!
 echo=
 echo Checksum: !checksum!
 exit /b 0
@@ -5431,10 +5704,10 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.diffbin
-call %batchlib%:Input.path --exist --file file1
-call %batchlib%:Input.path --exist --file file2
+call :Input.path --exist --file file1
+call :Input.path --exist --file file2
 echo=
-call %batchlib%:diffbin offset "!file1!" "!file2!"
+call :diffbin offset "!file1!" "!file2!"
 echo=
 if "!offset:~0,1!" == "-" (
     if "!offset!" == "-" echo Both files are the same
@@ -5526,9 +5799,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.check_ipv4
-call %batchlib%:Input.string ip_address
+call :Input.string ip_address
 echo=
-call %batchlib%:check_ipv4 "!ip_address!" && (
+call :check_ipv4 "!ip_address!" && (
     echo IP is valid
 ) || echo IP is invalid
 exit /b 0
@@ -5642,8 +5915,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.expand_url
-call %batchlib%:Input.string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
-call %batchlib%:expand_url web_url. "!web_url!"
+call :Input.string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
+call :expand_url web_url. "!web_url!"
 set web_url
 exit /b 0
 
@@ -5736,7 +6009,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.get_ext_ip
-call %batchlib%:get_ext_ip ext_ip
+call :get_ext_ip ext_ip
 echo=
 echo External IP    : !ext_ip!
 exit /b 0
@@ -5796,7 +6069,7 @@ rem ======================== demo ========================
 call :Input.string host || set "host=google.com"
 echo=
 echo Ping: !host!
-call %batchlib%:ping_test ping. !host! && (
+call :ping_test ping. !host! && (
     echo Ping Successful
 ) || echo Ping Failed
 echo=
@@ -5870,8 +6143,8 @@ rem ======================== demo ========================
 echo For this demo, file will be saved to "!cd!"
 echo Enter nothing to download the logo of Git (1.87 KB)
 echo=
-call %batchlib%:Input.string download_url || set "download_url=https://git-scm.com/images/logo.png"
-call %batchlib%:Input.path --file --optional save_path || set "save_path=logo.png"
+call :Input.string download_url || set "download_url=https://git-scm.com/images/logo.png"
+call :Input.path --file --optional save_path || set "save_path=logo.png"
 echo=
 echo Download url:
 echo=!download_url!
@@ -5880,7 +6153,7 @@ echo Save path:
 echo=!save_path!
 echo=
 echo Downloading file...
-call %batchlib%:download_file "!download_url!" "!save_path!" && (
+call :download_file "!download_url!" "!save_path!" && (
     echo Download success
 )|| echo Download failed
 exit /b 0
@@ -5934,7 +6207,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.get_con_size
-call %batchlib%:get_con_size console_width console_height
+call :get_con_size console_width console_height
 echo=
 echo Screen buffer size    : !console_width!x!console_height!
 exit /b 0
@@ -5990,7 +6263,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.get_sid
-call %batchlib%:get_sid result
+call :get_sid result
 echo=
 echo User SID : !result!
 exit /b 0
@@ -6033,7 +6306,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.get_os
-call %batchlib%:get_os result --name
+call :get_os result --name
 echo Your OS is !result!
 exit /b 0
 
@@ -6091,7 +6364,7 @@ rem ======================== demo ========================
 
 :demo.get_pid
 set "start_time=!time!"
-call %batchlib%:get_pid result
+call :get_pid result
 call :difftime time_taken "!time!" "!start_time!"
 echo Using random number
 echo PID        : !result!
@@ -6099,7 +6372,7 @@ echo Time taken : !time_taken!
 echo=
 
 set "start_time=!time!"
-for /f %%g in ('powershell -command "$([guid]::NewGuid().ToString())"') do call %batchlib%:get_pid result %%g
+for /f %%g in ('powershell -command "$([guid]::NewGuid().ToString())"') do call :get_pid result %%g
 call :difftime time_taken "!time!" "!start_time!"
 echo Using PowerShell GUID
 echo PID        : !result!
@@ -6157,7 +6430,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.watchvar
-call %batchlib%:watchvar --initialize
+call :watchvar --initialize
 for /l %%n in (1,1,5) do (
     for /l %%n in (1,1,10) do (
         set /a "_operation=!random! %% 2"
@@ -6169,7 +6442,7 @@ for /l %%n in (1,1,5) do (
     set "_operation="
     set "_num="
     echo=
-    call %batchlib%:watchvar --name
+    call :watchvar --name
 )
 exit /b 0
 
@@ -6343,7 +6616,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.is_admin
-call %batchlib%:is_admin && (
+call :is_admin && (
     echo Administrator privilege detected
 ) || echo No administrator privilege detected
 exit /b 0
@@ -6509,7 +6782,7 @@ rem ======================== demo ========================
 rem Satisfy dependencies
 call :capchar CR DEL
 
-call %batchlib%:clear_line_macro
+call :clear_line_macro
 echo=
 echo First test: end of the line not reached
 < nul set /p "=Press any key to clear this line"
@@ -6573,7 +6846,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.is_echo_on
-call %batchlib%:is_echo_on && (
+call :is_echo_on && (
     echo Echo is on
 ) || echo Echo is off
 exit /b 0
@@ -6632,8 +6905,8 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.color2seq
-call %batchlib%:Input.string hexadecimal_color
-call %batchlib%:color2seq color_code "!hexadecimal_color!"
+call :Input.string hexadecimal_color
+call :color2seq color_code "!hexadecimal_color!"
 echo=
 echo Sequence: !color_code!
 echo Color print: !ESC!!color_code!Hello World!ESC![0m
@@ -6709,10 +6982,10 @@ rem ======================== demo ========================
 rem Satisfy dependencies
 call :capchar BS
 
-call %batchlib%:Input.string text
-call %batchlib%:Input.string hexadecimal_color
+call :Input.string text
+call :Input.string hexadecimal_color
 echo=
-call %batchlib%:color_print "!hexadecimal_color!" "!text!" && (
+call :color_print "!hexadecimal_color!" "!text!" && (
     echo !LF!Print Success
 ) || echo !LF!Print Failed. Characters not supported, or external error occured
 exit /b 0
@@ -6956,9 +7229,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.make_context
-call %batchlib%:Input.string context_name
-call %batchlib%:Input.path --exist --file script_path
-call %batchlib%:Input.string entry_point
+call :Input.string context_name
+call :Input.path --exist --file script_path
+call :Input.string entry_point
 echo=
 call :module.make_context !context_name! "!script_path!" "!entry_point!"
 echo=
@@ -7006,7 +7279,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.read_metadata
-call %batchlib%:Input.path script_to_check
+call :Input.path script_to_check
 call :module.is_module "!script_to_check!" || (
     echo Script does not support call as module
     echo Please choose another script that supports call as module
@@ -7068,14 +7341,14 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.is_module
-call %batchlib%:Input.path script_to_check
+call :Input.path script_to_check
 echo=
 set "start_time=!time!"
 call :module.is_module "!script_to_check!" && (
     echo Script supports call as module
 ) || echo Script does not support call as module
-call %batchlib%:difftime time_taken "!time!" "!start_time!"
-call %batchlib%:ftime time_taken !time_taken!
+call :difftime time_taken "!time!" "!start_time!"
+call :ftime time_taken !time_taken!
 echo=
 echo Done in !time_taken!
 exit /b 0
@@ -7308,9 +7581,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.extract_func
-call %batchlib%:Input.string function_labels || set "function_labels=extract_func"
+call :Input.string function_labels || set "function_labels=extract_func"
 echo=
-call %batchlib%:extract_func "%~f0" "!function_labels!" && (
+call :extract_func "%~f0" "!function_labels!" && (
     echo Extract successful
 ) || echo Extract failed
 exit /b 0
@@ -8052,9 +8325,9 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.parse_version
-call %batchlib%:Input.string version1
-call %batchlib%:Input.string version2
-call %batchlib%:Input.string comparison || set "comparison=LSS"
+call :Input.string version1
+call :Input.string version2
+call :Input.string comparison || set "comparison=LSS"
 echo=
 call :parse_version version1.parsed !version1!
 call :parse_version version2.parsed !version2!
@@ -8387,7 +8660,7 @@ echo=
 echo Note:
 echo - Updating will REPLACE current script with the newer version
 echo=
-call %batchlib%:Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
+call :Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
 echo=
 call :updater --upgrade "%~f0" && (
     echo Upgrade successful. Script will exit.
@@ -8508,7 +8781,7 @@ set "_other=!cd!\latest.bat"
     && if not defined _download_url set "_download_url=!_part.download_url!" ^
     && if not defined _download_url ( exit /? > nul )
 ) || ( 1>&2 echo error: failed to get download url & exit /b 3 )
-call %batchlib%:download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 4 )
+call :download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 4 )
 if defined _verify (
     (
         call :module.is_module "!_other!" ^
@@ -8520,7 +8793,7 @@ if defined _verify (
     call :parse_version _other.parsed_version "!_other.version!"
     if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 2 )
     if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 2 )
-    call %batchlib%:diffdate update_age !date:~4! !_other.release_date! 2> nul && (
+    call :diffdate update_age !date:~4! !_other.release_date! 2> nul && (
         echo !_other.description! !_other.version! is now available ^(!update_age! days ago^)
     ) || echo !_other.description! !_other.version! is now available ^(since !_other.release_date!^)
 )
@@ -8839,8 +9112,8 @@ set "start_time=!time!"
 for %%t in (!unittest.test_list!) do if not defined unittest.should_stop (
     set /a "unittest.tests_run+=1"
     if "!unittest.verbosity!" == "2" (
-        call %batchlib%:difftime _elapsed_time "!time!" "!start_time!"
-        call %batchlib%:ftime _elapsed_time !_elapsed_time!
+        call :difftime _elapsed_time "!time!" "!start_time!"
+        call :ftime _elapsed_time !_elapsed_time!
         set "unittest.tests_run=%_num_padding%!unittest.tests_run!"
         set "unittest.tests_run=!unittest.tests_run:~-%_num_digits%,%_num_digits%!"
         echo !_elapsed_time! [!unittest.tests_run!/!unittest.tests_count!] %%t
@@ -9158,7 +9431,7 @@ echo=
 echo    -p, --plus
 echo        Add one to the result. Can be used multiple times.
 echo=
-call %batchlib%:Input.string parameters
+call :Input.string parameters
 echo=
 call :talking_calculator !parameters!
 exit /b 0
@@ -9184,9 +9457,9 @@ set /a "_result=%~1 + 0" 2> nul || (
     exit /b 1
 )
 set /a "_result+=0 !_args._plus!"
-if defined _args._binary call %batchlib%:int2bin _result !_result!
+if defined _args._binary call :int2bin _result !_result!
 if defined _args._hex (
-    call %batchlib%:int2hex _result !_result!
+    call :int2hex _result !_result!
     set "_result=0x!_result!"
 )
 if not defined _args._say set "_args._say=The answer is"
@@ -9513,7 +9786,7 @@ set "var_keep=Attempting to change it"
 set "var_hello=I am a new variable^!"
 (
     @echo off
-    call %batchlib%:endlocal var_del var_hello:var_new_name
+    call :endlocal var_del var_hello:var_new_name
     @echo on
 )
 set var_
