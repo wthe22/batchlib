@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.24"
+set "%~1version=2.1-a.25"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=03/20/2020"   :: mm/dd/YYYY
+set "%~1release_date=04/05/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -74,6 +74,7 @@ rem Default/common configurations for this script
 set "temp_path=data\tmp\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module
+set "self_context=batchlib feature"
 call :module.make_context batchlib "%~f0"
 call :module.make_context feature "%~f0"
 
@@ -105,7 +106,7 @@ exit /b 0
 rem Define your preferences or config modifications here
 
 rem Macros to call external module (use absolute paths)
-rem set batchlib="%~dp0batchlib-min.bat" --module=lib %=END=%
+rem set batchlib="%~dp0batchlib-min.bat" -c %=END=%
 exit /b 0
 
 
@@ -198,7 +199,9 @@ echo        - Improved control over display message
 echo        - Renamed to to_crlf()
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
-echo    - get_ext_ip(): Used 'temp_path' as the temporary download path
+echo    - get_ext_ip():
+echo        - Remove usage of temporary file
+echo        - Added fallback URLs
 echo      this ID is automatically generated in the function using PowerShell.
 echo    - Input.*(): Renamed parameters '-d, --description' to '-m, --message'
 echo    - Input.ipv4(): Fixed function not returning value after a successful input
@@ -210,10 +213,7 @@ echo        - Improved skipping on optional inputs
 echo        - Improved user interface
 echo    - Input.yesno(): Accepts anything that starts with 'Y' as yes, and
 echo      anything that starts with 'N' as no
-echo    - module.entry_point():
-echo        - Fixed script quitting unexpectedly
-echo        - It is now callable even if the EOL is Linux
-echo        - Adjusted unittest
+echo    - module.entry_point(): Reworked and adapted the rest to the changes
 echo      if first parameter is quoted and contains special characters
 echo    - module.is_module(): Adjusted with changes in module.entry_point()
 echo    - module.read_metadata():
@@ -235,9 +235,10 @@ echo      being discarded
 echo    - unzip(): Added 'temp_path' as temporary script directory with 'temp'
 echo      as fallback directory
 echo    - wait():
-echo        - Now the function needs to be setup using wait.setup()
+echo        - Now the function needs to be setup using wait.setup_macro()
 echo        - Macro version is now available
 echo    - wait.calibrate(): Prevented function from causing infinite loop if
+echo    - wait.setup(): Renamed to wait.setup_macro()
 echo      the initial calibration value is too fast
 echo    - watchvar():
 echo        - Renamed parameter '-l, --list' to '-n, --name'
@@ -286,12 +287,13 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added list2set(), sprintrow()
-echo    - Input.string():
-echo        - Improved code to return errorlevel
-echo        - Added unittest for errorlevel
-echo    - normalize_spaces(): Added new parameter '--not-null'
-echo    - Removed usage of macro in 'demo.*', unittest(), and updater()
+echo    - Remove usage of macro at functions and tests
+echo    - Create template can now overwrite existing file if confimed by user
+echo    - wait.setup(): Renamed to wait.setup_macro()
+echo    - module.entry_point(): Reworked and adapted the rest to the changes
+echo    - get_ext_ip():
+echo        - Remove usage of temporary file
+echo        - Added fallback URLs
 exit /b 0
 
 
@@ -329,14 +331,14 @@ rem Entry points of the script
 rem ================================ Library script ================================
 
 rem Call script as library module and call the function
-call your_file_name.bat --module=lib <function> [arg1 [arg2 [...]]]
+call your_file_name.bat -c call :<function> [arg1 [arg2 [...]]]
 
 rem Example:
-call batchlib-min.bat --module=lib pow result 2 16
-call batchlib-min.bat --module=lib :Input.number age --message "Input your age: " --range 0~200
+call batchlib-min.bat -c call :pow result 2 16
+call batchlib-min.bat -c call :Input.number age --message "Input your age: " --range 0~200
 
 rem Set macro and call as external module (use absolute paths)
-set batchlib="%~dp0batchlib-min.bat" --module=lib %=END=%
+call :module.make_context batchlib "%~f0" "call "
 call %batchlib%:Input.number age --message "Input your age: " --range 0~200
 
 
@@ -393,6 +395,7 @@ for %%p in (
     temp_path
 ) do if not exist "!%%p!" md "!%%p!"
 
+for %%c in (!self_context!) do call :module.make_context %%c
 call :Category.init
 call :Function.read
 set "last_used.function="
@@ -423,6 +426,8 @@ call :parse_args %*
 for %%p in (
     temp_path
 ) do if not exist "!%%p!" md "!%%p!"
+
+for %%c in (!self_context!) do call :module.make_context %%c
 
 call :!action!
 @exit /b 0
@@ -484,8 +489,12 @@ if "!user_input!" == "3" (
     goto main_menu
 )
 if "!user_input!" == "4" (
-    call :Input.path save_file --not-exist --file ^
+    call :Input.path save_file --file ^
         ^ --message "Input new template file path: "
+    if exist "!save_file!" (
+        call :Input.yesno _ ^
+            ^ --message "File already exist. Overwrite file? Y/N? "
+    ) || goto main_menu
     echo=
     echo New script template path:
     echo !save_file!
@@ -522,7 +531,7 @@ if /i "!user_input!" == "T" (
     set "SOFTWARE."
     echo=
     (
-        cmd /c ^""%~f0" --module=lib-noecho :unittest -v ^"
+        cmd /c ^""%~f0" -c call :scripts.lib-noecho unittest -v ^"
     ) || if not "!errorlevel!" == "2" (
         echo=
         echo An unexpected error occured while running unittest
@@ -537,7 +546,7 @@ if /i "!user_input!" == "DT" (
     set "SOFTWARE."
     echo=
     (
-        cmd /c ^""%~f0" --module=lib-noecho :unittest ^
+        cmd /c ^""%~f0" -c call :scripts.lib-noecho unittest ^
             ^ --pattern "tests.debug.*.main" --failfast --verbose ^"
     ) || if not "!errorlevel!" == "2" (
         echo=
@@ -665,16 +674,17 @@ rem ================================ CLI script ================================
 @echo !SOFTWARE.name! !SOFTWARE.version! (!SOFTWARE.release_date!)
 @echo Type 'call :help', 'call :about' or 'call :license' for more information, 'exit /b' to quit.
 @echo=
-@call :script_cli._loop
+@for /f "usebackq delims=" %%h in (`hostname`) do @(
+    call :script_cli._loop "!username!@%%h"
+)
 @exit /b
 #+++
 
-:script_cli._loop
+:script_cli._loop   user
 @set "user_input="
-@set /p "user_input=$"
+@set /p "user_input=%~1:$ "
 @if "!user_input:~-1,1!" == "^" @call :script_cli._loop._more
 %user_input%
-@echo=
 @goto script_cli._loop
 #+++
 
@@ -696,7 +706,7 @@ call :Function.read
 
 echo !SOFTWARE.description! !SOFTWARE.version!
 echo=
-echo Usage: batchlib --module=lib :^<function^> [parameters]
+echo Usage: batchlib -c ^<command^>
 echo        batchlib --help
 echo=
 for %%c in (!Category.list!) do (
@@ -709,11 +719,11 @@ for %%c in (!Category.list!) do (
 echo Some functions MUST be embedded into your script to work correctly
 echo=
 echo Example:
-echo     call batchlib-min.bat --module=lib :Input.number age ^^
+echo     call batchlib-min.bat -c call :Input.number age ^^
 echo        ^^ --message "Input your age: " --range 0~200
 echo=
 echo Set macro and call as external package:
-echo     set batchlib="C:\absolute\path\to\batchlib-min.bat" --module=lib %%=END=%%
+echo     set batchlib="C:\absolute\path\to\batchlib-min.bat" -c call %%=END=%%
 echo     call %%batchlib%%:Input.number age --message "Input your age: " --range 0~200
 exit /b 0
 
@@ -767,7 +777,7 @@ exit /b 1
 
 :getlib   script_path
 setlocal EnableDelayedExpansion
-call :module.make_context script %1 lib
+call :module.make_context script %1 "call "
 call :desolve dependencies script lib
 call :collect_func "!dependencies!"
 exit /b 0
@@ -900,7 +910,10 @@ if defined _include_tests (
     )
 )
 set "lib_functions="
-for %%f in (!Category_all.functions!) do (
+for %%f in (
+    !Category_all.functions!
+    !Category_feature.functions!
+) do (
     set "lib_functions=!lib_functions! %%f %%f.__metadata__"
 )
 call :extract_func "%~f0" "save_minified.template" 1 -3 > "minified_template"
@@ -963,8 +976,7 @@ exit /b 0
 ## Library
 - extract
     " lib
-      !lib_functions!
-      !Category_feature.functions! "
+      !lib_functions! "
 
 ## Test
 - extract
@@ -1027,7 +1039,7 @@ exit /b 0
 - extract "scripts"
 
 ### Library script
-- extract "scripts.lib scripts.lib-noecho"
+- extract "scripts.lib-noecho"
 
 ### Main script
 ``` batchfile ~3
@@ -1090,11 +1102,6 @@ rem - Use variable names as a namespace
 rem Note:
 rem - Most functions assumes that the syntax is valid
 rem - external: something that is stored in other files
-rem - library functions MUST NOT have external dependencies
-rem   (e.g. this is not allowed: call %batchlib%:rand 1 9)
-rem - Functions that may have external dependencies:
-rem     - 'tests.*' (It is recommended that the function to test itself
-rem         is not an external dependency)
 
 rem ========================================================================
 
@@ -1342,24 +1349,6 @@ if not defined user_input (
 )
 exit /b 0
 
-
-rem ======================== notes ========================
-
-if defined _trim_spaces (
-    set "user_input=!user_input!."
-    for /f tokens^=*^ eol^= %%a in ("!user_input!") do set "user_input=%%a"
-    rem for /l %%a in (1,1,100) do if "!input:~-1!"==" " set input=!input:~0,-1!
-    set "user_input=!user_input:~0,-1!"
-)
-
-rem Trimming
-set "user_input=!user_input!."
-rem Process string / trim
-for /f "tokens=* delims= " %%a in ("!user_input!") do (
-    endlocal
-    set "%~1=%%b"
-    if /i "%user_input%" == "Y" exit /b 0
-)
 
 rem ================================ Input.yesno() ================================
 
@@ -4549,7 +4538,7 @@ echo NAME
 echo    wait - delay for n milliseconds
 echo=
 echo SYNOPSIS
-echo    wait.setup
+echo    wait.setup_macro
 echo    wait.calibrate   [delay_target]
 echo    wait   delay
 echo    for %%t in (delay) do %%wait%%
@@ -4585,7 +4574,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.wait
-call :wait.setup
+call :wait.setup_macro
 call :wait.calibrate
 echo=
 call :Input.number time_in_milliseconds --range "0~10000"
@@ -4612,7 +4601,7 @@ rem ======================== tests ========================
 set "threshold=200"  milliseconds
 set "test_delay=1250"  milliseconds
 
-call :wait.setup
+call :wait.setup_macro
 call :wait.calibrate > nul || (
     call %unittest%.fail "Calibration failed"
     exit /b 0
@@ -4651,7 +4640,7 @@ exit /b 0
 :wait.calibrate   [delay_target]
 setlocal EnableDelayedExpansion
 echo Calibrating wait()
-call :wait.setup
+call :wait.setup_macro
 set "wait._increment=100000"
 if not "%~1" == "" set /a "_delay_target=%~1" || exit /b 1
 set "_time_taken=-1"
@@ -4682,7 +4671,7 @@ if "!wait._increment!" == "-1" exit /b 1
 exit /b 0
 #+++
 
-:wait.setup
+:wait.setup_macro
 set wait=for /l %%w in (0,^^!wait._increment^^!,%%t00000) do call
 exit /b 0
 
@@ -4722,7 +4711,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.sleep
-call :wait.setup
+call :wait.setup_macro
 call :wait.calibrate
 echo=
 call :Input.number time_in_milliseconds --range "0~2147483647"
@@ -4745,7 +4734,7 @@ rem ======================== tests ========================
 set "threshold=300"  milliseconds
 set "test_delay=2000"  milliseconds
 
-call :wait.setup
+call :wait.setup_macro
 call :wait.calibrate > nul || (
     call %unittest%.fail "Calibration failed"
     exit /b 0
@@ -4753,7 +4742,7 @@ call :wait.calibrate > nul || (
 
 set "start_time=!time!"
 call :sleep !test_delay!
-call %batchlib%:difftime time_taken "!time!" "!start_time!"
+call :difftime time_taken "!time!" "!start_time!"
 set /a "time_taken*=10"
 set /a "inaccuracy=!time_taken! - !test_delay!"
 set /a "fail=!inaccuracy!/!threshold!"
@@ -5453,7 +5442,7 @@ rem ======================== tests ========================
 call :hexlify "%~f0" "hexlify.hex"
 if exist "hexlify.rebuild" del /f /q "hexlify.rebuild"
 certutil -decodehex "hexlify.hex" "hexlify.rebuild" > nul
-call %batchlib%:diffbin offset "%~f0" "hexlify.rebuild"
+call :diffbin offset "%~f0" "hexlify.rebuild"
 for %%v in (hex rebuild) do del /f /q "hexlify.%%v"
 if not "!offset!" == "-" call %unittest%.fail "difference detected"
 exit /b 0
@@ -6018,14 +6007,16 @@ exit /b 0
 rem ======================== function ========================
 
 :get_ext_ip   return_var
-setlocal EnableDelayedExpansion
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-> nul 2> nul (
-    powershell -Command "(New-Object Net.WebClient).DownloadFile('http://ipecho.net/plain', 'ipv4')"
-) || exit /b 1
-for /f "usebackq tokens=*" %%o in ("ipv4") do set "%~1=%%o"
-del /f /q "ipv4"
-exit /b 0
+for %%u in (
+    "http://ipecho.net/plain"
+    "http://ifconfig.me/ip"
+) do for /f "usebackq delims=" %%o in (
+    `powershell -Command "(New-Object Net.WebClient).DownloadString('%%~u')" 2^> nul`
+) do (
+    set "%~1=%%o"
+    exit /b 0
+)
+exit /b 1
 
 
 rem ================================ ping_test() ================================
@@ -7012,11 +7003,11 @@ rem ======================== documentation ========================
 echo Module Framework
 echo=
 echo DESCRIPTION
-echo    module framework allows scripts to execute modules. With module framework,
-echo    a script can call function of another script as if they exist in the
-echo    caller's file (with some limitation). This also enable scripts to have
-echo    multiple entry points. A common example is to use module framework to start
-echo    multiple batch script windows.
+echo    module framework allows commands to be executed inside the target script.
+echo    In other words, the script can run codes or call function of another script
+echo    as if they exist in the caller's file (with some limitation). This also
+echo    enable scripts to have multiple entry points. A common example is to use
+echo    module framework to start multiple batch script windows.
 echo=
 echo LIMITATIONS
 echo    There are some limitations due to the behavior of batch script.
@@ -7024,6 +7015,10 @@ echo    For completeness, known strange behaviors are listed below:
 echo        1. GOTO context hack behaves strangely, specific details for this
 echo           behavior is still unknown (but it breaks parse_args() when it is
 echo           when used as an external function)
+echo        2. Parameters 'decay'. Each time it is passed around, the amount of
+echo           special characters decreases (usually by half). The usage of
+echo           exclamation mark in parameters is also troublesome; it might be
+echo           fully gone on the second pass.
 echo=
 echo FUNCTIONS
 echo    - module.entry_point()
@@ -7059,31 +7054,23 @@ rem ======================== documentation ========================
 
 :module.entry_point.__doc__
 echo NAME
-echo    module.entry_point - determine the script entry point and GOTO the label
+echo    module.entry_point - interpret command and exits
+echo=
+echo DESCRIPTION
+echo    Reads the argument to determine whether script needs to execute code
+echo    on start. Used for run codes or call function of another script.
 echo=
 echo SYNOPSIS
-echo    module.entry_point   [--module=name]  [args]
-echo=
-echo POSITIONAL ARGUMENTS
-echo    args
-echo        The parameters for the script/entry point.
+echo    module.entry_point   [-c command]
 echo=
 echo OPTIONS
-echo    --module=NAME
-echo        Specify the entry point of the script. The entry point will be called
-echo        with the arguments and exit code will be preserved upon exit.
+echo    -c COMMAND
+echo        Specify the command to execute. Exit code will be preserved upon exit.
 echo        If this option is not set, the function will 'GOTO __main__'.
-echo=
-echo ENTRY POINTS
-echo    An entry point is a label follows the pattern ':scripts.NAME'.
-echo    For a entry point to be detected, the label of the function MUST
-echo    be preceeded by either nothing, or spaces and/or tabs.
 echo=
 echo NOTES
 echo    - Function MUST be embedded into the script to work correctly.
-echo=
-echo USAGE
-echo    The first command on the script should be 'call :module.entry_point'
+echo    - CALL must be used to execute this function, GOTO will quit immediately.
 exit /b 0
 
 
@@ -7095,13 +7082,10 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.entry_point
-echo Reads the argument to determine which script/entry point to GOTO
-echo Used for scripts that has multiple entry points
-echo=
 echo Press any key to start another window...
 pause > nul
 @echo on
-start "" /i cmd /c ""%~f0" --module=2nd_window_demo   test "arg" Here"
+start "" /i cmd /c ""%~f0" -c call :scripts.2nd_window_demo   test "arg" Here"
 @echo off
 echo=
 echo 'cmd /c' is required to make sure the new window closes
@@ -7125,26 +7109,25 @@ rem ======================== tests ========================
 
 :tests.lib.module.entry_point.main
 > "template" (
-    call %batchlib%:extract_func "%~f0" "tests.lib.module.entry_point.test_template" 1,-3
+    call :extract_func "%~f0" "tests.lib.module.entry_point.test_template" 1,-3
 )
 > "test_entry_point.bat" (
-    call %batchlib%:textrender "template"
+    call :textrender "template"
 )
 
-call %batchlib%:capchar LF
+call :capchar LF
 set test_cases= ^
-    ^ "no args"         :main:       !LF!^
-    ^ "quoted --module" :main:       "--module" second !LF!^
-    ^ "second module"   :second:     --module second
-for /f "tokens=*" %%a in ("!test_cases!") do (
-    for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
-        set "entry_point="
-        call "test_entry_point.bat" %%d
-        set "exit_code=!errorlevel!"
-        if not "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!" (
-            echo "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!"
-            call %unittest%.fail %%b
-        )
+    ^ "no args"         :main:      !LF!^
+    ^ "quoted -c"       :main:      "-c" call :scripts.second !LF!^
+    ^ "second module"   :second:    -c call :scripts.second
+for /f "tokens=*" %%a in ("!test_cases!") do ( rem
+) & for /f "tokens=1-2* delims=:" %%b in ("%%a") do (
+    set "entry_point="
+    call "test_entry_point.bat" %%d
+    set "exit_code=!errorlevel!"
+    if not "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!" (
+        echo "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!"
+        call %unittest%.fail %%b
     )
 )
 exit /b 0
@@ -7175,23 +7158,23 @@ exit /b 0
 
 rem ======================== function ========================
 
-:module.entry_point   [--module=<name>]  [args]
+:module.entry_point   [-c command]
 :module.entry_point.alt1
 :module.entry_point.alt2
 ( goto 2> nul & goto module.entry_point._call )
 :module.entry_point._call
-@if /i not "%~1" == "--module" @goto __main__
+@if /i not "%~1" == "-c" @goto __main__
 @if /i #%1 == #"%~1" @goto __main__
 @setlocal DisableDelayedExpansion
-@set module.entry_point.args=%*
+@set command=%*
 @setlocal EnableDelayedExpansion
-@for /f "tokens=1* delims== " %%a in ("!module.entry_point.args!") do @(
+@for /f "tokens=1* delims== " %%a in ("!command!") do @(
     endlocal
     endlocal
-    call :scripts.%%b
+    %%b
     exit /b
 )
-@exit /b
+@exit /b 1
 
 
 rem ============================ .make_context() ============================
@@ -7200,10 +7183,10 @@ rem ======================== documentation ========================
 
 :module.make_context.__doc__
 echo NAME
-echo    module.make_context - create context to call functions in another script
+echo    module.make_context - create context to execute code in another script
 echo=
 echo SYNOPSIS
-echo    module.make_context   return_var  script_path  entry_point
+echo    module.make_context   return_var  script_path  [command]
 echo=
 echo DESCRIPTION
 echo    Creates a variable that contains code to call function from another script
@@ -7214,10 +7197,11 @@ echo    return_var
 echo        Variable to store the result.
 echo=
 echo    script_path
-echo        Path of the script file.
+echo        Path of the script file. If this is not specified, it will make the
+echo        current script as the context.
 echo=
-echo    entry_point
-echo        The 'script.*' label name to be called.
+echo    command
+echo        The command to execute.
 exit /b 0
 
 
@@ -7230,10 +7214,10 @@ rem ======================== demo ========================
 
 :demo.module.make_context
 call :Input.string context_name
-call :Input.path --exist --file script_path
-call :Input.string entry_point
+call :Input.path --exist --file --optional script_path
+call :Input.string command
 echo=
-call :module.make_context !context_name! "!script_path!" "!entry_point!"
+call :module.make_context !context_name! "!script_path!" "!command!"
 echo=
 set "!context_name!"
 exit /b 0
@@ -7241,11 +7225,14 @@ exit /b 0
 
 rem ======================== function ========================
 
-:module.make_context   return_var  script_path  entry_point
-set "%~1.abspath=%~f2"
-if "%~3" == "" (
+:module.make_context   return_var  script_path  [command]
+if "%~2" == "" (
+    set "%~1.abspath=%~f0"
     set "%~1= "
-) else set %~1="%~f2" --module=%~3 %=END=%
+) else (
+    set "%~1.abspath=%~f2"
+    set %~1="%~f2" -c %~3
+)
 exit /b 0
 
 
@@ -7279,12 +7266,17 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.read_metadata
-call :Input.path script_to_check
+call :Input.path --file --exist --optional script_to_check || (
+    set "script_to_check=%~f0"
+)
 call :module.is_module "!script_to_check!" || (
     echo Script does not support call as module
     echo Please choose another script that supports call as module
     exit /b 0
 )
+echo=
+echo Script:
+echo !script_to_check!
 echo=
 echo Metadata:
 call :module.read_metadata script. "!script_to_check!"
@@ -7302,7 +7294,7 @@ for %%v in (
     url download_url
     install_requires
 ) do set "%~1%%v="
-call "%~2" --module=lib :__metadata__ "%~1" || exit /b 1
+call "%~2" -c call :__metadata__ "%~1" || exit /b 1
 exit /b 0
 
 
@@ -7341,16 +7333,16 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.module.is_module
-call :Input.path script_to_check
+call :Input.path --optional script_to_check || (
+    set "script_to_check=%~f0"
+)
 echo=
-set "start_time=!time!"
+echo Script:
+echo !script_to_check!
+echo=
 call :module.is_module "!script_to_check!" && (
     echo Script supports call as module
 ) || echo Script does not support call as module
-call :difftime time_taken "!time!" "!start_time!"
-call :ftime time_taken !time_taken!
-echo=
-echo Done in !time_taken!
 exit /b 0
 
 
@@ -7358,12 +7350,11 @@ rem ======================== function ========================
 
 :module.is_module   input_file
 setlocal EnableDelayedExpansion
-set /a "_missing=0xF"
+set /a "_missing=0x7"
 for /f "usebackq tokens=1" %%a in ("%~f1") do (
     if /i "%%a" == ":__init__" set /a "_missing&=~0x1"
     if /i "%%a" == ":module.entry_point" set /a "_missing&=~0x2"
     if /i "%%a" == ":__metadata__" set /a "_missing&=~0x4"
-    if /i "%%a" == ":scripts.lib" set /a "_missing&=~0x8"
 )
 if not "!_missing!" == "0" exit /b 1
 set "_callable="
@@ -7457,7 +7448,7 @@ rem ======================== tests ========================
     echo ::comment
     echo ::tests.comment.main
 )
-call %batchlib%:capchar LF
+call :capchar LF
 set test_cases= ^
     ^ 13:   -f "in\labels" !LF!^
     ^ 13:   -f "in\labels" -p "*" !LF!^
@@ -7801,7 +7792,7 @@ set "charlie.one.install_requires=two"
 set "charlie.two.install_requires=charlie:one"
 set "charlie.three.install_requires=charlie:three"
 for %%m in (!modules!) do (
-    call :module.make_context %%m "%%m.bat" lib
+    call :module.make_context %%m "%%m.bat" "call "
     > "!%%m.abspath!" (
         type "base"
         for %%f in (!%%m.functions!) do (
@@ -7945,8 +7936,8 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.collect_func.main
-call :module.make_context batchlib "%~f0" lib
-call :module.make_context dummy "dummy.bat" lib
+call :module.make_context batchlib "%~f0" "call "
+call :module.make_context dummy "dummy.bat" "call "
 set test_args= ^
     ^ ^"0172e420b1fb0a0dd1de5d5a9d8f03f49dad8b30: ^
     ^       batchlib:join_mark ^
@@ -8691,7 +8682,7 @@ for %%a in (!_dependencies!) do (
         set "updater_func=!updater_func! %%c"
     )
 )
-call :extract_func "%~f0" "test.lib.updater.template" 1, -3 > "template"
+call :extract_func "%~f0" "tests.lib.updater.template" 1, -3 > "template"
 call :textrender "template" > "base.bat"
 for %%a in (
     "0: --upgrade --skip-verification"
@@ -8713,7 +8704,7 @@ for %%a in (
 exit /b 0
 
 
-:test.lib.updater.template
+:tests.lib.updater.template
 - extract
     " __init__
       module.entry_point
@@ -9095,10 +9086,10 @@ for /l %%n in (1,1,4) do if not "!_temp!" == "0" (
 )
 
 rem Setup context
-set unittest="%~f0" --module=lib :unittest
-if not "!unittest.test_module!" == "%~f0" (
-    set unittest.test_context="!unittest.test_module!" --module=lib %=END=%
-)
+call :module.make_context unittest "%~f0" "call :unittest"
+if "!unittest.test_module!" == "%~f0" (
+    call :module.make_context unittest.test_context
+) else call :module.make_context unittest.test_context "!unittest.test_module!" "call "
 
 rem Reset test results
 for %%c in (failures errors skipped) do set "unittest.%%c="
@@ -9720,17 +9711,23 @@ rem ======================== demo ========================
 
 :demo.while_true_macro
 call :while_true_macro
-call :test.lib.while_true_macro
+
+echo [!time!] This loop will stop when the number is 0.
+call :tests.lib.while_true_macro
 echo [!time!] Stopped
 exit /b 0
 
 
-:test.lib.while_true_macro
-echo This loop will stop when the number is 0.
+rem ======================== tests ========================
+
+:tests.lib.while_true_macro
 %while_true% (
     set /a "number=!random! %% 10"
-    echo [!time!] !number!
-    if "!number!" == "0" exit /b 0
+    < nul set /p "=!number! "
+    if "!number!" == "0" (
+        echo=
+        exit /b 0
+    )
 )
 exit /b 0
 
