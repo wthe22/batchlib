@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.25"
+set "%~1version=2.1-a.26"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=04/05/2020"   :: mm/dd/YYYY
+set "%~1release_date=04/06/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -117,7 +117,6 @@ echo    Core
 echo    - Added __init__() label as the UTF-8-BOM guard so it can be
 echo      extracted using extract_func()
 echo    - Added method to specify different config for each entry point
-echo    - Added scripts.lib-noecho() to call script without echoing
 echo    - Added documentation_menu() for more documentation options
 echo    - Added unittest for script core functions
 echo    - Added 'core' package for core functions / the "back-end"
@@ -149,7 +148,7 @@ echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
 echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
-echo      sleep(), timeit(), normalize_spaces(), while_true_macro(), list2set(),
+echo      sleep(), timeit(), normalize_spaces(), while_range_macro(), list2set(),
 echo      sprintrow()
 echo    - Added unittest() framework, this replaces the tester() framework.
 echo    - Added is_number(), is_in_range(), this replaces check_number().
@@ -246,7 +245,7 @@ echo        - Added 'temp_path' fallback value to 'temp'
 echo    - what_day(): Renamed parameter '-n' to '--number', '-s' to '--short'
 echo=
 echo    Minified Script
-echo    - Included 'tests.*', changelog(), help(), scripts.lib-noecho()
+echo    - Included 'tests.*', changelog(), help()
 echo    - Added an interactive ui: script_cli()
 echo    - Script now uses scripts.cli() as its main entry point
 echo    - The help message in main() has been moved to help(). This is significantly
@@ -287,13 +286,12 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Remove usage of macro at functions and tests
-echo    - Create template can now overwrite existing file if confimed by user
-echo    - wait.setup(): Renamed to wait.setup_macro()
-echo    - module.entry_point(): Reworked and adapted the rest to the changes
-echo    - get_ext_ip():
-echo        - Remove usage of temporary file
-echo        - Added fallback URLs
+echo    - Improved documentation menu
+echo    - Removed scripts.lib and its variant
+echo    - module.is_module(): Added unittest
+echo    - module.make_context(): Added unittest
+echo    - module.read_metadata(): Added unittest
+echo    - while_true_macro(): Renamed to while_range() to prevent misinterpretation
 exit /b 0
 
 
@@ -326,44 +324,6 @@ rem ======================================== Entry points ======================
 :scripts.__init__
 rem Entry points of the script
 @exit /b 0
-
-
-rem ================================ Library script ================================
-
-rem Call script as library module and call the function
-call your_file_name.bat -c call :<function> [arg1 [arg2 [...]]]
-
-rem Example:
-call batchlib-min.bat -c call :pow result 2 16
-call batchlib-min.bat -c call :Input.number age --message "Input your age: " --range 0~200
-
-rem Set macro and call as external module (use absolute paths)
-call :module.make_context batchlib "%~f0" "call "
-call %batchlib%:Input.number age --message "Input your age: " --range 0~200
-
-
-:scripts.lib
-@call :%*
-@exit /b
-
-
-:scripts.lib-noecho
-@call :is_echo_on && @goto scripts.lib-noecho._no_echo
-@call :%*
-@exit /b
-#+++
-
-:scripts.lib-noecho._no_echo
-@echo off
-@call :%*
-@echo on
-@exit /b
-
-
-:scripts.lib-noecho.__metadata__
-set %~1install_requires= ^
-    ^ is_echo_on
-exit /b 0
 
 
 rem ================================ Main script ================================
@@ -463,7 +423,7 @@ if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" (
     call :select_function
     if not defined selected.function goto main_menu
-    call :documentation_menu
+    call :documentation_menu "!selected.function!"
     goto main_menu
 )
 if "!user_input!" == "2" (
@@ -531,7 +491,7 @@ if /i "!user_input!" == "T" (
     set "SOFTWARE."
     echo=
     (
-        cmd /c ^""%~f0" -c call :scripts.lib-noecho unittest -v ^"
+        cmd /q /c ^""%~f0" -c call :unittest --verbose ^"
     ) || if not "!errorlevel!" == "2" (
         echo=
         echo An unexpected error occured while running unittest
@@ -546,7 +506,7 @@ if /i "!user_input!" == "DT" (
     set "SOFTWARE."
     echo=
     (
-        cmd /c ^""%~f0" -c call :scripts.lib-noecho unittest ^
+        cmd /q /c ^""%~f0" -c call :unittest ^
             ^ --pattern "tests.debug.*.main" --failfast --verbose ^"
     ) || if not "!errorlevel!" == "2" (
         echo=
@@ -561,29 +521,48 @@ goto main_menu
 
 rem ================================ Documentation Menu ================================
 
-:documentation_menu
+:documentation_menu   function_name
 set "user_input="
-cls
-for %%f in (!selected.function!) do echo !Function_%%f.args!
-echo=
-echo 1. View documentation
-echo 2. Demo function
-echo=
-echo 0. Back
-echo=
-echo What do you want to do?
-set /p "user_input="
-if "!user_input!" == "0" exit /b 0
-if "!user_input!" == "1" (
+for %%f in (%~1) do (
     cls
-    call :!selected.function!.__doc__
+    echo !Function_%%f.args!
     echo=
-    pause
-    goto documentation_menu
-)
-if "!user_input!" == "2" (
-    call :start_demo !selected.function!
-    goto documentation_menu
+    echo 1. View documentation
+    echo 2. Demo function
+    if defined Function_%%f.has_unittest (
+        echo 3. Run unittest
+    )
+    echo=
+    echo 0. Back
+    echo=
+    echo What do you want to do?
+    set /p "user_input="
+    echo=
+    if "!user_input!" == "0" exit /b 0
+    if "!user_input!" == "1" (
+        cls
+        call :%%f.__doc__
+        echo=
+        pause
+        goto documentation_menu
+    )
+    if "!user_input!" == "2" (
+        call :start_demo %%f
+        goto documentation_menu
+    )
+    if defined Function_%%f.has_unittest ( rem
+    ) & if "!user_input!" == "3" (
+        (
+            cmd /q /c ^""%~f0" -c call :unittest ^
+                ^ --label "tests.lib.%%f.main" --verbose ^"
+        ) || if not "!errorlevel!" == "2" (
+            echo=
+            echo An unexpected error occured while running unittest
+        )
+        echo=
+        pause
+        goto documentation_menu
+    )
 )
 goto documentation_menu
 
@@ -706,7 +685,8 @@ call :Function.read
 
 echo !SOFTWARE.description! !SOFTWARE.version!
 echo=
-echo Usage: batchlib -c ^<command^>
+echo Usage: batchlib
+echo        batchlib -c ^<command^>
 echo        batchlib --help
 echo=
 for %%c in (!Category.list!) do (
@@ -719,7 +699,7 @@ for %%c in (!Category.list!) do (
 echo Some functions MUST be embedded into your script to work correctly
 echo=
 echo Example:
-echo     call batchlib-min.bat -c call :Input.number age ^^
+echo    call batchlib-min.bat -c call :Input.number age ^^
 echo        ^^ --message "Input your age: " --range 0~200
 echo=
 echo Set macro and call as external package:
@@ -854,7 +834,7 @@ set Category_packaging.functions= ^
 set "Category_framework.name=Development Tools"
 set Category_framework.functions= ^
     ^ unittest ^
-    ^ parse_args while_true_macro ^
+    ^ parse_args while_range_macro ^
     ^ endlocal
 set "Category_feature.name=Feature"
 set Category_feature.functions= ^
@@ -880,12 +860,26 @@ for %%c in (all !Category.list! others) do (
     )
 )
 call :normalize_spaces "!to_normalize!"
+for %%f in (!Category_all.functions!) do (
+    set "Function_%%f.args=%%f   ***NOT_FOUND***"
+    set "Function_%%f.has_unittest="
+)
 for /f "usebackq tokens=*" %%a in ("%~f0") do (
-    for /f "tokens=1" %%b in ("%%a") do for /f "tokens=1-2 delims=:" %%c in ("%%b") do (
-        if /i ":%%c" == "%%b" if /i "%%d" == "" (
-            if not "!Category_all.functions: %%c = !" == "!Category_all.functions!" (
-                set "_temp=%%a"
-                set "Function_%%c.args=!_temp:~1!"
+    for /f "tokens=1" %%b in ("%%a") do ( rem
+    ) & for /f "tokens=1-2 delims=:" %%c in ("%%b") do ( rem
+    ) & if /i ":%%c" == "%%b" if /i "%%d" == "" (
+        if not "!Category_all.functions: %%c = !" == "!Category_all.functions!" (
+            set "_temp=%%a"
+            set "Function_%%c.args=!_temp:~1!"
+        ) else (
+            set "_temp=%%c"
+            if "!_temp:~0,10!*!_temp:~-5!" == "tests.lib.*.main" (
+                set "_temp=!_temp:~10,-5!"
+                for %%f in (!_temp!) do (
+                    if not "!Category_all.functions: %%f = !" == "!Category_all.functions!" (
+                        set "Function_%%f.has_unittest=true"
+                    )
+                )
             )
         )
     )
@@ -953,9 +947,6 @@ exit /b 0
 
 ## Entry points
 - extract scripts
-
-### Library script
-- extract "scripts.lib scripts.lib-noecho"
 
 ### CLI script
 - extract scripts.cli
@@ -1037,9 +1028,6 @@ exit /b 0
 
 ## Entry points
 - extract "scripts"
-
-### Library script
-- extract "scripts.lib-noecho"
 
 ### Main script
 ``` batchfile ~3
@@ -7127,7 +7115,16 @@ for /f "tokens=*" %%a in ("!test_cases!") do ( rem
     set "exit_code=!errorlevel!"
     if not "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!" (
         echo "!entry_point!/!exit_code!" == ":scripts.%%c/!expected_exit_code!"
-        call %unittest%.fail %%b
+        call %unittest%.fail "call %%~b"
+    )
+)
+for %%a in (
+    "hello"
+) do (
+    set "text="
+    call "test_entry_point.bat" -c set "text=%%a"
+    if not "!text!" == "%%a" (
+        call %unittest%.fail "set %%a"
     )
 )
 exit /b 0
@@ -7223,6 +7220,26 @@ set "!context_name!"
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.module.make_context.main
+call :module.make_context script
+if not "!script!@!script.abspath!" == " @%~f0" (
+    call %unittest%.fail "self context"
+)
+for %%a in (
+    "C:\asd"
+    "C:\asd#call "
+) do for /f "tokens=1* delims=#" %%b in (%%a) do (
+    call :module.make_context script %%b "%%c"
+    set expected="%%b" -c %%c
+    if not "!script!@!script.abspath!" == "!expected!@%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :module.make_context   return_var  script_path  [command]
@@ -7284,6 +7301,24 @@ set "script."
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.module.read_metadata.main
+(
+    call :extract_func "%~f0" " __init__ module.entry_point"
+    echo :__metadata__   [return_prefix]
+    echo set "%%~1name=hello"
+    echo exit /b 0
+    echo=
+    echo=
+) > "test.bat"
+call :module.read_metadata result. "test.bat"
+if not "!result.name!" == "hello" (
+    call %unittest%.fail "simple"
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :module.read_metadata   return_prefix  script_path
@@ -7311,13 +7346,13 @@ echo    module.is_module   input_file
 echo=
 echo DESCRIPTION
 echo    This function checks if a script contains:
-echo    - 'GOTO module.entry_point'
+echo    - __init__()
 echo    - module.entry_point()
-echo    - scripts.lib()
 echo    - __metadata__()
 echo=
 echo    This could prevent script from calling another batch file that does not
-echo    contain the module() framework and cause undesired results.
+echo    contain the module() framework and cause undesired results. Please note
+echo    that this function does not prevent execution of arbitrary code.
 echo=
 echo POSITIONAL ARGUMENTS
 echo    input_file
@@ -7343,6 +7378,23 @@ echo=
 call :module.is_module "!script_to_check!" && (
     echo Script supports call as module
 ) || echo Script does not support call as module
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.module.is_module.main
+(
+    call :extract_func "%~f0" " __init__ module.entry_point"
+    echo :__metadata__   [return_prefix]
+    echo set "%%~1name=hello"
+    echo exit /b 0
+    echo=
+    echo=
+) > "missing_0.bat"
+call :module.is_module "missing_0.bat" || (
+    call %unittest%.fail "missing_0.bat"
+)
 exit /b 0
 
 
@@ -7774,7 +7826,6 @@ rem ======================== tests ========================
 :tests.lib.desolve.main
 call :extract_func "%~f0" ^
     ^ ^"__init__ ^
-    ^   scripts.lib ^
     ^   module.entry_point ^" ^
     ^ > "base"
 
@@ -8614,7 +8665,6 @@ echo=
 echo    Script file:
 echo        - __metadata__()
 echo        - module()
-echo        - scripts.lib()
 echo=
 echo NOTES
 echo    - Do not set your script version to '0.dev0' equivalent values.
@@ -8708,7 +8758,6 @@ exit /b 0
 - extract
     " __init__
       module.entry_point
-      scripts.lib
       !updater_func! "
 ``` batchfile ~3
 `` :__metadata__
@@ -9670,58 +9719,63 @@ for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do 
 exit /b 0
 
 
-rem ================================ while_true_macro() ================================
+rem ================================ while_range_macro() ================================
 
 rem ======================== documentation ========================
 
-:while_true_macro.__doc__
+:while_range_macro.__doc__
 echo NAME
-echo    while_true_macro - setup macro for while true loop
+echo    while_range_macro - setup macro for psuedo infinite loop
 echo=
 echo SYNOPSIS
-echo    while_true_macro   [return_var]  [exponent]
-echo    %%while_true%%   code
+echo    while_range_macro   [return_var]  [base]  [power]
+echo    %%while_range%%   code
 echo=
 echo DESCRIPTION
-echo    This macro is actually a FOR loop that will terminate after it
-echo    reaches certain number of loops. It is designed to exit the FOR
-echo    loop quickly when the 'EXIT /b' command is executed.
+echo    The aim of this macro is to emulate while true loops in batch script
+echo    as an alternative to the GOTO loop (which is much slower). This macro
+echo    is actually a FOR loop that will terminate after it reaches a certain
+echo    number of loops. Unlike a normal single large loop, it is designed to
+echo    exit the FOR loop quickly when the 'EXIT /b' command is executed.
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
-echo        Variable to store the macro. By default, it is 'while_true'.
+echo        Variable to store the macro. By default, it is 'while_range'.
 echo=
-echo    exponent
-echo        The exponent of the loop. The higher the number, the longer it takes to
-echo        exhaust the loop. The loops needed to exhaust the loop is calculated as:
-echo        '256[^^2 [...]]'. By default, it is '2' (4294967296 loops to exhaust).
+echo    base
+echo        The number of the loops in a single FOR loop. The larger the base,
+echo        the slower it takes to exit the loop. By default, it is '256'.
+echo=
+echo    power
+echo        The number of nested FOR loops to use. The higher the power, the longer
+echo        it takes to exhaust the loop. The loops needed to exhaust the loop is
+echo        calculated as: 'base ^^ power'. By default, it is '4'.
 echo=
 echo NOTES
-echo    - Variables that contains Line Feed character are not supported and it
-echo      could cause unexpected errors.
+echo    - By default, it takes 256^^4 (4294967296) loops to exhaust
 exit /b 0
 
 
-:while_true_macro.__metadata__   [return_prefix]
+:while_range_macro.__metadata__   [return_prefix]
 set "%~1install_requires="
 exit /b 0
 
 
 rem ======================== demo ========================
 
-:demo.while_true_macro
-call :while_true_macro
+:demo.while_range_macro
+call :while_range_macro
 
 echo [!time!] This loop will stop when the number is 0.
-call :tests.lib.while_true_macro
+call :tests.lib.while_range_macro
 echo [!time!] Stopped
 exit /b 0
 
 
 rem ======================== tests ========================
 
-:tests.lib.while_true_macro
-%while_true% (
+:tests.lib.while_range_macro
+%while_range% (
     set /a "number=!random! %% 10"
     < nul set /p "=!number! "
     if "!number!" == "0" (
@@ -9729,15 +9783,20 @@ rem ======================== tests ========================
         exit /b 0
     )
 )
+echo=
+echo END OF LOOP
 exit /b 0
 
 
 rem ======================== function ========================
 
-:while_true_macro   return_var  power
-for /f "tokens=1 delims==" %%v in ("%~1=while_true") do (
-    set "%%v=for /l %%_ in (0,1,255) do "
-    for /l %%n in (1,1,%~2,2) do set "%%v=!%%v!!%%v!"
+:while_range_macro   [return_var]  [base]  [power]
+for /f "tokens=1 delims==" %%v in ("%~1=while_range") do ( rem
+) & for /f "tokens=1 delims==" %%b in ("%~2=256") do (
+    set "%%v="
+    for /l %%n in (1,1,%~3,2) do (
+        set "%%v=!%%v!for /l %%_ in (1,1,%%b) do "
+    )
 )
 exit /b 0
 
