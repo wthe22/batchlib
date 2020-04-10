@@ -1,5 +1,5 @@
 :__init__ > nul 2> nul
-@for %%n in (1 2) do @call :module.entry_point.alt%%n > nul 2> nul
+@for %%n in (1 2) do @call :module.entry_point.alt%%n %1
 @exit /b 1
 
 
@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.26"
+set "%~1version=2.1-a.27"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=04/06/2020"   :: mm/dd/YYYY
+set "%~1release_date=04/11/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -167,10 +167,13 @@ echo    - Merged 'shortcut' and 'framework' into 'lib'
 echo    - Removed expand_path(). Using FOR directly is more preferable.
 echo    - Removed dynamenu(), it is slow and some kind of impractical
 echo    - capchar():
-echo        - Added capturing of TAB character
+echo        - Added capturing of TAB and BEL character
 echo        - Improved demo and capture speed
-echo        - Weights are now read from %%~1 instead of %%*.
-echo          Now weights needs to be surrounded by quotes.
+echo        - Fixed incorrect backspace character description at documentation
+echo        - Renamed DEL to BACK to avoid confusion with the actual DEL character
+echo        - Renamed _ to BASE to avoid usage conflict with temporary variables
+echo        - Parameters are now read from %%~1 instead of %%*
+echo        - Now parameters needs to be surrounded by quotes
 echo    - check_ipv4(): Added ability to check wildcard IP
 echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
 echo    - check_path():
@@ -196,6 +199,7 @@ echo        - Renamed to expand_url()
 echo    - fix_eol():
 echo        - Improved control over display message
 echo        - Renamed to to_crlf()
+echo    - ftime(): Removed unexpected warp when time is 24 hour or more
 echo    - get_os(): Renamed parameter '-n' to '--name'
 echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
 echo    - get_ext_ip():
@@ -224,8 +228,9 @@ echo        - Arguments is now case sensitive
 echo        - Renamed type 'flag' to 'store_const'
 echo        - Renamed type 'var' to 'store'
 echo    - pow(): Added error message if integer is too large
-echo    - randw(): Parameters are now read from %%~1 instead of %%*.
-echo      Now parameters needs to be surrounded by quotes.
+echo    - randw():
+echo        - Weights are now read from %%~1 instead of %%*
+echo        - Now weights needs to be surrounded by quotes
 echo    - setup_clearline():
 echo        - Piped 'mode con' to prevent input stream from
 echo        - Added default return_var value
@@ -256,10 +261,10 @@ echo    - Added template for minified script
 echo    - Added dependency listing
 echo=
 echo    Tests
-echo    - Migrated unit testing framework/syntax from tester() to unittest().
+echo    - Migrated unit testing framework/syntax from tester() to unittest()
 echo    - Added unittest for: Input.ipv4(), pow(), prime(), gcf(), bin2int(),
 echo      check_ipv4(), wait(), difftime(), expand_link(), extract_func(),
-echo      check_path()
+echo      check_path(), wcdir(), int2roman(), roman2int(), capchar(), Input.yesno()
 echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
 echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
 echo      desolve(), collect_func(), strip(), textrender(), sleep()
@@ -286,12 +291,40 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Improved documentation menu
-echo    - Removed scripts.lib and its variant
-echo    - module.is_module(): Added unittest
-echo    - module.make_context(): Added unittest
-echo    - module.read_metadata(): Added unittest
-echo    - while_true_macro(): Renamed to while_range() to prevent misinterpretation
+echo    - Improved usage of FOR /F tokens and delims in few functions
+echo    - Changed template padding character to 4 for easier modification
+echo    - Input.yesno(): Added unittest
+echo    - sprintrow(): Remove usage of global variables
+echo    - int2roman(): Added unittest
+echo    - roman2int(): Added unittest
+echo    - capchar():
+echo        - Added unittest
+echo        - Fixed incorrect backspace character description at documentation
+echo        - Renamed DEL to BACK to avoid confusion with the actual DEL character
+echo        - Renamed _ to BASE to avoid usage conflict with temporary variables
+echo        - Added capturing of BEL character (ASCII 07)
+echo    - checksum(): Wrapped long lines
+echo    - is_crlf(): Greatly reduced function size
+echo    - ftime():
+echo        - Added unittest
+echo        - Removed unexpected warp when time is 24 hour or more
+echo    - module.entry_point():
+echo        - Fixed error calling sub function when EOL is linux
+echo        - Fixed stdout and stderr text not being displayed to console
+echo    - unittest():
+echo        - Removed auto created directory 'in', 'out' and 'log'
+echo        - Created dedicated folder to store unittest data
+echo    - updater():
+echo        - Fixed and improved unittest
+echo        - Improved code quality
+echo        - Added return prefix parameter to retrive metadata of the update script
+echo        - Updater no longer display updates (use the return values instead)
+echo    - strip():
+echo        - Fixed leading characters not stripped if the character is not a space
+echo        - Improved documentation and unittest
+echo    - wcdir():
+echo        - Added unittest
+echo        - Improved documentation
 exit /b 0
 
 
@@ -339,7 +372,7 @@ cls
 echo Loading script...
 
 for %%n in (1 2) do call :to_crlf.alt%%n && (
-    echo Convert EOL done.
+    echo Convert EOL done
     endlocal
     goto scripts.main
 )
@@ -937,10 +970,10 @@ exit /b 0
 - extract "changelog"
 
 ## Main
-``` batchfile ~3
-`` :__main__
-`` @call :scripts.cli %*
-`` @exit /b
+``` batchfile ~4
+``  :__main__
+``  @call :scripts.cli %*
+``  @exit /b
 ``
 ``
 ```
@@ -1002,26 +1035,26 @@ exit /b 0
 - extract "__init__"
 
 ## Metadata
-``` batchfile ~3
-`` :__metadata__   [return_prefix]
-`` set "%~1name=<package_name>"
-`` set "%~1version=0.0"
-`` set "%~1author=<author>"
-`` set "%~1license=<license>"
-`` set "%~1description=<package_title>"
-`` set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
-`` set "%~1url=https://example.com/path/to/page.html"
-`` set "%~1download_url=https://gist.github.com/username/repo/file/raw"
-`` exit /b 0
+``` batchfile ~4
+``  :__metadata__   [return_prefix]
+``  set "%~1name=<package_name>"
+``  set "%~1version=0.0"
+``  set "%~1author=<author>"
+``  set "%~1license=<license>"
+``  set "%~1description=<package_title>"
+``  set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
+``  set "%~1url=https://example.com/path/to/page.html"
+``  set "%~1download_url=https://gist.github.com/username/repo/file/raw"
+``  exit /b 0
 ``
 ``
 ```
 
 ## Main
-``` batchfile ~3
-`` :__main__
-`` @call :scripts.main %*
-`` @exit /b
+``` batchfile ~4
+``  :__main__
+``  @call :scripts.main %*
+``  @exit /b
 ``
 ``
 ```
@@ -1030,30 +1063,30 @@ exit /b 0
 - extract "scripts"
 
 ### Main script
-``` batchfile ~3
-`` :scripts.main
-`` @setlocal EnableDelayedExpansion EnableExtensions
-`` @echo off
-`` set "__name__=main"
-`` prompt $$
-`` call :__metadata__ SOFTWARE.
+``` batchfile ~4
+``  :scripts.main
+``  @setlocal EnableDelayedExpansion EnableExtensions
+``  @echo off
+``  set "__name__=main"
+``  prompt $$
+``  call :__metadata__ SOFTWARE.
 ``
-`` rem Write your code here...
+``  rem Write your code here...
 ``
-`` exit /b 0
+``  exit /b 0
 ``
 ``
 ```
 
 ## Library
 - extract "lib"
-``` batchfile ~3
-`` :lib.__metadata__
-`` set %~1install_requires= ^
-``     ^ batchlib:^" ^
-``     ^   is_echo_on ^
-``     ^   module.entry_point ^"
-`` exit /b 0
+``` batchfile ~4
+``  :lib.__metadata__
+``  set %~1install_requires= ^
+``      ^ batchlib:^" ^
+``      ^   is_echo_on ^
+``      ^   module.entry_point ^"
+``  exit /b 0
 ``
 ``
 ```
@@ -1141,7 +1174,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.Input.number.main
-> "in\boundaries" (
+> "boundaries" (
     echo=
     echo abcdef
     echo *
@@ -1157,7 +1190,7 @@ rem ======================== tests ========================
     echo 0
 )
 for %%a in (
-    "100:   0~200   :in\boundaries"
+    "100:   0~200   :boundaries"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     < "%%d" > nul 2>&1 (
         call :Input.number result --range %%c
@@ -1248,47 +1281,47 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.Input.string.main
-> "in\empty" (
+> "empty" (
     echo=
     echo hello
     echo   world
 )
-> "in\spaced" (
+> "spaced" (
     echo   world  %=END=%
 )
-> "in\semicolon" (
+> "semicolon" (
     echo ; pass
     echo fail
 )
 set "evaluate_result=call :tests.lib.Input.string.evaluate_result"
 
-< "in\empty" > nul 2>&1 (
+< "empty" > nul 2>&1 (
     set "expected_result="
     call :Input.string result
 ) & !evaluate_result! "null"
 
-< "in\spaced" > nul 2>&1 (
+< "spaced" > nul 2>&1 (
     set "expected_result=  world  "
     call :Input.string result
 ) & !evaluate_result! "keep spaces"
 
-< "in\semicolon" > nul 2>&1 (
+< "semicolon" > nul 2>&1 (
     set "expected_result=; pass"
     call :Input.string result
 ) & !evaluate_result! "ignore semicolon EOL"
 
-< "in\empty" > nul 2>&1 (
+< "empty" > nul 2>&1 (
     set "expected_result=hello"
     call :Input.string result --filled
 ) & !evaluate_result! "ignore null"
 
-< "in\empty" > nul 2>&1 (
+< "empty" > nul 2>&1 (
     call :Input.string result --filled || (
         call %unittest%.fail "errorlevel 1 if empty"
     )
 )
 
-< "in\empty" > nul 2>&1 (
+< "empty" > nul 2>&1 (
     call :Input.string result && (
         call %unittest%.fail "errorlevel 1 if empty"
     )
@@ -1400,6 +1433,55 @@ echo Your input ("Yes", ""): !your_ans!
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.Input.yesno.main
+for %%a in (
+    "Y: y n"
+    "Y: Y n"
+    "Y: yes n"
+    "Y: yea n"
+    "N: n y"
+    "N: N y"
+    "N: no y"
+    "N: nah y"
+    "Y: a bn y n"
+    "N: a by n y"
+    "Y: LF y n"
+    "N: LF n y"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do (
+            if "%%i" == "LF" (
+                echo=
+            ) else echo %%i
+        )
+    )
+    call :Input.yesno result < "input" > nul
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+for %%a in (
+    "0: y n"
+    "1: n y"
+    "0: LF y n"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do (
+            if "%%i" == "LF" (
+                echo=
+            ) else echo %%i
+        )
+    )
+    call :Input.yesno result < "input" > nul
+    if not "!errorlevel!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :Input.yesno   return_var  [-m message]  [-y value]  [-n value]
@@ -1417,7 +1499,7 @@ set "_result="
 if /i "!user_input:~0,1!" == "Y" set "_result=!_yes_value!"
 if /i "!user_input:~0,1!" == "N" set "_result=!_no_value!"
 if defined _result (
-    for /f tokens^=*^ delims^=^ eol^= %%a in ("!_result!") do (
+    for /f "delims= eol=" %%a in ("!_result!") do (
         endlocal
         set "%~1=%%a"
         if /i "%user_input:~0,1%" == "Y" exit /b 0
@@ -1604,7 +1686,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.Input.ipv4.main
-> "in\case1" (
+> "case1" (
     echo=
     echo 0
     echo a.b.c.d
@@ -1613,12 +1695,12 @@ rem ======================== tests ========================
 )
 set "evaluate_result=call :tests.lib.Input.ipv4.evaluate_result"
 
-< "in\case1" > nul 2>&1 (
+< "case1" > nul 2>&1 (
     set "expected_result=0.0.0.0"
     call :Input.ipv4 result
 ) & !evaluate_result! "default"
 
-< "in\case1" > nul 2>&1 (
+< "case1" > nul 2>&1 (
     set "expected_result=*.*.*.*"
     call :Input.ipv4 result --allow-wildcard
 ) & !evaluate_result! "allow wildcard"
@@ -2429,6 +2511,28 @@ echo The roman numeral value is !result!
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.int2roman.main
+for %%a in (
+    "1111:  MCXI"
+    "2222:  MMCCXXII"
+    "3333:  MMMCCCXXXIII"
+    "4444:  MMMMCDXLIV"
+    "555:   DLV"
+    "666:   DCLXVI"
+    "777:   DCCLXXVII"
+    "888:   DCCCLXXXVIII"
+    "999:   CMXCIX"
+) do for /f "tokens=1* delims=: " %%b in (%%a) do (
+    call :int2roman result %%b 2> nul
+    if not "!result!" == "%%c" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :int2roman   return_var  integer(1-4999)
@@ -2483,6 +2587,28 @@ call :Input.string roman_numeral
 call :roman2int result !roman_numeral!
 echo=
 echo The decimal value is !result!
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.roman2int.main
+for %%a in (
+    "1111:  MCXI"
+    "2222:  MMCCXXII"
+    "3333:  MMMCCCXXXIII"
+    "4444:  MMMMCDXLIV"
+    "555:   DLV"
+    "666:   DCLXVI"
+    "777:   DCCLXXVII"
+    "888:   DCCCLXXXVIII"
+    "999:   CMXCIX"
+) do for /f "tokens=1* delims=: " %%b in (%%a) do (
+    call :roman2int result %%c 2> nul
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
 
 
@@ -3017,6 +3143,10 @@ echo=
 echo POSITIONAL ARGUMENTS
 echo    input_var
 echo        The input variable name.
+echo=
+echo    character
+echo        The character to strip. Question mark and double quotes
+echo        are not supported.
 exit /b 0
 
 
@@ -3055,18 +3185,33 @@ for %%a in (
         call %unittest%.fail %%a
     )
 )
+for %%a in (
+    " equal :=:=== equal ========"
+    " hastag :#:### hastag ###"
+    " ### spaced :#: ### spaced ###"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    set "result=%%d"
+    if "%%b" == "[none]" (
+        set "expected="
+    ) else set "expected=%%b"
+    call :strip result "%%c"
+    if not "!result!" == "!expected!" (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
 
 
 rem ======================== function ========================
 
 :strip   input_var  [character]
-for /f "tokens=1* delims==" %%c in ("%~2= ") do ( rem
-) & for %%c in ("%%c") do (
-    for /f "tokens=*" %%a in ("!%~1!_") do set "%~1=%%a"
+for /f "tokens=1* delims=?" %%c in ("%~2? ") do (
+    if "%%c" == " " (
+        for /f "tokens=*" %%a in ("!%~1!_") do set "%~1=%%a"
+    ) else for /f "tokens=* delims=%~2" %%a in ("!%~1!_") do set "%~1=%%a"
     set "%~1=_!%~1:~0,-1!"
-    for /l %%n in (1,1,8192) do if "!%~1:~-1,1!" == %%c (
-        if not "!%~1:~-%%n,1!" == %%c set "%~1=!%~1:~0,-%%n!!%~1:~-%%n,1!"
+    for /l %%n in (1,1,8192) do if "!%~1:~-1,1!" == "%%c" (
+        if not "!%~1:~-%%n,1!" == "%%c" set "%~1=!%~1:~0,-%%n!!%~1:~-%%n,1!"
     )
     set "%~1=!%~1:~1!"
 )
@@ -3324,16 +3469,13 @@ echo    seperator
 echo        The string to seperate each cell
 echo=
 echo    cell_sizes
-echo        Size of each cells.
+echo        Size of each cells. The maximum size is 256.
 echo        - Positive    : Left justify
 echo        - Negative    : Right justify
-echo        - Zero        : No justify
+echo        - Zero        : No justify and padding
 echo=
 echo    text
 echo        Text for each cells
-echo=
-echo NOTES
-echo    - This function uses global variables '_first', '_spaces' and '_value'.
 exit /b 0
 
 
@@ -3410,22 +3552,27 @@ exit /b 0
 rem ======================== function ========================
 
 :sprintrow   buffer_var  seperator  cell_sizes  "text1" ["text2" [...]]
+setlocal EnableDelayedExpansion
+set "_result="
 set "_spaces= "
-for /l %%n in (1,1,6) do set "_spaces=!_spaces!!_spaces!"
-set "_first=true"
+for /l %%n in (1,1,8) do set "_spaces=!_spaces!!_spaces!"
+set "_seperator="
 for %%l in (%~3) do (
+    call set "_value=%%~4"
     if %%l GTR 0 (
-        call set "_value=%%~4!_spaces!"
+        set "_value=!_value!!_spaces!"
         set "_value=!_value:~0,%%l!"
     ) else if %%l LSS 0 (
-        call set "_value=!_spaces!%%~4"
+        set "_value=!_spaces!!_value!"
         set "_value=!_value:~%%l!"
-    ) else call set "_value=%%~4"
-    if defined _first (
-        set "%~1=!%~1!!_value!"
-        set "_first="
-    ) else set "%~1=!%~1!%~2!_value!"
+    )
+    set "_result=!_result!!_seperator!!_value!"
+    if not defined _seperator set "_seperator=%~2"
     shift /4
+)
+for /f "tokens=*" %%a in ("!%~1!!_result!") do (
+    endlocal
+    set "%~1=%%a"
 )
 exit /b 0
 
@@ -3635,12 +3782,34 @@ echo Formatted time : !time_taken!
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.ftime.main
+for %%a in (
+    "00:00:00.00# 0"
+    "00:00:00.01# 1"
+    "00:00:01.00# 100"
+    "00:01:00.00# 6000"
+    "01:00:00.00# 360000"
+    "23:59:59.99# 8639999"
+    "23:59:59.99# 8639999"
+    "24:00:00.00# 8640000"
+    "99:59:59.99# 35999999"
+) do for /f "tokens=1* delims=#" %%b in (%%a) do (
+    call :ftime result %%c
+    if not "!result!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :ftime   return_var  centiseconds
 setlocal EnableDelayedExpansion
 set "_result="
-set /a "_remainder=(%~2) %% 8640000"
+set /a "_remainder=%~2"
 for %%s in (360000 6000 100 1) do (
     set /a "_digits=!_remainder! / %%s + 100"
     set /a "_remainder%%= %%s"
@@ -4964,7 +5133,7 @@ if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!
     )
     exit /b 2
 )
-for /f "tokens=* delims=" %%c in ("!_path!") do (
+for /f "delims=" %%c in ("!_path!") do (
     endlocal
     set "%~1=%%c"
 )
@@ -5078,7 +5247,7 @@ for %%v in (_path1 _path2) do (
     set "%%v=!%%v:/=\!"
     set ^"%%v=!%%v:;=%NL%!^"
     set "_temp="
-    for /f "tokens=* delims=" %%a in ("!%%v!") do (
+    for /f "delims=" %%a in ("!%%v!") do (
         set "_is_listed="
         for /f "tokens=*" %%b in ("!_temp!") do if "%%a" == "%%b" set "_is_listed=true"
         if not defined _is_listed set "_temp=!_temp!%%a!LF!"
@@ -5086,21 +5255,21 @@ for %%v in (_path1 _path2) do (
     set "%%v=!_temp!"
 )
 set "_found="
-for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b in ("!_path2!") do (
+for /f "delims=" %%a in ("!_path1!") do for /f "delims=" %%b in ("!_path2!") do (
     set "_result="
     pushd "!temp!"
     call :wcdir._find "%%a\%%b"
     set "_found=!_found!!_result!"
 )
 set "_result="
-for /f "tokens=* delims=" %%a in ("!_found!") do (
+for /f "delims=" %%a in ("!_found!") do (
     set "_is_listed="
     for /f "tokens=*" %%b in ("!_result!") do if "%%a" == "%%b" set "_is_listed=true"
     if not defined _is_listed set "_result=!_result!%%a!LF!"
 )
 if defined _result (
     set "%~1="
-    for /f "tokens=* delims=" %%r in ("!_result!") do (
+    for /f "delims=" %%r in ("!_result!") do (
         if not defined %~1 (
             endlocal
             set "%~1="
@@ -5130,7 +5299,7 @@ echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
 echo        Variable to store the result. Each path is seperated
-echo        by a Line Feed (hex code '0A').
+echo        by a Line Feed character (hex code '0A').
 echo=
 echo    wildcard_path
 echo        The wildcard path to find. May contain multiple wildcards.
@@ -5148,6 +5317,7 @@ echo        Affects the base path of wildcard_path if relative path is given.
 echo=
 echo NOTES
 echo    - Variables in path will not be expanded (e.g.: %%appdata%%).
+echo    - Does not list hidden files and folders.
 exit /b 0
 
 
@@ -5171,6 +5341,55 @@ echo=!result!
 exit /b 0
 
 
+rem ======================== tests ========================
+
+:tests.lib.wcdir.main
+for %%a in (
+    "lap"
+    "let"
+    "pet"
+) do (
+    set "word=%%~a"
+    mkdir "tree\!word:~0,1!\!word:~1,1!"
+    call 2> "tree\!word:~0,1!\!word:~1,1!\!word:~2,1!"
+)
+for %%a in (
+    "ape"
+    "ate"
+    "pea"
+) do (
+    set "word=%%~a"
+    mkdir "tree\!word:~0,1!\!word:~1,1!\!word:~2,1!"
+)
+call :capchar LF
+
+set test_cases= ^
+    ^ "pe*: pea pet" !LF!^
+    ^ "a*e: ape ate" !LF!^
+    ^ "*et: let pet" !LF!^
+    ^ "l**: lap let" !LF!^
+    ^ "*e*: let pea pet" !LF!^
+    ^ "**t: let pet" !LF!^
+    ^ "***: ape ate lap let pea pet"
+for /f "delims=" %%a in ("!test_cases!") do ( rem
+) & for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "pattern=%%b"
+    set "pattern=!pattern:~0,1!\!pattern:~1,1!\!pattern:~2,1!"
+    call :wcdir result_path "tree\!pattern!"
+    set "result="
+    for %%f in (!result_path!) do (
+        set "word=%%~ff"
+        set "word=!word:*%cd%\tree\=!"
+        set "word=!word:\=!"
+        set "result=!result! !word!"
+    )
+    if not "!result!" == "%%c" (
+        call %unittest%.fail "%%b"
+    )
+)
+exit /b 0
+
+
 rem ======================== function ========================
 
 :wcdir   return_var  wildcard_path  [-f|-d]
@@ -5186,9 +5405,8 @@ set "_result="
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-pushd "!temp!"
 call :wcdir._find "!_args!"
-for /f "tokens=* delims=" %%r in ("!_result!") do (
+for /f "delims=" %%r in ("!_result!") do (
     if not defined %~1 endlocal
     set "%~1=!%~1!%%r!LF!"
 )
@@ -5197,10 +5415,17 @@ exit /b 0
 
 :wcdir._find   wildcard_path
 for /f "tokens=1* delims=\" %%a in ("%~1") do if "%%a" == "*:" (
-    for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do pushd "%%l:\" 2> nul && call :wcdir._find "%%b"
+    for %%l in (
+        A B C D E F G H I J K L M
+        N O P Q R S T U V W X Y Z
+    ) do pushd "%%l:\" 2> nul && call :wcdir._find "%%b"
 ) else if "%%b" == "" (
-    if defined _list_dir dir /b /a:d "%%a" > nul 2> nul && ( for /d %%f in ("%%a") do set "_result=!_result!%%~ff!LF!" )
-    if defined _list_file dir /b /a:-d "%%a" > nul 2> nul && ( for %%f in ("%%a") do set "_result=!_result!%%~ff!LF!" )
+    if defined _list_dir dir /b /a:d "%%a" > nul 2> nul && (
+        for /d %%f in ("%%a") do set "_result=!_result!%%~ff!LF!"
+    )
+    if defined _list_file dir /b /a:-d "%%a" > nul 2> nul && (
+        for %%f in ("%%a") do set "_result=!_result!%%~ff!LF!"
+    )
 ) else for /d %%f in ("%%a") do pushd "%%f\" 2> nul && call :wcdir._find "%%b"
 popd
 exit /b
@@ -5625,13 +5850,22 @@ if not defined _method ( 1>&2 echo error: no known methods to perform hash '%~3'
 set "_result="
 if "!_method!" == "certutil" (
     if "%~z2" == "0" (
+        set "_result="
         if /i "!_algorithm!" == "MD2" set "_result=8350e5a3e24c153df2275c9f80692773"
         if /i "!_algorithm!" == "MD4" set "_result=31d6cfe0d16ae931b73c59d7e0c089c0"
         if /i "!_algorithm!" == "MD5" set "_result=d41d8cd98f00b204e9800998ecf8427e"
         if /i "!_algorithm!" == "SHA1" set "_result=da39a3ee5e6b4b0d3255bfef95601890afd80709"
-        if /i "!_algorithm!" == "SHA256" set "_result=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-        if /i "!_algorithm!" == "SHA384" set "_result=38b060a751ac96384cd9327eb1b1e36a21fdb71114be07434c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b"
-        if /i "!_algorithm!" == "SHA512" set "_result=cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+        if /i "!_algorithm!" == "SHA256" (
+            set "_result=e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+        )
+        if /i "!_algorithm!" == "SHA384" for %%s in (
+            38b060a751ac96384cd9327eb1b1e36a21fdb71114be0743
+            4c0cc7bf63f6e1da274edebfe76f65fbd51ad2f14898b95b
+        ) do set "_result=!_result!%%s"
+        if /i "!_algorithm!" == "SHA512" for %%s in (
+            cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce
+            47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e
+        ) do set "_result=!_result!%%s"
     ) else for /f "usebackq skip=1 tokens=*" %%a in (`certutil -hashfile "%~f2" !_algorithm!`) do (
         if not defined _result set "_result=%%a"
     )
@@ -6447,15 +6681,15 @@ for /l %%n in (1,1,%~2) do set "simulate.changed.%%n=old"
 for /l %%n in (1,1,%~3) do set "simulate.deleted.%%n=old"
 set "var_count=0"
 for /f "usebackq tokens=1 delims==" %%v in (`set`) do set /a "var_count+=1"
-call :watchvar --initialize > "out\initialize"
+call :watchvar --initialize > "initialize"
 for /l %%n in (1,1,%~1) do set "simulate.added.%%n=new"
 for /l %%n in (1,1,%~2) do set "simulate.changed.%%n=changed"
 for /l %%n in (1,1,%~3) do set "simulate.deleted.%%n="
-call :watchvar > "out\changes"
-for /f "usebackq tokens=1* delims=:" %%a in ("out\initialize") do (
+call :watchvar > "changes"
+for /f "usebackq tokens=1* delims=:" %%a in ("initialize") do (
     for /f "tokens=* delims= " %%c in ("%%b") do set "var_count=%%c"
 )
-for /f "usebackq tokens=1* delims=:" %%a in ("out\changes") do (
+for /f "usebackq tokens=1* delims=:" %%a in ("changes") do (
     for /f "tokens=1* delims= " %%c in ("%%b") do (
         set "result_count=%%c"
         set "changes=%%d"
@@ -6628,7 +6862,8 @@ echo=
 echo LIST OF CHARACTERS
 echo    Var     Hex     Name
 echo    ------------------------------
-echo    BS      07      Backspace
+echo    BEL     07      Bell/Beep sound
+echo    BS      08      Backspace
 echo    TAB     09      Tab
 echo    LF      0A      Line Feed
 echo    CR      0D      Carriage Return
@@ -6637,8 +6872,8 @@ echo=
 echo LIST OF MACROS
 echo    Var     Description
 echo    ------------------------------
-echo    _       'Base' for SET /P so it can start with whitespace characters
-echo    DEL     Delete previous character (in console)
+echo    BASE    'Base' for SET /P so it can start with whitespace characters
+echo    BACK    Delete previous character (in console)
 echo    DQ      'Invisible' double quote to print special characters
 echo            without using caret (^^). Must be used as %%DQ%%, not ^^!DQ^^!.
 echo    NL      Set new line in variables
@@ -6661,7 +6896,7 @@ echo Hello^^!LF^^!World^^!CR^^!.
 echo Clean^^!BS^^!r
 echo %%DQ%%^|No^&Escape^|^^^<Characters^>^^
 echo ^^!ESC^^![104;97m Windows 10 ^^!ESC^^![0m
-< nul set /p "=^!_^! A Whitespace at front"
+< nul set /p "=^!BASE^! A Whitespace at front"
 echo=
 echo T^^!TAB^^!A^^!TAB^^!B
 echo ======================== RESULT ========================
@@ -6669,9 +6904,45 @@ echo Hello!LF!World!CR!.
 echo Clean!BS!r
 echo %DQ%|No&Escape|^<Characters>^
 echo !ESC![104;97m Windows 10 !ESC![0m
-< nul set /p "=!_! A Whitespace at front"
+< nul set /p "=!BASE! A Whitespace at front"
 echo=
 echo T!TAB!A!TAB!B
+exit /b 0
+
+
+rem ======================== tests ========================
+
+:tests.lib.capchar.main
+for %%a in (
+    "BEL: 07"
+    "BS: 08"
+    "TAB: 09"
+    "LF: 0A"
+    "CR: 0D"
+    "ESC: 1B"
+    "BASE: 5F 08 20 08"
+    "BACK: 08 20 08"
+    "DQ: 22 08 20 08"
+    "NL: 5E 0A 0A 5E"
+) do for /f "tokens=1* delims=: " %%b in (%%a) do (
+    set "%%b="
+    call :capchar %%b
+    echo [!%%b!] > "char"
+    certutil -encodehex "char" "raw_hex" > nul
+    set "size=2"
+    for %%h in (%%c) do set /a "size+=1"
+    set /a "size=!size! * 3 - 1
+    set "hex="
+    for /f "usebackq tokens=1*" %%d in ("raw_hex") do ( rem
+    ) & for %%s in (!size!) do (
+        set "hex=%%e"
+        set "hex=!hex:~0,%%s!"
+    )
+    del /f /q "raw_hex"
+    if /i not "!hex!" == "5b %%c 5d" (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
 
 
@@ -6681,13 +6952,14 @@ rem ======================== function ========================
 setlocal EnableDelayedExpansion
 rem NOTE: ORDER SENSITIVE, LEAST DEPENDENCY FIRST
 for %%d in (
+    "BEL"
     "CR"
     "LF"
     "BS"
     "TAB"
     "ESC"
-    "_: BS"
-    "DEL: BS"
+    "BASE: BS"
+    "BACK: BS"
     "DQ: BS"
     "NL: LF"
 ) do for /f "tokens=1* delims=:" %%e in (%%d) do (
@@ -6701,6 +6973,9 @@ for %%d in (
     )
 )
 endlocal & (
+if /i "%BEL%" == "true" for /f "usebackq delims=" %%a in (
+    `forfiles /p "%~dp0." /m "%~nx0" /c "cmd /c echo 0x07"`
+) do set "BEL=%%a"
 if /i "%CR%" == "true" for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
 if /i "%LF%" == "true" set LF=^
 %=REQUIRED=%
@@ -6708,8 +6983,8 @@ if /i "%LF%" == "true" set LF=^
 if /i "%BS%" == "true" for /f %%a in ('"prompt $H & for %%b in (1) do rem"') do set "BS=%%a"
 if /i "%TAB%" == "true" for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
 if /i "%ESC%" == "true" for /f %%a in ('"prompt $E & for %%b in (1) do rem"') do set "ESC=%%a"
-if /i "%_%" == "true" set "_=_!BS! !BS!"
-if /i "%DEL%" == "true" set "DEL=!BS! !BS!"
+if /i "%BASE%" == "true" set "BASE=_!BS! !BS!"
+if /i "%BACK%" == "true" set "BACK=!BS! !BS!"
 if /i "%DQ%" == "true" set DQ="!BS! !BS!
 if /i "%NL%" == "true" set "NL=^^!LF!!LF!^^"
 )
@@ -6759,7 +7034,7 @@ rem ======================== demo ========================
 
 :demo.clear_line_macro
 rem Satisfy dependencies
-call :capchar CR DEL
+call :capchar CR BACK
 
 call :clear_line_macro
 echo=
@@ -6794,7 +7069,7 @@ for /f "tokens=4 delims=. " %%w in ('ver') do (
         if %%w GEQ 10 (
             for /l %%n in (1,1,%_width%) do set "%%v=!%%v! "
             set "%%v=_!CR!!%%v!!CR!"
-        ) else for /l %%n in (1,1,%_width%) do set "%%v=!%%v!!DEL!"
+        ) else for /l %%n in (1,1,%_width%) do set "%%v=!%%v!!BACK!"
     )
 )
 exit /b 0
@@ -6975,7 +7250,7 @@ rem ======================== function ========================
 :color_print   color  text
 2> nul (
     pushd "!temp_path!" || exit /b 1
-     < nul set /p "=!DEL!!DEL!" > "%~2_"
+     < nul set /p "=!BACK!!BACK!" > "%~2_"
     findstr /l /v /a:%~1 "." "%~2_" nul
     del /f /q "%~2_" > nul
     popd
@@ -7027,7 +7302,7 @@ exit /b 0
 
 
 :demo.module
-echo Demo is unavailable.
+echo Demo is unavailable. Please try demo of each sub function instead.
 exit /b 0
 
 
@@ -7133,24 +7408,29 @@ exit /b 0
 :tests.lib.module.entry_point.test_template
 - extract "__init__ module.entry_point"
 
-``` batchfile ~3
-`` :__main__
-`` @call :scripts.main %*
-`` @exit /b
+``` batchfile ~4
+``  :__main__
+``  @call :scripts.main %*
+``  @exit /b
 ``
 ``
-`` :scripts.main
-`` :scripts.second
-`` goto capture_args
+``  :scripts.main
+``  :scripts.second
+``  goto capture_args
 ``
 ``
-`` :capture_args
-`` set "entry_point=%~0"
-`` set args=%*
-`` set "expected_exit_code=%random%"
-`` exit /b %expected_exit_code%
+``  :capture_args
+``  set "entry_point=%~0"
+``  set args=%*
+``  set "expected_exit_code=%random%"
+``  exit /b %expected_exit_code%
+``
+``
 ```
 exit /b 0
+
+
+rem (!) Create unittest for Linux EOL
 
 
 rem ======================== function ========================
@@ -7158,18 +7438,20 @@ rem ======================== function ========================
 :module.entry_point   [-c command]
 :module.entry_point.alt1
 :module.entry_point.alt2
-( goto 2> nul & goto module.entry_point._call )
-:module.entry_point._call
-@if /i not "%~1" == "-c" @goto __main__
-@if /i #%1 == #"%~1" @goto __main__
-@setlocal DisableDelayedExpansion
-@set command=%*
-@setlocal EnableDelayedExpansion
-@for /f "tokens=1* delims== " %%a in ("!command!") do @(
-    endlocal
-    endlocal
-    %%b
-    exit /b
+@if /i not "%~1" == "-c" @( goto 2> nul & goto __main__ )
+@if /i #%1 == #"%~1" @( goto 2> nul & goto __main__ )
+@(
+    goto 2> nul
+    setlocal DisableDelayedExpansion
+    call set command=%%*
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1* delims== " %%a in ("!command!") do @(
+        endlocal
+        endlocal
+        %%b
+        exit /b
+    )
+    exit /b 1
 )
 @exit /b 1
 
@@ -7481,7 +7763,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.find_label.main
-> "in\labels" (
+> "labels" (
     echo :
     echo : invalid
     echo :normal_label
@@ -7502,14 +7784,14 @@ rem ======================== tests ========================
 )
 call :capchar LF
 set test_cases= ^
-    ^ 13:   -f "in\labels" !LF!^
-    ^ 13:   -f "in\labels" -p "*" !LF!^
-    ^ 9:    -f "in\labels" -p "tests.*" !LF!^
-    ^ 9:    -f "in\labels" -p "*.main" !LF!^
-    ^ 7:    -f "in\labels" -p "tests.*.main" !LF!^
-    ^ 7:    -f "in\labels" -p "*o*" !LF!^
-    ^ 2:    -f "in\labels" -p "*$*" !LF!^
-    ^ 0:    -f "in\labels" -p ""
+    ^ 13:   -f "labels" !LF!^
+    ^ 13:   -f "labels" -p "*" !LF!^
+    ^ 9:    -f "labels" -p "tests.*" !LF!^
+    ^ 9:    -f "labels" -p "*.main" !LF!^
+    ^ 7:    -f "labels" -p "tests.*.main" !LF!^
+    ^ 7:    -f "labels" -p "*o*" !LF!^
+    ^ 2:    -f "labels" -p "*$*" !LF!^
+    ^ 0:    -f "labels" -p ""
 for /f "tokens=*" %%a in ("!test_cases!") do (
     for /f "tokens=1* delims=:" %%b in ("%%a") do (
         call :find_label labels %%c
@@ -8630,13 +8912,16 @@ echo NAME
 echo    updater - update a batch script from the internet
 echo=
 echo SYNOPSIS
-echo    updater   script_path  [-f]  [-u]  [-d url]
+echo    updater   return_prefix  script_path  [-V]  [-u]  [-d url]
 echo=
 echo DESCRIPTION
 echo    This function can detect updates, download them, and update the script.
 echo    The 'download_url' in __metadata__() needs to be added.
 echo=
 echo POSITIONAL ARGUMENTS
+echo    return_prefix
+echo        Prefix of the variable to store the metadata (if exit code is 0)
+echo=
 echo    script_path
 echo        Path of the (batch) file.
 echo=
@@ -8674,11 +8959,11 @@ echo=
 echo EXIT STATUS
 echo    0:  - Success.
 echo    2:  - No update is available.
-echo    3:  - Failed to get download url.
-echo    4:  - Failed to get update.
-echo    5:  - Failed to read update information.
-echo    6:  - The update file does not pass the verification.
-echo    7:  - Update failed.
+echo    3:  - Failed to retrive module information.
+echo    4:  - Failed to download update.
+echo    5:  - Failed to retrive update information.
+echo    6:  - Module name does not match.
+echo    7:  - Upgrade failed.
 exit /b 0
 
 
@@ -8696,15 +8981,18 @@ rem ======================== demo ========================
 
 :demo.updater
 echo Checking for updates...
-call :updater "%~f0" || exit /b 0
+call :updater update. "%~f0" || exit /b 0
+call :diffdate update_age !date:~4! !update.release_date!
+echo !update.description! !update.version! is now available (!update_age! days ago^)
 echo=
 echo Note:
 echo - Updating will REPLACE current script with the newer version
 echo=
 call :Input.yesno user_input --message "Update now? Y/N? " || exit /b 0
 echo=
-call :updater --upgrade "%~f0" && (
-    echo Upgrade successful. Script will exit.
+call :updater update. --upgrade "%~f0" && (
+    echo Upgraded to !update.name! !update.version!
+    echo Script will exit
     pause
     exit 0
 )
@@ -8744,8 +9032,9 @@ for %%a in (
     "6: --upgrade : name_different"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     copy /y "base.bat" "test_updater.bat" > nul
-    start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul ^
-    || ( call %unittest%.error "Cannot start test update" & exit /b 0 )
+    start "" /wait /b cmd /c ""test_updater.bat" "%%c" "%%d"" > nul 2> nul || (
+        call %unittest%.error "Cannot start test update" & exit /b 0
+    )
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "%%b" (
         call %unittest%.fail %%a
@@ -8755,55 +9044,48 @@ exit /b 0
 
 
 :tests.lib.updater.template
-- extract
-    " __init__
-      module.entry_point
-      !updater_func! "
-``` batchfile ~3
-`` :__metadata__
-`` for %%a in (!metadata_variables!) do set "%~1%%a=!given.%%a!"
-`` exit /b 0
+- extract "__init__"
+- extract "__metadata__" 0 -3
+``` batchfile ~4
+``
+``  if defined name_different set "%~1name=.test!random!!random!!random!"
+``  if defined version_lower set "%~1version=.dev"
+``  if defined version_higer set "%~1version=999"
+``  if defined date_older set "%~1release_date=1/1/1970"
+``  if defined date_newer set "%~1release_date=12/31/9999"
+``  if defined download_url_undefined set "%~1download_url="
+``  if defined download_url_invalid set "%~1download_url=256.256.256.256"
+``  exit /b 0
 ``
 ``
-`` :__main__
-`` @setlocal EnableDelayedExpansion EnableExtensions
-`` @echo off
-`` call :tests.lib.updater.setup_metadata %2
-`` (
-``     call :updater %~1 "%~f0"
-``     exit /b
-`` )
-`` exit /b
+``  :__main__
+``  @setlocal EnableDelayedExpansion EnableExtensions
+``  @echo off
+``  for %%a in (
+``      "name: different"
+``      "version: lower higher"
+``      "download_url: undefined invalid"
+``  ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+``      for %%f in (%%c) do set "%%b_%%f="
+``  )
+``  for %%f in (%~2) do set "%%f=true"
+``  (
+``      call :updater update. "%~f0" %~1
+``      exit
+``  )
+``  exit 1
 ``
 ``
 ```
-- extract "tests.lib.updater.setup_metadata"
-exit /b 0
-
-
-:tests.lib.updater.setup_metadata   parameters
-set "metadata_variables=name version release_date download_url"
-for %%v in (!metadata_variables!) do (
-    set "given.%%v=!SOFTWARE.%%v!"
-)
-for %%a in (%~1) do (
-    if "%%a" == "name_different" set "given.name=.test!random!!random!!random!"
-
-    if "%%a" == "version_lower" set "given.version=.dev"
-    if "%%a" == "version_higer" set "given.version=999"
-
-    if "%%a" == "date_older" set "given.release_date=1/1/1970"
-    if "%%a" == "date_newer" set "given.release_date=12/31/9999"
-
-    if "%%a" == "download_url_undefined" set "given.download_url="
-    if "%%a" == "download_url_invalid" set "given.download_url=256.256.256.256"
-)
+- extract
+    " module.entry_point
+      !updater_func! "
 exit /b 0
 
 
 rem ======================== function ========================
 
-:updater   script_path  [-f]  [-u]  [-d url]
+:updater   return_prefix  script_path  [-V]  [-u]  [-d url]
 setlocal EnableDelayedExpansion
 for %%v in (_upgrade _download_url) do set "%%v="
 set "_verify=true"
@@ -8812,37 +9094,51 @@ set parse_args.args= ^
     ^ "-u, --upgrade            :store_const:_upgrade=true" ^
     ^ "-d, --download-url       :store:_download_url"
 call :parse_args %*
-set "_part=%~f1"
+set "_part=%~f2"
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
 set "_other=!cd!\latest.bat"
-(
-    call :module.is_module "!_part!" ^
-    && call :module.read_metadata _part. "!_part!" ^
-    && if not defined _download_url set "_download_url=!_part.download_url!" ^
-    && if not defined _download_url ( exit /? > nul )
-) || ( 1>&2 echo error: failed to get download url & exit /b 3 )
-call :download_file "!_download_url!" "!_other!" || ( 1>&2 echo error: failed to get update & exit /b 4 )
-if defined _verify (
-    (
-        call :module.is_module "!_other!" ^
-        && call :module.read_metadata _other. "!_other!" ^
-        && if not defined _other.version ( exit /? > nul )
-    ) || ( 1>&2 echo error: failed to read update information & exit /b 5 )
-    if /i not "!_other.name!" == "!_part.name!" ( 1>&2 echo error: module name does not match & exit /b 6 )
-    call :parse_version _part.parsed_version "!_part.version!"
-    call :parse_version _other.parsed_version "!_other.version!"
-    if "!_other.parsed_version!" EQU "!_part.parsed_version!" ( echo You are using the latest version & exit /b 2 )
-    if "!_other.parsed_version!" LSS "!_part.parsed_version!" ( echo No update is available & exit /b 2 )
-    call :diffdate update_age !date:~4! !_other.release_date! 2> nul && (
-        echo !_other.description! !_other.version! is now available ^(!update_age! days ago^)
-    ) || echo !_other.description! !_other.version! is now available ^(since !_other.release_date!^)
-)
-if not defined _upgrade (
-    del /f /q "!_other!"
+call :updater._run & for %%e in (!errorlevel!) do (
+    endlocal
+    if "%%e" == "0" call :updater.read_metadata %1 "%_other%"
+    if not defined _upgrade if exist "%_other%" del /f /q "%_other%"
+    if "%%e" == "2" ( 1>&2 echo You are using the latest version & exit /b 2 )
+    if "%%e" == "3" ( 1>&2 echo error: failed to retrive metadata & exit /b 3 )
+    if "%%e" == "4" ( 1>&2 echo error: failed to download update & exit /b 4 )
+    if "%%e" == "5" ( 1>&2 echo error: failed to retrive update information & exit /b 5 )
+    if "%%e" == "6" ( 1>&2 echo error: module name does not match & exit /b 6 )
+    if "%%e" == "7" ( 1>&2 echo error: upgrade failed & exit /b 7 )
     exit /b 0
 )
-move "!_other!" "!_part!" > nul || ( 1>&2 echo error: upgrade failed & exit /b 7 )
 exit /b 0
+#+++
+
+:updater._run
+set "_read_metadata=true"
+if not defined _verify if defined _download_url set "_read_metadata="
+if defined _read_metadata call :updater.read_metadata _part. "!_part!" && (
+    set "_download_url=!_part.download_url!"
+) || exit /b 3
+if not defined _download_url exit /b 3
+call :download_file "!_download_url!" "!_other!" || exit /b 4
+if defined _verify (
+    call :updater.read_metadata _other. "!_other!" || exit /b 5
+    if not defined _other.version exit /b 5
+    if /i not "!_other.name!" == "!_part.name!" exit /b 6
+    call :parse_version _part.parsed_version "!_part.version!"
+    call :parse_version _other.parsed_version "!_other.version!"
+    if "!_other.parsed_version!" LEQ "!_part.parsed_version!" exit /b 2
+)
+if defined _upgrade (
+    copy /b /y /v "!_other!" "!_part!" > nul
+) && ( exit /b 0 ) || exit /b 7
+exit /b 0
+#+++
+
+:updater.read_metadata   return_prefix  script_path
+call :module.is_module %2 || exit /b 1
+call :module.read_metadata %1 %2 || exit /b 1
+exit /b 0
+
 
 
 rem ================================ to_crlf() ================================
@@ -8963,38 +9259,14 @@ rem ======================== function ========================
 :is_crlf.alt2
 for %%f in (-c, --check-exist) do if /i "%1" == "%%f" exit /b 0
 @call :is_crlf._test 2> nul && exit /b 0 || exit /b 1
-rem  1  DO NOT REMOVE THIS COMMENT SECTION, IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY                               #
-rem  2  DO NOT MODIFY THIS COMMENT SECTION IF YOU DON'T KNOW WHAT YOU ARE DOING                                               #
-rem  3                                                                                                                        #
-rem  4  Length of this comment section should be at most 4095 characters if EOL is LF only (Unix)                             #
-rem  5  Comment could contain anything, but it is best to set it to empty space                                               #
-rem  6  so your code editor won't slow down when scrolling through this section                                               #
-rem  7                                                                                                                        #
-rem  8                                                                                                                        #
-rem  9                                                                                                                        #
-rem 10                                                                                                                        #
-rem 11                                                                                                                        #
-rem 12                                                                                                                        #
-rem 13                                                                                                                        #
-rem 14                                                                                                                        #
-rem 15                                                                                                                        #
-rem 16                                                                                                                        #
-rem 17                                                                                                                        #
-rem 18                                                                                                                        #
-rem 19                                                                                                                        #
-rem 20                                                                                                                        #
-rem 21                                                                                                                        #
-rem 22                                                                                                                        #
-rem 23                                                                                                                        #
-rem 24                                                                                                                        #
-rem 25                                                                                                                        #
-rem 26                                                                                                                        #
-rem 27                                                                                                                        #
-rem 28                                                                                                                        #
-rem 29                                                                                                                        #
-rem 30                                                                                                                        #
-rem 31                                                                                                                        #
-rem 32  LAST LINE: should be 1 character shorter than the rest                                              DO NOT MODIFY -> #
+rem  1  DO NOT REMOVE / MODIFY THIS COMMENT SECTION           #
+rem  2  IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY   #
+rem  3  This comment section should be exactly 511 characters #
+rem  4  long when the EOL is LF (Unix EOL).                   #
+rem  5                                                        #
+rem  6                                                        #
+rem  7  Last line should be 1 character                       #
+rem  8  shorter than the rest               DO NOT MODIFY -> #
 :is_crlf._test
 @exit /b 0
 
@@ -9113,7 +9385,7 @@ for %%d in (unittest) do (
     cd /d "%%~d"
 )
 for %%p in (
-    in out log
+    ".unittest"
 ) do if not exist "%%~p" md "%%~p"
 
 rem Setup test list
@@ -9198,46 +9470,46 @@ exit /b 0
 #+++
 
 :unittest._run   label
-call 2> "log\_outcome.bat"
+call 2> ".unittest\outcome.bat"
 set "unittest.current_test_name=%~1"
 setlocal EnableDelayedExpansion EnableExtensions
 call %unittest.test_context%:%~1
 endlocal & set "_exit_code=%errorlevel%"
 if not "!_exit_code!" == "0" (
-    >> "log\_outcome.bat" (
+    >> ".unittest\outcome.bat" (
         echo call %%unittest%%._add_outcome error "Test function did not exit correctly [exit code !_exit_code!]."
     )
 )
 set "unittest.current_outcome=success"
-call "log\_outcome.bat"
+call ".unittest\outcome.bat"
 call :unittest._add_result !unittest.current_outcome! %1
 call :%~1.cleanup 2> nul
 exit /b 0
 #+++
 
 :unittest.skip   reason
->> "log\_outcome.bat" (
+>> ".unittest\outcome.bat" (
     echo call %%unittest%%._add_outcome skip %1
 )
 exit /b 0
 #+++
 
 :unittest.fail   msg
->> "log\_outcome.bat" (
+>> ".unittest\outcome.bat" (
     echo call %%unittest%%._add_outcome failure %1
 )
 exit /b 0
 #+++
 
 :unittest.error   msg
->> "log\_outcome.bat" (
+>> ".unittest\outcome.bat" (
     echo call %%unittest%%._add_outcome error %1
 )
 exit /b 0
 #+++
 
 :unittest.stop
->> "log\_outcome.bat" (
+>> ".unittest\outcome.bat" (
     echo set "unittest.should_stop=true"
 )
 exit /b 0
@@ -10061,14 +10333,14 @@ exit /b 0
 rem ================================ auto_input ================================
 
 :tests.auto_input.main
-> "in\ignore_n_quit" (
+> "ignore_n_quit" (
     echo ignore1
     echo ignore2
     echo ignore3
     echo 0
 )
-> "out\ignore_n_quit" 2>&1 (
-    start "" /i /wait /b cmd /c ""%~f0" --no-cleanup" < "in\ignore_n_quit"
+> nul 2>&1 (
+    start "" /i /wait /b cmd /c ""%~f0" --no-cleanup" < "ignore_n_quit"
 ) && (
     exit /b 0
 ) || (
