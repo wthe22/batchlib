@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.28"
+set "%~1version=2.1-a.29"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=04/12/2020"   :: mm/dd/YYYY
+set "%~1release_date=05/01/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
 exit /b 0
@@ -206,14 +206,17 @@ echo    - get_ext_ip():
 echo        - Remove usage of temporary file
 echo        - Added fallback URLs
 echo      this ID is automatically generated in the function using PowerShell.
-echo    - Input.*(): Renamed parameters '-d, --description' to '-m, --message'
+echo    - Input.*():
+echo        - Renamed parameters '-d, --description' to '-m, --message'
+echo        - Improved exit status
+echo        - Now function automatically quits after 100 fail inputs
+echo        - Improved variable content preservation
+echo        - Improved user interface
 echo    - Input.ipv4(): Fixed function not returning value after a successful input
 echo    - Input.path():
 echo        - Fixed parameter conflict
 echo        - Removed method to re-enter previous input
 echo        - Added option to specify base directory before input
-echo        - Improved skipping on optional inputs
-echo        - Improved user interface
 echo    - Input.yesno(): Accepts anything that starts with 'Y' as yes, and
 echo      anything that starts with 'N' as no
 echo    - module.entry_point(): Reworked and adapted the rest to the changes
@@ -269,7 +272,7 @@ echo      check_path(), wcdir(), int2roman(), roman2int(), capchar(), Input.yesn
 echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
 echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
 echo      desolve(), collect_func(), strip(), textrender(), sleep()
-echo    - Improved unittest for: Input.number(), module.entry_point()
+echo    - Improved unittest for: Input.*(), module.entry_point()
 echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
 echo=
@@ -292,24 +295,24 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Removed exception.raise() since it is unused
-echo    - Added backward compatibility codes for module()
-echo    - Reserved exit code 1 for unexpected errors
-echo    - Removed is_echo_on() from template
-echo    - Input.number(): Removed additional spacings
-echo    - Input.yesno(): Removed additional spacings
+echo    - Changed prompt message from '$' to '$ '
+echo    - Input.*():
+echo        - Improved exit status
+echo        - Now function automatically quits after 100 fail inputs
+echo        - Improved variable content preservation
+echo        - Improved user interface
+echo        - Improved behavior consistency of '--message' parameter
+echo        - Updated and improved unittest
 echo    - parse_args():
-echo        - Improved function and unittest code quality
-echo        - Improved parsing speed for each loop (~3x faster or more)
-echo    - timeit(): Marked several label as internal method
-echo    - textrender():
-echo        - Marked several label as internal method
-echo        - Updated unittest to follow template changes
-echo    - unittest(): Added missing 'module.make_context' in dependency listing
-echo    - while_range_macro():
-echo        - Fixed macro generation when function is
-echo          called within a loop that uses %%_
+echo        - Slightly improved unittest code quality
+echo        - Added support for multiple action for an option
+echo        - Fixed storing of empty string
+echo        - Simplified demo to prevent confusion
+echo    - endlocal():
+echo        - Improved parameter description
 echo        - Improved demo
+echo        - Fixed failure when attemping to persist empty variable
+echo        - Updated and improved unittest
 exit /b 0
 
 
@@ -338,7 +341,7 @@ rem ================================ Main script ===============================
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 set "__name__=main"
-prompt $$
+prompt $$$s
 call :__metadata__ SOFTWARE.
 title !SOFTWARE.description! !SOFTWARE.version!
 cls
@@ -378,7 +381,7 @@ rem ================================ minified script ===========================
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 set "__name__=cli"
-prompt $$
+prompt $$$s
 call :__metadata__ SOFTWARE.
 
 for %%n in (1 2) do call :to_crlf.alt%%n
@@ -425,6 +428,7 @@ echo 0. Exit
 echo=
 echo What do you want to do?
 set /p "user_input="
+echo=
 if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" (
     call :select_function
@@ -1041,7 +1045,7 @@ exit /b 0
 ``  @setlocal EnableDelayedExpansion EnableExtensions
 ``  @echo off
 ``  set "__name__=main"
-``  prompt $$
+``  prompt $$$s
 ``  call :__metadata__ SOFTWARE.
 ``
 ``  rem Write your code here...
@@ -1122,6 +1126,10 @@ echo=
 echo    -m MESSAGE, --message MESSAGE
 echo        Use MESSAGE as the prompt message.
 echo        By default, the message is generated automatically.
+echo=
+echo EXIT STATUS
+echo    0:  - Input is successful.
+echo    3:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
@@ -1176,18 +1184,19 @@ rem ======================== function ========================
 
 :Input.number   return_var  [-m message]  [-r range]
 setlocal EnableDelayedExpansion
-for %%v in (_message _range) do set "%%v="
+for %%v in (_msg_is_set _message _range) do set "%%v="
 set parse_args.args= ^
+    ^ "-m, --message        :store_const:_msg_is_set=true" ^
     ^ "-m, --message        :store:_message" ^
     ^ "-r, --range          :store:_range"
-call :parse_args %* || exit /b 1
-if not defined _message (
+call :parse_args %*
+if not defined _msg_is_set (
     if defined _range (
         set "_message=Input %~1 [!_range!]: "
     ) else set "_message=Input %~1: "
 )
-call :Input.number._loop
-for /f "tokens=*" %%r in ("!user_input!") do (
+call :Input.number._loop || exit /b 3
+for /f "delims= eol=" %%r in ("!user_input!") do (
     endlocal
     set "%~1=%%r"
 )
@@ -1195,11 +1204,14 @@ exit /b 0
 #+++
 
 :Input.number._loop
-set "user_input="
-set /p "user_input=!_message!"
-call :is_number "!user_input!" || goto Input.number._loop
-call :is_in_range "!user_input!" "!_range!" || goto Input.number._loop
-exit /b 0
+for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+    set "user_input="
+    set /p "user_input=!_message!" & ( rem
+    ) && call :is_number "!user_input!" && ( rem
+    ) && call :is_in_range "!user_input!" "!_range!" && ( rem
+    ) && exit /b 0
+)
+exit /b 1
 
 
 rem ================================ Input.string() ================================
@@ -1228,6 +1240,7 @@ echo=
 echo EXIT STATUS
 echo    0:  - Input is not empty.
 echo    2:  - Input is an empty string.
+echo    3:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
@@ -1250,94 +1263,75 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.Input.string.main
-> "empty" (
-    echo=
-    echo hello
-    echo   world
-)
-> "spaced" (
-    echo   world  %=END=%
-)
-> "semicolon" (
-    echo ; pass
-    echo fail
-)
-set "evaluate_result=call :tests.lib.Input.string.evaluate_result"
-
-< "empty" > nul 2>&1 (
-    set "expected_result="
-    call :Input.string result
-) & !evaluate_result! "null"
-
-< "spaced" > nul 2>&1 (
-    set "expected_result=  world  "
-    call :Input.string result
-) & !evaluate_result! "keep spaces"
-
-< "semicolon" > nul 2>&1 (
-    set "expected_result=; pass"
-    call :Input.string result
-) & !evaluate_result! "ignore semicolon EOL"
-
-< "empty" > nul 2>&1 (
-    set "expected_result=hello"
-    call :Input.string result --filled
-) & !evaluate_result! "ignore null"
-
-< "empty" > nul 2>&1 (
-    call :Input.string result --filled || (
-        call %unittest%.fail "errorlevel 1 if empty"
+set "text_empty="
+set "text_hello=hello"
+set "text_semicolon=; semicolon"
+set "text_fail=fail"
+for %%a in (
+    "hello: hello fail"
+    "semicolon: semicolon fail"
+    "empty: empty fail"
+    "hello: empty hello fail: --filled"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do echo=!text_%%i!
+    )
+    call :Input.string result %%d < "input" > nul
+    if not "!result!" == "!text_%%b!" (
+        call %unittest%.fail %%a
     )
 )
-
-< "empty" > nul 2>&1 (
-    call :Input.string result && (
-        call %unittest%.fail "errorlevel 1 if empty"
+for %%a in (
+    "0: hello fail"
+    "0: semicolon fail"
+    "2: empty fail"
+    "0: empty hello fail: --filled"
+    "3: empty: --filled"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do echo=!text_%%i!
+    )
+    call :Input.string result %%d < "input" > nul
+    if not "!errorlevel!" == "%%b" (
+        call %unittest%.fail %%a
     )
 )
 exit /b 0
-#+++
-
-:tests.lib.Input.string.evaluate_result
-if not "!result!" == "!expected_result!" (
-    call %unittest%.fail %1
-)
-exit /b
 
 
 rem ======================== function ========================
 
 :Input.string   return_var  [-m message]  [-f]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_message _require_filled) do set "%%v="
+for %%v in (_msg_is_set _message _require_filled) do set "%%v="
 set parse_args.args= ^
+    ^ "-m, --message    :store_const:_msg_is_set=true" ^
     ^ "-m, --message    :store:_message" ^
     ^ "-f, --filled     :store_const:_require_filled=true"
-call :parse_args %* || exit /b 1
-if not defined _message set "_message=Input %~1: "
-call :Input.string._loop || (
+call :parse_args %*
+if not defined _msg_is_set set "_message=Input %~1: "
+call :Input.string._loop || exit /b 3
+set "user_input=^!!user_input!"
+set "user_input=!user_input:^=^^^^!"
+set "user_input=%user_input:!=^^^!%"
+for /f "delims= eol=" %%a in ("!user_input!") do (
     endlocal
-    set "%~1="
-    exit /b 2
-)
-for /f tokens^=*^ delims^=^ eol^= %%c in ("_!user_input!_") do (
-    endlocal
-    set "%~1=%%~c"
-    set "%~1=!%~1:~1,-1!"
+    set "%~1=%%a"
+    set "%~1=!%~1:~1!"
+    if not defined %~1 exit /b 2
 )
 exit /b 0
 #+++
 
 :Input.string._loop
-echo=
-set "user_input="
-echo=!_message!
-set /p "user_input="
-if not defined user_input (
-    if defined _require_filled goto Input.string._loop
-    exit /b 1
+for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+    set "user_input="
+    set /p "user_input=!_message!"
+    if defined user_input (
+        exit /b 0
+    ) else if not defined _require_filled exit /b 0
 )
-exit /b 0
+exit /b 1
 
 
 rem ================================ Input.yesno() ================================
@@ -1371,6 +1365,7 @@ echo=
 echo EXIT STATUS
 echo    0:  - User enters any string that starts with 'Y'.
 echo    2:  - User enters any string that starts with 'N'.
+echo    3:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
@@ -1435,6 +1430,7 @@ for %%a in (
     "0: y n"
     "2: n y"
     "0: LF y n"
+    "3: LF"
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     > "input" (
         for %%i in (%%c) do (
@@ -1455,37 +1451,41 @@ rem ======================== function ========================
 
 :Input.yesno   return_var  [-m message]  [-y value]  [-n value]
 setlocal EnableDelayedExpansion EnableExtensions
-set "_message=Y/N? "
+for %%v in (_msg_is_set _message) do set "%%v="
 set "_yes_value=Y"
 set "_no_value=N"
 set parse_args.args= ^
-    ^ "-m, --message        :store:_message" ^
-    ^ "-y, --yes            :store:_yes_value" ^
-    ^ "-n, --no             :store:_no_value"
+    ^ "-m, --message    :store_const:_msg_is_set=true" ^
+    ^ "-m, --message    :store:_message" ^
+    ^ "-y, --yes        :store:_yes_value" ^
+    ^ "-n, --no         :store:_no_value"
 call :parse_args %*
-call :Input.yesno._loop
+if not defined _msg_is_set set "_message=Input %~1? Y/N? "
+call :Input.yesno._loop || exit /b 3
 set "_result="
 if /i "!user_input:~0,1!" == "Y" set "_result=!_yes_value!"
 if /i "!user_input:~0,1!" == "N" set "_result=!_no_value!"
-if defined _result (
-    for /f "delims= eol=" %%a in ("!_result!") do (
-        endlocal
-        set "%~1=%%a"
-        if /i "%user_input:~0,1%" == "Y" exit /b 0
-    )
-) else (
+set "_result=^!!_result!"
+set "_result=!_result:^=^^^^!"
+set "_result=%_result:!=^^^!%"
+for /f "delims= eol=" %%a in ("!_result!") do (
     endlocal
-    set "%~1="
+    set "%~1=%%a"
+    set "%~1=!%~1:~1!"
     if /i "%user_input:~0,1%" == "Y" exit /b 0
+    if /i "%user_input:~0,1%" == "N" exit /b 2
 )
-exit /b 2
+exit /b 1
 #+++
 
 :Input.yesno._loop
-set /p "user_input=!_message!"
-if /i "!user_input:~0,1!" == "Y" exit /b 0
-if /i "!user_input:~0,1!" == "N" exit /b 0
-goto Input.yesno._loop
+for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+    set "user_input="
+    set /p "user_input=!_message!"
+    if /i "!user_input:~0,1!" == "Y" exit /b 0
+    if /i "!user_input:~0,1!" == "N" exit /b 0
+)
+exit /b 1
 
 
 rem ================================ Input.path() ================================
@@ -1498,13 +1498,26 @@ echo    Input.path - read a path string from standard input
 echo=
 echo SYNOPSIS
 echo    Input.path   return_var  [-m message]  [-b base_dir]
-echo                 [-e^|-n]  [-f^|-d]  [-o]
+echo                 [-o]  [-e^|-n]  [-f^|-d]
 echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
 echo        Variable to store the absolte path of the file/folder.
 echo=
 echo OPTIONS
+echo    -m MESSAGE, --message MESSAGE
+echo        Use MESSAGE as the prompt message.
+echo        By default, the message is generated automatically.
+echo=
+echo    -b BASE_DIR, --base-dir BASE_DIR
+echo        Function will CD to this directory first before reading input.
+echo=
+echo    -o, --optional
+echo        Input is optional and could be skipped by entering nothing.
+echo=
+echo CHECK OPTIONS
+echo    These options that are passed to check_path()
+echo=
 echo    -e, --exist
 echo        Target must exist. Mutually exclusive with '--not-exist'.
 echo=
@@ -1517,19 +1530,10 @@ echo=
 echo    -d, --directory
 echo        Target must be a folder (if exist). Mutually exclusive with '--file'.
 echo=
-echo    -o, --optional
-echo        Input is optional and could be skipped by entering nothing.
-echo=
-echo    -b BASE_DIR, --base-dir BASE_DIR
-echo        Function will CD to this directory first before reading input.
-echo=
-echo    -m MESSAGE, --message MESSAGE
-echo        Use MESSAGE as the prompt message.
-echo        By default, the message is generated automatically.
-echo=
 echo EXIT STATUS
-echo    0:  - Success.
+echo    0:  - Input is successful.
 echo    2:  - User skips the input.
+echo    3:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
@@ -1571,12 +1575,89 @@ echo Result: "!new_name!"
 exit /b 0
 
 
+rem ======================== test ========================
+
+:tests.lib.Input.path.main
+if exist "tree" rmdir /s /q "tree"
+for %%a in (
+    "ref"
+) do (
+    set "word=%%~a"
+    mkdir "tree\!word:~0,1!\!word:~1,1!"
+    call 2> "tree\!word:~0,1!\!word:~1,1!\!word:~2,1!"
+)
+for %%a in (
+    "red"
+) do (
+    set "word=%%~a"
+    mkdir "tree\!word:~0,1!\!word:~1,1!\!word:~2,1!"
+)
+
+for %%a in (
+    "red:tree\red"
+    "ref:tree\ref"
+    "rex:tree\rex"
+    "ref:tree\red ref: --file"
+    "red:tree\ref red: --directory"
+    "red:tree\rex red: --exist"
+    "rex:tree\red rex: --not-exist"
+    "red:.\ed: --base-dir tree\r"
+    "ref:.\ef: --base-dir tree\r"
+    "rex:.\ex: --base-dir tree\r"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do ( rem
+) & for /f "tokens=1* delims=\" %%e in ("%%c") do (
+    > "input" (
+        for %%i in (%%f) do (
+            call :tests.lib.Input.path.make_path relpath "%%e" "%%i"
+            echo=!relpath!
+        )
+    )
+    call :tests.lib.Input.path.make_path expected "!cd!\tree" "%%b"
+    set "result="
+    call :Input.path result %%d < "input" > nul 2> nul
+    if not "!result!" == "!expected!" (
+        call %unittest%.fail %%a
+    )
+)
+for %%a in (
+    "0:tree\rex"
+    "0:tree\ref: --file"
+    "0:tree\red: --directory"
+    "0:tree\red: --exist"
+    "0:tree\rex: --not-exist"
+    "2:.: --file --optional"
+    "3:.: --file"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do ( rem
+) & for /f "tokens=1* delims=\" %%e in ("%%c") do (
+    > "input" (
+        for %%i in (%%f) do (
+            call :tests.lib.Input.path.make_path relpath "%%e" "%%i"
+            echo=!relpath!
+        )
+    )
+    call :Input.path result %%d < "input" > nul 2> nul
+    if not "!errorlevel!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
+exit /b 0
+
+
+:tests.lib.Input.path.make_path   return_var  prefix  word
+set "letters=%~3"
+set "letters=!letters:~0,1! !letters:~1,1! !letters:~2,1!"
+set "%~1=%~2"
+for %%l in (!letters!) do set "%~1=!%~1!\%%l"
+exit /b 0
+
+
 rem ======================== function ========================
 
 :Input.path   return_var  [-m message]  [-b base_dir]  [-e|-n]  [-f|-d]  [-o]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_message _optional _base_dir _check_options) do set "%%v="
+for %%v in (_msg_is_set _message _optional _base_dir _check_options) do set "%%v="
 set parse_args.args= ^
+    ^ "-m, --message    :store_const:_msg_is_set=true" ^
     ^ "-m, --message    :store:_message" ^
     ^ "-b, --base-dir   :store:_base_dir" ^
     ^ "-o, --optional   :store_const:_optional=true" ^
@@ -1586,30 +1667,29 @@ set parse_args.args= ^
     ^ "-d, --directory  :append_const:_check_options= -d"
 call :parse_args %*
 if defined _base_dir cd /d "!_base_dir!"
-if not defined _message set "_message=Input %~1: "
-call :Input.path._loop || (
+if not defined _msg_is_set set "_message=Input %~1: "
+call :Input.path._loop || exit /b 3
+set "user_input=^!!user_input!"
+set "user_input=!user_input:^=^^^^!"
+set "user_input=%user_input:!=^^^!%"
+for /f "delims= eol=" %%a in ("!user_input!") do (
     endlocal
-    set "%~1="
-    exit /b 2
-)
-for /f "tokens=* eol= delims=" %%c in ("!user_input!") do (
-    endlocal
-    set "%~1=%%c"
+    set "%~1=%%a"
+    set "%~1=!%~1:~1!"
+    if not defined %~1 exit /b 2
 )
 exit /b 0
 #+++
 
 :Input.path._loop
-set "user_input="
-echo=
-set /p "user_input=!_message!"
-if not defined user_input (
-    if defined _optional (
-        exit /b 1
-    ) else goto Input.path._loop
+for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+    set "user_input="
+    set /p "user_input=!_message!"
+    if defined user_input (
+        call :check_path user_input !_check_options! && exit /b 0
+    ) else if defined _optional exit /b 0
 )
-call :check_path user_input !_check_options! || goto Input.path._loop
-exit /b 0
+exit /b 1
 
 
 rem ================================ Input.ipv4() ================================
@@ -1633,6 +1713,10 @@ echo        Allow wildcards in the IPv4 address.
 echo=
 echo    -m MESSAGE, --message MESSAGE
 echo        By default, the message is generated automatically.
+echo=
+echo EXIT STATUS
+echo    0:  - Input is successful.
+echo    3:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
@@ -1654,52 +1738,64 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.Input.ipv4.main
-> "case1" (
-    echo=
-    echo 0
-    echo a.b.c.d
-    echo *.*.*.*
-    echo 0.0.0.0
+set "text_empty="
+set "text_localhost=127.0.0.1"
+set "text_all=0.0.0.0"
+set "text_wildcard1234=*.*.*.*"
+set "text_zero=0"
+set "text_abcd=a.b.c.d"
+set "text_fail=1.2.3.4"
+for %%a in (
+    "localhost: localhost fail"
+    "all: all fail"
+    "localhost: empty localhost fail"
+    "localhost: zero localhost fail"
+    "localhost: abcd localhost fail"
+    "wildcard1234: wildcard1234 fail: --allow-wildcard"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do echo=!text_%%i!
+    )
+    call :Input.ipv4 result %%d < "input" > nul
+    if not "!result!" == "!text_%%b!" (
+        call %unittest%.fail %%a
+    )
 )
-set "evaluate_result=call :tests.lib.Input.ipv4.evaluate_result"
-
-< "case1" > nul 2>&1 (
-    set "expected_result=0.0.0.0"
-    call :Input.ipv4 result
-) & !evaluate_result! "default"
-
-< "case1" > nul 2>&1 (
-    set "expected_result=*.*.*.*"
-    call :Input.ipv4 result --allow-wildcard
-) & !evaluate_result! "allow wildcard"
-
+for %%a in (
+    "0: localhost"
+    "0: empty localhost"
+    "3: wildcard1234"
+    "0: wildcard1234: --allow-wildcard"
+) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
+    > "input" (
+        for %%i in (%%c) do echo=!text_%%i!
+    )
+    call :Input.ipv4 result %%d < "input" > nul
+    if not "!errorlevel!" == "%%b" (
+        call %unittest%.fail %%a
+    )
+)
 exit /b 0
-#+++
-
-:tests.lib.Input.ipv4.evaluate_result
-if not "!result!" == "!expected_result!" (
-    call %unittest%.fail %1
-)
-exit /b
 
 
 rem ======================== function ========================
 
 :Input.ipv4   return_var  [-m message]  [-w]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_message _allow_wildcard _check_options) do set "%%v="
+for %%v in (_msg_is_set _message _allow_wildcard _check_options) do set "%%v="
 set parse_args.args= ^
+    ^ "-m, --message        :store_const:_msg_is_set=true" ^
     ^ "-m, --message        :store:_message" ^
     ^ "-w, --allow-wildcard :store_const:_allow_wildcard=true"
 call :parse_args %*
 if defined _allow_wildcard set "_check_options= --wildcard"
-if not defined _message (
+if not defined _msg_is_set (
     if defined _allow_wildcard (
         set "_message=Input %~1 (Wildcard allowed): "
     ) else set "_message=Input %~1: "
 )
-call :Input.ipv4._loop
-for /f "tokens=*" %%r in ("!user_input!") do (
+call :Input.ipv4._loop || exit /b 3
+for /f "delims= eol=" %%r in ("!user_input!") do (
     endlocal
     set "%~1=%%r"
 )
@@ -1707,10 +1803,12 @@ exit /b 0
 #+++
 
 :Input.ipv4._loop
-echo=
-set /p "user_input=!_message!"
-call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
-goto Input.ipv4._loop
+for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+    set "user_input="
+    set /p "user_input=!_message!"
+    call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
+)
+exit /b 1
 
 
 rem ================================ rand() ================================
@@ -2618,7 +2716,8 @@ echo SYNOPSIS
 echo    is_number   input_string
 echo=
 echo DESCRIPTION
-echo    Check if a string only contains a number; no words or other symbols.
+echo    Check if a string only contains a number/hexadecimal/octal; no words
+echo    or other symbols.
 echo=
 echo POSITIONAL ARGUMENTS
 echo    input_string
@@ -5327,6 +5426,7 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.wcdir.main
+if exist "tree" rmdir /s /q "tree"
 for %%a in (
     "lap"
     "let"
@@ -9721,20 +9821,6 @@ echo            Append CONST to the VARIABLE.
 echo            E.g.: "--add_one    :append_const:value= +1"
 echo                will do: set "value=^!value^! +1"
 echo=
-echo EXAMPLE
-echo    set parse_args.args= ^^
-echo        ^^ "-q, --quite     :store_const:quite_mode=true" ^^
-echo        ^^ "-m, --module    :store:module_name" ^^
-echo        ^^ "-0, --zero      :store:binary=0" ^^
-echo        ^^ "-1, --one       :store:binary=1"
-echo    call :parse_args -m calc -q -0 hello --one --zero -1 world
-echo=
-echo    - quite_mode will be set to 'true'
-echo    - module_name will be set to 'calc'
-echo    - binary will be set to '0101'
-echo    - %%1 will be 'hello'
-echo    - %%2 will be 'world'
-echo=
 echo EXIT STATUS
 echo    0:  - Success.
 echo    2:  - Invalid parameter of 'parse_args.args'.
@@ -9771,9 +9857,6 @@ echo OPTIONS
 echo    -s, --say TEXT
 echo        Print TEXT before showing the result.
 echo=
-echo    -b, --binary
-echo        Show result in the form of binary.
-echo=
 echo    -h, --hex
 echo        Show result in the form of hexadecimal.
 echo=
@@ -9787,19 +9870,29 @@ exit /b 0
 #+++
 
 :talking_calculator
-for %%v in (_say _binary _hex) do set "%%v="
+for %%v in (_say _say_is_set _binary _hex) do set "%%v="
 set parse_args.args= ^
     ^ "-s, --say        :store:_args._say" ^
-    ^ "-b, --binary     :store_const:_args._binary=true" ^
+    ^ "-s, --say        :store_const:_args._say_is_set=true" ^
     ^ "-h, --hex        :store_const:_args._hex=true" ^
     ^ "-p, --plus       :append_const:_args._plus= +1"
 call :parse_args.validate || exit /b 1
+echo parse_args.args= ^^
+for %%a in (!parse_args.args!) do (
+    echo    ^^ %%a ^^
+)
+echo=
 call :parse_args %* || exit /b 1
+echo=
 echo Arguments:
 set "_args."
 echo=
+if "%~1" == "" (
+    echo Sorry, we need an expression to calculate the result...
+    exit /b 1
+)
 if not "%~2" == "" (
-    echo Sorry, I didn't understand the parameters. Please check again.
+    echo Sorry, we dont accept additional parameters. Aborting...
     exit /b 1
 )
 set /a "_result=%~1 + 0" 2> nul || (
@@ -9807,13 +9900,14 @@ set /a "_result=%~1 + 0" 2> nul || (
     exit /b 1
 )
 set /a "_result+=0 !_args._plus!"
-if defined _args._binary call :int2bin _result !_result!
 if defined _args._hex (
     call :int2hex _result !_result!
     set "_result=0x!_result!"
 )
-if not defined _args._say set "_args._say=The answer is"
-echo !_args._say! !_result!
+if not defined _args._say_is_set (
+    set "_args._say=The answer is "
+)
+echo !_args._say!!_result!
 exit /b 0
 
 
@@ -9831,9 +9925,10 @@ for %%t in (store_const store append_const) do (
     call :tests.lib.parse_args.test_%%t --bravo "--alpha" -t -c -h --x-ray zulu  || exit /b 0
 )
 call :tests.lib.parse_args.test_special_chars "" --colon ":" --semicolon ";" ^
-    ^ --question-mark "?" --askterisk "*" --caret "^" --ampersand "&" ^
+    ^ --qmark "?" --asterisk "*" --caret "^" --ampersand "&" --equal "=" --empty "" ^
     ^ || exit /b 0
-call :tests.lib.parse_args.test_behavior  -c || exit /b 0
+call :tests.lib.parse_args.test_case_sensitivity  -c || exit /b 0
+call :tests.lib.parse_args.test_multi_action  pos -s stored || exit /b 0
 exit /b 0
 
 
@@ -9939,41 +10034,70 @@ exit /b 0
 
 
 :tests.lib.parse_args.test_special_chars
-for %%v in (question_mark asterisk colon semicolon caret) do set "%%v="
+set "char_list=dquotes2 qmark asterisk colon semicolon caret ampersand equal empty"
+for %%v in (!char_list!) do set "%%v="
 set parse_args.args= ^
-    ^ "--question-mark  :store:question_mark" ^
-    ^ "--askterisk      :store:asterisk" ^
-    ^ "--colon          :store:colon" ^
-    ^ "--semicolon      :store:semicolon" ^
-    ^ "--caret          :store:caret" ^
-    ^ "--ampersand      :store:ampersand"
+    ^ "--qmark      :store:var.qmark" ^
+    ^ "--asterisk   :store:var.asterisk" ^
+    ^ "--colon      :store:var.colon" ^
+    ^ "--semicolon  :store:var.semicolon" ^
+    ^ "--caret      :store:var.caret" ^
+    ^ "--ampersand  :store:var.ampersand" ^
+    ^ "--equal      :store:var.equal" ^
+    ^ "--empty      :store:var.empty"
 call :parse_args.validate 2> nul || (
     call %unittest%.error "test_special_chars: invalid test arguments" & exit /b 1
 )
 call :parse_args %* || ( call %unittest%.error "test_special_chars: parsing error" & exit /b 1 )
-for %%t in (test_special_chars) do (
-    if not "%1" == ^"^"^"^"         ( call %unittest%.fail "%%t: empty string" & exit /b 1 )
-    if not "!question_mark!" == "?" ( call %unittest%.fail "%%t: question mark" & exit /b 1 )
-    if not "!asterisk!" == "*"      ( call %unittest%.fail "%%t: asterisk" & exit /b 1 )
-    if not "!colon!" == ":"         ( call %unittest%.fail "%%t: colon" & exit /b 1 )
-    if not "!semicolon!" == ";"     ( call %unittest%.fail "%%t: semicolon" & exit /b 1 )
-    if not "!caret!" == "^"         ( call %unittest%.fail "%%t: caret" & exit /b 1 )
-    if not "!ampersand!" == "&"     ( call %unittest%.fail "%%t: ampersand" & exit /b 1 )
+call :tests.assets.set_special_chars expected.
+set var.dquotes2=%1
+for %%v in (!char_list!) do (
+    if not "[!var.%%v!]" == "[!expected.%%v!]" (
+        call %unittest%.fail "test_special_chars: %%v"
+    )
 )
 exit /b 0
 
 
-:tests.lib.parse_args.test_behavior
+:tests.lib.parse_args.test_case_sensitivity
 for %%v in (_lowercase _uppercase) do set "%%v="
 set parse_args.args= ^
     ^ "-c   :store_const:_lowercase=true" ^
     ^ "-C   :store_const:_uppercase=true"
 call :parse_args.validate 2> nul || (
-    call %unittest%.error "test_behavior: invalid test arguments" & exit /b 1
+    call %unittest%.error "test_case_sensitivity: invalid test arguments" & exit /b 1
 )
-call :parse_args %* || ( call %unittest%.error "test_behavior: parsing error" & exit /b 1 )
-for %%t in (test_behavior) do (
+call :parse_args %* || ( call %unittest%.error "test_case_sensitivity: parsing error" & exit /b 1 )
+for %%t in (test_case_sensitivity) do (
     if defined _uppercase ( call %unittest%.fail "%%t: case sensitive" & exit /b 1 )
+)
+exit /b 0
+
+
+:tests.lib.parse_args.test_multi_action
+for %%v in (
+    store1 store2
+    store_const1 store_const2
+    append_const
+) do set "arg_%%v="
+set "parse_args.args="
+set parse_args.args= ^
+    ^ "-s   :store:args_store1" ^
+    ^ "-s   :store:args_store2" ^
+    ^ "-s   :append_const:args_append_const=+1" ^
+    ^ "-s   :append_const:args_append_const=+2" ^
+    ^ "-s   :store_const:args_store_const1=1" ^
+    ^ "-s   :store_const:args_store_const2=2"
+call :parse_args.validate 2> nul || (
+    call %unittest%.error "test_multi_action: invalid test arguments" & exit /b 1
+)
+call :parse_args %* || ( call %unittest%.error "test_multi_action: parsing error" & exit /b 1 )
+for %%t in (test_multi_action) do (
+    if not "!args_store1!" == "stored" ( call %unittest%.fail "%%t: store1" & exit /b 1 )
+    if not "!args_store2!" == "stored" ( call %unittest%.fail "%%t: store1" & exit /b 1 )
+    if not "!args_store_const1!" == "1" ( call %unittest%.fail "%%t: store1" & exit /b 1 )
+    if not "!args_store_const2!" == "2" ( call %unittest%.fail "%%t: store1" & exit /b 1 )
+    if not "!args_append_const!" == "+1+2" ( call %unittest%.fail "%%t: store1" & exit /b 1 )
 )
 exit /b 0
 
@@ -9990,17 +10114,15 @@ call :parse_args._loop %* || exit /b 1
     for %%a in (%_ast%) do ( rem
     ) & for /f "tokens=1* delims=:" %%c in (%%a) do (
         if /i "%%c" == "store" (
-            shift /!parse_args.argc!
-            call set "%%d=%%~!parse_args.argc!"
-            set "%%d=!%%d:^^=^!"
+            call set "%%d==%%~!parse_args.argc!"
+            set "%%d!%%d:^^=^!"
         )
         if /i "%%c" == "store_const" set "%%d"
         if /i "%%c" == "append_const" (
             for /f "tokens=1* delims==" %%e in ("%%d") do set "%%e=!%%e!%%f"
         )
-        if /i "%%c" == "positional" (
-            set /a "parse_args.argc+=1"
-        ) else shift /!parse_args.argc!
+        if /i "%%c" == "positional" set /a "parse_args.argc+=1"
+        if /i "%%c" == "shift" shift /!parse_args.argc!
     )
     set /a "parse_args.argc-=1"
     set "parse_args.args="
@@ -10013,16 +10135,23 @@ exit /b 1
 for /l %%_ in (1,1,21) do for /l %%_ in (1,1,21) do (
     call set _value=%%1
     if not defined _value exit /b 0
-    set "_syntax="
+    set "_actions="
+    set "_shift_first="
     for %%b in (!parse_args.args!) do ( rem
     ) & for /f "tokens=1-2* delims=:" %%c in (%%b) do (
         for %%f in (%%c) do if "!_value!" == "%%f" (
-            set "_syntax=%%d:%%e"
-            if /i "%%d" == "store" shift /1
+            set _actions=!_actions! "%%d:%%e"
+            if /i "%%d" == "store" set "_shift_first=true"
         )
     )
-    if not defined _syntax set "_syntax=positional"
-    set _ast=!_ast! "!_syntax!"
+    if defined _actions (
+        set _actions=!_actions! "shift"
+    ) else set _actions=!_actions! "positional"
+    if defined _shift_first (
+        set _actions= "shift"!_actions!
+        shift /1
+    )
+    set "_ast=!_ast! !_actions!"
     shift /1
 )
 exit /b 0
@@ -10180,18 +10309,25 @@ echo NAME
 echo    endlocal - make variables survive ENDLOCAL
 echo=
 echo SYNOPSIS
-echo    endlocal   old_name:new_name  [old_name:new_name [...]]
+echo    endlocal   "old[:new]  [old[:new] [...]]"
 echo=
 echo POSITIONAL ARGUMENTS
-echo    old_name
+echo    old
 echo        Variable name to keep (before endlocal).
 echo=
-echo    new_name
-echo        Variable name to use (after endlocal).
+echo    new
+echo        Variable name to use (after endlocal). By default, the
+echo        new variable name is the same as the old variable name.
 echo=
 echo NOTES
 echo    - Variables that contains Line Feed character are not supported and it
 echo      could cause unexpected errors.
+echo    - In the code, adding exclamation mark at beginning of string is required
+echo      to trigger caret escaping behavior on quoted strings.
+echo=
+echo EXIT STATUS
+echo    0:  - Success.
+echo    2:  - Interal variable 'endlocal.*' is used.
 exit /b 0
 
 
@@ -10203,95 +10339,166 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.endlocal
-@echo on
 set "var_del=This variable will be deleted"
 set "var_keep=This variable will keep its content"
-setlocal
+set "var_"
+echo=
+echo [setlocal]
+setlocal EnableDelayedExpansion
+echo=
 set "var_del="
 set "var_keep=Attempting to change it"
-set "var_hello=I am a new variable^!"
-(
-    @echo off
-    call :endlocal var_del var_hello:var_new_name
-    @echo on
-)
-set var_
-@echo off
+set "var_hello=I am a new variable^! ^^^^"
+set "var_"
+echo=
+echo [endlocal]
+call :endlocal var_del var_hello:var_new_name
+echo=
+set "var_"
 exit /b 0
 
 
 rem ======================== tests ========================
 
 :tests.lib.endlocal.main
-set "old_vars=01 02"
-set "new_vars=01"
-set "conv_vars=01:01 02:03 03:02"
-set expected_result= ^
-    ^ 01:new ^
-    ^ 02: ^
-    ^ 03:old
+for %%s in (
+    Enable
+    Disable
+) do (
+    call :tests.lib.endlocal.test_basic "%%s"
+    call :tests.lib.endlocal.test_special_chars "%%s"
+)
+exit /b 0
 
-for %%v in (!old_vars!) do set "%%v=old"
-setlocal
-for %%v in (!new_vars!) do set "%%v=new"
-call :endlocal %conv_vars% quotes
 
-for %%c in (!expected_result!) do (
-    for /f "tokens=1* delims=:" %%a in ("%%~c") do (
-        if not "!%%a!" == "%%b" (
-            call %unittest%.fail %%a
+:tests.lib.endlocal.test_basic
+setlocal EnableDelayedExpansion
+set "initial.null=a b c"
+set "initial.old=d e f g h"
+set "local.changed=b c e g"
+set "local.deleted=f h"
+set "local.persist=c g h"
+set "expected.null=a b h"
+set "expected.old=d e f"
+set "expected.changed=c g"
+
+for %%v in (!initial.null!) do set "var.%%v="
+for %%v in (!initial.old!) do set "var.%%v=old"
+
+set "local.persist_vars="
+for %%v in (!local.persist!) do (
+    set "local.persist_vars=!local.persist_vars! var.%%v"
+)
+
+setlocal %~1DelayedExpansion
+setlocal EnableDelayedExpansion
+for %%v in (%local.changed%) do set "var.%%v=changed"
+for %%v in (%local.deleted%) do set "var.%%v="
+call :endlocal %local.persist_vars%
+
+setlocal EnableDelayedExpansion
+for %%t in ("basic: %~1DE") do (
+    for %%v in (!expected.null!) do (
+        if defined var.%%v (
+            call %unittest%.fail "%%~t case %%v"
+        )
+    )
+    for %%v in (!expected.old!) do (
+        if not "!var.%%v!" == "old" (
+            call %unittest%.fail "%%~t case %%v"
+        )
+    )
+    for %%v in (!expected.changed!) do (
+        if not "!var.%%v!" == "changed" (
+            call %unittest%.fail "%%~t case %%v"
         )
     )
 )
 exit /b 0
 
 
-rem (!) Needs more test cases
-rem test if variable starts with equal sign
+:tests.lib.endlocal.test_special_chars
+setlocal EnableDelayedExpansion
+set persist= ^
+    ^ dquotes dquotes2 ^
+    ^ qmark ^
+    ^ asterisk ^
+    ^ colon ^
+    ^ semicolon ^
+    ^ caret caret2 ^
+    ^ ampersand ^
+    ^ equal ^
+    ^ bang ^
+    ^ pipe ^
+    ^ percent ^
+    ^ lab rab
+set "persist_vars="
+for %%v in (!persist!) do (
+    set "var.%%v="
+    set "persist_vars=!persist_vars! var.%%v"
+)
+
+setlocal %~1DelayedExpansion
+setlocal EnableDelayedExpansion
+call :tests.assets.set_special_chars var.
+call :endlocal %persist_vars%
+
+setlocal EnableDelayedExpansion
+call :tests.assets.set_special_chars expected.
+for %%v in (!persist!) do (
+    if not "[!var.%%v!]" == "[!expected.%%v!]" (
+        call %unittest%.fail "special_characters: %~1DE %%v"
+    )
+)
+exit /b 0
+
 
 rem ======================== function ========================
 
-:endlocal   old_name:new_name  [old_name:new_name [...]]
+:endlocal   "old[:new]  [old[:new] [...]]"
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-set "_content="
-for %%v in (%*) do for /f "tokens=1,2 delims=:" %%a in ("%%~v:%%~v") do (
-    set "_var=!%%a! "
-    call :endlocal._to_ede
-    set "_content=!_content!%%b=!_var:~0,-1!!LF!"
+for %%v in (_content _value) do (
+    if defined endlocal.%%v (
+        ( 1>&2 echo error: interal variable 'endlocal.%%v' is used & exit /b 2 )
+    )
 )
-for /f "tokens=1* delims==" %%a in ("!_content!") do (
-    if defined _content (
+for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (
+    set "endlocal._value=^!!%%a!"
+    call :endlocal._to_ede
+    set "endlocal._content=!endlocal._content!%%b=!endlocal._value!!LF!"
+)
+for /f "delims= eol=" %%a in ("!endlocal._content!") do ( rem
+) & for /f "tokens=1 delims==" %%b in ("%%a") do (
+    if defined endlocal._content (
         goto 2> nul
         endlocal
     )
-    set "%%a=%%b"
-    if "!!" == "" (
-        set "%%a=!%%a:~1!"
-    ) else (
+    set "%%a"
+    if not "!!" == "" (
         setlocal EnableDelayedExpansion
-        set "_var=!%%a!"
+        set "endlocal._value=!%%b!"
         call :endlocal._to_dde
-        set "_var=!_var:~1!"
-        for /f "delims=" %%c in ("!_var!") do (
+        for /f "delims=" %%c in ("=!endlocal._value!") do (
             endlocal
-            set "%%a=%%c"
+            set "%%b%%c"
         )
     )
+    call set "%%b=%%%%b:~1%%"
 )
 exit /b 0
 #+++
 
 :endlocal._to_ede
-set "_var=^!!_var:^=^^^^!"
-set "_var=%_var:!=^^^!%"
+set "endlocal._value=!endlocal._value:^=^^^^!"
+set "endlocal._value=%endlocal._value:!=^^^!%"
 exit /b
 #+++
 
 :endlocal._to_dde
-set "_var=%_var%"
+set "endlocal._value=%endlocal._value%"
 exit /b
 
 
@@ -10481,6 +10688,28 @@ exit /b 0
 #+++
 
 :tests.assets.dummy_func.join_mark.joined
+exit /b 0
+
+
+:tests.assets.set_special_chars   prefix
+set %~1dquotes="
+set %~1dquotes2=""
+set "%~1qmark=?"
+set "%~1asterisk=*"
+set "%~1colon=:"
+set "%~1semicolon=;"
+set "%~1caret=^"
+set "%~1caret2=^^"
+set "%~1ampersand=&"
+set "%~1pipe=|"
+set "%~1lab=<"
+set "%~1rab=>"
+set "%~1percent=%%"
+set "%~1equal=="
+if "!!" == "" (
+    set "%~1bang=^!"
+) else set "%~1bang=!"
+set "%~1empty="
 exit /b 0
 
 
