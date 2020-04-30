@@ -7,13 +7,13 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.29"
+set "%~1version=2.1-a.30"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
 set "%~1release_date=05/01/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
-set "%~1download_url=https://gist.github.com/wthe22/4c3ad3fd1072ce633b39252687e864f7/raw"
+set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
 
 
@@ -38,6 +38,8 @@ exit /b 0
 rem ======================================== License ========================================
 
 :license
+echo MIT License
+echo=
 echo Copyright 2020 wthe22
 echo=
 echo Permission is hereby granted, free of charge, to any person obtaining a
@@ -295,24 +297,10 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Changed prompt message from '$' to '$ '
-echo    - Input.*():
-echo        - Improved exit status
-echo        - Now function automatically quits after 100 fail inputs
-echo        - Improved variable content preservation
-echo        - Improved user interface
-echo        - Improved behavior consistency of '--message' parameter
-echo        - Updated and improved unittest
-echo    - parse_args():
-echo        - Slightly improved unittest code quality
-echo        - Added support for multiple action for an option
-echo        - Fixed storing of empty string
-echo        - Simplified demo to prevent confusion
-echo    - endlocal():
-echo        - Improved parameter description
-echo        - Improved demo
-echo        - Fixed failure when attemping to persist empty variable
-echo        - Updated and improved unittest
+echo    - Changed download_url to the new repo at GitHub
+echo    - Added "MIT License" in license()
+echo    - module.entry_point(): Made function backward compatible with
+echo      version 2.1-a.24 or earlier
 exit /b 0
 
 
@@ -7398,40 +7386,6 @@ rem Module Framework
 exit /b 0
 
 
-rem ======================== backward compatibility ========================
-
-rem For module.entry_point()
-@if /i "%~1" == "--module" @( goto 2> nul & goto module.entry_point.old )
-
-rem For module.entry_point()
-:module.entry_point.old   [--module=<name>]  [args]
-@if /i not "%~1" == "--module" @goto __main__
-@if /i #%1 == #"%~1" @goto __main__
-@setlocal DisableDelayedExpansion
-@set module.entry_point.args=%*
-@setlocal EnableDelayedExpansion
-@for /f "tokens=1* delims== " %%a in ("!module.entry_point.args!") do @(
-    endlocal
-    endlocal
-    call :scripts.%%b
-)
-@exit /b %errorlevel%
-#+++
-
-rem For module.is_module()
-:scripts.lib
-@call :%*
-@exit /b
-goto module.entry_point
-#+++
-
-rem For module.read_metadata()
-:metadata
-call :__metadata__ %1
-exit /b 0
-
-
-
 rem ============================ .entry_point() ============================
 
 rem ======================== documentation ========================
@@ -7559,6 +7513,7 @@ rem ======================== function ========================
 :module.entry_point   [-c command]
 :module.entry_point.alt1
 :module.entry_point.alt2
+@if /i "%~1" == "--module" @( goto 2> nul & goto module.entry_point.old )
 @if /i not "%~1" == "-c" @( goto 2> nul & goto __main__ )
 @if /i #%1 == #"%~1" @( goto 2> nul & goto __main__ )
 @(
@@ -7575,6 +7530,33 @@ rem ======================== function ========================
     exit /b 1
 )
 @exit /b 1
+
+
+rem ======================== legacy support ========================
+
+:module.entry_point.old   [--module=<name>]  [args]
+@if /i not "%~1" == "--module" @goto __main__
+@if /i #%1 == #"%~1" @goto __main__
+@setlocal DisableDelayedExpansion
+@set module.entry_point.args=%*
+@setlocal EnableDelayedExpansion
+@for /f "tokens=1* delims== " %%a in ("!module.entry_point.args!") do @(
+    endlocal
+    endlocal
+    call :scripts.%%b
+)
+@exit /b %errorlevel%
+#+++
+
+:scripts.lib
+@call :%*
+@exit /b
+goto module.entry_point
+#+++
+
+:metadata
+call :__metadata__ %1
+exit /b 0
 
 
 rem ============================ .make_context() ============================
