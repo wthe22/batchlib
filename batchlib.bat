@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.30"
+set "%~1version=2.1-a.31"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=05/01/2020"   :: mm/dd/YYYY
+set "%~1release_date=05/03/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
@@ -146,6 +146,9 @@ echo    - script_cli(): added support for multi line commands
 echo    - Improved category listing of functions
 echo    - Reshuffled function codes according to category grouping
 echo    - Changed location of temp_path to use path relative to current directory
+echo    - Changed download_url to the new repo at GitHub
+echo    - Added "MIT License" in license()
+echo    - Added menu option to get dependencies for a script
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
@@ -293,14 +296,17 @@ echo    - Improved parameter description of several functions
 echo    - Removed changelog history for reduced log size. Only latest changelog
 echo      will be included. See Git for earlier changelog history.
 echo    - Updated guides on the library section
+echo    - Moved notes and other unused codes to a dedicated file for notes
 exit /b 0
 
 
 :changelog.dev
-echo    - Changed download_url to the new repo at GitHub
-echo    - Added "MIT License" in license()
-echo    - module.entry_point(): Made function backward compatible with
-echo      version 2.1-a.24 or earlier
+echo    - Added menu option to get dependencies for a script
+echo    - module.entry_point(): Made function backward incompatible again
+echo      with version 2.1-a.24 or earlier, but legacy support codes still
+echo      remains available in case someone needs it
+echo    - Moved templates to assets section
+echo    - Moved notes and other unused codes to a dedicated file for notes
 exit /b 0
 
 
@@ -408,6 +414,7 @@ echo 1. Browse documentation
 echo 2. Use command line
 echo 3. Generate minified version
 echo 4. Generate new script template
+echo 5. Get dependencies of a script
 echo=
 echo A. About script
 echo C. Change Log
@@ -460,6 +467,28 @@ if "!user_input!" == "4" (
     echo Generating...
     set "start_time=!time!"
     call :make_template > "!save_file!"
+    call :difftime time_taken "!time!" "!start_time!"
+    call :ftime time_taken !time_taken!
+    echo=
+    echo Done in !time_taken!
+    pause
+    goto main_menu
+)
+if "!user_input!" == "5" (
+    call :Input.path target_script --exist --file ^
+        ^ --message "Input target script: "
+    call :Input.path save_file --file ^
+        ^ --message "Input a new or existing file to save dependencies to: "
+    echo=
+    echo Target script:
+    echo !target_script!
+    echo=
+    echo Add dependencies to:
+    echo !save_file!
+    echo=
+    echo Extracting...
+    set "start_time=!time!"
+    call :getlib "!target_script!" >> "!save_file!"
     call :difftime time_taken "!time!" "!start_time!"
     call :ftime time_taken !time_taken!
     echo=
@@ -629,7 +658,7 @@ goto select_function.name
 
 rem ================================ Start Demo ================================
 
-:start_demo
+:start_demo   function_name
 setlocal EnableDelayedExpansion EnableExtensions
 cls
 call :%~1.__doc__
@@ -756,7 +785,7 @@ exit /b 1
 :getlib   script_path
 setlocal EnableDelayedExpansion
 call :module.make_context script %1 "call "
-call :desolve dependencies script lib
+call :desolve dependencies script lib || exit /b 1
 call :collect_func "!dependencies!"
 exit /b 0
 
@@ -908,157 +937,22 @@ for %%f in (
 ) do (
     set "lib_functions=!lib_functions! %%f %%f.__metadata__"
 )
-call :extract_func "%~f0" "save_minified.template" 1 -3 > "minified_template"
+call :extract_func "%~f0" "assets.templates.minified" 1 -3 > "minified_template"
 call :textrender "minified_template"|| (
     ( 1>&2 echo error: minify failed & exit /b 1 )
 )
-exit /b 0
-#+++
-
-:save_minified.template
-- extract "__init__"
-
-## Metadata
-- extract "__metadata__ about"
-
-## License
-- extract "license"
-
-## Configurations
-- extract
-    " config
-      config.default
-      config.cli
-      config.preferences "
-
-## Changelog
-- extract "changelog"
-
-## Main
-``` batchfile ~4
-``  :__main__
-``  @call :scripts.cli %*
-``  @exit /b
-``
-``
-```
-
-## Entry points
-- extract scripts
-
-### CLI script
-- extract scripts.cli
-
-## User Interfaces
-- extract
-    " ui
-      script_cli
-      help "
-
-## Core
-- extract
-    " core
-      Category.init
-      Function.read
-      make_template "
-
-## Library
-- extract
-    " lib
-      !lib_functions! "
-
-## Test
-- extract
-    " tests
-      !test_functions! "
-
-## Assets
-- extract assets
-
-## End of Script
-- extract "EOF"
 exit /b 0
 
 
 :make_template
 setlocal EnableDelayedExpansion EnableExtensions
 cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
-call :extract_func "%~f0" "make_template.template.min" 1 -3 > "template"
+call :extract_func "%~f0" "assets.templates.base" 1 -3 > "template"
 call :textrender "template"|| (
     ( 1>&2 echo error: rendering failed & exit /b 1 )
 )
 exit /b 0
 #+++
-
-:make_template.template.min
-[comment]: # (Template for new script - minimal edition)
-[comment]: # ()
-[comment]: # (Features:)
-[comment]: # (- Module framework support)
-[comment]: # (- Library dependency listing)
-
-- extract "__init__"
-
-## Metadata
-``` batchfile ~4
-``  :__metadata__   [return_prefix]
-``  set "%~1name=<package_name>"
-``  set "%~1version=0.0"
-``  set "%~1author=<author>"
-``  set "%~1license=<license>"
-``  set "%~1description=<package_title>"
-``  set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
-``  set "%~1url=https://example.com/path/to/page.html"
-``  set "%~1download_url=https://gist.github.com/username/repo/file/raw"
-``  exit /b 0
-``
-``
-```
-
-## Main
-``` batchfile ~4
-``  :__main__
-``  @call :scripts.main %*
-``  @exit /b
-``
-``
-```
-
-## Entry points
-- extract "scripts"
-
-### Main script
-``` batchfile ~4
-``  :scripts.main
-``  @setlocal EnableDelayedExpansion EnableExtensions
-``  @echo off
-``  set "__name__=main"
-``  prompt $$$s
-``  call :__metadata__ SOFTWARE.
-``
-``  rem Write your code here...
-``
-``  exit /b 0
-``
-``
-```
-
-## Library
-- extract "lib"
-``` batchfile ~4
-``  :lib.__metadata__
-``  set %~1install_requires= ^
-``      ^ batchlib:^" ^
-``      ^   module.entry_point ^"
-``  exit /b 0
-``
-``
-```
-- extract "module.entry_point"
-
-## End of Script
-- extract "EOF"
-exit /b 0
 
 
 rem ======================================== Library ========================================
@@ -7513,7 +7407,6 @@ rem ======================== function ========================
 :module.entry_point   [-c command]
 :module.entry_point.alt1
 :module.entry_point.alt2
-@if /i "%~1" == "--module" @( goto 2> nul & goto module.entry_point.old )
 @if /i not "%~1" == "-c" @( goto 2> nul & goto __main__ )
 @if /i #%1 == #"%~1" @( goto 2> nul & goto __main__ )
 @(
@@ -7533,8 +7426,14 @@ rem ======================== function ========================
 
 
 rem ======================== legacy support ========================
+rem If you need legacy support for transitioning, here is the codes:
+rem A working example of this is implemented at batchlib 2.1-a.30
 
-:module.entry_point.old   [--module=<name>]  [args]
+rem Insert this line at first line of the function (exactly below module.entry_point.alt2)
+@if /i "%~1" == "--module" @( goto 2> nul & goto module.entry_point._legacy )
+
+rem Don't forget to put all of these below the function
+:module.entry_point._legacy   [--module=<name>]  [args]
 @if /i not "%~1" == "--module" @goto __main__
 @if /i #%1 == #"%~1" @goto __main__
 @setlocal DisableDelayedExpansion
@@ -7549,12 +7448,14 @@ rem ======================== legacy support ========================
 #+++
 
 :scripts.lib
+@rem The legacy entry point to call functions
 @call :%*
 @exit /b
 goto module.entry_point
 #+++
 
 :metadata
+@rem The legacy name of __metadata__()
 call :__metadata__ %1
 exit /b 0
 
@@ -10703,297 +10604,144 @@ rem Additional data to bundle
 exit /b 0
 
 
+:assets.templates.minified
+- extract "__init__"
+
+## Metadata
+- extract "__metadata__ about"
+
+## License
+- extract "license"
+
+## Configurations
+- extract
+    " config
+      config.default
+      config.cli
+      config.preferences "
+
+## Changelog
+- extract "changelog"
+
+## Main
+``` batchfile ~4
+``  :__main__
+``  @call :scripts.cli %*
+``  @exit /b
+``
+``
+```
+
+## Entry points
+- extract scripts
+
+### CLI script
+- extract scripts.cli
+
+## User Interfaces
+- extract
+    " ui
+      script_cli
+      help "
+
+## Core
+- extract
+    " core
+      Category.init
+      Function.read
+      make_template "
+
+## Library
+- extract
+    " lib
+      !lib_functions! "
+
+## Test
+- extract
+    " tests
+      !test_functions! "
+
+## Assets
+- extract assets
+
+## End of Script
+- extract "EOF"
+exit /b 0
+
+
+:assets.templates.base
+[comment]: # (Template for new script - minimal edition)
+[comment]: # ()
+[comment]: # (Features:)
+[comment]: # (- Module framework support)
+[comment]: # (- Library dependency listing)
+
+- extract "__init__"
+
+## Metadata
+``` batchfile ~4
+``  :__metadata__   [return_prefix]
+``  set "%~1name=<package_name>"
+``  set "%~1version=0.0"
+``  set "%~1author=<author>"
+``  set "%~1license=<license>"
+``  set "%~1description=<package_title>"
+``  set "%~1release_date=03/08/2020"   :: mm/dd/YYYY
+``  set "%~1url=https://example.com/path/to/page.html"
+``  set "%~1download_url=https://gist.github.com/username/repo/file/raw"
+``  exit /b 0
+``
+``
+```
+
+## Main
+``` batchfile ~4
+``  :__main__
+``  @call :scripts.main %*
+``  @exit /b
+``
+``
+```
+
+## Entry points
+- extract "scripts"
+
+### Main script
+``` batchfile ~4
+``  :scripts.main
+``  @setlocal EnableDelayedExpansion EnableExtensions
+``  @echo off
+``  set "__name__=main"
+``  prompt $$$s
+``  call :__metadata__ SOFTWARE.
+``
+``  rem Write your code here...
+``
+``  exit /b 0
+``
+``
+```
+
+## Library
+- extract "lib"
+``` batchfile ~4
+``  :lib.__metadata__
+``  set %~1install_requires= ^
+``      ^ batchlib:^" ^
+``      ^   module.entry_point ^"
+``  exit /b 0
+``
+``
+```
+- extract "module.entry_point"
+
+## End of Script
+- extract "EOF"
+exit /b 0
+
 rem ======================================== End of Script ========================================
 
 :EOF
 rem May be needed if command extenstions are disabled
 rem Anything beyond this are not part of the code
 exit /b
-
-
-rem ======================================== Other Function ========================================
-:notes.other_functions     Actually working functions but not listed
-
-rem ================================ make_dummy() ================================
-
-:make_dummy   filename  kilobytes
-set /a "_result=%~2 + 0"
-if "!_result!" == "0" (
-    call 2> "%~1"
-    exit /b 0
-)
-set "_child_name=_dummy!random!"
-call 2> "!_child_name!"
-echo=|set /p "=." > "%~1"
-for /l %%n in (1,1,10) do type "%~1" >> "%~1"
-for /l %%n in (0,1,31) do if not "!_result!" == "0" (
-    set /a "_remainder=!_result! %% 2"
-    set /a "_result/=2"
-    if "!_result!" == "0" (
-        copy /b "%~1" + "!_child_name!" "%~1" > nul
-    ) else (
-        if "!_remainder!" == "1" type "%~1" >> "!_child_name!"
-        type "%~1" >> "%~1"
-    )
-)
-del /f /q "!_child_name!"
-exit /b 0
-
-
-rem ================================ list_ip() ================================
-
-:list_ip
-set "interface_count=0"
-for /f "tokens=* usebackq" %%o in (`ipconfig /all`) do (
-    set "output=%%o"
-    if "!output:~-1,1!" == ":" (
-        if not "!interface_count!" == "0" if defined interface_ipv4 call :list_ip.output
-        set /a "interface_count+=1"
-        set "interface_name="
-        set "interface_desc="
-        set "interface_ipv4="
-        set "interface_type="
-        set "interface_dhcp_server="
-    )
-    if "!output:~-1,1!" == ":" (
-        set "_temp=!output:~0,-1!"
-        for %%n in (!_temp!) do if defined _temp (
-            if "%%n" == "adapter" (
-                set "_temp="
-            ) else set "interface_type=!interface_type! %%n"
-        ) else set "interface_name=!interface_name! %%n"
-        set "interface_name=!interface_name:~1!"
-        set "interface_type=!interface_type:~1!"
-    )
-    if "!output:~0,11!" == "Description" set "interface_desc=!output:~36!"
-    if "!output:~0,12!" == "IPv4 Address" set "interface_ipv4=!output:~36!"
-    if "!output:~0,30!" == "Autoconfiguration IPv4 Address" set "interface_ipv4=!output:~36!"
-    if "!output:~0,11!" == "DHCP Server" set "interface_dhcp_server=!output:~36!"
-)
-if not "!interface_count!" == "0" if defined interface_ipv4 call :list_ip.output
-exit /b 0
-
-:list_ip.output
-echo [!interface_type!] !interface_name!:
-echo Desc        : !interface_desc!
-echo IPv4        : !interface_ipv4!
-if defined interface_dhcp_server echo DHCP Server : !interface_dhcp_server!
-echo=
-exit /b 0
-
-
-rem ================================ others (wip) ================================
-rem Note: some functions below are not ready to use yet
-
-rem Make: Copy / Move / Sync
-
-
-:move   source  destination_folder
-if not exist "%~1" exit /b 1
-if not exist "%~f2" md "%~f2"
-if "%~d1" == "%~d2" (
-    for /d %%d in ("%~1") do move /y "%%~fd" "%~f2" > nul || exit /b
-    if exist "%~1" for %%f in ("%~1") do move /y "%%~ff" "%~f2" > nul || exit /b
-) else (
-    echo robocopy /move /e "%~1" "%~2\%~nx1"
-    exit /b 2
-)
-exit /b 0
-
-
-:del_tempvar
-for /f "usebackq tokens=1 delims==" %%v in (`set _ 2^> nul`) do set "%%v="
-exit /b 0
-
-
-rem ======================================== Notes ========================================
-:notes.general     Useful stuffs worth looking at
-
-rem ======================================== Notes (General) ========================================
-
-::: Doc comment
-for /f "tokens=* delims=:" %%A in ('findstr "^:::" "%~f0"') do @echo( %%A
-
-rem Copy to clipboard
-< nul set /p "=No new line"
-echo This text is copied to clipboard | clip
-
-rem Write to stderr
-echo message 1>&2
-1>&2 echo message
-
-rem Variables in Variable
-set "var1=Nested"
-set "var2=^!var1^! Variable"
-set "var3=!var2!"
-echo %var3%
-
-rem Display each line of the output
-for /f "usebackq tokens=*" %%o in (`your command here`) do echo Output: %%o
-rem Display each line of the file
-for /f "usebackq tokens=*" %%o in ("your file here") do echo Output: %%o
-rem Display all exept 1st token
-for /f "tokens=2* delims=:" %%a in ("your text here") do echo Output: %%a
-rem Display each line of the file + tokens skip delims
-for /f "usebackq tokens=* skip=40 delims= " %%a in ("your file here") do echo Output: %%a
-
-rem Multi SET (Arithmetic only)
-set /a var5=5 , var6=7+2
-set /a var7=var8=7+8
-
-rem Multi line command
-set msg= !LF!^
-    ^ Hello !LF!^
-    ^ Batch !LF!^
-    ^ Script
-
-rem Case insensitive comparison
-if /i NOT "asd" == "ASD" echo This wont display
-
-rem Detect special symbols
-for %%c in (">" "<" "|" ":" ^"^"^") do for /f "delims=" %%s in ("%%~c") do set "string=!string:%%s=!"
-
-rem Delay 1s
-ping localhost -n 2 > nul
-
-rem Set errorlevel
-cmd /c "exit /b 0"
-
-rem Clean error state (use at end of block, parentheses is required)
-( call )
-
-rem return to context of caller, and exit /b after execution of block
-goto 2> nul
-
-rem Backup data?
-ROBOCOPY "C:\folder" "C:\new_folder" /mir
-
-rem Execute powershell commands
-powershell -Command "echo HELLO"
-
-rem Date and Time
-set "date_time=!date:~10!-!date:~4,2!-!date:~7,2!_!time:~0,2!!time:~3,2!!time:~6,2!"
-set "date_time_mini=!date:~10!!date:~4,2!!date:~7,2!_!time:~0,2!!time:~3,2!!time:~6,2!"
-for /f "skip=1" %%x in ('wmic os get localdatetime') do if not defined mydate set mydate=%%x
-
-rem GUI Stuffs
-chcp 437
-chcp 1252
-
-rem Box characters
-rem             ANSI   UTF8     KEYBOARD
-set "hLine=     CE94    C4      ALT+0196
-set "vLine=     C2B3    B3      ALT+0179
-set "cLine=     CE95    C5      ALT+0197
-set "hBorder=   CE9D    CD      ALT+0205
-set "vBorder=   CE8A    BA      ALT+0186
-set "cBorder=   CE9E    CE      ALT+0206
-set "uEdge=     CE9B    CB      ALT+0203
-set "dEdge=     CE9A    CA      ALT+0202
-set "lEdge=     CE9C    CC      ALT+0204
-set "rEdge=     CE89    B9      ALT+0185
-set "ulCorner=  CE99    C9      ALT+0201
-set "urCorner=  C2BB    BB      ALT+0187
-set "dlCorner=  CE98    C8      ALT+0200
-set "drCorner=  CE8C    BC      ALT+0188
-
-rem Lock Folder
-CACLS "YOURPATH" /E /P everyone:N
-
-rem Unlock Folder
-CACLS "YOURPATH" /E /P everyone:F
-
-rem Do not lock C:\ OR Operating System drive using this trick
-rem otherwise Windows will not boot next time
-
-rem ======================================== Notes (File I/O) ========================================
-
-rem Get available drives
-set "available_drives="
-for %%l in (A B C D E F G H I J K L M N O P Q R S T U V W X Y Z) do vol %%l: > nul 2> nul && (
-    set "available_drives=!available_drives! %%l"
-)
-
-rem Read third line of file
-< "%~f0" (
-    for /l %%n in (1,1,3) do set /p "a="
-)
-
-rem Create 0-byte file
-call 2> "File.txt"
-
-rem File Lock/Unlocked State
-
-rem Create State
-echo File is in locked state
->> "!file_path!" (
-    pause > nul
-)
-echo File is in unlocked state
-
-rem Detect State
-2> nul (
-  call >> "!file_path!"
-) && (
-    echo File is in unlocked state
-)
-
-rem ======================================== Unsorted Notes ========================================
-
-rem ======================== notes ========================
-
-rem https://medium.com/@sdboyer/so-you-want-to-write-a-package-manager-4ae9c17d9527
-
-rem PIP
-rem 1.
-rem |- Collecting <package|package condition version>
-rem |  |- Downloading <package_url> (?MB)
-rem |  |- Using cached <package_url>
-rem |- Requirement already satisfied <package|package condition version>
-rem 2. Installing collected packages: <package>[, <package>[...]]
-rem 3. Successfully installed <package>
-
-rem PIP -e
-rem 1. Obtaining file: <path_to_module>
-rem 2. Found existing installation
-rem    |- Uninstall
-rem 3. Running setup.py develop
-
-rem APT
-rem 1. Reading package list
-rem 2. Building dependency tree
-rem 3. Reading state information
-
-::metadata
-rem https://setuptools.readthedocs.io/en/latest/setuptools.html
-rem https://pypi.org/classifiers/
-set "name="
-set "version="
-set "packages=scripts ui tests utils shortcut lib framework assets"
-set "scripts="
-set install_requires= ^
-    ^ "parse_args GEQ 1"
-set "package_data={}"
-
-set "author="
-set "author_email="
-set "description="
-set "keywords="
-set "url=" homepage of project / url to GithHub page
-set "project_urls={}"
-set "classifiers="
-
-set "tests_require="
-set "extras_require="
-
-set "dependency_links="
-set "include_package_data=true"
-set "exclude_package_data={}"
-rem python -m
-
-rem ENV VARS
-rem https://docs.python.org/3.3/using/cmdline.html
-set "PYTHONHOME=location of standard libraries"
-set "PYTHONPATH=installation path"
-set "PYTHONDEBUG=-d"
-exit /b 0
