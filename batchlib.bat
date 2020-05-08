@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.31"
+set "%~1version=2.1-a.32"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=05/03/2020"   :: mm/dd/YYYY
+set "%~1release_date=05/08/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
@@ -73,12 +73,10 @@ exit /b 0
 
 :config.default
 rem Default/common configurations for this script
-set "temp_path=data\tmp\!SOFTWARE.name!\!__name__!"
+set "tmp_path=!tmp!\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module
 set "self_context=batchlib feature"
-call :module.make_context batchlib "%~f0"
-call :module.make_context feature "%~f0"
 
 rem Variables below are not used here, but for reference only
 rem set "data_path=data\batchlib"
@@ -98,17 +96,12 @@ exit /b 0
 
 :config.cli
 rem Specific config for 'scirpt.min'
-
-rem Macros to call external module
-call :module.make_context batchlib "%~f0" "lib"
 exit /b 0
 
 
 :config.preferences
 rem Define your preferences or config modifications here
-
-rem Macros to call external module (use absolute paths)
-rem set batchlib="%~dp0batchlib-min.bat" -c %=END=%
+rem set "tmp_path=!cd!\tmp\!SOFTWARE.name!\!__name__!"
 exit /b 0
 
 
@@ -135,8 +128,8 @@ echo    - Moved 'tests' below 'lib'
 echo    - Changed __main__() exit to 'exit /b' to prevent console from terminating
 echo    - scripts.main():
 echo        - Prompt message are now preserved after running this script
-echo        - Now it only remove its own temp_path, instead of removing
-echo          temp_path of all modules.
+echo        - Now it only remove its own tmp_path, instead of removing
+echo          tmp_path of all modules.
 echo    - Replaced 'goto :EOF' with 'exit /b 0'
 echo    - Function.read() no longer reads category definition
 echo    - Category definition and its functions are now written in Category.init()
@@ -145,10 +138,11 @@ echo    - Fixed batch script creating ']' file on startup if EOL is Linux
 echo    - script_cli(): added support for multi line commands
 echo    - Improved category listing of functions
 echo    - Reshuffled function codes according to category grouping
-echo    - Changed location of temp_path to use path relative to current directory
+echo    - Changed location of tmp_path to use path relative to current directory
 echo    - Changed download_url to the new repo at GitHub
 echo    - Added "MIT License" in license()
 echo    - Added menu option to get dependencies for a script
+echo    - Renamed 'temp_path' to 'tmp_path' and 'temp' to 'tmp'
 echo=
 echo    Library
 echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
@@ -192,7 +186,7 @@ echo    - checksum():
 echo        - Changed parameters for defining hash
 echo        - Fixed error when hashing 0-byte files
 echo        - Added hash algorithm SHA384
-echo    - diffbin(): Fixed error if temp_path is not defined.
+echo    - diffbin(): Fixed error if tmp_path is not defined.
 echo    - diffdate(): Simplified calculations
 echo    - difftime():
 echo        - Renamed parameter '-n' to '--no-fix'
@@ -245,7 +239,7 @@ echo        - Piped 'mode con' to prevent input stream from
 echo        - Added default return_var value
 echo        - Renamed to clear_line_macro()
 echo      being discarded
-echo    - unzip(): Added 'temp_path' as temporary script directory with 'temp'
+echo    - unzip(): Added 'tmp_path' as temporary script directory with 'temp'
 echo      as fallback directory
 echo    - wait():
 echo        - Now the function needs to be setup using wait.setup_macro()
@@ -255,7 +249,7 @@ echo    - wait.setup(): Renamed to wait.setup_macro()
 echo      the initial calibration value is too fast
 echo    - watchvar():
 echo        - Renamed parameter '-l, --list' to '-n, --name'
-echo        - Added 'temp_path' fallback value to 'temp'
+echo        - Added 'tmp_path' fallback value to 'temp'
 echo    - what_day(): Renamed parameter '-n' to '--number', '-s' to '--short'
 echo=
 echo    Minified Script
@@ -301,12 +295,10 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added menu option to get dependencies for a script
-echo    - module.entry_point(): Made function backward incompatible again
-echo      with version 2.1-a.24 or earlier, but legacy support codes still
-echo      remains available in case someone needs it
-echo    - Moved templates to assets section
-echo    - Moved notes and other unused codes to a dedicated file for notes
+echo    - Improve tmp_path location
+echo    - Renamed 'temp_path' to 'tmp_path' and 'temp' to 'tmp'
+echo    - Removed module.make_context() call from config
+echo    - Improved usage of FOR /F tokens and delims in call from config
 exit /b 0
 
 
@@ -355,7 +347,7 @@ set parse_args.args= ^
 call :parse_args %*
 
 for %%p in (
-    temp_path
+    tmp_path
 ) do if not exist "!%%p!" md "!%%p!"
 
 for %%c in (!self_context!) do call :module.make_context %%c
@@ -365,7 +357,7 @@ set "last_used.function="
 call :capchar *
 call :get_con_size console_width console_height
 call :main_menu
-if not defined no_cleanup rd /s /q "!temp_path!" > nul 2> nul
+if not defined no_cleanup rd /s /q "!tmp_path!" > nul 2> nul
 @exit /b
 
 
@@ -387,10 +379,10 @@ set parse_args.args= ^
 call :parse_args %*
 
 for %%p in (
-    temp_path
+    tmp_path
 ) do if not exist "!%%p!" md "!%%p!"
 
-for %%c in (!self_context!) do call :module.make_context %%c
+for %%c in (!self_context!) do call :module.make_context %%c "%~f0" "call "
 
 call :!action!
 @exit /b 0
@@ -921,7 +913,7 @@ for %%v in (_include_tests) do set "%%v="
 set parse_args.args= ^
     ^ "-t, --include-tests      :store_const:_include_tests=true"
 call :parse_args %*
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 call :Function.read
 set "test_functions="
 if defined _include_tests (
@@ -946,7 +938,7 @@ exit /b 0
 
 :make_template
 setlocal EnableDelayedExpansion EnableExtensions
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 call :extract_func "%~f0" "assets.templates.base" 1 -3 > "template"
 call :textrender "template"|| (
     ( 1>&2 echo error: rendering failed & exit /b 1 )
@@ -1439,7 +1431,7 @@ echo Current directory: !cd!
 
 echo=
 echo=
-call :Input.path target_file --base-dir "!temp!" --exist --file ^
+call :Input.path target_file --base-dir "!tmp!" --exist --file ^
     ^ --message "Input an existing file: "
 echo Result: "!target_file!"
 
@@ -3534,7 +3526,7 @@ for %%l in (%~3) do (
     if not defined _seperator set "_seperator=%~2"
     shift /4
 )
-for /f "tokens=*" %%a in ("!%~1!!_result!") do (
+for /f "tokens=* delims=" %%a in ("!%~1!!_result!") do (
     endlocal
     set "%~1=%%a"
 )
@@ -3589,7 +3581,7 @@ if defined %~1 (
             set "_result=!_result:~0,%%s!!_result:~%%i!!_result:~%%s,%%r!"
         )
     )
-    for /f "tokens=*" %%a in ("!_result!") do (
+    for /f "tokens=* delims=" %%a in ("!_result!") do (
         endlocal
         set "%~1=%%a"
     )
@@ -5097,7 +5089,7 @@ if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!
     )
     exit /b 2
 )
-for /f "delims=" %%c in ("!_path!") do (
+for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
     set "%~1=%%c"
 )
@@ -5211,29 +5203,29 @@ for %%v in (_path1 _path2) do (
     set "%%v=!%%v:/=\!"
     set ^"%%v=!%%v:;=%NL%!^"
     set "_temp="
-    for /f "delims=" %%a in ("!%%v!") do (
+    for /f "tokens=* delims=" %%a in ("!%%v!") do (
         set "_is_listed="
-        for /f "tokens=*" %%b in ("!_temp!") do if "%%a" == "%%b" set "_is_listed=true"
+        for /f "tokens=* delims=" %%b in ("!_temp!") do if "%%a" == "%%b" set "_is_listed=true"
         if not defined _is_listed set "_temp=!_temp!%%a!LF!"
     )
     set "%%v=!_temp!"
 )
 set "_found="
-for /f "delims=" %%a in ("!_path1!") do for /f "delims=" %%b in ("!_path2!") do (
+for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b in ("!_path2!") do (
     set "_result="
-    pushd "!temp!"
+    pushd "!tmp!"
     call :wcdir._find "%%a\%%b"
     set "_found=!_found!!_result!"
 )
 set "_result="
-for /f "delims=" %%a in ("!_found!") do (
+for /f "tokens=* delims=" %%a in ("!_found!") do (
     set "_is_listed="
-    for /f "tokens=*" %%b in ("!_result!") do if "%%a" == "%%b" set "_is_listed=true"
+    for /f "tokens=* delims=" %%b in ("!_result!") do if "%%a" == "%%b" set "_is_listed=true"
     if not defined _is_listed set "_result=!_result!%%a!LF!"
 )
 if defined _result (
     set "%~1="
-    for /f "delims=" %%r in ("!_result!") do (
+    for /f "tokens=* delims=" %%r in ("!_result!") do (
         if not defined %~1 (
             endlocal
             set "%~1="
@@ -5336,7 +5328,7 @@ set test_cases= ^
     ^ "*e*: let pea pet" !LF!^
     ^ "**t: let pet" !LF!^
     ^ "***: ape ate lap let pea pet"
-for /f "delims=" %%a in ("!test_cases!") do ( rem
+for /f "tokens=* delims=" %%a in ("!test_cases!") do ( rem
 ) & for /f "tokens=1* delims=:" %%b in (%%a) do (
     set "pattern=%%b"
     set "pattern=!pattern:~0,1!\!pattern:~1,1!\!pattern:~2,1!"
@@ -5371,7 +5363,7 @@ set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 call :wcdir._find "!_args!"
-for /f "delims=" %%r in ("!_result!") do (
+for /f "tokens=* delims=" %%r in ("!_result!") do (
     if not defined %~1 endlocal
     set "%~1=!%~1!%%r!LF!"
 )
@@ -5588,11 +5580,11 @@ echo    cd
 echo        Affects the base path of input_file and output_file
 echo        if relative path is given.
 echo=
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary conversion result.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 exit /b 0
 
 
@@ -5639,7 +5631,7 @@ set "_output_file=%~f2"
 set "_eol_len=2"
 if /i "!_eol!" == "0d 0a" set "_eol_len=5"
 
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 if exist "raw_hex" del /f /q "raw_hex"
 certutil -encodehex "!_input_file!" "raw_hex" > nul || exit /b 1
 rem Group hex according to EOL
@@ -5698,11 +5690,11 @@ echo    cd
 echo        Affects the base path of input_file and output_file
 echo        if relative path is given.
 echo=
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary VBScript file.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 echo=
 echo EXIT STATUS
 echo    0:  - The path satisfy the requirements.
@@ -5740,7 +5732,7 @@ rem ======================== function ========================
 setlocal EnableDelayedExpansion
 set "_zip_file=%~f1"
 set "_dest_path=%~f2"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 if not exist "!_dest_path!" md "!_dest_path!" || ( 1>&2 echo error: create folder failed & exit /b 2 )
 > "unzip.vbs" (
     echo zip_file = WScript.Arguments(0^)
@@ -5868,11 +5860,11 @@ echo ENVIRONMENT
 echo    cd
 echo        Affects the base path of input_file if relative path is given.
 echo=
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary output.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 exit /b 0
 
 
@@ -5902,11 +5894,11 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.diffbin.main
-< nul set /p "=planet" > source
-< nul set /p "=plan" > shorter
-< nul set /p "=planet" > equal
-< nul set /p "=planetarium" > longer
-< nul set /p "=plants" > different
+< nul set /p "=planet" > "source"
+< nul set /p "=plan" > "shorter"
+< nul set /p "=planet" > "equal"
+< nul set /p "=planetarium" > "longer"
+< nul set /p "=plants" > "different"
 
 for %%a in (
     "-:     equal"
@@ -5928,7 +5920,7 @@ rem ======================== function ========================
 setlocal EnableDelayedExpansion
 set "file1=%~f2"
 set "file2=%~f3"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "_result="
 fc /b "!file1!" "!file2!" > "fc_diff"
 for /f "usebackq skip=1 tokens=1* delims=:" %%a in ("fc_diff") do (
@@ -6169,11 +6161,11 @@ echo    return_var
 echo        Variable to store the result.
 echo=
 echo ENVIRONMENT
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary output.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 echo=
 echo NOTES
 echo    - PowerShell is used to download the information file.
@@ -6590,11 +6582,11 @@ echo    -n, --name
 echo       Display variable names.
 echo=
 echo ENVIRONMENT
-echo    temp_path
+echo    tmp_path
 echo        Path to store the variable data.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 echo=
 echo NOTES
 echo    - For variables that contains very long strings, only changes
@@ -6674,7 +6666,7 @@ rem ======================== function ========================
 
 :watchvar   [-i]  [-n]
 setlocal EnableDelayedExpansion EnableExtensions
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 for %%d in ("watchvar") do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
@@ -7183,7 +7175,7 @@ echo    6 = Yellow      E = Light Yellow
 echo    7 = White       F = Bright White
 echo=
 echo ENVIRONMENT
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary text file.
 echo=
 echo NOTES
@@ -7218,7 +7210,7 @@ rem ======================== function ========================
 
 :color_print   color  text
 2> nul (
-    pushd "!temp_path!" || exit /b 1
+    pushd "!tmp_path!" || exit /b 1
      < nul set /p "=!BACK!!BACK!" > "%~2_"
     findstr /l /v /a:%~1 "." "%~2_" nul
     del /f /q "%~2_" > nul
@@ -7821,7 +7813,7 @@ set parse_args.args= ^
 call :parse_args %*
 for %%c in (\ . $ [ ]) do set "_pattern=!_pattern:%%c=\%%c!"
 rem Replace asterisks with contents of %%p
-for /f "delims=" %%p in ("[^^^^: ]*") do (
+for /f "tokens=* delims=" %%p in ("[^^^^: ]*") do (
     for /f "tokens=1-4* delims=*" %%a in ("_!_pattern!_") do (
         set "_pattern=%%a"
         if not "%%b" == "" set "_pattern=!_pattern!%%p%%b"
@@ -7832,7 +7824,7 @@ for /f "delims=" %%p in ("[^^^^: ]*") do (
     )
 )
 set "_result="
-for /f "delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
+for /f "tokens=* delims=" %%p in ("^^^^[ ]*:!_pattern!") do (
     for /f "tokens=1" %%a in ('findstr /r /c:"%%p$" /c:"%%p .*$" "!_input_file!"') do (
         for /f "tokens=1 delims=:" %%b in ("%%a") do set "_result=!_result! %%b"
     )
@@ -7946,7 +7938,7 @@ rem ======================== function ========================
 :extract_func   script_path  labels  [skip_lines]  [read_lines]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "_to_extract= %~2 "
 set /a "_skip_top=%~3 + 0"
 set "_read_lines="
@@ -8302,7 +8294,7 @@ rem ======================== function ========================
 
 :collect_func  "context:label [...]"
 setlocal EnableDelayedExpansion
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "_raw_extract_order=%~1"
 set "_to_extract= "
 set "_extract_order= "
@@ -8414,7 +8406,7 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.textrender
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "label_name=tests.lib.textrender.example"
 set "variable_label=tests.assets.dummy_func.comments"
 echo=
@@ -8482,7 +8474,7 @@ rem ======================== function ========================
 :textrender   template_file  [renderer]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 if "%~2" == "" (
     set "_renderer=textrender.renderer"
 ) else set "_renderer=%~2"
@@ -8941,11 +8933,11 @@ echo    -d, --download-url
 echo        Use this url instead of the download_url at the script's __metadata__().
 echo=
 echo ENVIRONMENT
-echo    temp_path
+echo    tmp_path
 echo        Path to store the update file.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 echo=
 echo DEPENDENCIES
 echo    Extras:
@@ -9099,7 +9091,7 @@ set parse_args.args= ^
     ^ "-d, --download-url       :store:_download_url"
 call :parse_args %*
 set "_part=%~f2"
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "_other=!cd!\latest.bat"
 call :updater._run & for %%e in (!errorlevel!) do (
     endlocal
@@ -9331,11 +9323,11 @@ echo        Labels to test. The syntax is "label [...]".
 echo        Mutually exclusive with '--pattern'.
 echo=
 echo ENVIRONMENT
-echo    temp_path
+echo    tmp_path
 echo        Path to store the temporary test results.
 echo=
 echo    temp
-echo        Fallback path for temp_path if temp_path does not exist
+echo        Fallback path for tmp_path if tmp_path does not exist
 echo=
 echo EXIT STATUS
 echo    0:  - Unittest passed.
@@ -9390,7 +9382,7 @@ set "unittest.test_module=%~f1"
 if not defined unittest.test_module set "unittest.test_module=%~f0"
 
 rem Setup test directory
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 for %%d in (unittest) do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
@@ -9474,7 +9466,7 @@ if defined unittest.skipped set "infos=!infos! skipped=!unittest.skipped_count!"
 set "infos=!infos:~2!"
 if defined infos < nul set /p "=(!infos!)"
 echo=
-cd /d "!temp!" & ( cd /d "!temp_path!" 2> nul )
+cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 rd /s /q "unittest" > nul 2> nul
 if not defined unittest.was_successful exit /b 2
 exit /b 0
@@ -9580,7 +9572,7 @@ rem ======================== tests ========================
 
 :tests.lib.unittest.main
 set "parent_unittest_path=!cd!"
-set "temp_path=!cd!"
+set "tmp_path=!cd!"
 call :tests.lib.unittest.init_vars
 set "expected.success.list=success"
 set "expected.failures.list=failure multi_fail"
@@ -10056,13 +10048,6 @@ rem Stripped down version, to be embedded in function
 rem - Supports 'store_const' and 'append_const' action only
 rem - Cannot handle special characters
 :parse_args.store_const   %*
-rem This part can be removed once parameters in 'parse_args.args' are correct
-for %%a in (!parse_args.args!) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
-    set "_valid="
-    for %%t in (store_const append_const) do if /i "%%c" == "%%t" set "_valid=true"
-    if not defined _valid ( 1>&2 echo error: invalid argument type '%%c' for '%%b' & exit /b 1 )
-    if "%%d" == "" ( 1>&2 echo error: variable name not defined for '%%b' & exit /b 1 )
-)
 %= [function] parse_args.store_const =% (
     goto 2> nul & rem Remove this line if you are copying it to your function
     set "parse_args.argc=1"
@@ -10364,7 +10349,7 @@ for /f "delims= eol=" %%a in ("!endlocal._content!") do ( rem
         setlocal EnableDelayedExpansion
         set "endlocal._value=!%%b!"
         call :endlocal._to_dde
-        for /f "delims=" %%c in ("=!endlocal._value!") do (
+        for /f "tokens=* delims=" %%c in ("=!endlocal._value!") do (
             endlocal
             set "%%b%%c"
         )
@@ -10439,7 +10424,7 @@ exit /b 0
 :bcom.send   id
 set "_bcom_send_date=!date!"
 set "_bcom_send_time=!time!"
-> "!temp_path!\!bcom.name!" (
+> "!tmp_path!\!bcom.name!" (
     echo=
     echo call :^^^!bcom_sender^^^! ^& exit /b 0
     echo :!bcom.id!
@@ -10465,7 +10450,7 @@ exit /b 0
 
 :bcom.receive   id
 for /f "usebackq tokens=1 delims==" %%v in (`set bcom.packet. 2^> nul`) do set "%%v="
-set "bcom.file=!temp_path!\bcom.bat"
+set "bcom.file=!tmp_path!\bcom.bat"
 for %%f in ("!bcom.file!") do (
     if not exist "%%~f" exit /b 2
     call "!bcom.file!" || exit /b 1
