@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.32"
+set "%~1version=2.1-a.33"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=05/08/2020"   :: mm/dd/YYYY
+set "%~1release_date=05/20/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
@@ -109,148 +109,119 @@ rem ======================================== Changelog =========================
 
 :changelog
 echo    Core
-echo    - Added __init__() label as the UTF-8-BOM guard so it can be
-echo      extracted using extract_func()
-echo    - Added method to specify different config for each entry point
-echo    - Added documentation_menu() for more documentation options
-echo    - Added unittest for script core functions
-echo    - Added 'core' package for core functions / the "back-end"
-echo    - Added labels for packages
-echo    - Added a new category 'Packaging'
-echo    - Added template for new scripts
-echo    - Renamed 'shortcuts.*' to 'shortcut.*'
-echo    - Renamed 'test.*' to 'tests.*'
-echo    - Renamed the category 'Shortcut' to 'User Interface'
-echo    - Renamed the category 'Framework' to 'Development Tools'
-echo    - Renamed the category 'Formatting' to 'Console'
-echo    - Renamed  metadata() to __metadata__()
-echo    - Moved 'tests' below 'lib'
-echo    - Changed __main__() exit to 'exit /b' to prevent console from terminating
-echo    - scripts.main():
-echo        - Prompt message are now preserved after running this script
-echo        - Now it only remove its own tmp_path, instead of removing
-echo          tmp_path of all modules.
-echo    - Replaced 'goto :EOF' with 'exit /b 0'
-echo    - Function.read() no longer reads category definition
-echo    - Category definition and its functions are now written in Category.init()
+echo    - Improved portability for Unix EOL
+echo    - Improved configuration of this script
 echo    - Improved format of internal category listing
-echo    - Fixed batch script creating ']' file on startup if EOL is Linux
-echo    - script_cli(): added support for multi line commands
 echo    - Improved category listing of functions
-echo    - Reshuffled function codes according to category grouping
-echo    - Changed location of tmp_path to use path relative to current directory
+echo    - Improved usage of namespace
+echo    - Added unittest for script core functions
+echo    - Added labels for packages
+echo    - Added template for new scripts
+echo    - Renamed  metadata() to __metadata__()
+echo    - More console friendly by not polluting variables and quitting immediately
+echo    - script_cli(): added support for multi line commands
 echo    - Changed download_url to the new repo at GitHub
 echo    - Added "MIT License" in license()
 echo    - Added menu option to get dependencies for a script
-echo    - Renamed 'temp_path' to 'tmp_path' and 'temp' to 'tmp'
 echo=
 echo    Library
-echo    - Added bytes2size(), size2bytes(), extract_func(), ping_test(), is_echo_on(),
-echo      fdate(), epoch2time(), desolve(), collect_func(), strip(), textrender()
-echo      sleep(), timeit(), normalize_spaces(), while_range_macro(), list2set(),
-echo      sprintrow()
-echo    - Added unittest() framework, this replaces the tester() framework.
-echo    - Added is_number(), is_in_range(), this replaces check_number().
-echo    - Added updater(), this replaces module.updater().
-echo    - Added find_label(), this replaces tester.find_tests().
-echo    - Added parse_version(), this replaces module.version_compare().
 echo    - Added dependency listing
 echo    - Added VBScript and PowerShell to dependency list of functions
 echo      which needs them
-echo    - Added support for comma and space time seperators in difftime(),
-echo      timeleft(), wait.calibrate()
-echo    - Added capture of LF in: timeit.setup_macro(), combi_wcdir(), wcdir()
-echo      and removed capchar() from dependencies.
+echo    - Added support for comma and space time seperators
 echo    - Fixed demo of several functions that uses Input.number()
-echo    - Merged 'shortcut' and 'framework' into 'lib'
-echo    - Removed expand_path(). Using FOR directly is more preferable.
-echo    - Removed dynamenu(), it is slow and some kind of impractical
-echo    - capchar():
-echo        - Added capturing of TAB and BEL character
-echo        - Improved demo and capture speed
-echo        - Fixed incorrect backspace character description at documentation
-echo        - Renamed DEL to BACK to avoid confusion with the actual DEL character
-echo        - Renamed _ to BASE to avoid usage conflict with temporary variables
-echo        - Parameters are now read from %%~1 instead of %%*
-echo        - Now parameters needs to be surrounded by quotes
-echo    - check_ipv4(): Added ability to check wildcard IP
-echo    - check_ipv4(): Fixed error not checking octet count if it is less than 4
-echo    - check_path():
-echo        - Fixed incorrect parameter description
-echo        - Improved checking and consistency of path
-echo    - check_admin(): Renamed to is_admin()
-echo    - check_win_eol():
-echo        - Fixed syntax error in code
-echo        - Renamed to is_crlf()
-echo    - checksum():
-echo        - Changed parameters for defining hash
-echo        - Fixed error when hashing 0-byte files
-echo        - Added hash algorithm SHA384
-echo    - diffbin(): Fixed error if tmp_path is not defined.
-echo    - diffdate(): Simplified calculations
-echo    - difftime():
-echo        - Renamed parameter '-n' to '--no-fix'
-echo        - If milliseconds (or higher precision) are provided, it will be
-echo          truncated to centiseconds.
-echo    - expand_link():
-echo        - Made return variables more readable
-echo        - Renamed to expand_url()
-echo    - fix_eol():
-echo        - Improved control over display message
-echo        - Renamed to to_crlf()
-echo    - ftime(): Removed unexpected warp when time is 24 hour or more
-echo    - get_os(): Renamed parameter '-n' to '--name'
-echo    - get_pid(): Added required positional argument 'unique_id'. Previously,
-echo    - get_ext_ip():
-echo        - Remove usage of temporary file
-echo        - Added fallback URLs
-echo      this ID is automatically generated in the function using PowerShell.
-echo    - Input.*():
-echo        - Renamed parameters '-d, --description' to '-m, --message'
-echo        - Improved exit status
-echo        - Now function automatically quits after 100 fail inputs
-echo        - Improved variable content preservation
-echo        - Improved user interface
-echo    - Input.ipv4(): Fixed function not returning value after a successful input
-echo    - Input.path():
-echo        - Fixed parameter conflict
-echo        - Removed method to re-enter previous input
-echo        - Added option to specify base directory before input
-echo    - Input.yesno(): Accepts anything that starts with 'Y' as yes, and
-echo      anything that starts with 'N' as no
-echo    - module.entry_point(): Reworked and adapted the rest to the changes
-echo      if first parameter is quoted and contains special characters
-echo    - module.is_module(): Adjusted with changes in module.entry_point()
-echo    - module.read_metadata():
-echo        - No longer checks if file is a module
-echo        - Addedd 'install_requires' in metadata
-echo    - parse_args():
-echo        - Added 'append_const' data type
-echo        - Arguments is now case sensitive
-echo        - Renamed type 'flag' to 'store_const'
-echo        - Renamed type 'var' to 'store'
-echo        - Improved parsing speed for each loop (~3x faster or more)
-echo    - pow(): Added error message if integer is too large
-echo    - randw():
-echo        - Weights are now read from %%~1 instead of %%*
-echo        - Now weights needs to be surrounded by quotes
-echo    - setup_clearline():
-echo        - Piped 'mode con' to prevent input stream from
-echo        - Added default return_var value
-echo        - Renamed to clear_line_macro()
-echo      being discarded
-echo    - unzip(): Added 'tmp_path' as temporary script directory with 'temp'
-echo      as fallback directory
-echo    - wait():
-echo        - Now the function needs to be setup using wait.setup_macro()
-echo        - Macro version is now available
-echo    - wait.calibrate(): Prevented function from causing infinite loop if
-echo    - wait.setup(): Renamed to wait.setup_macro()
-echo      the initial calibration value is too fast
-echo    - watchvar():
-echo        - Renamed parameter '-l, --list' to '-n, --name'
-echo        - Added 'tmp_path' fallback value to 'temp'
-echo    - what_day(): Renamed parameter '-n' to '--number', '-s' to '--short'
+echo    - New functions:
+echo        - bytes2size() and size2bytes()
+echo        - collect_func()
+echo        - desolve()
+echo        - dosterm()
+echo        - epoch2time()
+echo        - extract_func()
+echo        - fdate()
+echo        - is_echo_on()
+echo        - list2set()
+echo        - normalize_spaces()
+echo        - ping_test()
+echo        - sleep()
+echo        - sprintrow()
+echo        - strip()
+echo        - textrender()
+echo        - timeit()
+echo        - while_range_macro()
+echo    - Replaced functions:
+echo        - tester() --^> unittest()
+echo        - check_number() --^> is_number(), is_in_range()
+echo        - module.updater() --^> updater()
+echo        - tester.find_tests() --^> find_label()
+echo        - module.version_compare() --^> parse_version()
+echo    - Renamed functions:
+echo        - check_admin() --^> is_admin()
+echo        - check_win_eol() --^> is_crlf()
+echo        - expand_link() --^> expand_url()
+echo        - fix_eol() --^> to_crlf()
+echo        - setup_clearline() --^> clear_line_macro()
+echo        - wait.setup() --^> wait.setup_macro()
+echo    - Removed functions:
+echo        - expand_path(): using FOR directly is more preferable
+echo        - dynamenu(): it is slow and some kind of impractical
+echo    - New features:
+echo        - capchar()
+echo        - check_ipv4()
+echo        - checksum()
+echo        - difftime()
+echo        - Input.path()
+echo        - module.entry_point()
+echo        - parse_args()
+echo        - timeleft()
+echo        - wait()
+echo        - wait.calibrate()
+echo    - Has bug fixes:
+echo        - check_ipv4()
+echo        - check_path()
+echo        - check_win_eol() or is_crlf()
+echo        - checksum()
+echo        - diffbin()
+echo        - ftime()
+echo        - Input.ipv4()
+echo        - Input.path()
+echo        - wait.calibrate()
+echo    - Has non-functional improvements:
+echo        - capchar()
+echo        - check_path()
+echo        - combi_wcdir()
+echo        - diffdate()
+echo        - expand_link() or expand_url()
+echo        - fix_eol() or to_crlf()
+echo        - get_ext_ip()
+echo        - Input.*()
+echo        - Input.yesno()
+echo        - module.entry_point()
+echo        - parse_args()
+echo        - pow()
+echo        - setup_clearline()
+echo        - timeleft()
+echo        - unzip()
+echo        - wait.calibrate()
+echo        - watchvar()
+echo        - wcdir()
+echo    - Has backward incompatible changes:
+echo        - capchar()
+echo        - checksum()
+echo        - difftime()
+echo        - expand_link() or expand_url()
+echo        - fix_eol() or to_crlf()
+echo        - get_os()
+echo        - get_pid()
+echo        - Input.*()
+echo        - Input.path()
+echo        - module.entry_point()
+echo        - module.read_metadata()
+echo        - parse_args()
+echo        - randw()
+echo        - setup_clearline()
+echo        - wait()
+echo        - watchvar()
+echo        - what_day()
 echo=
 echo    Minified Script
 echo    - Included 'tests.*', changelog(), help()
@@ -265,40 +236,53 @@ echo    - Added dependency listing
 echo=
 echo    Tests
 echo    - Migrated unit testing framework/syntax from tester() to unittest()
-echo    - Added unittest for: Input.ipv4(), pow(), prime(), gcf(), bin2int(),
-echo      check_ipv4(), wait(), difftime(), expand_link(), extract_func(),
-echo      check_path(), wcdir(), int2roman(), roman2int(), capchar(), Input.yesno()
-echo    - New functions with unittest: bytes2size(), size2bytes(), unittest(),
-echo      updater(), find_label(), parse_version(), fdate(), epoch2time(),
-echo      desolve(), collect_func(), strip(), textrender(), sleep()
 echo    - Improved unittest for: Input.*(), module.entry_point()
-echo    - Removed hex conversion test from watchvar()
 echo    - Added unittest for capturing of function arguments
+echo    - Moved 'tests' below 'lib'
+echo    - Added unittest:
+echo        - bin2int()
+echo        - bytes2size() and size2bytes()
+echo        - capchar()
+echo        - check_ipv4()
+echo        - check_path()
+echo        - collect_func()
+echo        - desolve()
+echo        - difftime() and fdate()
+echo        - epoch2time()
+echo        - expand_link()
+echo        - extract_func()
+echo        - find_label()
+echo        - gcf()
+echo        - Input.ipv4() and Input.yesno()
+echo        - int2roman() and roman2int()
+echo        - parse_version()
+echo        - pow()
+echo        - prime()
+echo        - sleep() and wait()
+echo        - strip()
+echo        - textrender()
+echo        - unittest()
+echo        - updater()
+echo        - wcdir()
 echo=
 echo    Documentation
-echo    - Split '*.__demo__' into '*.__doc__' and 'demo.*'. Now users can see
-echo      documentation without running the demo.
-echo    - Removed usage of macro in 'demo.*'
-echo    - *.__doc__() now uses man page style of documentation
-echo    - Improved demo of several functions
 echo    - Added help() to display usage help
-echo    - Added (missing) parameter description of several functions
-echo    - batchlib-min now accepts '-h, --help'
-echo    - Changed example of lib usage to use absolute paths
-echo    - Changed incorrect time format in documentation
-echo    - Improved parameter description of several functions
+echo    - Added more documentation options
+echo    - Documentation now uses man page style
+echo    - Improved demo of several functions
+echo    - Greatly improved many documentation
+echo    - Moved notes and other unused codes to a dedicated file for notes
 echo    - Removed changelog history for reduced log size. Only latest changelog
 echo      will be included. See Git for earlier changelog history.
-echo    - Updated guides on the library section
-echo    - Moved notes and other unused codes to a dedicated file for notes
 exit /b 0
 
 
 :changelog.dev
-echo    - Improve tmp_path location
-echo    - Renamed 'temp_path' to 'tmp_path' and 'temp' to 'tmp'
-echo    - Removed module.make_context() call from config
-echo    - Improved usage of FOR /F tokens and delims in call from config
+echo    - Added dosterm(), ui function for script_cli()
+echo    - Improved script_cli()
+echo    - Changed while_range() parameter from '%%_' to '%%#'
+echo    - Fixed minor error on generate template function
+echo    - Cleanup changelog
 exit /b 0
 
 
@@ -668,30 +652,12 @@ exit /b 0
 rem ================================ CLI script ================================
 
 :script_cli
-@cls
-@echo !SOFTWARE.name! !SOFTWARE.version! (!SOFTWARE.release_date!)
-@echo Type 'call :help', 'call :about' or 'call :license' for more information, 'exit /b' to quit.
-@echo=
-@for /f "usebackq delims=" %%h in (`hostname`) do @(
-    call :script_cli._loop "!username!@%%h"
-)
-@exit /b
-#+++
-
-:script_cli._loop   user
-@set "user_input="
-@set /p "user_input=%~1:$ "
-@if "!user_input:~-1,1!" == "^" @call :script_cli._loop._more
-%user_input%
-@goto script_cli._loop
-#+++
-
-:script_cli._loop._more
-@set "more="
-@set /p "_more=More? "
-@set "user_input=!user_input!!_more!"
-@if not "!_more:~-1,1!" == "^" @exit /b 0
-@goto script_cli._loop._more
+cls
+echo !SOFTWARE.name! !SOFTWARE.version! (!SOFTWARE.release_date!)
+echo Type 'call :help', 'call :about' or 'call :license' for more information, 'exit /b' to quit.
+echo=
+call :dosterm
+exit /b 0
 
 
 rem ================================ Help text ================================
@@ -800,6 +766,7 @@ set Category.list= ^
 
 set "Category_shortcut.name=User Interface"
 set Category_shortcut.functions= ^
+    ^ dosterm ^
     ^ Input.number Input.string Input.yesno ^
     ^ Input.path Input.ipv4
 set "Category_number.name=Number"
@@ -974,6 +941,114 @@ rem - external: something that is stored in other files
 
 rem ========================================================================
 
+rem ================================ dosterm() ================================
+
+rem ======================== documentation ========================
+
+:dosterm.__doc__
+echo NAME
+echo    dosterm - terminal emulator in batch script
+echo=
+echo SYNOPSIS
+echo    dosterm
+echo=
+echo DESCRIPTION
+echo    dosterm emulates the behavior of an interactive cmd, with unix style of
+echo    user interface, without changing behavior of any commands.
+echo=
+echo    Normally a interactive command prompt cannot be used to call functions in
+echo    a batch script. This function is created to add ability to call functions
+echo    and/or modify state of the script using an interactive console interface.
+echo=
+echo    And of course, the behavior of this function is far from the original
+echo    command prompt and this function is not intended to re-create the behavior.
+echo=
+echo    The emulator is not bulletproof; you could crash the script by entering
+echo    a command with invalid syntax, but it behaves well if the syntax entered
+echo    is valid.
+echo=
+echo NOTES
+echo    - EnableDelayedExpansion must be used
+echo    - Invalid syntax could cause script to stop unexpectedly
+echo    - Percent signs are not expanded:
+echo        - Displaying variables that uses percent will not work,
+echo          use exclamation mark or the CALL command instead.
+echo        - Use single percent sign on codes that normally use double percent sign
+echo    - Errorlevel behaves similarly to command prompt
+exit /b 0
+
+
+:dosterm.__metadata__   [return_prefix]
+set "%~1install_requires="
+exit /b 0
+
+
+rem ======================== demo ========================
+
+:demo.dosterm
+echo !SOFTWARE.name! !SOFTWARE.version! (!SOFTWARE.release_date!)
+echo Type 'call :help', 'call :about' or 'call :license' for more information, 'exit /b' to quit.
+echo=
+call :dosterm
+exit /b 0
+
+
+rem ======================== function ========================
+
+:dosterm
+@for %%_ in (dosterm._) do (
+    set "%%_parent_prompt=!prompt!"
+    for /f "usebackq delims=" %%h in (`hostname`) do @(
+        set "%%_host=%%h"
+    )
+    prompt $$$s
+    call :dosterm._loop
+    prompt !%%_parent_prompt!
+    for %%v in (parent_prompt host cwd cmd more errorlevel) do @( set "%%_%%v=" )
+    exit /b !errorlevel!
+)
+exit /b 1
+#+++
+
+:dosterm._loop
+@for %%_ in (dosterm._) do (
+    for /l %%# in (1,1,256) do @for /l %%# in (1,1,256) do @(
+        set "%%_cwd=!cd!\"
+        for %%h in ("!userprofile!") do @( set "%%_cwd=!%%_cwd:%%~h\=~\!" )
+        set "%%_cwd=!%%_cwd:~0,-1!"
+        call :dosterm._input_cmd
+        call :dosterm._exec_cmd
+    )
+    goto dosterm._loop
+)
+exit /b 1
+#+++
+
+:dosterm._input_cmd
+@for %%_ in (dosterm._) do @(
+    set "%%_cmd="
+    set /p "%%_cmd=!username!@!%%_host!:!%%_cwd!$ "
+    if not "!%%_cmd:~-1,1!" == "^" @( exit /b 0 )
+    for /l %%# in (1,1,100) do @for /l %%# in (1,1,100) do @(
+        set "%%_more="
+        set /p "%%_more=> "
+        set "%%_cmd=!%%_cmd!!%%_more!"
+        if not "!%%_more:~-1,1!" == "^" @( exit /b 0 )
+    )
+)
+exit /b 1
+#+++
+
+:dosterm._exec_cmd
+@(
+    goto 2> nul
+    cmd /c exit /b !dosterm._errorlevel!
+) & %dosterm._cmd% ^
+    ^ & set "dosterm._errorlevel=!errorlevel!"
+set "dosterm._errorlevel=!errorlevel!"
+exit /b 1
+
+
 rem ================================ Input.number() ================================
 
 rem ======================== documentation ========================
@@ -1078,7 +1153,7 @@ exit /b 0
 #+++
 
 :Input.number._loop
-for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!" & ( rem
     ) && call :is_number "!user_input!" && ( rem
@@ -1198,7 +1273,7 @@ exit /b 0
 #+++
 
 :Input.string._loop
-for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
     if defined user_input (
@@ -1353,7 +1428,7 @@ exit /b 1
 #+++
 
 :Input.yesno._loop
-for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
     if /i "!user_input:~0,1!" == "Y" exit /b 0
@@ -1556,7 +1631,7 @@ exit /b 0
 #+++
 
 :Input.path._loop
-for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
     if defined user_input (
@@ -1677,7 +1752,7 @@ exit /b 0
 #+++
 
 :Input.ipv4._loop
-for /l %%_ in (1,1,10) do for /l %%_ in (1,1,10) do (
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
     call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
@@ -4322,7 +4397,7 @@ echo=
 echo NOTES
 echo    - Code is executed inside a SETLOCAL so no variables are affected.
 echo    - Macro can be used inside a FOR loop.
-echo    - The FOR loop parameter '%%%%_' is used internally.
+echo    - The FOR loop parameter '%%%%#' is used internally.
 exit /b 0
 
 
@@ -4471,22 +4546,22 @@ set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 set timeit= ^( call !LF!^
-    ^ ^) ^& for /l %%_ in (1,1,4) do if "%%_" == "0" ^( call !LF!^
-    ^ ^) else if "%%_" == "1" ^( !LF!^
+    ^ ^) ^& for /l %%# in (1,1,4) do if "%%#" == "0" ^( call !LF!^
+    ^ ^) else if "%%#" == "1" ^( !LF!^
     ^     setlocal EnableDelayedExpansion EnableExtensions !LF!^
     ^     set "_args_valid=" !LF!^
     ^     call :timeit --as-macro  $args  %=END=% ^&^& set "_args_valid=true" !LF!^
-    ^ ^) else if "%%_" == "3" ^( !LF!^
+    ^ ^) else if "%%#" == "3" ^( !LF!^
     ^     if defined _args_valid call :timeit._result !LF!^
-    ^ ^) else if "%%_" == "4" ^( !LF!^
+    ^ ^) else if "%%#" == "4" ^( !LF!^
     ^     endlocal !LF!^
-    ^ ^) else if "%%_" == "2" if defined _args_valid ^( call !LF!^
+    ^ ^) else if "%%#" == "2" if defined _args_valid ^( call !LF!^
     ^ ^) ^& for /l %%r in ^(^^!_start_repeat^^!,1,^^!_repeat^^!^) do ^( !LF!^
     ^     set "_measure=true" !LF!^
     ^     if %%r LEQ 0 if ^^!_result^^! GEQ ^^!_min_time^^! set "_measure=" !LF!^
     ^ ^) ^& if defined _measure ^( call !LF!^
-    ^ ^) ^& for /l %%_ in ^(1,1,2^) do if "%%_" == "0" ^( call !LF!^
-    ^ ^) else if "%%_" == "2" ^( !LF!^
+    ^ ^) ^& for /l %%# in ^(1,1,2^) do if "%%#" == "0" ^( call !LF!^
+    ^ ^) else if "%%#" == "2" ^( !LF!^
     ^     call :difftime _result ^"^^!time^^!^" ^"^^!_start_time^^!^" !LF!^
     ^     if %%r LEQ 0 ^( !LF!^
     ^         if ^^!_result^^! LSS ^^!_min_time^^! ^( !LF!^
@@ -4494,7 +4569,7 @@ set timeit= ^( call !LF!^
     ^             set /a ^"_loops=1^^!_loops^^! - 9^^!_loops:~1^^!^" !LF!^
     ^         ^) !LF!^
     ^     ^) else if ^^!_result^^! LSS ^^!_best_time^^! set ^"_best_time=^^!_result^^!^" !LF!^
-    ^ ^) else if "%%_" == "1" ^( !LF!^
+    ^ ^) else if "%%#" == "1" ^( !LF!^
     ^     set ^"_start_time=^^!time^^!^" !LF!^
     ^ ^) ^& for /l %%l in ^(1,1,^^!_loops^^!^) do
 exit /b 0
@@ -10007,7 +10082,7 @@ exit /b 1
 #+++
 
 :parse_args._loop
-for /l %%_ in (1,1,21) do for /l %%_ in (1,1,21) do (
+for /l %%# in (1,1,21) do for /l %%# in (1,1,21) do (
     call set _value=%%1
     if not defined _value exit /b 0
     set "_actions="
@@ -10723,6 +10798,7 @@ exit /b 0
 ## End of Script
 - extract "EOF"
 exit /b 0
+
 
 rem ======================================== End of Script ========================================
 
