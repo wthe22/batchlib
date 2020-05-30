@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-a.33"
+set "%~1version=2.1-b"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=05/20/2020"   :: mm/dd/YYYY
+set "%~1release_date=05/30/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
@@ -188,6 +188,7 @@ echo        - wait.calibrate()
 echo    - Has non-functional improvements:
 echo        - capchar()
 echo        - check_path()
+echo        - check_win_eol() or is_crlf()
 echo        - combi_wcdir()
 echo        - diffdate()
 echo        - expand_link() or expand_url()
@@ -278,11 +279,8 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Added dosterm(), ui function for script_cli()
-echo    - Improved script_cli()
-echo    - Changed while_range() parameter from '%%_' to '%%#'
-echo    - Fixed minor error on generate template function
-echo    - Cleanup changelog
+echo    - Release 2.1-b
+echo    - No code changes
 exit /b 0
 
 
