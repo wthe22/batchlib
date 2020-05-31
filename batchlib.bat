@@ -7,7 +7,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-b"
+set "%~1version=2.1-b.1"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -73,6 +73,9 @@ exit /b 0
 
 :config.default
 rem Default/common configurations for this script
+rem If you want to modify the values, write it at config.preferences()
+
+rem Temporaty path for script/functions
 set "tmp_path=!tmp!\!SOFTWARE.name!\!__name__!"
 
 rem Macros to call external module
@@ -101,6 +104,8 @@ exit /b 0
 
 :config.preferences
 rem Define your preferences or config modifications here
+
+rem Temporaty path for script/functions
 rem set "tmp_path=!cd!\tmp\!SOFTWARE.name!\!__name__!"
 exit /b 0
 
@@ -279,8 +284,8 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Release 2.1-b
-echo    - No code changes
+echo    - Fix dosterm giving error message if command is empty
+echo    - Add comments at config section
 exit /b 0
 
 
@@ -1031,6 +1036,7 @@ exit /b 1
         set "%%_more="
         set /p "%%_more=> "
         set "%%_cmd=!%%_cmd!!%%_more!"
+        if not defined %%_more @( exit /b 0 )
         if not "!%%_more:~-1,1!" == "^" @( exit /b 0 )
     )
 )
@@ -1041,8 +1047,9 @@ exit /b 1
 @(
     goto 2> nul
     cmd /c exit /b !dosterm._errorlevel!
-) & %dosterm._cmd% ^
-    ^ & set "dosterm._errorlevel=!errorlevel!"
+    %dosterm._cmd%
+    set "dosterm._errorlevel=!errorlevel!"
+)
 set "dosterm._errorlevel=!errorlevel!"
 exit /b 1
 
