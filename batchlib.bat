@@ -7,11 +7,11 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-b.1"
+set "%~1version=2.1-b.2"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=05/30/2020"   :: mm/dd/YYYY
+set "%~1release_date=06/02/2020"   :: mm/dd/YYYY
 set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
@@ -284,8 +284,12 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Fix dosterm giving error message if command is empty
-echo    - Add comments at config section
+echo    - unittest():
+echo        - unittest functions can now use CD freely (previously CD is not
+echo          allowed to be used because it breaks outcome recording)
+echo        - Improve documentation
+echo        - Reworked unittest
+echo        - Reworked demo, since demo relies on unittest code
 exit /b 0
 
 
@@ -9380,6 +9384,12 @@ echo    needs to be skipped, failed, or error, respectively. Functions with [msg
 echo    in the argument can be used to specify the message/reason why it occured.
 echo    If an important test failed, use unittest.stop() to stop the test early.
 echo=
+echo    Unittests can be initialized by adding tests.__init__(). It will be called
+echo    first before running any tests. Cleanup function for each unittest can be
+echo    implemented by adding a '.cleanup()' to the unittest name. For example, if
+echo    your unittest name is tests.hello_world.main(), the cleanup function name
+echo    would look like tests.hello_world.main.cleanup().
+echo=
 echo POSITIONAL ARGUMENTS
 echo    module
 echo        Path of the batch script that contains the test functions.
@@ -9413,13 +9423,15 @@ echo EXIT STATUS
 echo    0:  - Unittest passed.
 echo    1:  - An unexpected error occured.
 echo    2:  - Unittest failed.
+echo    3:  - Cannot initialize data directory
 echo=
 echo NOTES
-echo    - unittest() will call tests.__init__() first before running any tests
-echo    - If both label and pattern options are specified, it will use label.
+echo    - If both label and pattern options are specified, it will use label only.
 echo    - The variable name 'unittest' and variable names that starts with
 echo      'unittest.*' are reserved for unittest().
 echo    - Using reserved variables in your tests might break unittest().
+echo    - If you have a child unittest running and want to register outcome to its
+echo      parent unittest, just change the 'unittest.data_dir' to its parent's value
 exit /b 0
 
 
@@ -9435,14 +9447,20 @@ exit /b 0
 rem ======================== demo ========================
 
 :demo.unittest
-call :tests.lib.unittest.init_vars
-set "expected.success.list=success"
-set "expected.failures.list=failure multi_fail"
-set "expected.errors.list=error"
-set "expected.skipped.list=skip"
-call :tests.lib.unittest.make_expectation
+rem Initialize values for current tests
+set "test_prefix=tests.lib.unittest"
+set "no_check="
 
-call :unittest -v -l "!test_list!" -v
+for %%t in (
+    success
+    failure
+    error
+    skip
+) do (
+    echo=
+    echo=
+    call :unittest -p "!test_prefix!.test_%%t" -v
+)
 exit /b 0
 
 
@@ -9463,13 +9481,17 @@ if not defined unittest.test_module set "unittest.test_module=%~f0"
 
 rem Setup test directory
 cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
-for %%d in (unittest) do (
+for %%d in ("unittest") do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"
 )
-for %%p in (
-    ".unittest"
-) do if not exist "%%~p" md "%%~p"
+for %%d in (".unittest") do (
+    if not exist "%%~d" md "%%~d"
+    if not exist "%%~d" (
+        ( 1>&2 echo error: cannot initialize data directory & exit /b 3 )
+    )
+    set "unittest.data_dir=%%~fd"
+)
 
 rem Setup test list
 if not defined unittest.pattern set "unittest.pattern=tests.*.main"
@@ -9553,46 +9575,51 @@ exit /b 0
 #+++
 
 :unittest._run   label
-call 2> ".unittest\outcome.bat"
 set "unittest.current_test_name=%~1"
+call 2> "!unittest.data_dir!\outcome.bat"
+
 setlocal EnableDelayedExpansion EnableExtensions
 call %unittest.test_context%:%~1
 endlocal & set "_exit_code=%errorlevel%"
+
 if not "!_exit_code!" == "0" (
-    >> ".unittest\outcome.bat" (
+    >> "!unittest.data_dir!\outcome.bat" (
         echo call %%unittest%%._add_outcome error "Test function did not exit correctly [exit code !_exit_code!]."
     )
 )
 set "unittest.current_outcome=success"
-call ".unittest\outcome.bat"
+call "!unittest.data_dir!\outcome.bat"
 call :unittest._add_result !unittest.current_outcome! %1
-call :%~1.cleanup 2> nul
+
+setlocal EnableDelayedExpansion EnableExtensions
+call %unittest.test_context%:%~1.cleanup 2> nul
+endlocal
 exit /b 0
 #+++
 
 :unittest.skip   reason
->> ".unittest\outcome.bat" (
+>> "!unittest.data_dir!\outcome.bat" (
     echo call %%unittest%%._add_outcome skip %1
 )
 exit /b 0
 #+++
 
 :unittest.fail   msg
->> ".unittest\outcome.bat" (
+>> "!unittest.data_dir!\outcome.bat" (
     echo call %%unittest%%._add_outcome failure %1
 )
 exit /b 0
 #+++
 
 :unittest.error   msg
->> ".unittest\outcome.bat" (
+>> "!unittest.data_dir!\outcome.bat" (
     echo call %%unittest%%._add_outcome error %1
 )
 exit /b 0
 #+++
 
 :unittest.stop
->> ".unittest\outcome.bat" (
+>> "!unittest.data_dir!\outcome.bat" (
     echo set "unittest.should_stop=true"
 )
 exit /b 0
@@ -9651,39 +9678,27 @@ exit /b 0
 rem ======================== tests ========================
 
 :tests.lib.unittest.main
-set "parent_unittest_path=!cd!"
+rem Setup variables for child unittest
+set "parent_unittest_path=!unittest.data_dir!"
 set "tmp_path=!cd!"
-call :tests.lib.unittest.init_vars
-set "expected.success.list=success"
-set "expected.failures.list=failure multi_fail"
-set "expected.errors.list=error"
-set "expected.skipped.list=skip"
-call :tests.lib.unittest.make_expectation
 
-rem Test running internal unittest
-call :unittest -p "!test_prefix!*" -v > nul
-rem Test running unittest for external module
-call :unittest "%~f0" -p "!test_prefix!*" -v > nul
-exit /b 0
+rem Initialize values for current tests
+set "test_prefix=tests.lib.unittest"
+set "no_check="
 
-
-:tests.lib.unittest.init_vars
-set "test_prefix=tests.lib.unittest.test_"
-set "expected_skip.msg=Not implemented yet..."
-set "expected_failure.msg=Test failure single"
-set "expected_error.exit_code=333"
-set "expected_error.msg=Test function did not exit correctly [exit code !expected_error.exit_code!]."
-exit /b 0
-
-
-:tests.lib.unittest.make_expectation
-set "test_list="
-for %%o in (success failures errors skipped) do (
-    set "expected.%%o="
-    for %%n in (!expected.%%o.list!) do (
-        set "expected.%%o=!expected.%%o! !test_prefix!%%n"
-        set "test_list=!test_list! !test_prefix!%%n"
-    )
+for %%t in (
+    success
+    failure
+    error
+    skip
+    cd_call
+) do (
+    rem Test running unittest of the same file
+    set "base_msg=internal: "
+    call :unittest -p "!test_prefix!.test_%%t" -v > nul
+    rem Test running unittest of different file
+    set "base_msg=external: "
+    call :unittest "%~f0" -p "!test_prefix!.test_%%t" -v > nul
 )
 exit /b 0
 
@@ -9692,38 +9707,95 @@ exit /b 0
 rem Do nothing
 exit /b 0
 
-
-:tests.lib.unittest.test_skip
-call %unittest%.skip "!expected_skip.msg!"
+:tests.lib.unittest.test_success.cleanup
+if defined no_check exit /b 0
+setlocal EnableDelayedExpansion
+set "unittest.data_dir=!parent_unittest_path!"
+for %%c in (failure error skip) do (
+    if defined unittest.%%c (
+        call %unittest%.fail "!base_msg!success is treated as %%c"
+    )
+)
 exit /b 0
 
 
 :tests.lib.unittest.test_failure
-call %unittest%.fail "!expected_failure.msg!"
+call %unittest%.fail "Test failure single"
 exit /b 0
 
-
-:tests.lib.unittest.test_multi_fail
-rem Note: unittest can't record multiple failures in a test (yet?)
-call %unittest%.fail "Test failure multiple 1"
-call %unittest%.fail "Test failure multiple 2"
+:tests.lib.unittest.test_failure.cleanup
+if defined no_check exit /b 0
+setlocal EnableDelayedExpansion
+set "unittest.data_dir=!parent_unittest_path!"
+call :tests.lib.unittest.check_add_outcome test_failure failure ^
+    ^ "Test failure single"
 exit /b 0
 
 
 :tests.lib.unittest.test_error
-exit /b %expected_error.exit_code%
+exit /b 333
+
+:tests.lib.unittest.test_error.cleanup
+if defined no_check exit /b 0
+setlocal EnableDelayedExpansion
+set "unittest.data_dir=!parent_unittest_path!"
+call :tests.lib.unittest.check_add_outcome test_error error ^
+    ^ "Test function did not exit correctly [exit code 333]."
+exit /b 0
 
 
-:tests.lib.unittest.test_unittest
-cd /d "!parent_unittest_path!"
-for %%o in (skip failure error) do for %%n in (!test_prefix!%%o) do (
-    if not "!unittest.test.%%n.%%o_msg!" == "!expected_%%o.msg!" (
-        call %unittest%.fail "Failed to set expected message on test_%%o"
+:tests.lib.unittest.test_skip
+call %unittest%.skip "Not implemented yet..."
+exit /b 0
+
+:tests.lib.unittest.test_skip.cleanup
+if defined no_check exit /b 0
+setlocal EnableDelayedExpansion
+set "unittest.data_dir=!parent_unittest_path!"
+call :tests.lib.unittest.check_add_outcome test_skip skip ^
+    ^ "Not implemented yet..."
+exit /b 0
+
+
+:tests.lib.unittest.test_cd_call
+mkdir "other"
+cd /d "other"
+call %unittest%.fail "Test change directory and add fail outcome"
+exit /b 0
+
+:tests.lib.unittest.test_cd_call.cleanup
+if defined no_check exit /b 0
+setlocal EnableDelayedExpansion
+set "unittest.data_dir=!parent_unittest_path!"
+call :tests.lib.unittest.check_add_outcome test_cd_call failure ^
+    ^ "Test change directory and add fail outcome"
+exit /b 0
+
+
+:tests.lib.unittest.check_add_outcome   test_name  {failure|error|skip}  [msg]
+set "test_name=%~1"
+set "outcome_type=%~2"
+set "outcome_msg=%~3"
+set "_list_name="
+if /i "!outcome_type!" == "failure" set "_list_name=failures"
+if /i "!outcome_type!" == "error" set "_list_name=errors"
+if /i "!outcome_type!" == "skip" set "_list_name=skipped"
+for %%n in (!test_name!) do ( rem
+) & for %%t in (!outcome_type!) do (
+    for %%l in (tests.lib.unittest.%%n) do (
+        if not "!unittest.test.%%l.%%t_msg!" == "!outcome_msg!" (
+            call %unittest%.fail "!base_msg!%%t msg is incorrect"
+        )
     )
-)
-for %%o in (failures errors skipped) do (
-    if not "!unittest.%%o!" == "!expected.%%o!" (
-        call %unittest%.fail "The %%o list does not match the expected values"
+    if not defined unittest.!_list_name! (
+        call %unittest%.fail "!base_msg!%%t is not recorded"
+    )
+    set "other_outcome_list= failure error skip "
+    set "other_outcome_list=!other_outcome_list: %%t = !"
+    for %%c in (!other_outcome_list!) do (
+        if defined unittest.%%c (
+            call %unittest%.fail "!base_msg!%%t is treated as %%c"
+        )
     )
 )
 exit /b 0
