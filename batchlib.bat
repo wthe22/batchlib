@@ -7,7 +7,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-b.2"
+set "%~1version=2.1-b.3"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -72,7 +72,7 @@ exit /b 0
 
 
 :config.default
-rem Default/common configurations for this script
+rem Default/common configuration
 rem If you want to modify the values, write it at config.preferences()
 
 rem Temporaty path for script/functions
@@ -103,7 +103,9 @@ exit /b 0
 
 
 :config.preferences
-rem Define your preferences or config modifications here
+rem Configuration that you want to change/override or apply
+rem specific config depending on environment variables
+
 
 rem Temporaty path for script/functions
 rem set "tmp_path=!cd!\tmp\!SOFTWARE.name!\!__name__!"
@@ -284,12 +286,15 @@ exit /b 0
 
 
 :changelog.dev
-echo    - unittest():
-echo        - unittest functions can now use CD freely (previously CD is not
-echo          allowed to be used because it breaks outcome recording)
-echo        - Improve documentation
-echo        - Reworked unittest
-echo        - Reworked demo, since demo relies on unittest code
+echo    - Rename internal category name of 'shortcut' to 'ui', and
+echo      also 'framework' to 'devtools' (missed out in previous release)
+echo    - Improve documentation on feature category functions
+echo    - Improve some documentation on config section
+echo    - ping_test(): fix ping marked as successful if hostname could not be found
+echo    - rand(): improve documentation and demo
+echo    - Input.number():
+echo        - Now returns the integer numeric value by default
+echo        - Previous behaviour is available through the new '--as-is' flag
 exit /b 0
 
 
@@ -614,7 +619,6 @@ if "!user_input!" == "0" goto select_function.category
 set "search_keyword=!user_input!"
 call :Function.search "!search_keyword!"
 set "selected.category=search"
-set "Category_search"
 goto select_function.name
 
 
@@ -765,14 +769,14 @@ exit /b 0
 
 :Category.init
 set Category.list= ^
-    ^ shortcut ^
+    ^ ui ^
     ^ number string time file net ^
     ^ env ^
-    ^ console packaging framework ^
+    ^ console packaging devtools ^
     ^ %=feature=%
 
-set "Category_shortcut.name=User Interface"
-set Category_shortcut.functions= ^
+set "Category_ui.name=User Interface"
+set Category_ui.functions= ^
     ^ dosterm ^
     ^ Input.number Input.string Input.yesno ^
     ^ Input.path Input.ipv4
@@ -824,8 +828,8 @@ set Category_packaging.functions= ^
     ^ find_label extract_func desolve collect_func textrender ^
     ^ parse_version updater ^
     ^ to_crlf is_crlf
-set "Category_framework.name=Development Tools"
-set Category_framework.functions= ^
+set "Category_devtools.name=Development Tools"
+set Category_devtools.functions= ^
     ^ unittest ^
     ^ parse_args while_range_macro ^
     ^ endlocal
@@ -1064,15 +1068,18 @@ rem ======================== documentation ========================
 
 :Input.number.__doc__
 echo NAME
-echo    Input.number - reads an expression from standard input
+echo    Input.number - reads a number from standard input
 echo=
 echo SYNOPSIS
 echo    Input.number   return_var  [-m message]  [--range range]
 echo=
+echo DESCRIPTION
+echo    Reads a decimal/octal/hexadecial from standard input, then converts
+echo    the value to integer and save it to the return variable.
+echo=
 echo POSITIONAL ARGUMENTS
 echo    return_var
-echo        Variable to store the result. Number could be evaluated from the
-echo        expression by doing 'SET /a' on the variable.
+echo        Variable to store the result.
 echo=
 echo OPTIONS
 echo    -r RANGE, --range RANGE
@@ -1084,6 +1091,9 @@ echo=
 echo    -m MESSAGE, --message MESSAGE
 echo        Use MESSAGE as the prompt message.
 echo        By default, the message is generated automatically.
+echo=
+echo    -a, --as-is
+echo        Do not convert the octal/hexadecial to integer. Just return as it is.
 echo=
 echo EXIT STATUS
 echo    0:  - Input is successful.
@@ -1142,11 +1152,12 @@ rem ======================== function ========================
 
 :Input.number   return_var  [-m message]  [-r range]
 setlocal EnableDelayedExpansion
-for %%v in (_msg_is_set _message _range) do set "%%v="
+for %%v in (_msg_is_set _message _range _as_is) do set "%%v="
 set parse_args.args= ^
-    ^ "-m, --message        :store_const:_msg_is_set=true" ^
-    ^ "-m, --message        :store:_message" ^
-    ^ "-r, --range          :store:_range"
+    ^ "-m, --message    :store_const:_msg_is_set=true" ^
+    ^ "-m, --message    :store:_message" ^
+    ^ "-r, --range      :store:_range" ^
+    ^ "-a, --as-is      :store_const:_as_is=true"
 call :parse_args %*
 if not defined _msg_is_set (
     if defined _range (
@@ -1154,6 +1165,7 @@ if not defined _msg_is_set (
     ) else set "_message=Input %~1: "
 )
 call :Input.number._loop || exit /b 3
+if not defined _as_is set /a "user_input=!user_input!"
 for /f "delims= eol=" %%r in ("!user_input!") do (
     endlocal
     set "%~1=%%r"
@@ -1792,7 +1804,7 @@ echo        Maximum value (inclusive) of the random number.
 echo=
 echo LIMITATIONS
 echo    rand() does not generate uniform random numbers. Its simplicity comes
-echo    along with the modulo bias. Do not use this for statistical computation.
+echo    along with the modulo bias. Do not rely on the quality of this random number.
 exit /b 0
 
 
@@ -1806,9 +1818,11 @@ rem ======================== demo ========================
 :demo.rand
 call :Input.number minimum --range "0~2147483647"
 call :Input.number maximum --range "0~2147483647"
-call :rand random_int !minimum! !maximum!
 echo=
-echo Random Number  : !random_int!
+for /l %%n in (1,1,5) do (
+    call :rand random_int !minimum! !maximum!
+    echo Random Number  : !random_int!
+)
 exit /b 0
 
 
@@ -6339,7 +6353,8 @@ rem ======================== function ========================
 
 :ping_test   return_prefix  host  [ping_params]
 set "_index=0"
-for /f "usebackq tokens=1-8 delims=(:=, " %%a in (`ping %~2 %~3 `) do (
+for /f "usebackq tokens=1-8 delims=(:=, " %%a in (`ping "%~2" %~3 `) do (
+    if "%%c, %%d, %%e, %%f" == "could, not, find, host" exit /b 2
     if "%%a, %%b, %%d, %%f" == "Packets, Sent, Received, Lost" (
         set "%~1packet_sent=%%c"
         set "%~1packet_received=%%e"
@@ -9089,7 +9104,7 @@ rem ======================== tests ========================
 
 set "no_internet=true"
 for %%n in (1,1,3) do for %%h in (google.com baidu.com) do (
-    if defined no_internet call :ping_test _ %%h "-n 1" && set "no_internet="
+    if defined no_internet call :ping_test _ "%%h" "-n 1" && set "no_internet="
 )
 if defined no_internet call %unittest%.skip "Cannot connect to the internet" & exit /b 0
 
@@ -9859,8 +9874,6 @@ echo      cause incorrect parsing results. This is due to limitation in batch sc
 echo      that only allows reading of first 9 parameters at a time.
 exit /b 0
 
-exit /b 0
-
 
 :parse_args.__metadata__   [return_prefix]
 set "%~1install_requires="
@@ -10527,7 +10540,9 @@ rem ================================ Add-ons ================================
 rem ======================== PowerShell ========================
 
 :PowerShell
-rem A mock function to mark presence of PowerShell in the system
+rem A dummy function to mark the usage of PowerShell is allowed
+rem Do not CALL this function
+powershell -Command "$PSVersionTable.PSVersion.ToString()"
 exit /b 0
 
 
@@ -10539,7 +10554,9 @@ exit /b 0
 rem ======================== VBScript ========================
 
 :VBScript
-rem A mock function to mark presence of VBScript in the system
+rem A dummy function to mark the usage of VBScript is allowed
+rem Do not CALL this function
+cscript > nul
 exit /b 0
 
 
