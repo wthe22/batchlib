@@ -7,7 +7,7 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1-b.3"
+set "%~1version=2.1"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -286,15 +286,7 @@ exit /b 0
 
 
 :changelog.dev
-echo    - Rename internal category name of 'shortcut' to 'ui', and
-echo      also 'framework' to 'devtools' (missed out in previous release)
-echo    - Improve documentation on feature category functions
-echo    - Improve some documentation on config section
-echo    - ping_test(): fix ping marked as successful if hostname could not be found
-echo    - rand(): improve documentation and demo
-echo    - Input.number():
-echo        - Now returns the integer numeric value by default
-echo        - Previous behaviour is available through the new '--as-is' flag
+echo    - No changes from version 2.1-b.3
 exit /b 0
 
 
