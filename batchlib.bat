@@ -156,7 +156,7 @@ rem ======================================== Changelog =========================
 ::      - get_os(): Return full os version
 ::
 ::  Minified Script
-::  - Remove tests (WIP)
+::  - Removed library tests
 ::
 ::  Tests
 ::  - Simplify test label names
