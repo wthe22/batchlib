@@ -303,9 +303,10 @@ echo 3. Generate minified version
 echo 4. Generate new script template
 echo 5. Build/add dependencies to a script
 echo=
-echo R. Reload library
-echo T. Test libraries
-echo A. About script
+echo B. Self Build
+echo R. Reload Library
+echo T. Test Libraries
+echo A. About Script
 echo C. Change Log
 echo 0. Exit
 echo=
@@ -318,6 +319,13 @@ if "!user_input!" == "2" call :conemu
 if "!user_input!" == "3" call :new_template_menu "minified_script" "Minified Script"
 if "!user_input!" == "4" call :new_template_menu "new_script" "New Script Template"
 if "!user_input!" == "5" call :build_menu
+if /i "!user_input!" == "B" (
+    setlocal EnableDelayedExpansion
+    set "lib=:lib.call "
+    call :build_script "%~f0"
+    endlocal
+    pause
+)
 if /i "!user_input!" == "R" (
     call :Library.unload_info
     call :Library.read_names
