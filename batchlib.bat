@@ -7,12 +7,12 @@ rem ======================================== Metadata ==========================
 
 :__metadata__   [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=2.1"
+set "%~1version=2.1.1"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
-set "%~1release_date=06/02/2020"   :: mm/dd/YYYY
-set "%~1url=https://winscr.blogspot.com/2017/08/function-library.html"
+set "%~1release_date=05/26/2021"   :: mm/dd/YYYY
+set "%~1url=https://github.com/wthe22/batchlib"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
 exit /b 0
 
@@ -115,182 +115,13 @@ exit /b 0
 rem ======================================== Changelog ========================================
 
 :changelog
-echo    Core
-echo    - Improved portability for Unix EOL
-echo    - Improved configuration of this script
-echo    - Improved format of internal category listing
-echo    - Improved category listing of functions
-echo    - Improved usage of namespace
-echo    - Added unittest for script core functions
-echo    - Added labels for packages
-echo    - Added template for new scripts
-echo    - Renamed  metadata() to __metadata__()
-echo    - More console friendly by not polluting variables and quitting immediately
-echo    - script_cli(): added support for multi line commands
-echo    - Changed download_url to the new repo at GitHub
-echo    - Added "MIT License" in license()
-echo    - Added menu option to get dependencies for a script
+echo    - Made module.is_module() and module.read_metadata() forward compatible
+echo    - Fix updater() assuming future version contains module.read_metadata()
+echo    - Update metadata
 echo=
-echo    Library
-echo    - Added dependency listing
-echo    - Added VBScript and PowerShell to dependency list of functions
-echo      which needs them
-echo    - Added support for comma and space time seperators
-echo    - Fixed demo of several functions that uses Input.number()
-echo    - New functions:
-echo        - bytes2size() and size2bytes()
-echo        - collect_func()
-echo        - desolve()
-echo        - dosterm()
-echo        - epoch2time()
-echo        - extract_func()
-echo        - fdate()
-echo        - is_echo_on()
-echo        - list2set()
-echo        - normalize_spaces()
-echo        - ping_test()
-echo        - sleep()
-echo        - sprintrow()
-echo        - strip()
-echo        - textrender()
-echo        - timeit()
-echo        - while_range_macro()
-echo    - Replaced functions:
-echo        - tester() --^> unittest()
-echo        - check_number() --^> is_number(), is_in_range()
-echo        - module.updater() --^> updater()
-echo        - tester.find_tests() --^> find_label()
-echo        - module.version_compare() --^> parse_version()
-echo    - Renamed functions:
-echo        - check_admin() --^> is_admin()
-echo        - check_win_eol() --^> is_crlf()
-echo        - expand_link() --^> expand_url()
-echo        - fix_eol() --^> to_crlf()
-echo        - setup_clearline() --^> clear_line_macro()
-echo        - wait.setup() --^> wait.setup_macro()
-echo    - Removed functions:
-echo        - expand_path(): using FOR directly is more preferable
-echo        - dynamenu(): it is slow and some kind of impractical
-echo    - New features:
-echo        - capchar()
-echo        - check_ipv4()
-echo        - checksum()
-echo        - difftime()
-echo        - Input.path()
-echo        - module.entry_point()
-echo        - parse_args()
-echo        - timeleft()
-echo        - wait()
-echo        - wait.calibrate()
-echo    - Has bug fixes:
-echo        - check_ipv4()
-echo        - check_path()
-echo        - check_win_eol() or is_crlf()
-echo        - checksum()
-echo        - diffbin()
-echo        - ftime()
-echo        - Input.ipv4()
-echo        - Input.path()
-echo        - wait.calibrate()
-echo    - Has non-functional improvements:
-echo        - capchar()
-echo        - check_path()
-echo        - check_win_eol() or is_crlf()
-echo        - combi_wcdir()
-echo        - diffdate()
-echo        - expand_link() or expand_url()
-echo        - fix_eol() or to_crlf()
-echo        - get_ext_ip()
-echo        - Input.*()
-echo        - Input.yesno()
-echo        - module.entry_point()
-echo        - parse_args()
-echo        - pow()
-echo        - setup_clearline()
-echo        - timeleft()
-echo        - unzip()
-echo        - wait.calibrate()
-echo        - watchvar()
-echo        - wcdir()
-echo    - Has backward incompatible changes:
-echo        - capchar()
-echo        - checksum()
-echo        - difftime()
-echo        - expand_link() or expand_url()
-echo        - fix_eol() or to_crlf()
-echo        - get_os()
-echo        - get_pid()
-echo        - Input.*()
-echo        - Input.path()
-echo        - module.entry_point()
-echo        - module.read_metadata()
-echo        - parse_args()
-echo        - randw()
-echo        - setup_clearline()
-echo        - wait()
-echo        - watchvar()
-echo        - what_day()
-echo=
-echo    Minified Script
-echo    - Included 'tests.*', changelog(), help()
-echo    - Added an interactive ui: script_cli()
-echo    - Script now uses scripts.cli() as its main entry point
-echo    - The help message in main() has been moved to help(). This is significantly
-echo      makes help message easier to maintain.
-echo    - Removed unittest for save_minified(), instead the minified script
-echo      have a copy of the tests and it is able to run unittest too.
-echo    - Added template for minified script
-echo    - Added dependency listing
-echo=
-echo    Tests
-echo    - Migrated unit testing framework/syntax from tester() to unittest()
-echo    - Improved unittest for: Input.*(), module.entry_point()
-echo    - Added unittest for capturing of function arguments
-echo    - Moved 'tests' below 'lib'
-echo    - Added unittest:
-echo        - bin2int()
-echo        - bytes2size() and size2bytes()
-echo        - capchar()
-echo        - check_ipv4()
-echo        - check_path()
-echo        - collect_func()
-echo        - desolve()
-echo        - difftime() and fdate()
-echo        - epoch2time()
-echo        - expand_link()
-echo        - extract_func()
-echo        - find_label()
-echo        - gcf()
-echo        - Input.ipv4() and Input.yesno()
-echo        - int2roman() and roman2int()
-echo        - parse_version()
-echo        - pow()
-echo        - prime()
-echo        - sleep() and wait()
-echo        - strip()
-echo        - textrender()
-echo        - unittest()
-echo        - updater()
-echo        - wcdir()
-echo=
-echo    Documentation
-echo    - Added help() to display usage help
-echo    - Added more documentation options
-echo    - Documentation now uses man page style
-echo    - Improved demo of several functions
-echo    - Greatly improved many documentation
-echo    - Moved notes and other unused codes to a dedicated file for notes
-echo    - Removed changelog history for reduced log size. Only latest changelog
-echo      will be included. See Git for earlier changelog history.
-exit /b 0
-
-
-:changelog.dev
-echo    - No changes from version 2.1-b.3
-exit /b 0
-
-
-:changelog.todo
+echo    IMPORTANT NOTE
+echo        The upcoming batchlib 3.0 have different file structure. Please visit
+echo        the website to download the new version manually.
 exit /b 0
 
 
@@ -7698,7 +7529,12 @@ for %%v in (
     url download_url
     install_requires
 ) do set "%~1%%v="
-call "%~2" -c call :__metadata__ "%~1" || exit /b 1
+call "%~2" -c call :__metadata__ "%~1" 2> nul || (
+    call "%~2" -c call :metadata "%~1" 2> nul
+) || (
+    1>&2 echo%0: failed to call metadata^(^) or __metadata__^(^)
+    exit /b 1
+)
 exit /b 0
 
 
@@ -7774,8 +7610,11 @@ setlocal EnableDelayedExpansion
 set /a "_missing=0x7"
 for /f "usebackq tokens=1" %%a in ("%~f1") do (
     if /i "%%a" == ":__init__" set /a "_missing&=~0x1"
+    if /i "%%a" == ":entry_point" set /a "_missing&=~0x1"
     if /i "%%a" == ":module.entry_point" set /a "_missing&=~0x2"
+    if /i "%%a" == ":scripts.call" set /a "_missing&=~0x2"
     if /i "%%a" == ":__metadata__" set /a "_missing&=~0x4"
+    if /i "%%a" == ":metadata" set /a "_missing&=~0x4"
 )
 if not "!_missing!" == "0" exit /b 1
 set "_callable="
@@ -9008,6 +8847,7 @@ echo=
 echo POSITIONAL ARGUMENTS
 echo    return_prefix
 echo        Prefix of the variable to store the metadata (if exit code is 0)
+echo        Variable will not be set if upgrade option is specified.
 echo=
 echo    script_path
 echo        Path of the (batch) file.
@@ -9186,8 +9026,8 @@ cd /d "!tmp!" & ( cd /d "!tmp_path!" 2> nul )
 set "_other=!cd!\latest.bat"
 call :updater._run & for %%e in (!errorlevel!) do (
     endlocal
-    if "%%e" == "0" call :updater.read_metadata %1 "%_other%"
-    if not defined _upgrade if exist "%_other%" del /f /q "%_other%"
+    if "%_upgrade%" == "" call :updater.read_metadata %1 "%_other%"
+    if exist "%_other%" del /f /q "%_other%"
     if "%%e" == "2" ( 1>&2 echo You are using the latest version & exit /b 2 )
     if "%%e" == "3" ( 1>&2 echo error: failed to retrive metadata & exit /b 3 )
     if "%%e" == "4" ( 1>&2 echo error: failed to download update & exit /b 4 )
