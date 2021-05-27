@@ -131,6 +131,7 @@ rem ======================================== Changelog =========================
 ::      - Input.yesno(): Add option to set default value
 ::      - combi_wcdir(): Custom seperator
 ::      - Input.number(): Mark input as optional
+::      - Input.path(): Warn overwrite
 ::      - strip(): support question mark character
 ::  - Bug fixes:
 ::      - dosterm()/conemu(): Multiline commands
@@ -165,11 +166,6 @@ rem ======================================== Changelog =========================
 ::  - All documentations is now written in comments
 ::  - Make library parameters usage docs more consistent
 ::  - Most demo now have auto generated input
-exit /b 0
-
-
-:changelog.todo
-::  - Check docs
 exit /b 0
 
 
