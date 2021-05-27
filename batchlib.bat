@@ -1232,6 +1232,7 @@ echo set "%%~1category=!Category.valid_values!"
 ::
 ::
 ::  :doc.demo
+::  rem A demo would help users understand how to use it
 ::  call :your_library_name_here && (
 ::      echo Success
 ::  ) || echo Failed...
