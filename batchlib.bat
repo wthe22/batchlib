@@ -606,12 +606,31 @@ exit /b 0
 rem ======================================== Documentation ========================================
 
 :doc.help
-setlocal EnableDelayedExpansion EnableExtensions
-call :metadata
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
 
-echo usage: batchlib
-echo        batchlib --help
-echo        batchlib ???
+echo usage:
+echo    batchlib
+echo        Run batchlib in interactive mode
+echo=
+echo    batchlib (-h^|--help^|/?)
+echo        Show this help
+echo=
+echo    batchlib -c ^<:label^> [arguments]
+echo        Call the specified label with arguments
+echo=
+echo    batchlib build ^<input_file^> [backup_name]
+echo        Add dependency to a file
+echo=
+echo    batchlib (run^|debug) ^<library^> ^<:label^> [arguments]
+echo        Run/debug a library
+echo=
+echo    batchlib test [library]
+echo        Run unittest to a library
+echo=
+echo    batchlib template ^<name^>
+echo        Create the specified template and output to STDOUT.
+echo=
 exit /b 0
 
 
@@ -621,6 +640,7 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      batchlib
+::      batchlib (-h|--help|/?)
 ::      batchlib -c <:label> [arguments]
 ::      batchlib build <input_file> [backup_name]
 ::      batchlib (run|debug) <library> <:label> [arguments]
@@ -673,7 +693,7 @@ exit /b 0
 ::  TEMPLATE SUBCOMMAND
 ::          batchlib template <name>
 ::
-::      Create a template with the following name and output to STDOUT.
+::      Create the specified template and output to STDOUT.
 ::      Valid template names are: minified_script, new_script, new_library.
 exit /b 0
 
