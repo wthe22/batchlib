@@ -102,13 +102,14 @@ exit /b 0
 ::  NOTES
 ::      - The order of the function will be based on the order of occurrence
 ::        in the parameter.
-::      - End of function is marked by an '[@]exit /b [errorlevel]',
-::        followed by an empty line.
+::      - End of function is marked by 'exit /b [errorlevel]' or 'goto <label>',
+::        followed by an empty line. Marker may have spaces, tabs, and at sign (@)
+::        before it (e.g. '@exit /b 0').
 exit /b 0
 
 
 :doc.demo
-call :Input.path input_file --file --exist
+call :Input.path input_file --file --exist --optional || set "input_file=%~f0"
 call :Input.string label_name || set "label_name=EOF"
 echo=
 echo Input file : !input_file!
