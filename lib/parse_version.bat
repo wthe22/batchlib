@@ -111,7 +111,7 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Abstracts handling of project version. This function is inspired by Python
-::      PEP 440 and packaging.version.parse(). parse_version() returns a string
+::      PEP 440 and packaging.version.parse(). The parsed version is a string
 ::      representation of the version that can be used to compare different versions
 ::      using simple IF statements.
 ::
