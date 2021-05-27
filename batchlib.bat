@@ -176,6 +176,9 @@ exit /b 0
 rem ======================================== Main ========================================
 
 :main
+@if ^"%1^" == "/?" @goto doc.help
+@if ^"%1^" == "-h" @goto doc.help
+@if ^"%1^" == "--help" @goto doc.help
 @if ^"%1^" == "-c" @goto scripts.call
 @if ^"%1^" == "" @goto scripts.main
 @call :scripts.%*
