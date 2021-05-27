@@ -114,6 +114,9 @@ exit /b 0
 ::      5:  - Failed to retrive update information
 ::      6:  - Module name does not match.
 ::      7:  - Upgrade failed.
+::
+::  NOTES
+::      - This function is still experimetal and is subject to change.
 exit /b 0
 
 
