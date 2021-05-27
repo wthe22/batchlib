@@ -5,12 +5,16 @@ exit /b
 
 :Input.path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_return_var _message _base_dir _optional _check_options) do set "%%v="
+for %%v in (
+    _return_var _message _base_dir _optional _warn_overwrite
+    _check_options
+) do set "%%v="
 call :argparse ^
     ^ "[]1:store                :_return_var" ^
     ^ "m/message:store          :_message" ^
     ^ "b/base-dir:store         :_base_dir" ^
     ^ "o/optional:store_const   :_optional=true" ^
+    ^ "w/warn-overwrite:store_const :_warn_overwrite=true" ^
     ^ "e/exist:append_const     :_check_options= -e" ^
     ^ "n/not-exist:append_const :_check_options= -n" ^
     ^ "f/file:append_const      :_check_options= -f" ^
@@ -40,14 +44,21 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
     if defined user_input (
-        call :check_path user_input !_check_options! && exit /b 0
+        call :check_path user_input !_check_options! && (
+            if not defined _warn_overwrite exit /b 0
+            if exist "!user_input!" (
+                call :Input.yesno _ ^
+                    ^ --message "File already exist. Overwrite file? y/N? " ^
+                    ^ && exit /b 0
+            )
+        )
     ) else if defined _optional exit /b 0
 )
 exit /b 1
 
 
 :lib.build_system [return_prefix]
-set "%~1install_requires=argparse check_path"
+set "%~1install_requires=argparse check_path Input.yesno"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
@@ -58,7 +69,8 @@ exit /b 0
 ::      Input.path - read a path string from standard input
 ::
 ::  SYNOPSIS
-::      Input.path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] <return_var>
+::      Input.path [-m message] [-b base_dir] [-e|-n] [-f|-d]
+::                 [-o] [-w] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -74,6 +86,9 @@ exit /b 0
 ::
 ::      -o, --optional
 ::          Input is optional and could be skipped by entering nothing.
+::
+::      -w, --warn-overwrite
+::          Warn that file will be overwritten if an existing file is entered.
 ::
 ::  CHECK OPTIONS
 ::      These options that are passed to check_path()
