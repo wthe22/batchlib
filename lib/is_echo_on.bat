@@ -6,7 +6,7 @@ exit /b
 :is_echo_on
 @(
     ( for %%n in (1) do call ) > "%temp%\result"
-    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 1
+    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 2
 ) > nul 2>&1
 @exit /b 0
 
@@ -26,7 +26,11 @@ exit /b 0
 ::
 ::  NOTES
 ::      - Temporary file is used in this function.
-::      - This function produces no output, even if error is encountered.
+::      - This function produces no output, even if echo is on.
+::
+::  EXIT STATUS
+::      0:  - Echo is on
+::      2:  - Echo is off
 exit /b 0
 
 
