@@ -6,7 +6,7 @@ rem ======================================== Metadata ==========================
 
 :metadata [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=3.0a"
+set "%~1version=3.0a1"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
