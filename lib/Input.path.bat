@@ -46,11 +46,10 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     if defined user_input (
         call :check_path user_input !_check_options! && (
             if not defined _warn_overwrite exit /b 0
-            if exist "!user_input!" (
-                call :Input.yesno _ ^
-                    ^ --message "File already exist. Overwrite file? y/N? " ^
-                    ^ && exit /b 0
-            )
+            if not exist "!user_input!" exit /b 0
+            call :Input.yesno _ --default N ^
+                ^ --message "File already exist. Overwrite file? y/N? " ^
+                ^ && exit /b 0
         )
     ) else if defined _optional exit /b 0
 )
