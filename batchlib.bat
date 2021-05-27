@@ -213,6 +213,9 @@ cls
 echo !SOFTWARE.description! !SOFTWARE.version!
 echo=
 echo Loading...
+call :true 2> nul || (
+    1>&2 echo warning: Dependency not found. Script might not work well.
+)
 call :Library.read_args
 call :Category.load
 call :LibBuild.remove_orphans
