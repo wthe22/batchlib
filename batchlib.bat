@@ -409,6 +409,7 @@ echo 0. Back
 echo=
 echo Which category do you want to choose?
 set /p "user_input="
+echo=
 if "!user_input!" == "0" exit /b 2
 if /i "!user_input!" == "S" (
     call :InputCategory.search_menu && exit /b 0
@@ -438,6 +439,7 @@ echo 0. Back
 echo=
 echo Input search keyword:
 set /p "user_input="
+echo=
 if "!user_input!" == "0" exit /b 2
 call :Library.search Category_search.functions "!user_input!"
 set "_selected=search"
@@ -475,6 +477,7 @@ echo 0. Back
 echo=
 echo Which function do you want to choose?
 set /p "user_input="
+echo=
 if "!user_input!" == "0" exit /b 2
 set "_count=0"
 for %%c in (!_category!) do ( rem
