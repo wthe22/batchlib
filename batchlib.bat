@@ -568,7 +568,8 @@ setlocal EnableDelayedExpansion
 set "_template=%~1"
 set "_description=%~2"
 call :Input.path save_file --file ^
-    ^ --message "Input new template file path: "
+    ^ --message "Input new template file path: " ^
+    ^ || exit /b 2
 if exist "!save_file!" (
     call :Input.yesno _ ^
         ^ --message "File already exist. Overwrite file? Y/N? "
@@ -590,7 +591,8 @@ exit /b 0
 
 :build_menu
 call :Input.path script_file --file --exist ^
-    ^ --message "Input script path: "
+    ^ --message "Input script path: " ^
+    ^ || exit /b 2
 call :Input.path save_file --file ^
     ^ --message "Input save path: "
 if exist "!save_file!" (
