@@ -38,7 +38,7 @@ exit /b 0
 ::
 ::      color
 ::          The hexadecimal representation of the color.
-::          The format of the color is '^<background^>^<foreground^>'.
+::          The format of the color is '<background><foreground>'.
 ::
 ::  COLORS
 ::      0 = Black       8 = Gray

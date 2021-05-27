@@ -31,7 +31,7 @@ exit /b 0
 ::      unique_id
 ::          A string that is uniquely identifies the running batch script.
 ::          The string should only contain these characters: A-Z, a-z, 0-9,
-::          underscore '_', dot '.', and hyphen '-'. By default, it uses %%random%%.
+::          underscore '_', dot '.', and hyphen '-'. By default, it uses %random%.
 ::
 ::  NOTES
 ::      - PowerShell can be used to generate an unique id for current batch script.

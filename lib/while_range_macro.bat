@@ -47,10 +47,10 @@ exit /b 0
 ::      power
 ::          The number of nested FOR loops to use. The higher the power, the longer
 ::          it takes to exhaust the loop. The loops needed to exhaust the loop is
-::          calculated as: 'base ^^ power'. By default, it is '4'.
+::          calculated as: 'base ^ power'. By default, it is '4'.
 ::
 ::  NOTES
-::      - By default, it takes 256^^4 (4294967296) loops to exhaust
+::      - By default, it takes 256^4 (4294967296) loops to exhaust
 exit /b 0
 
 

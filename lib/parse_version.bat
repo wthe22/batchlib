@@ -152,7 +152,7 @@ exit /b 0
 ::  EXAMPLE
 ::      call :parse_version version1 "1.4.1"
 ::      call :parse_version version2 "1.4.1-a.2"
-::      if "%%version1%%" GEQ "%%version2%%" echo True
+::      if "%version1%" GEQ "%version2%" echo True
 ::
 ::  NOTES
 ::      - Support for version numbers is only up to 3 digits of integer.

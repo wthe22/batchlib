@@ -95,7 +95,7 @@ exit /b 0
 ::      BASE    'Base' for SET /P so it can start with whitespace characters
 ::      BACK    Delete previous character (in console)
 ::      DQ      'Invisible' double quote to print special characters
-::              without using caret (^^). Must be used as %%DQ%%, not ^^!DQ^^!.
+::              without using caret (^). Must be used as %DQ%, not !DQ!.
 ::      NL      Set new line in variables
 exit /b 0
 

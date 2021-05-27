@@ -85,7 +85,7 @@ exit /b 0
 ::      - The label of the function MUST only be preceeded by either nothing or
 ::        spaces (i.e. only space indentation is allowed)
 ::      - Does not support labels that have:
-::          - '^^' or '*' in label name
+::          - '^' or '*' in label name
 ::      - Only Windows EOL is supported.
 exit /b 0
 

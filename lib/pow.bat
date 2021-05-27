@@ -48,8 +48,8 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
-::      2:  - The result is too large (^> 2147483647).
-::          - The integer is too large (^> 2147483647).
+::      2:  - The result is too large (> 2147483647).
+::          - The integer is too large (> 2147483647).
 exit /b 0
 
 

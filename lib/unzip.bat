@@ -63,7 +63,7 @@ exit /b 0
 ::
 ::  NOTES
 ::      - VBScript is used to extract the zip file.
-::      - Variables in path will not be expanded (e.g.: %%appdata%%).
+::      - Variables in path will not be expanded (e.g.: %appdata%).
 exit /b 0
 
 
