@@ -215,6 +215,7 @@ call :true 2> nul || (
 call :Library.read_args
 call :Category.load
 call :LibBuild.remove_orphans
+timeout /t 1
 call :main_menu
 exit /b
 
