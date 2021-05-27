@@ -628,10 +628,10 @@ echo    batchlib build ^<input_file^> [backup_name]
 echo        Add dependency to a file
 echo=
 echo    batchlib (run^|debug) ^<library^> ^<:label^> [arguments]
-echo        Run/debug a library
+echo        Run/debug a library (Not available in minified version)
 echo=
 echo    batchlib test [library]
-echo        Run unittest to a library
+echo        Run unittest to a library (Not available in minified version)
 echo=
 echo    batchlib template ^<name^>
 echo        Create the specified template and output to STDOUT.
@@ -682,6 +682,8 @@ exit /b 0
 ::          batchlib (run|debug) <library> <:label> [arguments]
 ::
 ::      Run the (built) library and call :LABEL with the ARGUMENTS.
+::      This subcommand is not available in the minified version.
+::
 ::      The DEBUG subcommand have some more addition to the RUN subcommand:
 ::      - quicktest() is also included in the 'extra_requires' dependency list
 ::      - If the 'debug' variable is not defined, then it is set to:
@@ -694,6 +696,8 @@ exit /b 0
 ::
 ::      Run unittest to a library. If no library is given, it will
 ::      test all libraries instead.
+::
+::      This subcommand is not available in the minified version.
 ::
 ::  TEMPLATE SUBCOMMAND
 ::          batchlib template <name>
