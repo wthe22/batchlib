@@ -4,20 +4,28 @@ exit /b
 
 
 :list2set <input_var [...]> [--not-null]
-for %%l in (%~1) do (
-    for /f "tokens=1* delims=?" %%b in ("Q?!%%l!") do (
-        set "%%l= "
-        for %%i in (%%c) do (
-            set "%%l= %%i!%%l!"
+for %%v in (%~1) do (
+    setlocal EnableDelayedExpansion
+    call :list2set._convert !%%v!
+    for /f "tokens=* delims=" %%r in ("!_result!") do (
+        endlocal
+        set "%%v=%%r"
+        if not "%2" == "--not-null" if "!%%v!" == " " set "%%v="
+    )
+)
+exit /b 0
+
+:list2set._convert
+set "_result= "
+for /l %%# in (1,1,64) do for /l %%# in (1,1,64) do (
+    call set _item=%%1
+    if not defined _item exit /b 0
+    for /f "tokens=* delims=" %%i in ("!_item!") do (
+        if "!_result: %%i = !" == "!_result!" (
+            call set _result=!_result!%%1 %=END=%
         )
     )
-    for /f "tokens=1* delims=?" %%b in ("Q?!%%l!") do (
-        set "%%l= "
-        for %%i in (%%c) do (
-            set "%%l= %%i!%%l: %%i = !"
-        )
-    )
-    if not "%2" == "--not-null" if "!%%l!" == " " set "%%l="
+    shift /1
 )
 exit /b 0
 
@@ -46,23 +54,24 @@ exit /b 0
 ::          This must be placed as the second argument.
 ::
 ::  NOTES
-::      - Special characters are not supported. Using it might result in
-::        unexpected behaviors.
+::      - Percent sign (%) and exclamation mark (!) might get stripped.
+::      - Equal sign (=) and caret (^) might cause incorrect results.
+::      - Quoted and unquoted are seen as different
 exit /b 0
 
 
 :doc.demo
 call :Input.string list_with_duplicates || (
-    set list_with_duplicates= "hello" hello world? how are you *.bat
+    set list_with_duplicates= hello? hi =hello= *howdy* "hi" hello? *howdy*
 )
 set "result=!list_with_duplicates!"
 call :list2set "result"
 echo=
 echo Original list:
-echo "!list_with_duplicates!"
+echo !list_with_duplicates!
 echo=
 echo Converted set:
-echo "!result!"
+echo !result!
 exit /b 0
 
 
