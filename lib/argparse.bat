@@ -54,6 +54,7 @@ exit /b 1
 
 :argparse._generate_instructions {_specs}
 for /l %%i in (1,1,!_shifts!) do shift /1
+set "_instructions="
 set "_argc=0"
 set "_nonopt_encountered="
 for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
