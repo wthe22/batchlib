@@ -97,6 +97,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     if defined _for_next_use (
         set "_instructions=!_instructions! shift"
         shift /1
+        set /a "_shifts+=1"
         call set _value=%%1
         if not defined _value (
             1>&2 echo argparse: expected argument for last option
@@ -105,6 +106,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     )
     set "_instructions=!_instructions! !_op! shift"
     shift /1
+    set /a "_shifts+=1"
 )
 exit /b 1
 #+++
