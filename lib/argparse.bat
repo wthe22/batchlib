@@ -19,6 +19,7 @@ exit /b 0
 :argparse._read_opts %* -> {_shifts}
 set "_shifts=0"
 call :argparse._read_spec ^
+    ^ "n/name:store:_._name" ^
     ^ "i/ignore-unknown:store_const:_._ignore_unknown=true" ^
     ^ "s/stop-nonopt:store_const:_._stop_nonopt=true" ^
     ^ -- || exit /b 2
@@ -28,9 +29,10 @@ set "_ignore_unknown="
 set "_stop_nonopt=true"
 call :argparse._generate_instructions %* || exit /b 3
 set "_shifts_opts=!_shifts!"
+set "_._name=argparse"
 call :argparse._exec_instructions || exit /b 3
 set /a "_shifts=!_shifts_opts! - !_argc!"
-for %%v in (_ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
+for %%v in (_name _ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
 exit /b 0
 #+++
 
@@ -85,7 +87,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
             )
         )
         if not defined _ignore_unknown if not defined _op (
-            1>&2 echo argparse: unknown option '!_value!'
+            1>&2 echo !_name!: unknown option '!_value!'
             exit /b 3
         )
     )
@@ -105,7 +107,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
         set /a "_shifts+=1"
         call set _value=%%1
         if not defined _value (
-            1>&2 echo argparse: expected argument for last option
+            1>&2 echo !_name!: expected argument for last option
             exit /b 2
         )
     )
@@ -113,6 +115,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     shift /1
     set /a "_shifts+=1"
 )
+echo !_name!: too many arguments
 exit /b 1
 #+++
 
@@ -232,6 +235,9 @@ exit /b 0
 ::  OPTIONS
 ::      Note: They must appear before all SPECs
 ::
+::      -n, --name
+::          Command name for use in error messages. By default it is 'argparse'.
+::
 ::      -i, --ignore-unknown
 ::          Ignores unknown options and assume they are
 ::          positional arguments instead.
@@ -316,13 +322,14 @@ call :Input.string parameters || (
 echo=
 echo Input parameters:
 echo=!parameters!
+echo=
 call :doc.demo.rate !parameters!
 exit /b 0
 #+++
 
 :doc.demo.rate
 for %%v in (stars message tags is_anon recommendations) do set "p_%%v="
-call :argparse ^
+call :argparse --name "rate" ^
     ^ "[]1:store                :p_stars" ^
     ^ "m/message:store          :p_msg" ^
     ^ "a-anonymous:store_const  :p_is_anon=true" ^
