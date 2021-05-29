@@ -237,8 +237,8 @@ exit /b 0
 ::          positional arguments instead.
 ::
 ::      -s, --stop-nonopt
-::          Stop scanning for options as soon as
-::          the first non-option argument is seen.
+::          Stop scanning for options as soon as the first non-option argument
+::          is seen. The rest is treated positional arguments.
 ::
 ::  PARSING SPECIFACTIONS
 ::      Each parsing specification is a string composed of:
@@ -282,6 +282,8 @@ exit /b 0
 ::  NOTES
 ::      - Multi-character short options are not supported.
 ::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
+::      - Maximum argument count is 400
+::      - Maximum specification count is 100
 exit /b 0
 
 
