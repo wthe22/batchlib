@@ -8,6 +8,7 @@ setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
+call :argparse._read_opts %*
 call :argparse._read_spec %* || exit /b 2
 call :argparse._validate_specs %* || exit /b 2
 call :argparse._generate_instructions %* || exit /b 3
@@ -15,44 +16,48 @@ call :argparse._exec_instructions 2 || exit /b 3
 exit /b 0
 #+++
 
-:argparse._read_spec %*
-set "_specs="
-for %%v in (_validate _ignore_unknown _stop_nonopt) do set "%%v="
+:argparse._read_opts %* -> {_shifts}
 set "_shifts=0"
-set "_mode=flag"
-for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
+call :argparse._read_spec ^
+    ^ "i/ignore-unknown:store_const:_._ignore_unknown=true" ^
+    ^ "s/stop-nonopt:store_const:_._stop_nonopt=true" ^
+    ^ -- || exit /b 2
+call :argparse._validate_specs %* || exit /b 2
+set "_shifts=0"
+set "_ignore_unknown="
+set "_stop_nonopt=true"
+call :argparse._generate_instructions %* || exit /b 3
+set "_shifts_opts=!_shifts!"
+call :argparse._exec_instructions || exit /b 3
+set /a "_shifts=!_shifts_opts! - !_argc!"
+for %%v in (_ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
+exit /b 0
+#+++
+
+:argparse._read_spec %* {_shifts*} -> {_specs}
+for /l %%n in (1,1,!_shifts!) do shift /1
+set "_specs="
+for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     call set _value=%%1
-    set /a "_shifts+=1"
     if not defined _value (
         1>&2 echo argparse: missing -- seperator
         exit /b 2
     )
-    if "!_value!" == "--" exit /b 0
-    if "!_value:~0,1!,!_mode!" == "-,flag" (
-        set "_valid="
-        for %%s in (
-            "-i --ignore-unknown:_ignore_unknown=true"
-            "-s --stop-nonopt:_stop_nonopt=true"
-        ) do for /f "tokens=1* delims=:" %%o in (%%s) do (
-            for %%f in (%%o) do if "!_value!" == "%%f" (
-                set "%%p"
-                set "_valid=true"
-            )
-        )
-        if not defined _valid ( 1>&2 echo argparse: unknown option '!_value!' )
-    ) else (
-        set "_mode=spec"
-        call set _value=%%~1
-        for /f "tokens=1-2* delims=: " %%o in ("!_value!") do (
-            set "_specs=!_specs!%%o:%%p:%%q!LF!"
-        )
+    if "!_value!" == "--" (
+        set /a "_shifts+=1"
+        exit /b 0
+    )
+    call set _value=%%~1
+    for /f "tokens=1-2* delims=: " %%o in ("!_value!") do (
+        set "_specs=!_specs!%%o:%%p:%%q!LF!"
     )
     shift /1
+    set /a "_shifts+=1"
 )
 exit /b 1
 #+++
 
-:argparse._generate_instructions {_specs}
+:argparse._generate_instructions %* {_shifts*} {_specs} -> {_instructions} {_argc}
 for /l %%i in (1,1,!_shifts!) do shift /1
 set "_instructions="
 set "_argc=0"
