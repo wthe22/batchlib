@@ -96,7 +96,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
         set /a "_argc+=1"
         for /f "tokens=1* delims=:" %%a in ("!_specs!") do ( rem
         ) & if not defined _op (
-            for %%t in ([] []!_argc!) do (
+            for %%t in (# #!_argc!) do (
                 if "%%a" == "%%t" set _op="%%b"
             )
         )
@@ -153,11 +153,11 @@ if not defined _specs (
 )
 for /f "tokens=1-2* delims=:" %%o in ("!_specs!") do (
     set "_flag=%%o"
-    if "!_flag:~0,2!" == "[]" (
-        if not "!_flag:~2,1!" == "" (
+    if "!_flag:~0,1!" == "#" (
+        if not "!_flag:~1,1!" == "" (
             set "_invalid="
-            if !_flag:~2! LSS 1 set "_invalid=true"
-            if !_flag:~2! GTR 400 set "_invalid=true"
+            if !_flag:~1! LSS 1 set "_invalid=true"
+            if !_flag:~1! GTR 400 set "_invalid=true"
             if defined _invalid (
                 1>&2 echo argparse: parameter number '%%~c' invalid, must be integer ^(1-400^)
                 exit /b 2
@@ -330,7 +330,7 @@ exit /b 0
 :doc.demo.rate
 for %%v in (stars message tags is_anon recommendations) do set "p_%%v="
 call :argparse --name "rate" ^
-    ^ "[]1:store                :p_stars" ^
+    ^ "#1:store                :p_stars" ^
     ^ "m/message:store          :p_msg" ^
     ^ "a-anonymous:store_const  :p_is_anon=true" ^
     ^ "t/tag:append             :p_tags" ^
@@ -405,8 +405,9 @@ exit /b 0
 :tests.test_validate
 setlocal EnableDelayedExpansion EnableExtensions
 call :argparse ^
-    ^ "[]:append            :p_argv" ^
-    ^ "[]1:store            :p_arg0" ^
+    ^ "#:append            :p_argv" ^
+    ^ "#1:store            :p_arg_1" ^
+    ^ "#10:store           :p_arg_10" ^
     ^ "h/help:store_const   :p_flag_sc=true" ^
     ^ "p-plus:append_const  :p_flag_ac=+1" ^
     ^ "s:store              :p_flag_s" ^
@@ -421,7 +422,7 @@ exit /b 0
 
 :tests.test_invalidate_no_variable
 call :argparse ^
-    ^ "[]:store_const" ^
+    ^ "#:store_const" ^
     ^ -- 2> nul && (
     call %unittest% fail "success using function without variable defined"
 )
@@ -430,7 +431,7 @@ exit /b 0
 
 :tests.test_invalidate_argv_index_number
 call :argparse ^
-    ^ "[]z:store_const  :p_argv=" ^
+    ^ "#z:store_const  :p_argv=" ^
     ^ -- 2> nul && (
     call %unittest% fail "success with invalid argv index"
 )
@@ -466,7 +467,7 @@ exit /b 0
 
 :tests.test_invalidate_action
 call :argparse ^
-    ^ "[]:hello    :p_flag_sc=true" ^
+    ^ "#:hello    :p_flag_sc=true" ^
     ^ -- 2> nul && (
     call %unittest% fail "success with invalid short flag letter"
 )
@@ -475,7 +476,7 @@ exit /b 0
 
 :tests.test_invalidate_append_with_const
 call :argparse ^
-    ^ "[]:append    :p_flag_a=invalid" ^
+    ^ "#:append    :p_flag_a=invalid" ^
     ^ -- 2> nul && (
     call %unittest% fail "success using append with undesirable CONST"
 )
@@ -484,7 +485,7 @@ exit /b 0
 
 :tests.test_invalidate_store_with_const
 call :argparse ^
-    ^ "[]:store     :p_flag_s=invalid" ^
+    ^ "#:store     :p_flag_s=invalid" ^
     ^ -- 2> nul && (
     call %unittest% fail "success using store with undesirable CONST"
 )
@@ -493,7 +494,7 @@ exit /b 0
 
 :tests.test_invalidate_append_const_without_const
 call :argparse ^
-    ^ "[]:append_const  :p_flag_ac" ^
+    ^ "#:append_const  :p_flag_ac" ^
     ^ -- 2> nul && (
     call %unittest% fail "success using append_const without defining CONST"
 )
@@ -502,7 +503,7 @@ exit /b 0
 
 :tests.test_invalidate_store_const_without_const
 call :argparse ^
-    ^ "[]:store_const     :p_flag_sc" ^
+    ^ "#:store_const     :p_flag_sc" ^
     ^ -- 2> nul && (
     call %unittest% fail "success using store_const without defining CONST"
 )
@@ -515,7 +516,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse --ignore-unknown ^
-    ^ "[]:append    :p_argv" ^
+    ^ "#:append    :p_argv" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
@@ -534,7 +535,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse --stop-nonopt ^
-    ^ "[]:append            :p_argv" ^
+    ^ "#:append            :p_argv" ^
     ^ "a/alpha:append_const :p_opt_a=a" ^
     ^ "r/romeo:append_const :p_opt_r=r" ^
     ^ -- %* || (
@@ -555,7 +556,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append    :p_argv" ^
+    ^ "#:append    :p_argv" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
@@ -574,9 +575,9 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]1:store    :p_argv1" ^
-    ^ "[]2:store    :p_argv2" ^
-    ^ "[]3:store    :p_argv3" ^
+    ^ "#1:store    :p_argv1" ^
+    ^ "#2:store    :p_argv2" ^
+    ^ "#3:store    :p_argv3" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
@@ -595,7 +596,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append_const  :p_argc=+1" ^
+    ^ "#:append_const  :p_argc=+1" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
@@ -614,7 +615,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append                :p_argv" ^
+    ^ "#:append                :p_argv" ^
     ^ "a/alpha:append_const     :p_opts=a" ^
     ^ "r/romeo:append_const     :p_opts=r" ^
     ^ "g/golf:append_const      :p_opts=g" ^
@@ -637,7 +638,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse --ignore-unknown ^
-    ^ "[]:append                :p_argv" ^
+    ^ "#:append                :p_argv" ^
     ^ "a:append_const           :p_opts=a" ^
     ^ "r/romeo:append_const     :p_opts=r" ^
     ^ "g/golf:append_const      :p_opts=g" ^
@@ -660,7 +661,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append        :p_argv" ^
+    ^ "#:append        :p_argv" ^
     ^ "a/alpha:store    :p_opts" ^
     ^ -- %* 2> nul && (
     call %unittest% fail "success for store without expected argument"
@@ -674,7 +675,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append        :p_argv" ^
+    ^ "#:append        :p_argv" ^
     ^ "a/alpha:append   :p_opts" ^
     ^ -- %* 2> nul && (
     call %unittest% fail "success for store without expected argument"
@@ -688,7 +689,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append        :p_argv" ^
+    ^ "#:append        :p_argv" ^
     ^ "a/alpha:store    :p_opt_a" ^
     ^ "r/romeo:store    :p_opt_r" ^
     ^ -- %* || (
@@ -709,7 +710,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append        :p_argv" ^
+    ^ "#:append        :p_argv" ^
     ^ "a/alpha:append   :p_opt_a" ^
     ^ "r/romeo:append   :p_opt_r" ^
     ^ -- %* || (
@@ -730,7 +731,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append            :p_argv" ^
+    ^ "#:append            :p_argv" ^
     ^ "a/alpha:store_const  :p_opt_a=a" ^
     ^ "r/romeo:store_const  :p_opt_r=r" ^
     ^ -- %* || (
@@ -751,7 +752,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append            :p_argv" ^
+    ^ "#:append            :p_argv" ^
     ^ "a/alpha:append_const :p_opt_a=a" ^
     ^ "r/romeo:append_const :p_opt_r=r" ^
     ^ -- %* || (
@@ -772,7 +773,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append            :p_argv" ^
+    ^ "#:append            :p_argv" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
@@ -800,7 +801,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse ^
-    ^ "[]:append                :p_argv" ^
+    ^ "#:append                :p_argv" ^
     ^ "c/caret:store            :p_crt" ^
     ^ "w/asterisk:store         :p_ast" ^
     ^ "q/question-mark:store    :p_qm" ^
