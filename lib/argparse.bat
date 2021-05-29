@@ -5,6 +5,9 @@ exit /b
 
 :argparse [-i] [-s] <spec> [...] -- [arg] [...]
 setlocal EnableDelayedExpansion
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 call :argparse._read_spec %* || exit /b 2
 call :argparse._validate_specs %* || exit /b 2
 call :argparse._generate_instructions %* || exit /b 3
@@ -13,9 +16,6 @@ exit /b 0
 #+++
 
 :argparse._read_spec %*
-set LF=^
-%=REQUIRED=%
-%=REQUIRED=%
 set "_specs="
 for %%v in (_validate _ignore_unknown _stop_nonopt) do set "%%v="
 set "_shifts=0"
