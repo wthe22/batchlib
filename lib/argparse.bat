@@ -533,6 +533,24 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_command_name
+if ^"%1^" == "" (
+    call :tests.test_command_name -z
+    exit /b
+)
+set "expected=hello"
+call :argparse --name "!expected!" ^
+    ^ "#:append    :p_argv" ^
+    ^ -- %* 2> "error_msg" && (
+    call %unittest% error "Cannot capture error message"
+)
+for /f "usebackq tokens=1 delims=:" %%a in ("error_msg") do set "result=%%a"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_stop_nonopt
 if ^"%1^" == "" (
     call :tests.test_stop_nonopt -a alpha --romeo -r
