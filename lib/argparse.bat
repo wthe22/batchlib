@@ -8,9 +8,13 @@ setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-call :argparse._read_opts %*
+call :argparse._read_opts ^
+    ^ "-n,--name:store                  :_._name" ^
+    ^ "-i,--ignore-unknown :store_const :_._ignore_unknown=true" ^
+    ^ "-s,--stop-nonopt:store_const     :_._stop_nonopt=true" ^
+    ^ -- %* || exit /b 2
 call :argparse._read_spec %* || exit /b 2
-call :argparse._validate_specs %* || exit /b 2
+call :argparse._validate_specs || exit /b 2
 call :argparse._generate_instructions %* || exit /b 3
 call :argparse._exec_instructions 2 || exit /b 3
 exit /b 0
@@ -18,20 +22,17 @@ exit /b 0
 
 :argparse._read_opts %* -> {_shifts}
 set "_shifts=0"
-call :argparse._read_spec ^
-    ^ "n/name:store:_._name" ^
-    ^ "i/ignore-unknown:store_const:_._ignore_unknown=true" ^
-    ^ "s/stop-nonopt:store_const:_._stop_nonopt=true" ^
-    ^ -- || exit /b 2
-call :argparse._validate_specs %* || exit /b 2
-set "_shifts=0"
+call :argparse._read_spec %*
+call :argparse._validate_specs || exit /b 2
+set "_self_shifts=!_shifts!"
 set "_ignore_unknown="
 set "_stop_nonopt=true"
 call :argparse._generate_instructions %* || exit /b 3
-set "_shifts_opts=!_shifts!"
+set /a "_opt_shifts=!_shifts! - !_argc! - !_self_shifts!"
+for %%v in (_ignore_unknown _stop_nonopt) do set "_.%%v="
 set "_._name=argparse"
 call :argparse._exec_instructions || exit /b 3
-set /a "_shifts=!_shifts_opts! - !_argc!"
+set "_shifts=!_opt_shifts!"
 for %%v in (_name _ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
 exit /b 0
 #+++
@@ -42,7 +43,7 @@ set "_specs="
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     call set _value=%%1
     if not defined _value (
-        1>&2 echo argparse: missing -- seperator
+        1>&2 echo argparse: Missing -- seperator
         exit /b 2
     )
     if "!_value!" == "--" (
@@ -50,8 +51,8 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
         exit /b 0
     )
     call set _value=%%~1
-    for /f "tokens=1-2* delims=: " %%o in ("!_value!") do (
-        set "_specs=!_specs!%%o:%%p:%%q!LF!"
+    for /f "tokens=1-2* delims=: " %%b in ("!_value!") do (
+        set "_specs=!_specs!%%b:%%c:%%d!LF!"
     )
     shift /1
     set /a "_shifts+=1"
@@ -63,36 +64,39 @@ exit /b 1
 for /l %%i in (1,1,!_shifts!) do shift /1
 set "_instructions="
 set "_argc=0"
-set "_nonopt_encountered="
+set "_stop_opt_parsing="
 for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     call set _value=%%1
     if not defined _value exit /b 0
     set "_op="
     set "_for_next_use="
     set "_parse_opt="
-    if "!_value:~0,1!" == "-" set "_parse_opt=true"
-    if defined _stop_nonopt (
-        if defined _nonopt_encountered set "_parse_opt="
+    if not defined _stop_opt_parsing if "!_value!" == "--" (
+        set "_stop_opt_parsing=true"
+        set "_op=pass"
+    )
+    if not defined _stop_opt_parsing (
+        if "!_value:~0,1!" == "-" set "_parse_opt=true"
     )
     if defined _parse_opt (
-        for /f "tokens=1-2* delims=:" %%o in ("!_specs!") do ( rem
+        for /f "tokens=1-2* delims=:" %%b in ("!_specs!") do ( rem
         ) & if not defined _op ( rem
-        ) & for /f "tokens=1* delims=/-" %%a in ("%%o") do (
-            if not "%%o" == "%%a-%%b" if "!_value!" == "-%%a" set _op="%%p:%%q"
-            if "!_value!" == "--%%b" set _op="%%p:%%q"
+            for %%f in (%%b) do if "!_value!" == "%%f" set _op="%%c:%%d"
             if defined _op (
-                for %%c in (store append) do if "%%p" == "%%c" (
+                for %%a in (store append) do if "%%c" == "%%a" (
                     set "_for_next_use=true"
                 )
             )
         )
         if not defined _ignore_unknown if not defined _op (
-            1>&2 echo !_name!: unknown option '!_value!'
+            1>&2 echo !_name!: Unknown option '!_value!'
             exit /b 3
         )
     )
     if not defined _op (
-        set "_nonopt_encountered=true"
+        if defined _stop_nonopt (
+            if not defined _stop_opt_parsing set "_stop_opt_parsing=true"
+        )
         set /a "_argc+=1"
         for /f "tokens=1* delims=:" %%a in ("!_specs!") do ( rem
         ) & if not defined _op (
@@ -107,7 +111,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
         set /a "_shifts+=1"
         call set _value=%%1
         if not defined _value (
-            1>&2 echo !_name!: expected argument for last option
+            1>&2 echo !_name!: Expected argument for last option
             exit /b 2
         )
     )
@@ -115,29 +119,29 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     shift /1
     set /a "_shifts+=1"
 )
-echo !_name!: too many arguments
+echo !_name!: Too many arguments
 exit /b 1
 #+++
 
 :argparse._exec_instructions [depth] {_instructions}
 (
     for /l %%i in (1,1,%~1,1) do goto 2> nul
-    for %%a in (%_instructions%) do ( rem
-    ) & for /f "tokens=1* delims=:" %%p in ("%%~a") do (
-        if /i "%%p" == "append" (
-            call set %%q=^!%%q^! %%1
-            set "%%q=!%%q:^^=^!"
+    for %%i in (%_instructions%) do ( rem
+    ) & for /f "tokens=1* delims=:" %%c in ("%%~i") do (
+        if /i "%%c" == "append" (
+            call set %%d=^!%%d^! %%1
+            set "%%d=!%%d:^^=^!"
         )
-        if /i "%%p" == "store" (
-            call set "%%q=.%%~1"
-            set "%%q=!%%q:^^=^!"
-            set "%%q=!%%q:~1!"
+        if /i "%%c" == "store" (
+            call set "%%d=.%%~1"
+            set "%%d=!%%d:^^=^!"
+            set "%%d=!%%d:~1!"
         )
-        if /i "%%p" == "append_const" (
-            for /f "tokens=1* delims==" %%e in ("%%q") do set "%%e=!%%e!%%f"
+        if /i "%%c" == "append_const" (
+            for /f "tokens=1* delims==" %%v in ("%%d") do set "%%v=!%%v!%%w"
         )
-        if /i "%%p" == "store_const" set "%%q"
-        if /i "%%p" == "shift" shift /1
+        if /i "%%c" == "store_const" set "%%d"
+        if /i "%%c" == "shift" shift /1
     )
     ( call )
 )
@@ -151,66 +155,62 @@ if not defined _specs (
     1>&2 echo argparse: no specs were provided
     exit /b 2
 )
-for /f "tokens=1-2* delims=:" %%o in ("!_specs!") do (
-    set "_flag=%%o"
-    if "!_flag:~0,1!" == "#" (
-        if not "!_flag:~1,1!" == "" (
+set "_all_specs= "
+for /f "tokens=1-2* delims=:" %%b in ("!_specs!") do (
+    set "_spec=%%b"
+    if "!_spec:~0,1!" == "#" (
+        if not "!_all_specs: %%b = !" == "!_all_specs!" (
+            1>&2 echo argparse: Positional argument '%%b' already defined
+            exit /b 2
+        )
+        set "_pos=!_spec:~1!"
+        if defined _pos (
             set "_invalid="
-            if !_flag:~1! LSS 1 set "_invalid=true"
-            if !_flag:~1! GTR 400 set "_invalid=true"
+            if !_pos! LSS 1 set "_invalid=true"
+            if !_pos! GTR 400 set "_invalid=true"
             if defined _invalid (
-                1>&2 echo argparse: parameter number '%%~c' invalid, must be integer ^(1-400^)
+                1>&2 echo argparse: Invalid positional argument '%%b'
                 exit /b 2
             )
         )
-    ) else (
-        set "_short_opt=!_flag:~0,1!"
-        for %%c in ("!_short_opt!") do if "!_alphanum:%%~c=!" == "!_alphanum!" (
-            1>&2 echo argparse: short flag '%%~c' invalid, must be alphanum
+        set "_all_specs=!_all_specs!%%b "
+    ) else for %%o in (%%b) do (
+        if not "!_all_specs: %%o = !" == "!_all_specs!" (
+            1>&2 echo argparse: Flag '%%o' already defined
             exit /b 2
         )
-        set "_invalid=true"
-        set "_modifier=!_flag:~1,1!"
-        for %%m in ("" "/" "-") do if "!_modifier!" == %%m set "_invalid="
-        if defined _invalid (
-            1>&2 echo argparse: invalid option modifier '!_modifier!'
+        set "_flag=%%o"
+        for /f "tokens=* delims=-" %%f in ("!_flag!") do set "_flag=%%f"
+        if "!_flag!" == "%%o" set "_flag="
+        if not defined _flag (
+            1>&2 echo argparse: Invalid flag '%%o'
             exit /b 2
         )
-        set "_invalid=true"
-        for /f "tokens=1* delims=/-" %%a in ("%%o") do (
-            for %%s in ("%%a" "%%a/%%b" "%%a-%%b") do if "!_flag!" == %%s set "_invalid="
-        )
-        if defined _invalid (
-            1>&2 echo argparse: invalid option spec '%%o'
-            exit /b 2
-        )
+        set "_all_specs=!_all_specs!%%o "
     )
     set "_invalid=true"
-    for %%c in (
+    for %%a in (
         store store_const append append_const
-    ) do if "%%c" == "%%p" set "_invalid="
+    ) do if "%%c" == "%%a" set "_invalid="
     if defined _invalid (
-        1>&2 echo argparse: invalid action '%%p'
+        1>&2 echo argparse: Invalid action '%%c'
         exit /b 2
     )
     set "_invalid="
-    for /f "tokens=1* delims==" %%a in ("%%q.") do (
-        if "%%a" == "." (
-            1>&2 echo argparse: no variable given to store result
+    for /f "tokens=1* delims==" %%v in ("%%d.") do (
+        if "%%v" == "." (
+            1>&2 echo argparse: Spec '%%b' have no destination variable
             exit /b 2
         )
-        for %%c in (store append) do if "%%c" == "%%p" (
-            if not "%%b" == "" set "_invalid=true"
-        )
-        if defined _invalid (
-            1>&2 echo argparse: action '%%p' must not set any value
+        set "_needs_value=?"
+        for %%a in (store append) do if "%%c" == "%%a" set "_needs_value="
+        for %%a in (store_const append_const) do if "%%c" == "%%a" set "_needs_value=true"
+        if defined _needs_value if "%%w" == "" (
+            1>&2 echo argparse: Spec '%%b' with action '%%c' requires a value to set
             exit /b 2
         )
-        for %%c in (store_const append_const) do if "%%c" == "%%p" (
-            if "%%b" == "" set "_invalid=true"
-        )
-        if defined _invalid (
-            1>&2 echo argparse: action '%%p' requires a value to set
+        if not defined _needs_value if not "%%w" == "" (
+            1>&2 echo argparse: Spec '%%b' with action '%%c' must not set any value
             exit /b 2
         )
     )
