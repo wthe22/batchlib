@@ -354,14 +354,6 @@ echo Recommend (+!p_recommends!)
 exit /b 0
 
 
-:doc.demo
-@setlocal EnableDelayedExpansion
-@echo off
-set "p_"
-echo a[%*] 1[%1] [%2]
-exit /b
-
-
 :tests.setup
 set "STDERR_REDIRECTION=2> nul"
 for %%v in (
