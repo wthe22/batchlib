@@ -502,6 +502,26 @@ call :argparse ^
 exit /b 0
 
 
+:tests.test_invalidate_multiple_arg_definition
+call :argparse ^
+    ^ "#:store_const     :p_flag_sc=1" ^
+    ^ "#:store_const     :p_flag_sc=2" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_invalidate_multiple_opt_definition
+call :argparse ^
+    ^ "-a,--alpha:store_const     :p_flag_sc=1" ^
+    ^ "-a,--alpha:store_const     :p_flag_sc=2" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail
+)
+exit /b 0
+
+
 :tests.test_ignore_unknown
 if ^"%1^" == "" (
     call :tests.test_ignore_unknown alpha  -r --golf victor
@@ -646,11 +666,21 @@ if not "!result!" == "!expected!" (
 )
 exit /b 0
 
+
+:tests.test_opt_end
+if ^"%1^" == "" (
+    call :tests.test_opt_end --alpha --romeo -- -a -r
+    exit /b
+)
+call :argparse ^
+    ^ "#:append                 :p_argv" ^
+    ^ "-a,--alpha:append_const  :p_opts=a" ^
+    ^ "-r,--romeo:append_const  :p_opts=r" ^
     ^ -- %* || (
     call %unittest% fail "parse failed"
     exit /b 0
 )
-set expected= -v --alpha,argrgv
+set expected= -a -r,ar
 set result=!p_argv!,!p_opts!
 if not "!result!" == "!expected!" (
     call %unittest% fail "expected '!expected!', got '!result!'"
