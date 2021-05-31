@@ -113,7 +113,7 @@ exit /b 0
 set "threshold=200"  milliseconds
 set "expected=1250"  milliseconds
 call :wait.setup_macro
-call :wait.calibrate || set "wait._increment="
+call :wait.calibrate > nul || set "wait._increment="
 exit /b 0
 
 
