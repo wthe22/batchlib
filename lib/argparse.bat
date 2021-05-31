@@ -8,19 +8,28 @@ setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-call :argparse._read_opts ^
-    ^ "-n,--name:store                  :_._name" ^
-    ^ "-i,--ignore-unknown :store_const :_._ignore_unknown=true" ^
-    ^ "-s,--stop-nonopt:store_const     :_._stop_nonopt=true" ^
-    ^ -- %* || exit /b 2
+call :argparse._read_opts %* || exit /b 2
 call :argparse._read_spec %* || exit /b 2
 call :argparse._validate_specs || exit /b 2
 call :argparse._generate_instructions %* || exit /b 3
-call :argparse._exec_instructions 2 || exit /b 3
+call :argparse._exec_instructions || exit /b 3
 exit /b 0
 #+++
 
 :argparse._read_opts %* -> {_shifts}
+set "_._name=argparse"
+for %%v in (_ignore_unknown _stop_nonopt) do set "_.%%v="
+call :argparse._read_opts._parse ^
+    ^ "-n,--name:store                  :_._name" ^
+    ^ "-i,--ignore-unknown :store_const :_._ignore_unknown=true" ^
+    ^ "-s,--stop-nonopt:store_const     :_._stop_nonopt=true" ^
+    ^ -- %*
+set "_shifts=!_opt_shifts!"
+for %%v in (_name _ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
+exit /b 0
+#+++
+
+:argparse._read_opts._parse %* -> {_shifts}
 set "_shifts=0"
 call :argparse._read_spec %*
 call :argparse._validate_specs || exit /b 2
@@ -29,11 +38,7 @@ set "_ignore_unknown="
 set "_stop_nonopt=true"
 call :argparse._generate_instructions %* || exit /b 3
 set /a "_opt_shifts=!_shifts! - !_argc! - !_self_shifts!"
-for %%v in (_ignore_unknown _stop_nonopt) do set "_.%%v="
-set "_._name=argparse"
 call :argparse._exec_instructions || exit /b 3
-set "_shifts=!_opt_shifts!"
-for %%v in (_name _ignore_unknown _stop_nonopt) do set "%%v=!_.%%v!"
 exit /b 0
 #+++
 
@@ -123,9 +128,9 @@ echo !_name!: Too many arguments
 exit /b 1
 #+++
 
-:argparse._exec_instructions [depth] {_instructions}
+:argparse._exec_instructions {_instructions}
 (
-    for /l %%i in (1,1,%~1,1) do goto 2> nul
+    for /l %%i in (1,1,2) do goto 2> nul
     for %%i in (%_instructions%) do ( rem
     ) & for /f "tokens=1* delims=:" %%c in ("%%~i") do (
         if /i "%%c" == "append" (
