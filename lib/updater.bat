@@ -7,11 +7,11 @@ exit /b
 setlocal EnableDelayedExpansion
 for %%v in (_assume_yes _query_only _force _main_url _alt_url) do set "%%v="
 call :argparse ^
-    ^ "[]1:store                    :_this" ^
-    ^ "n/notify-only:store_const    :_notify_only=true" ^
-    ^ "y/yes:store_const            :_assume_yes=true" ^
-    ^ "f/force:store_const          :_force=true" ^
-    ^ "d/download-url:store         :_main_url" ^
+    ^ "#1:store                     :_this" ^
+    ^ "-n,--notify-only:store_const :_notify_only=true" ^
+    ^ "-y,--yes:store_const         :_assume_yes=true" ^
+    ^ "-f,--force:store_const       :_force=true" ^
+    ^ "-d,--download-url:store      :_main_url" ^
     ^ -- %* || exit /b 2
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )

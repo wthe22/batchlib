@@ -13,12 +13,12 @@ set "unittest.self_args=-c"
 set "unittest.default_output_macro=echo"
 set "unittest.output_macro=unittest.default_output_macro"
 call :argparse ^
-    ^ "[]1:store                :unittest.target" ^
-    ^ "f/failfast:store_const   :unittest.fail_fast=true" ^
-    ^ "p/pattern:store          :unittest.pattern" ^
-    ^ "a/target-args:store      :unittest.target_args" ^
-    ^ "s/self-args:store        :unittest.self_args" ^
-    ^ "o/output:store           :unittest.output_macro" ^
+    ^ "#1:store                 :unittest.target" ^
+    ^ "-f,--failfast:store_const:unittest.fail_fast=true" ^
+    ^ "-p,--pattern:store       :unittest.pattern" ^
+    ^ "-a,--target-args:store   :unittest.target_args" ^
+    ^ "-s,--self-args:store     :unittest.self_args" ^
+    ^ "-o,--output:store        :unittest.output_macro" ^
     ^ -- %* || exit /b 3
 call :unittest._setup || (
     1>&2 echo%0: failed to setup tmp dir

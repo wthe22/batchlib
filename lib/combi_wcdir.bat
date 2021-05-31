@@ -9,12 +9,12 @@ set "_list_dir=true"
 set "_list_file=true"
 set "_seperator="
 call :argparse ^
-    ^ "[]1:store                :_return_var" ^
-    ^ "[]2:store                :_path1" ^
-    ^ "[]3:store                :_path2" ^
-    ^ "s/seperator:store        :_seperator_var" ^
-    ^ "f/file:store_const      :_list_file=" ^
-    ^ "d/directory:store_const :_list_dir=" ^
+    ^ "#1:store                     :_return_var" ^
+    ^ "#2:store                     :_path1" ^
+    ^ "#3:store                     :_path2" ^
+    ^ "-s,--seperator:store         :_seperator_var" ^
+    ^ "-f,--file:store_const        :_list_file=" ^
+    ^ "-d,--directory:store_const   :_list_dir=" ^
     ^ -- %* || exit /b 2
 call :capchar LF NL
 for %%v in (_path1 _path2) do (

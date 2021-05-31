@@ -7,11 +7,11 @@ exit /b
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_require_attrib  _require_exist) do set "%%v="
 call :argparse ^
-    ^ "[]1:store                :_path_var" ^
-    ^ "e/exist:store_const      :_require_exist=true" ^
-    ^ "n/not-exist:store_const  :_require_exist=false" ^
-    ^ "f/file:store_const       :_require_attrib=-" ^
-    ^ "d/directory:store_const  :_require_attrib=d" ^
+    ^ "#1:store                     :_path_var" ^
+    ^ "-e,--exist:store_const       :_require_exist=true" ^
+    ^ "-n,--not-exist:store_const   :_require_exist=false" ^
+    ^ "-f,--file:store_const        :_require_attrib=-" ^
+    ^ "-d,--directory:store_const   :_require_attrib=d" ^
     ^ -- %* || exit /b 2
 set "_path=!%_path_var%!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"

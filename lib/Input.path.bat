@@ -10,15 +10,15 @@ for %%v in (
     _check_options
 ) do set "%%v="
 call :argparse ^
-    ^ "[]1:store                :_return_var" ^
-    ^ "m/message:store          :_message" ^
-    ^ "b/base-dir:store         :_base_dir" ^
-    ^ "o/optional:store_const   :_optional=true" ^
-    ^ "w/warn-overwrite:store_const :_warn_overwrite=true" ^
-    ^ "e/exist:append_const     :_check_options= -e" ^
-    ^ "n/not-exist:append_const :_check_options= -n" ^
-    ^ "f/file:append_const      :_check_options= -f" ^
-    ^ "d/directory:append_const :_check_options= -d" ^
+    ^ "#1:store                         :_return_var" ^
+    ^ "-m,--message:store               :_message" ^
+    ^ "-b,--base-dir:store              :_base_dir" ^
+    ^ "-o,--optional:store_const        :_optional=true" ^
+    ^ "-w,--warn-overwrite:store_const  :_warn_overwrite=true" ^
+    ^ "-e,--exist:append_const          :_check_options= -e" ^
+    ^ "-n,--not-exist:append_const      :_check_options= -n" ^
+    ^ "-f,--file:append_const           :_check_options= -f" ^
+    ^ "-d,--directory:append_const      :_check_options= -d" ^
     ^ -- %* || exit /b 2
 if defined _base_dir cd /d "!_base_dir!"
 if not defined _message (

@@ -7,11 +7,11 @@ exit /b
 setlocal EnableDelayedExpansion
 for %%v in (_return_var _message _range _as_is) do set "%%v="
 call :argparse ^
-    ^ "[]1:store                :_return_var" ^
-    ^ "m/message:store          :_message" ^
-    ^ "o/optional:store_const   :_optional=true" ^
-    ^ "r/range:store            :_range" ^
-    ^ "a/as-is:store_const      :_as_is=true" ^
+    ^ "#1:store                 :_return_var" ^
+    ^ "-m,--message:store       :_message" ^
+    ^ "-o,--optional:store_const:_optional=true" ^
+    ^ "-r,--range:store         :_range" ^
+    ^ "-a,--as-is:store_const   :_as_is=true" ^
     ^ -- %* || exit /b 2
 if not defined _message (
     set "_message=Input !_return_var!"

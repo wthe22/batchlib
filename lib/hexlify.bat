@@ -8,9 +8,9 @@ setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_input_file _output_file) do set "%%v="
 set "_eol=0d 0a"
 call :argparse ^
-    ^ "[]1:store    :_input_file" ^
-    ^ "[]2:store    :_output_file" ^
-    ^ "e/eol:store  :_eol" ^
+    ^ "#1:store         :_input_file" ^
+    ^ "#2:store         :_output_file" ^
+    ^ "-e,--eol:store   :_eol" ^
     ^ -- %* || exit /b 2
 for %%v in (_input_file _output_file) do for %%f in ("!%%v!") do set "%%v=%%~ff"
 call :strlen _eol_len _eol

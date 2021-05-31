@@ -22,8 +22,8 @@ for %%x in (txt hex) do (
 )
 for %%v in (_init_only  _list_names) do set "%%v="
 call :argparse ^
-    ^ "i/initialize:store_const :_init_only=true" ^
-    ^ "n/name:store_const       :_list_names=true" ^
+    ^ "-i,--initialize:store_const  :_init_only=true" ^
+    ^ "-n,--name:store_const        :_list_names=true" ^
     ^ -- %* || exit /b 2
 rem Convert to hex and format
 call :hexlify "latest.txt" "latest.hex.tmp"

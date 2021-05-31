@@ -9,11 +9,11 @@ for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
 set "_no_value=N"
 call :argparse ^
-    ^ "[]1:store        :_return_var" ^
-    ^ "m/message:store  :_message" ^
-    ^ "y/yes:store      :_yes_value" ^
-    ^ "n/no:store       :_no_value" ^
-    ^ "d/default:store  :_default" ^
+    ^ "#1:store             :_return_var" ^
+    ^ "-m,--message:store   :_message" ^
+    ^ "-y,--yes:store       :_yes_value" ^
+    ^ "-n,--no:store        :_no_value" ^
+    ^ "-d,--default:store   :_default" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!? [y/n] "
 call :Input.yesno._loop || exit /b 4

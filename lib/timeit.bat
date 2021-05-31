@@ -35,10 +35,10 @@ exit /b 0
     for %%v in (_as_macro _loops) do set "%%v="
     set "_repeat=5"
     call :argparse ^
-        ^ "[]1:store                :_code" ^
-        ^ "m/as-macro:store_const   :_as_macro=true" ^
-        ^ "n/number:store           :_loops" ^
-        ^ "r/repeat:store           :_repeat" ^
+        ^ "#1:store                 :_code" ^
+        ^ "-m,--as-macro:store_const:_as_macro=true" ^
+        ^ "-n,--number:store        :_loops" ^
+        ^ "-r,--repeat:store        :_repeat" ^
         ^ -- %* || exit /b 2
 )
 exit /b 1

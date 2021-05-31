@@ -7,9 +7,9 @@ exit /b
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message _require_filled) do set "%%v="
 call :argparse ^
-    ^ "[]1:store            :_return_var" ^
-    ^ "m/message:store      :_message" ^
-    ^ "f/filled:store_const :_require_filled=true" ^
+    ^ "#1:store                 :_return_var" ^
+    ^ "-m,--message:store       :_message" ^
+    ^ "-f,--filled:store_const  :_require_filled=true" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!: "
 call :Input.string._loop || exit /b 4

@@ -8,9 +8,9 @@ setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_msg_is_set _message _allow_wildcard _check_options) do set "%%v="
 for %%v in (_return_var _message _range _as_is) do set "%%v="
 call :argparse ^
-    ^ "[]1:store                    :_return_var" ^
-    ^ "m/message:store              :_message" ^
-    ^ "w/allow-wildcard:store_const :_allow_wildcard=true" ^
+    ^ "#1:store                         :_return_var" ^
+    ^ "-m,--message:store               :_message" ^
+    ^ "-w,--allow-wildcard:store_const  :_allow_wildcard=true" ^
     ^ -- %* || exit /b 2
 if defined _allow_wildcard set "_check_options= --wildcard"
 if not defined _message (
