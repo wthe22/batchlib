@@ -54,7 +54,7 @@ for /l %%r in (!_start_repeat!,1,!_repeat!) do (
         call :difftime _result "!time!" "!_start_time!"
         if %%r LEQ 0 (
             if !_result! LSS !_min_time! (
-                set /a "_loops=!_loops! * !_min_time!1 / !_result!1"
+                set /a "_loops=!_loops! * !_min_time! / (!_result! + 1)"
                 set /a "_loops=1!_loops! - 9!_loops:~1!"
             )
         ) else if !_result! LSS !_best_time! set "_best_time=!_result!"
