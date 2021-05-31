@@ -110,40 +110,40 @@ exit /b 0
 
 
 :tests.setup
+set "threshold=200"  milliseconds
+set "expected=1250"  milliseconds
+call :wait.setup_macro
+call :wait.calibrate || set "wait._increment="
+exit /b 0
+
+
 :tests.teardown
 exit /b 0
 
 
-:tests.test_accuracy
-set "threshold=200"  milliseconds
-set "test_delay=1250"  milliseconds
-
-call :wait.setup_macro
-call :wait.calibrate > nul || (
-    call %unittest% fail "Calibration failed"
-    exit /b 0
-)
-for %%m in (macro call) do (
-    set "start_time=!time!"
-    call :tests.using_%%m
-    call :difftime time_taken "!time!" "!start_time!"
-    set /a "time_taken*=10"
-    set /a "inaccuracy=!time_taken! - !test_delay!"
-    set /a "fail=!inaccuracy!/!threshold!"
-    if not "!fail!" == "0" (
-        call %unittest% fail "in '%%m' mode, given threshold '!threshold!', expected '!test_delay!', got '!time_taken!'"
-    )
+:tests.test_macro_accuracy
+set "start_time=!time!"
+for %%t in (!expected!) do %wait%
+call :difftime result "!time!" "!start_time!"
+set /a "result*=10"
+set /a "inaccuracy=!result! - !expected!"
+set /a "fail=!inaccuracy!/!threshold!"
+if not "!fail!" == "0" (
+    call %unittest% fail "given threshold '!threshold!', expected '!expected!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.using_macro
-for %%t in (!test_delay!) do %wait%
-exit /b 0
-
-
-:tests.using_call
-call :wait !test_delay!
+:tests.test_call_accuracy
+set "start_time=!time!"
+call :wait !expected!
+call :difftime result "!time!" "!start_time!"
+set /a "result*=10"
+set /a "inaccuracy=!result! - !expected!"
+set /a "fail=!inaccuracy!/!threshold!"
+if not "!fail!" == "0" (
+    call %unittest% fail "given threshold '!threshold!', expected '!expected!', got '!result!'"
+)
 exit /b 0
 
 
