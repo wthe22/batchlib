@@ -254,20 +254,18 @@ exit /b 0
 ::  PARSING SPECIFACTIONS
 ::      Each parsing specification is a string composed of:
 ::
-::          <SHORT_FLAG>[</ or -><LONG_FLAG>]:<ACTION>:<VARIABLE>[=CONST]
+::          <POSITION or FLAG>:<ACTION>:<VARIABLE>[=CONST]
 ::
-::      SHORT_FLAG
-::          A short flag letter (which is mandatory). It must be an alphanumeric
-::          character.
+::      POSITION
+::          The position number for positional argument (e.g. #1, #2, ...),
+::          with each flag seperated by comma. Positional argument starts with
+::          hashtag, followed by the position number (starts from 1). To capture
+::          all positional arguments, use '#' only.
 ::
-::       / or -
-::          Use '/' if the short flag can be used.
-::          Use '-' if it should not be exposed as a valid short flag.
-::              (i.e. only long flags can be used)
-::
-::      LONG_FLAG
-::          A long flag name which is optional. If not present then only the
-::          short flag letter can be used.
+::      FLAG
+::          The flags to capture, with each flag seperated by comma. Flags can be
+::          a short flag (e.g. -s), or a long flag (e.g. --hello, --hello-world).
+::          Valid characters are alphanumeric and dash only.
 ::
 ::      ACTION
 ::          Specify how the arguments should be handled. Possible actions are:
