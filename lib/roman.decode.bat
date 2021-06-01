@@ -66,7 +66,7 @@ for %%a in (
     set "expected=%%b"
     call :roman.decode result "!given!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

@@ -840,7 +840,7 @@ for %%l in (!Library.all!) do (
     for %%c in (!Library_%%l.category!) do (
         if defined Category_%%c.name (
             set "_category=!_category! %%c"
-        ) else ( 1>&2 echo%0: unknown category '%%c' in %%l^(^) )
+        ) else ( 1>&2 echo%0: Unknown category '%%c' in %%l^(^) )
     )
     if not defined _category set "_category=!Category.default!"
     for %%c in (!_category!) do (
@@ -921,7 +921,7 @@ for %%l in (!_library!) do (
     call :LibBuild.build._template "!lib_dir!\%%l.bat" "!_dep!" > "%%l.bat.tmp" && (
         move /y "%%l.bat.tmp" "!build_dir!\%%l.bat" > nul
     ) || (
-        1>&2 echo%0: could not build %%l^(^)
+        1>&2 echo%0: Could not build %%l^(^)
         del /f /q "%%l.bat.tmp"
     )
 )
@@ -970,7 +970,7 @@ for %%f in ("!lib_dir!\*.bat") do (
     set "_tokens="
     for %%_ in (!_filename!) do set "_tokens=!_tokens!1"
 ) & if not "!_tokens!" == "1" (
-    1>&2 echo%0: invalid function name: '%%~nf'
+    1>&2 echo%0: Invalid function name: '%%~nf'
 ) else set "_result=!_result!!_filename! "
 for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
     endlocal
@@ -990,7 +990,7 @@ for %%l in (!Library.all!) do (
         set "Library_%%l.args=%%l   %%b"
     )
     if not defined Library_%%l.args (
-        1>&2 echo%0: could not read arguments for '%%l'
+        1>&2 echo%0: Could not read arguments for '%%l'
     )
 )
 exit /b 0
@@ -1005,7 +1005,7 @@ for /f "usebackq tokens=1*" %%a in ("%~f0") do ( rem
 )
 for %%l in (!Library.all!) do (
     if not defined Library_%%l.args (
-        1>&2 echo%0: could not read arguments for '%%l'
+        1>&2 echo%0: Could not read arguments for '%%l'
     )
 )
 exit /b 0
@@ -1015,7 +1015,7 @@ exit /b 0
 for %%l in (!Library.all!) do (
     set "Library_%%l.install_requires=?"
     call "!lib_dir!\%%l.bat" :lib.build_system "Library_%%l." 2> nul || (
-        1>&2 echo%0: failed to call lib.build_system^(^) in '%%l'
+        1>&2 echo%0: Failed to call lib.build_system^(^) in '%%l'
     )
 )
 exit /b 0
@@ -1063,13 +1063,13 @@ for %%l in (%_lib%) do ( rem
     set "_stack=%%a[%%b] !_stack!"
     set "_visit=true"
     if not "!_stack: %%a[%%b] =!" == "!_stack!" (
-        1>&2 echo%0: cyclic dependencies detected in stack: !_stack!
+        1>&2 echo%0: Cyclic dependencies detected in stack: !_stack!
         set /a "_errorlevel|=0x4"
         set "_visit="
     )
     if not "!_result: %%a[%%b] =!" == "!_result!" set "_visit="
     if not defined Library_%%a.install_requires (
-        1>&2 echo%0: failed to resolve dependency in stack: !_stack!
+        1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
         set /a "_errorlevel|=0x2"
         set "_visit="
     )
@@ -1564,7 +1564,7 @@ call :Library.read_names
 set "result=!Library.all!"
 set "expected= hi "
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -1581,7 +1581,7 @@ call :Library.read_args
 set "result=!Library_hi.args!"
 set "expected=hi   <name> [message]"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -1599,7 +1599,7 @@ set "given=table wool bed"
 set "expected= table stick bed plank wool "
 call :Library.depends result "!given!"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+    call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -1614,7 +1614,7 @@ set "given=stick stick[extra]"
 set "expected= stick table plank "
 call :Library.depends result "!given!"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+    call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -1625,7 +1625,7 @@ set "Library_chicken.install_requires=egg"
 set "Library_egg.install_requires=chicken"
 set "given=chicken egg"
 call :Library.depends result "!given!" 2> nul && (
-    call %unittest% fail "given '!given!', expected failure, got '!result!'"
+    call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
 
@@ -1635,7 +1635,7 @@ set "Library.all=magic"
 set "Library_magic.install_requires="
 set "given=magic"
 call :Library.depends result "!given!" 2> nul && (
-    call %unittest% fail "given '!given!', expected failure, got '!result!'"
+    call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
 
@@ -1649,7 +1649,7 @@ set "given=eng"
 call :Library.search result "eng"
 set "expected= stick table "
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 

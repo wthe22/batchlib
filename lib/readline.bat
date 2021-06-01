@@ -10,7 +10,7 @@ set "_range=%~2"
 set "_offset=%~3"
 set "_substr=%~4"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :readline._adjust_range || ( 1>&2 echo%0: invalid arguments & exit /b 2 )
+call :readline._adjust_range || ( 1>&2 echo%0: Invalid arguments & exit /b 2 )
 if defined _end if !_start! GTR !_end! exit /b 0
 if !_start! GTR 1 (
     set /a "_skip=!_start! - 1"
@@ -120,7 +120,7 @@ set expected=2;3;4;
 set "result="
 for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -131,7 +131,7 @@ set expected=3;
 set "result="
 for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -142,7 +142,7 @@ set expected=2;3;4;
 set "result="
 for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -153,7 +153,7 @@ set expected=2;3;4;5;
 set "result="
 for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 

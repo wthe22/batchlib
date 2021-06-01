@@ -251,7 +251,7 @@ for %%a in (
     call :parse_version result !given!
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -315,7 +315,7 @@ for %%a in (
     set "result=!errorlevel!"
     set "expected=!return.%%b!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

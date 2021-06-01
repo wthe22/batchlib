@@ -98,7 +98,7 @@ for %%a in (%*) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "expected=%%b"
     call :bytes.parse result "!given!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

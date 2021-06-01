@@ -99,7 +99,7 @@ for %%a in (
     call :diffbin result source %%c
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "expected '!expected!', got '!result!'"
+        call %unittest% fail "Expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

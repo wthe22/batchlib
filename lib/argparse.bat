@@ -157,7 +157,7 @@ exit /b 2
 setlocal EnableDelayedExpansion
 set "_alphanum=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 if not defined _specs (
-    1>&2 echo argparse: no specs were provided
+    1>&2 echo argparse: No specs were provided
     exit /b 2
 )
 set "_all_specs= "
@@ -375,7 +375,7 @@ exit /b 0
 :tests.test_no_arg_error
 call :argparse ^
     ^ %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with no arguments"
+    call %unittest% fail "Success with no arguments"
 )
 exit /b 0
 
@@ -385,7 +385,7 @@ call :argparse ^
     ^ "-a:store:a" ^
     ^ "-b:store:b" ^
     ^ %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with specs"
+    call %unittest% fail "Success with specs"
 )
 exit /b 0
 
@@ -393,7 +393,7 @@ exit /b 0
 :tests.test_no_spec_error
 call :argparse ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with no specs"
+    call %unittest% fail "Success with no specs"
 )
 exit /b 0
 
@@ -410,7 +410,7 @@ call :argparse ^
     ^ "--append:append          :p_flag_a" ^
     ^ "--hello-world:store      :p_flag_s" ^
     ^ -- || (
-    call %unittest% fail "validate correct syntax"
+    call %unittest% fail "Validate correct syntax"
 )
 exit /b 0
 
@@ -419,7 +419,7 @@ exit /b 0
 call :argparse ^
     ^ "#:store_const" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success using function without variable defined"
+    call %unittest% fail "Success using function without variable defined"
 )
 exit /b 0
 
@@ -428,7 +428,7 @@ exit /b 0
 call :argparse ^
     ^ "#z:store_const  :p_argv=" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with invalid argv index"
+    call %unittest% fail "Success with invalid argv index"
 )
 exit /b 0
 
@@ -437,7 +437,7 @@ exit /b 0
 call :argparse ^
     ^ "z:store_const  :p_argv=" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with invalid argv index syntax"
+    call %unittest% fail "Success with invalid argv index syntax"
 )
 exit /b 0
 
@@ -447,7 +447,7 @@ call :argparse ^
     ^ "-:store_const    :p_flag_sc=true" ^
     ^ "--:store_const    :p_flag_sc=true" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with invalid short flag letter"
+    call %unittest% fail "Success with invalid short flag letter"
 )
 exit /b 0
 
@@ -456,7 +456,7 @@ exit /b 0
 call :argparse ^
     ^ "#:hello    :p_flag_sc=true" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success with invalid short flag letter"
+    call %unittest% fail "Success with invalid short flag letter"
 )
 exit /b 0
 
@@ -465,7 +465,7 @@ exit /b 0
 call :argparse ^
     ^ "#:append    :p_flag_a=invalid" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success using append with undesirable CONST"
+    call %unittest% fail "Success using append with undesirable CONST"
 )
 exit /b 0
 
@@ -474,7 +474,7 @@ exit /b 0
 call :argparse ^
     ^ "#:store     :p_flag_s=invalid" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success using store with undesirable CONST"
+    call %unittest% fail "Success using store with undesirable CONST"
 )
 exit /b 0
 
@@ -483,7 +483,7 @@ exit /b 0
 call :argparse ^
     ^ "#:append_const  :p_flag_ac" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success using append_const without defining CONST"
+    call %unittest% fail "Success using append_const without defining CONST"
 )
 exit /b 0
 
@@ -492,7 +492,7 @@ exit /b 0
 call :argparse ^
     ^ "#:store_const     :p_flag_sc" ^
     ^ -- %STDERR_REDIRECTION% && (
-    call %unittest% fail "success using store_const without defining CONST"
+    call %unittest% fail "Success using store_const without defining CONST"
 )
 exit /b 0
 
@@ -525,13 +525,13 @@ if ^"%1^" == "" (
 call :argparse --ignore-unknown ^
     ^ "#:append    :p_argv" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= alpha -r --golf victor
 set result=!p_argv!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -549,7 +549,7 @@ call :argparse --name "!expected!" ^
 )
 for /f "usebackq tokens=1 delims=:" %%a in ("error_msg") do set "result=%%a"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -564,13 +564,13 @@ call :argparse --stop-nonopt ^
     ^ "-a,--alpha:append_const  :p_opt_a=a" ^
     ^ "-r,--romeo:append_const  :p_opt_r=r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= alpha --romeo -r,a,
 set result=!p_argv!,!p_opt_a!,!p_opt_r!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -583,13 +583,13 @@ if ^"%1^" == "" (
 call :argparse ^
     ^ "#:append    :p_argv" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= alpha "romeo" "golf" victor
 set result=!p_argv!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -604,13 +604,13 @@ call :argparse ^
     ^ "#2:store    :p_argv2" ^
     ^ "#3:store    :p_argv3" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=alpha,romeo,
 set result=!p_argv1!,!p_argv2!,!p_argv3!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -623,13 +623,13 @@ if ^"%1^" == "" (
 call :argparse ^
     ^ "#:append_const   :p_argc=+1" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=+1+1+1+1
 set result=!p_argc!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -646,13 +646,13 @@ call :argparse ^
     ^ "-g,--golf:append_const   :p_opts=g" ^
     ^ "-v,--victor:append_const :p_opts=v" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= "--alpha" "--romeo" "-g" victor,
 set result=!p_argv!,!p_opts!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -669,13 +669,13 @@ call :argparse --ignore-unknown ^
     ^ "--golf:append_const      :p_opts=g" ^
     ^ "--vic-tor:append_const   :p_opts=v" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= -g -v --alpha,arrgv
 set result=!p_argv!,!p_opts!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -690,13 +690,13 @@ call :argparse ^
     ^ "-a,--alpha:append_const  :p_opts=a" ^
     ^ "-r,--romeo:append_const  :p_opts=r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= -a -r,ar
 set result=!p_argv!,!p_opts!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -710,7 +710,7 @@ call :argparse ^
     ^ "#:append        :p_argv" ^
     ^ "-a,--alpha:store    :p_opts" ^
     ^ -- %* %STDERR_REDIRECTION% && (
-    call %unittest% fail "success for store without expected argument"
+    call %unittest% fail "Success for store without expected argument"
 )
 exit /b 0
 
@@ -724,7 +724,7 @@ call :argparse ^
     ^ "#:append        :p_argv" ^
     ^ "-a,--alpha:append   :p_opts" ^
     ^ -- %* %STDERR_REDIRECTION% && (
-    call %unittest% fail "success for store without expected argument"
+    call %unittest% fail "Success for store without expected argument"
 )
 exit /b 0
 
@@ -739,13 +739,13 @@ call :argparse ^
     ^ "-a,--alpha:store    :p_opt_a" ^
     ^ "-r,--romeo:store    :p_opt_r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=,--alpha,-r
 set result=!p_argv!,!p_opt_a!,!p_opt_r!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -760,13 +760,13 @@ call :argparse ^
     ^ "-a,--alpha:append   :p_opt_a" ^
     ^ "-r,--romeo:append   :p_opt_r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=, --alpha, -r
 set result=!p_argv!,!p_opt_a!,!p_opt_r!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -781,13 +781,13 @@ call :argparse ^
     ^ "-a,--alpha:store_const  :p_opt_a=a" ^
     ^ "-r,--romeo:store_const  :p_opt_r=r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=,a,r
 set result=!p_argv!,!p_opt_a!,!p_opt_r!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -802,13 +802,13 @@ call :argparse ^
     ^ "-a,--alpha:append_const :p_opt_a=a" ^
     ^ "-r,--romeo:append_const :p_opt_r=r" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected=,aa,rr
 set result=!p_argv!,!p_opt_a!,!p_opt_r!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -821,13 +821,13 @@ if ^"%1^" == "" (
 call :argparse ^
     ^ "#:append            :p_argv" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set expected= "^" "*" "?" "&" "=" "-" ";" ":" ""
 set result=!p_argv!
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '^!expected^!', got '^!result^!'"
+    call %unittest% fail "Expected '^!expected^!', got '^!result^!'"
 )
 exit /b 0
 
@@ -858,13 +858,13 @@ call :argparse ^
     ^ "-o,--colon:store            :p_col" ^
     ^ "-n,--null:store             :p_null" ^
     ^ -- %* || (
-    call %unittest% fail "parse failed"
+    call %unittest% fail "Parse failed"
     exit /b 0
 )
 set "expected=,^,*,?,&,=,-,;,:,"
 set "result=!p_argv!,!p_crt!,!p_ast!,!p_qm!,!p_amp!,!p_eq!,!p_dash!,!p_sc!,!p_col!,!p_null!"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '^!p_argv^!', got '^!p_argv^!' + something else"
+    call %unittest% fail "Expected '^!p_argv^!', got '^!p_argv^!' + something else"
 )
 exit /b 0
 

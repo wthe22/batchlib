@@ -142,7 +142,7 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :tests.test_skip
-::  call %unittest% skip "not ready"
+::  call %unittest% skip "Not ready"
 ::  exit /b 0
 ::
 ::  :tests.test_fail

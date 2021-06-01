@@ -145,7 +145,7 @@ for /f "tokens=* delims=" %%a in ("!test_cases!") do ( rem
         set "result=!result! !word!"
     )
     if not "!result!" == "%%c" (
-        call %unittest% fail "given pattern '%%b', expected '%%c', got '!result!'"
+        call %unittest% fail "Given pattern '%%b', expected '%%c', got '!result!'"
     )
 )
 exit /b 0

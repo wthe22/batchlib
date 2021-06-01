@@ -40,11 +40,11 @@ for /f "usebackq tokens=* delims=" %%o in (".coderender._numbered") do (
     setlocal EnableDelayedExpansion
     for /f "tokens=1 delims=:" %%n in ("!_line!") do set "_line_no=%%n"
     set "_line=!_line:*:=!"
-    
+
     set "_group=code"
     if "!_line:~0,4!" == "::  " set "_group=literal"
     if "!_line:~0,3!" == "::" set "_group=literal"
-    
+
     if not "!_group!" == "!_prev_group!" (
         if "!_group!" == "literal" (
             >> ".coderender._code" (

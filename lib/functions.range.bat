@@ -23,7 +23,7 @@ set _search=^
 	^ /c:"^^[!TAB! @]*goto  *.*!CR!*!LF!!CR!*!LF!" ^
     ^ /c:"^^[!TAB! @]*:[^^: ]"
 findstr /n /r !_search! "!_input_file!" > "_tokens" 2> nul || (
-    1>&2 echo%0: cannot open file '!_input_file!' & exit /b 3
+    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 3
 )
 for /f "usebackq tokens=*" %%o in ("_tokens") do ( rem
 ) & for /f "tokens=1 delims=:" %%n in ("%%o") do (
@@ -56,7 +56,7 @@ for %%l in (!_current!) do (
 if "!_missing:~1,1!" == "" (
     set "_missing="
 ) else (
-    1>&2 echo%0: label not found: !_missing!
+    1>&2 echo%0: Label not found: !_missing!
     set "_missing=true"
 )
 for /f "tokens=1* delims=:" %%q in ("Q:!_ranges!") do (
@@ -182,7 +182,7 @@ for %%a in (
     call :functions.range range "basic" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%s"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -199,7 +199,7 @@ for %%a in (
     call :functions.range range "basic" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%t"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -217,7 +217,7 @@ for %%a in (
     call :functions.range range "labels" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%s"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -234,7 +234,7 @@ for %%a in (
     call :functions.range range "joined" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%t"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -250,7 +250,7 @@ for %%a in (
     call :functions.range range "basic" !given! 2> nul
     set "result=!errorlevel!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

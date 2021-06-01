@@ -101,7 +101,7 @@ for %%a in (
     set "result="
     call :expand_url result. %%a
     if not "!result.url!" == "%%~a" (
-        call %unittest% fail "expected '%%~a', got '!result.url!'"
+        call %unittest% fail "Expected '%%~a', got '!result.url!'"
     )
 )
 exit /b 0

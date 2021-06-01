@@ -17,17 +17,17 @@ for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )
 set "_other=!cd!\latest.bat"
 call "!_this!" -c :metadata _this. || (
-    1>&2 echo%0: fail to read metadata & exit /b 3
+    1>&2 echo%0: Fail to read metadata & exit /b 3
 )
 if not defined _main_url set "_main_url=!_this.download_url!"
 if not defined _main_url (
-    1>&2 echo%0: no download url found & exit /b 3
+    1>&2 echo%0: No download url found & exit /b 3
 )
 set "_success="
 call :download_file "!_main_url!" "!_other!" && set "_success=true"
-if not defined _success ( 1>&2 echo%0: download failed & exit /b 4 )
+if not defined _success ( 1>&2 echo%0: Download failed & exit /b 4 )
 call "!_other!" -c :metadata _other. || (
-    1>&2 echo%0: fail to read downloaded metadata & exit /b 5
+    1>&2 echo%0: Fail to read downloaded metadata & exit /b 5
 )
 set "_mismatch="
 if not "!_other.name!" == "!_this.name!" (
@@ -147,7 +147,7 @@ exit /b 0
 
 :tests.test_notify
 if not defined server_is_up (
-    call %unittest% skip "test server is down"
+    call %unittest% skip "Test server is down"
     exit /b 0
 )
 call :updater -n "dummy.bat" > nul || (
@@ -158,7 +158,7 @@ exit /b 0
 
 :tests.test_force_update
 if not defined server_is_up (
-    call %unittest% skip "test server is down"
+    call %unittest% skip "Test server is down"
     exit /b 0
 )
 call :updater -f -y "dummy.bat" > nul || (

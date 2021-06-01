@@ -90,7 +90,7 @@ set /a "time_taken*=10"
 set /a "inaccuracy=!time_taken! - !test_delay!"
 set /a "fail=!inaccuracy!/!threshold!"
 if not "!fail!" == "0" (
-    call %unittest% fail "given threshold '!threshold!', expected '!test_delay!', got '!time_taken!'"
+    call %unittest% fail "Given threshold '!threshold!', expected '!test_delay!', got '!time_taken!'"
 )
 exit /b 0
 

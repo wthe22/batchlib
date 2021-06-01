@@ -87,11 +87,11 @@ for %%a in (
     %*
 ) do for /f "tokens=1* delims== " %%b in (%%a) do (
     call :ftime result %%c || (
-        call %unittest% fail "given '%%c', got failure"
+        call %unittest% fail "Given '%%c', got failure"
     )
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

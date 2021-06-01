@@ -152,7 +152,7 @@ set "char.rab=C:\hello>world"
 set char.dquote=C:\hello"world
 for %%a in (wc colon pipe qm lab rab dquote) do (
     call :check_path char.%%a 2> nul && (
-        call %unittest% fail "unexpected success with invalid character: %%a"
+        call %unittest% fail "Unexpected success with invalid character: %%a"
     )
 )
 exit /b 0
@@ -219,7 +219,7 @@ for %%a in (%*) do ( rem
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c', expected errorlevel '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c', expected errorlevel '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -242,7 +242,7 @@ for %%a in (
     call :check_path result %%c 2> nul
     set "expected=%%c"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "expected '!expected!', got '!result!'"
+        call %unittest% fail "Expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

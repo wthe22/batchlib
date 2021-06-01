@@ -122,7 +122,7 @@ for /f "tokens=1* delims=:" %%a in ("!args!") do (
     call :check_ipv4 %%b
     set "exit_code=!errorlevel!"
     if not "!exit_code!" == "!return.%%a!" (
-        call %unittest% fail "expected %%a for argument '%%b'"
+        call %unittest% fail "Expected %%a for argument '%%b'"
     )
 )
 exit /b 0

@@ -73,7 +73,7 @@ for %%a in (
     set "expected=%%b"
     call :mtime_to_isotime result "%%c"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

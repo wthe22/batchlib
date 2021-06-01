@@ -105,7 +105,7 @@ for %%a in (
     call :list2set "result" %%c
     set "expected=!%%b.output!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%~a', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%~a', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

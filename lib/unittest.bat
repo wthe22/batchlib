@@ -21,11 +21,11 @@ call :argparse ^
     ^ "-o,--output:store        :unittest.output_macro" ^
     ^ -- %* || exit /b 3
 call :unittest._setup || (
-    1>&2 echo%0: failed to setup tmp dir
+    1>&2 echo%0: Failed to setup tmp dir
     exit /b 4
 )
 call :unittest._load_tests || (
-    1>&2 echo%0: failed to load tests
+    1>&2 echo%0: Failed to load tests
     exit /b 4
 )
 %unittest.output% start
@@ -250,7 +250,7 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :tests.test_skip
-::  call %unittest% skip "not ready"
+::  call %unittest% skip "Not ready"
 ::  exit /b 0
 ::
 ::  :tests.test_fail
@@ -276,7 +276,7 @@ exit /b 0
 ::  run "simple:tests.test_success"
 ::  outcome "simple:tests.test_success",success,
 ::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"not ready"
+::  outcome "simple:tests.test_skip",skip,"Not ready"
 ::  run "simple:tests.test_fail"
 ::  outcome "simple:tests.test_fail",fail,"1 + 1 is not 3"
 ::  run "simple:tests.test_error"
@@ -298,7 +298,7 @@ exit /b 0
 ::  run "simple:tests.test_success"
 ::  outcome "simple:tests.test_success",success,
 ::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"not ready"
+::  outcome "simple:tests.test_skip",skip,"Not ready"
 ::  run "simple:tests.test_fail"
 ::  outcome "simple:tests.test_fail",fail,"1 + 1 is not 3"
 ::  fail_fast
@@ -319,7 +319,7 @@ exit /b 0
 ::  run "simple:tests.test_success"
 ::  outcome "simple:tests.test_success",success,
 ::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"not ready"
+::  outcome "simple:tests.test_skip",skip,"Not ready"
 ::  stop
 exit /b 0
 
@@ -386,7 +386,7 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :tests.test_skip
-::  call %unittest% skip "not ready"
+::  call %unittest% skip "Not ready"
 ::  exit /b 0
 exit /b 0
 
@@ -396,7 +396,7 @@ exit /b 0
 ::  mark success
 ::  outcome "dummy:tests.test_success",success,
 ::  run "dummy:tests.test_skip"
-::  outcome "dummy:tests.test_skip",skip,"not ready"
+::  outcome "dummy:tests.test_skip",skip,"Not ready"
 ::  stop
 exit /b 0
 

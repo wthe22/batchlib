@@ -11,7 +11,7 @@ set "_pattern=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
 findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" > "_tokens" 2> nul || (
-    1>&2 echo%0: cannot open file '!_input_file!' & exit /b 3
+    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 3
 )
 set "_parts="
 set "_leftover=:!_pattern!:"
@@ -178,7 +178,7 @@ for %%a in (
     set "expected=%%~a"
     call :functions.match result "left_side" "!given!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -196,7 +196,7 @@ for %%a in (
     set "expected=%%~a"
     call :functions.match result "right_side" "!given!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -218,7 +218,7 @@ for /f "tokens=1* delims=: " %%a in ("!test_cases!") do (
     set "result=0"
     for %%l in (!labels!) do set /a "result+=1"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -234,7 +234,7 @@ for %%t in (
     set "result=!errorlevel!"
     set "expected=!return.%%a!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -247,7 +247,7 @@ call :functions.match labels "for_unittest" "tests*.test_*"
 set "result=0"
 for %%l in (!labels!) do set /a "result+=1"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 

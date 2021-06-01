@@ -10,7 +10,7 @@ set LF=^
 %=REQUIRED=%
 for %%v in (_content _value) do (
     if defined endlocal.%%v (
-        ( 1>&2 echo error: interal variable 'endlocal.%%v' is used & exit /b 2 )
+        ( 1>&2 echo%0: Interal variable 'endlocal.%%v' is used & exit /b 2 )
     )
 )
 for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (

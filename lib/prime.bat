@@ -100,7 +100,7 @@ for %%a in (
     call :prime result !given!
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

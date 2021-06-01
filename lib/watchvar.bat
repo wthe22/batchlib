@@ -193,7 +193,7 @@ set "var_spec="
 set /a "result_length-=1"
 set "expected_length=2725"
 if not "!result_length!" == "!expected_length!" (
-    call %unittest% error "expected test character length '!expected_length!', got '!result_length!'"
+    call %unittest% error "Expected test character length '!expected_length!', got '!result_length!'"
     exit /b 0
 )
 set "expected_start_count=0"
@@ -229,15 +229,15 @@ for /f "usebackq tokens=1* delims=:" %%a in ("changes") do (
     )
 )
 if not "!start_count!" == "!expected_start_count!" (
-    call %unittest% fail "start: expected '!expected_start_count!', got '!start_count!'"
+    call %unittest% fail "Start: expected '!expected_start_count!', got '!start_count!'"
 )
 set /a "expected_end_count=!expected_start_count! + %~1 - %~3"
 if not "!end_count!" == "!expected_end_count!" (
-    call %unittest% fail "end: expected '!expected_end_count!', got '!end_count!'"
+    call %unittest% fail "End: expected '!expected_end_count!', got '!end_count!'"
 )
 set "expected=[+%~1/~%~2/-%~3]"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 

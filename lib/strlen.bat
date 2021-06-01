@@ -76,7 +76,7 @@ for %%l in (
     call :strlen result var
     set "expected=%%l"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "expected '!expected!', got '!result!'"
+        call %unittest% fail "Expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

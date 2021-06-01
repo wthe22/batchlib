@@ -92,7 +92,7 @@ exit /b 0
     echo AQBdAAAAKQAAAAAA
 )
 certutil -decode "sample.zip.b64" "sample.zip" > nul || (
-    call %unittest% error "fail to create zip file"
+    call %unittest% error "Fail to create zip file"
     exit /b 0
 )
 if exist "success.txt" del /f /q "success.txt"

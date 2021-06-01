@@ -59,11 +59,11 @@ for %%a in (
     set "given=%%c"
     set "result=!given!"
     call :to_capital result || (
-        call %unittest% fail "given '!given!', got failure"
+        call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

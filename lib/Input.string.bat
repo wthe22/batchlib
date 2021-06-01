@@ -102,7 +102,7 @@ for %%a in (
     call :Input.string result %%d < "input" > nul
     set "expected=!text_%%b!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c' and '%%d', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c' and '%%d', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -123,7 +123,7 @@ for %%a in (
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c' and '%%d', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c' and '%%d', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

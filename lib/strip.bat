@@ -75,7 +75,7 @@ for %%a in (
     set "expected=%%b"
     set "expected=!expected:~1!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -93,7 +93,7 @@ for %%a in (
     set "expected=%%b"
     set "expected=!expected:~1!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!' and '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!' and '%%c', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

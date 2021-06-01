@@ -143,7 +143,7 @@ for %%a in (
     call :Input.yesno result < "input" > nul
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -167,7 +167,7 @@ for %%a in (
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%c', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -178,7 +178,7 @@ for %%a in (y n) do (
     call :Input.yesno -%%a "" result < "enter_%%a" > nul
     set "expected="
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%a', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%a', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
@@ -193,12 +193,12 @@ for %%a in (
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%d', expected value '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%d', expected value '!expected!', got '!result!'"
     )
     set "result=!value!"
     set "expected=%%c"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%d', expected errorlevel '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%d', expected errorlevel '!expected!', got '!result!'"
     )
 )
 exit /b 0

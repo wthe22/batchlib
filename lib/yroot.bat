@@ -75,7 +75,7 @@ exit /b 0
 for /l %%p in (1,1,31) do for %%n in (0 1) do (
     call :yroot result %%n %%p
     if not "!result!" == "%%n" (
-        call %unittest% fail "given '%%n %%p', expected '%%n', got  '!result!'"
+        call %unittest% fail "Given '%%n %%p', expected '%%n', got  '!result!'"
     )
 )
 exit /b 0
@@ -119,11 +119,11 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     call :yroot result !given! || (
-        call %unittest% fail "given '!given!', got failure"
+        call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%b"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '!given!', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0

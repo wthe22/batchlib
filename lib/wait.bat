@@ -129,7 +129,7 @@ set /a "result*=10"
 set /a "inaccuracy=!result! - !expected!"
 set /a "fail=!inaccuracy!/!threshold!"
 if not "!fail!" == "0" (
-    call %unittest% fail "given threshold '!threshold!', expected '!expected!', got '!result!'"
+    call %unittest% fail "Given threshold '!threshold!', expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -142,7 +142,7 @@ set /a "result*=10"
 set /a "inaccuracy=!result! - !expected!"
 set /a "fail=!inaccuracy!/!threshold!"
 if not "!fail!" == "0" (
-    call %unittest% fail "given threshold '!threshold!', expected '!expected!', got '!result!'"
+    call %unittest% fail "Given threshold '!threshold!', expected '!expected!', got '!result!'"
 )
 exit /b 0
 

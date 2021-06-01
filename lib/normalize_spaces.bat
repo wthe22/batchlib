@@ -89,7 +89,7 @@ for /l %%n in (!start!,1,!end!) do (
 call :normalize_spaces "front back"
 for %%t in (front back) do (
     if not "!%%t!" == "!%%t.expected!" (
-        call %unittest% fail "given '%%t', expected '!%%t.expected!', got '!%%t!'"
+        call %unittest% fail "Given '%%t', expected '!%%t.expected!', got '!%%t!'"
     )
 )
 
@@ -111,7 +111,7 @@ for %%a in (
     call :normalize_spaces "result" %%c
     set "expected=!%%b.output!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "given '%%~a', expected '!expected!', got '!result!'"
+        call %unittest% fail "Given '%%~a', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
