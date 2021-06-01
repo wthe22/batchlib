@@ -124,7 +124,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     shift /1
     set /a "_shifts+=1"
 )
-echo !_name!: Too many arguments
+echo argparse: Too many arguments
 exit /b 1
 #+++
 
