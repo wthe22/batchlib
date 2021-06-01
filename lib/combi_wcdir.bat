@@ -124,5 +124,31 @@ echo=!result!
 exit /b 0
 
 
+:tests.setup
+:tests.teardown
+exit /b 0
+
+
+:tests.test_demo
+set "expected="
+for %%d in (
+    "C:\Windows\System32"
+    "C:\Windows\SysWOW64"
+) do if exist %%d for %%f in ("%%~d\*script.exe") do (
+    set "expected=!expected!%%~ff;"
+)
+if not defined expected (
+    call %unittest% skip "No file with matching pattern found to run test"
+    exit /b 0
+)
+set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
+set "wildcard_paths=*script.exe"
+call :combi_wcdir result "!search_paths!" "!wildcard_paths!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail
+)
+exit /b 0
+
+
 :EOF  # End of File
 exit /b
