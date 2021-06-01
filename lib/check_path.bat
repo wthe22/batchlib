@@ -15,14 +15,14 @@ call :argparse ^
     ^ -- %* || exit /b 2
 set "_path=!%_path_var%!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
-if not defined _path ( 1>&2 echo error: Path not defined & exit /b 3 )
+if not defined _path ( 1>&2 echo%0: Path not defined & exit /b 3 )
 set "_temp=!_path!"
 if "!_path:~1,1!" == ":" set "_temp=!_path:~0,1!!_path:~2!"
 for /f tokens^=1-2*^ delims^=:?^"^<^>^| %%a in ("Q?_!_temp!_") do (
-    if not "%%c" == "" ( 1>&2 echo error: Invalid path characters & exit /b 3 )
+    if not "%%c" == "" ( 1>&2 echo%0: Invalid path characters & exit /b 3 )
 )
 for /f "tokens=1-2* delims=*" %%a in ("Q*_!_temp!_") do (
-    if not "%%c" == "" ( 1>&2 echo error: Wildcards are not allowed & exit /b 3 )
+    if not "%%c" == "" ( 1>&2 echo%0: Wildcards are not allowed & exit /b 3 )
 )
 if "!_path:~1!" == ":" set "_path=!_path!\"
 set "_file_exist=false"
@@ -38,17 +38,17 @@ if "!_attrib!" == "d" (
     for %%f in ("!_path!\.") do set "_path=%%~ff"
 )
 if defined _require_exist if not "!_file_exist!" == "!_require_exist!" (
-    if "!_require_exist!" == "true" 1>&2 echo error: Input does not exist
-    if "!_require_exist!" == "false" 1>&2 echo error: Input already exist
+    if "!_require_exist!" == "true" 1>&2 echo%0: Input does not exist
+    if "!_require_exist!" == "false" 1>&2 echo%0: Input already exist
     exit /b 2
 )
 if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
     if defined _require_exist (
-        if "!_require_attrib!" == "d" 1>&2 echo error: Input is not a folder
-        if "!_require_attrib!" == "-" 1>&2 echo error: Input is not a file
+        if "!_require_attrib!" == "d" 1>&2 echo%0: Input is not a folder
+        if "!_require_attrib!" == "-" 1>&2 echo%0: Input is not a file
     ) else (
-        if "!_require_attrib!" == "d" 1>&2 echo error: Input must be a new or existing folder, not a file
-        if "!_require_attrib!" == "-" 1>&2 echo error: Input must be a new or existing file, not a folder
+        if "!_require_attrib!" == "d" 1>&2 echo%0: Input must be a new or existing folder, not a file
+        if "!_require_attrib!" == "-" 1>&2 echo%0: Input must be a new or existing file, not a folder
     )
     exit /b 2
 )
