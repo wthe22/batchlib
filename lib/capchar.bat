@@ -155,8 +155,10 @@ for %%a in (
         set "hex=!hex:~0,%%s!"
     )
     del /f /q "raw_hex"
-    if /i not "!hex!" == "5b %%c 5d" (
-        call %unittest% fail %%a
+    set "expected=5b %%c 5d"
+    set "result=!hex!"
+    if /i not "!result!" == "!expected!" (
+        call %unittest% fail "Expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
