@@ -9,7 +9,7 @@ set "_source_file=%~f1"
 set "_label=%~2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :functions.range _range "!_source_file!" "!_label!"
-call :readline "!_source_file!" !_range! 1:-1 > ".coderender._template" || exit /b 3
+call :readline "!_source_file!" !_range! 1:-1 > ".coderender._template" || exit /b 2
 for %%f in (code literal) do call 2> ".coderender._%%f" (
 findstr /n "^" ".coderender._template" > ".coderender._numbered"
 call :coderender._group_lines
@@ -28,7 +28,7 @@ call :coderender._group_lines
     echo=
     type ".coderender._literal"
 )
-call ".coderender._render.bat"
+call ".coderender._render.bat" || exit /b 3
 exit /b 0
 #+++
 
@@ -77,7 +77,7 @@ exit /b 0
 #+++
 
 :coderender._type
-call :functions.range _range "%~f0" "coderender._captured.%~1"
+call :functions.range _range "%~f0" "coderender._captured.%~1" || exit /b 2
 call :readline "%~f0" !_range! 1:-1 4
 exit /b 0
 
@@ -117,7 +117,8 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
-::      2:  - Template rendering error.
+::      2:  - Template not found.
+::      3:  - Error rendering template (the function template exit code is not 0).
 exit /b 0
 
 
