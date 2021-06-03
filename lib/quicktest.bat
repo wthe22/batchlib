@@ -9,27 +9,33 @@ exit /b
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "unittest=:quicktest.outcome "
 if ^"%1^" == "" (
+    set "unittest.test_cases= "
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
     for /f "usebackq tokens=1 delims=: " %%a in (
-        `findstr /r /c:"^[ ]*:tests\.test_[^: ]" "%~f0"`
-    ) do set "quicktest.test_cases=!quicktest.test_cases! %%a"
-) else set "quicktest.test_cases=%~1"
+        `findstr /r /c:"^^[!TAB! @]*:test.\.test." "%~f0"`
+    ) do set "unittest.test_cases=!unittest.test_cases!%%a "
+) else set "unittest.test_cases=%~1"
+set "unittest.test_count=0"
+set "unittest._outcome="
 call :tests.setup
-set "quicktest.test_count=0"
-for %%t in (%quicktest.test_cases%) do (
-    set /a "quicktest.test_count+=1"
-    echo !time! [!quicktest.test_count!] %%t
-    setlocal
-    call :%%t
-    endlocal
+if not defined unittest._outcome (
+    for %%t in (%unittest.test_cases%) do (
+        set /a "unittest.test_count+=1"
+        echo !time! [!unittest.test_count!] %%t
+        setlocal
+        call :%%t
+        endlocal
+    )
 )
 call :tests.teardown
 echo=
 echo ----------------------------------------------------------------------
-echo Ran !quicktest.test_count! tests
+echo Ran !unittest.test_count! tests
 exit /b 0
 #+++
 
 :quicktest.outcome
+set "unittest._outcome=%~1"
 goto 2> nul & (
     1>&2 call echo%%0: %~1: %~2
     ( call )
@@ -52,8 +58,17 @@ exit /b 0
 ::      quicktest <label [...]>
 ::
 ::  DESCRIPTION
-::      A tiny unittest framework made in 10 minutes.
-::      To be continued...
+::      A tiny unittest framework made from the urgent need of testing. No fancy
+::      features, at least it gets the job done. It is mostly compatible with
+::      unittest(). It has no dependencies and it is much smaller than unittest().
+::
+::  POSITIONAL ARGUMENTS
+::      label
+::          List of labels to be tested. If the label is not specified,
+::          any label that matches 'test*.test*' is used.
+::
+::  NOTES
+::      - Not implemented yet: should_stop
 exit /b 0
 
 
@@ -65,7 +80,71 @@ exit /b 0
 
 
 :tests.setup
+set "STDERR_REDIRECTION=2> nul"
+set "quicktest_debug="
+if "!unittest!" == ":quicktest.outcome " set "quicktest_debug=true"
+if defined quicktest_debug (
+    set "unittest=echo test outcome:"
+)
+exit /b 0
+
+
 :tests.teardown
+exit /b 0
+
+
+:tests.test_detect_label
+call :tests.type template.detect_label > "dummy.bat" || exit /b
+call 2> outcome
+call "dummy.bat" > nul
+for /f "usebackq tokens=*" %%o in ("outcome") do (
+    call %unittest% %%o
+)
+exit /b 0
+
+:tests.template.detect_label
+::  :tests.setup
+::  call :check_label > outcome
+::  exit /b 0
+::
+::  :tests.teardown
+::  exit /b 0
+::
+::  :check_label
+::  for %%n in (
+::      label_simple
+::  ) do for %%l in (
+::      tests.test_%%n
+::  ) do if "!unittest.test_cases: %%l = !" == "!unittest.test_cases!" (
+::      echo fail "Label '%%l' not found"
+::   )
+::  exit /b 0
+::
+::  :tests.test_label_simple
+::  exit /b 0
+exit /b 0
+
+
+:tests.test_setup_skip
+call :tests.type template.setup_skip > "dummy.bat" || exit /b
+call 2> outcome
+call "dummy.bat" %STDERR_REDIRECTION% > nul
+for /f "usebackq tokens=*" %%o in ("outcome") do (
+    call %unittest% %%o
+)
+exit /b 0
+
+:tests.template.setup_skip
+::  :tests.setup
+::  call %unittest% skip "Not ready"
+::  exit /b 0
+::
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_not_called
+::  echo fail > outcome
+::  exit /b 0
 exit /b 0
 
 
@@ -102,6 +181,10 @@ exit /b 0
 
 
 :tests.type <name>
+call :functions.range _range "%~f0" quicktest || exit /b
+call :readline "%~f0" !_range!
+echo=
+echo=
 call :functions.range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
