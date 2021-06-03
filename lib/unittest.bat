@@ -77,28 +77,41 @@ setlocal EnableDelayedExpansion
 for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test_cases") do (
     if not "%%k" == "!unittest._test_file!" (
         if defined unittest._test_file (
-            call "%unittest.top_dir%\!unittest._test_file!" %unittest.target_args% :tests.teardown
+            call "%unittest.top_dir%\!unittest._test_file!" ^
+                ^ %unittest.target_args% :tests.teardown
             endlocal
         )
         setlocal EnableDelayedExpansion
-        call "%unittest.top_dir%\%%k" %unittest.target_args% :tests.setup
+        set "unittest._test_file=%%k"
+        set "unittest._test_label="
+        set "unittest._outcome="
+        call "%unittest.top_dir%\%%k" %unittest.target_args% :tests.setup || (
+            call :unittest.outcome error ^
+                ^ "Test setup did not exit correctly [exit code !errorlevel!]."
+        )
     )
-    set "unittest._test_file=%%k"
     set "unittest._test_label=%%l"
-    set "unittest._outcome="
     %unittest.output% run "!unittest._test_file!:!unittest._test_label!"
-    setlocal EnableDelayedExpansion EnableExtensions
-    call "%unittest.top_dir%\!unittest._test_file!" %unittest.target_args% :!unittest._test_label!
-    for %%e in (!errorlevel!) do (
-        if "%%e" == "0" (
-            if not defined unittest._outcome call :unittest.outcome success
-        ) else call :unittest.outcome error "Test function did not exit correctly [exit code %%e]."
+    if defined unittest._outcome (
+        call :unittest.outcome !unittest._outcome!
+    ) else (
+        setlocal EnableDelayedExpansion EnableExtensions
+        call "%unittest.top_dir%\!unittest._test_file!" ^
+            ^ %unittest.target_args% :!unittest._test_label!
+        for %%e in (!errorlevel!) do (
+            if "%%e" == "0" (
+                if not defined unittest._outcome call :unittest.outcome success
+            ) else (
+                call :unittest.outcome error ^
+                    ^ "Test function did not exit correctly [exit code %%e]."
+            )
+        )
+        if defined unittest.fail_fast if defined unittest._failed (
+            %unittest.output% fail_fast
+            exit /b 0
+        )
+        endlocal
     )
-    if defined unittest.fail_fast if defined unittest._failed (
-        %unittest.output% fail_fast
-        exit /b 0
-    )
-    endlocal
 )
 if defined unittest._test_file (
     call "%unittest.top_dir%\!unittest._test_file!" %unittest.target_args% :tests.teardown
@@ -115,7 +128,9 @@ set "unittest._outcome=%~1"
 for %%e in (fail error) do if "%~1" == "%%e" (
     set "unittest._failed=true"
 )
-%unittest.output% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
+if defined unittest._test_label (
+    %unittest.output% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
+) else set unittest._outcome=%1,%2
 exit /b 0
 
 
@@ -231,6 +246,7 @@ exit /b 0
 
 
 :tests.setup
+set "STDERR_REDIRECTION=2> nul"
 call :tests.type template.simple > "simple.bat"
 exit /b 0
 
@@ -539,6 +555,68 @@ exit /b 0
 ::  run "dummy:tests.test_should_stop"
 ::  should_stop
 ::  outcome "dummy:tests.test_should_stop",success,
+::  stop
+exit /b 0
+
+
+:tests.test_setup_skip
+call :tests.type template.setup_skip > "dummy.bat" || exit /b
+call :tests.type expected.setup_skip > expected || exit /b
+call :unittest "dummy.bat" -a "" -s "" > result
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.setup_skip
+::  call %*
+::  exit /b
+::
+::  :tests.setup
+::  call %unittest% skip "Not ready"
+::  exit /b 0
+::
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_success
+::  echo mark success
+::  exit /b 0
+exit /b 0
+
+:tests.expected.setup_skip
+::  start
+::  run "dummy:tests.test_success"
+::  outcome "dummy:tests.test_success",skip,"Not ready"
+::  stop
+exit /b 0
+
+
+:tests.test_setup_error
+call :tests.type template.setup_error > "dummy.bat" || exit /b
+call :tests.type expected.setup_error > expected || exit /b
+call :unittest "dummy.bat" -a "" -s "" %STDERR_REDIRECTION% > result
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.setup_error
+::  call %*
+::  exit /b
+::
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_success
+::  echo mark success
+::  exit /b 0
+exit /b 0
+
+:tests.expected.setup_error
+::  start
+::  run "dummy:tests.test_success"
+::  outcome "dummy:tests.test_success",error,"Test setup did not exit correctly [exit code 1]."
 ::  stop
 exit /b 0
 
