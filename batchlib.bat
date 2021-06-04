@@ -324,7 +324,7 @@ if "!user_input!" == "3" (
     pause
     goto main_menu
 )
-if "!user_input!" == "4" call :new_template_menu "minified_script" "Minified Script"
+if "!user_input!" == "4" call :new_template_menu "minified" "Minified Script"
 if "!user_input!" == "5" call :new_template_menu "new_script" "New Script Template"
 if "!user_input!" == "6" call :build_menu
 if "!user_input!" == "7" (
@@ -701,7 +701,7 @@ exit /b 0
 ::          batchlib template <name>
 ::
 ::      Create the specified template and output to STDOUT.
-::      Valid template names are: minified_script, new_script, new_library.
+::      Valid template names are: minified, new_script, new_library.
 exit /b 0
 
 
@@ -1347,7 +1347,7 @@ call :self_extract_func "EOF"
 exit /b 0
 
 
-:template.minified_script
+:template.minified
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_build_system
