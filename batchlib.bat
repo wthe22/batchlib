@@ -97,12 +97,13 @@ rem ======================================== Changelog =========================
 ::  - Improve menu structure
 ::  - Adjust function and category loading to read from each library file
 ::  - Add call, build, debug, run, test, and template command
-::  - Script can self-build to satisfy dependencies (manual build)
+::  - Script needs to be build to satisfy dependencies
 ::
 ::  Library
 ::  - Added dependency listing for extra requirements (for tests and demo)
 ::  - Move libraries to out of this script, with each library having its own file
 ::  - Since each library have its own file, it needs to be build to run correctly
+::  - Capitalize error messages
 ::  - New functions:
 ::      - quicktest()
 ::      - utpy()
