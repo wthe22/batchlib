@@ -45,7 +45,7 @@ exit /b 1
 
 :lib.build_system [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=coderender functions.range readline"
+set "%~1extra_requires=coderender functions.range readline functions.match"
 set "%~1category=devtools"
 exit /b 0
 
@@ -96,6 +96,7 @@ exit /b 0
 :tests.test_detect_label
 call :tests.type template.detect_label > "dummy.bat" || exit /b
 call 2> outcome
+call :functions.match expected "dummy.bat" "test*.test*"
 call "dummy.bat" > nul
 for /f "usebackq tokens=*" %%o in ("outcome") do (
     call %unittest% %%o
@@ -111,16 +112,19 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :check_label
-::  for %%n in (
-::      label_simple
-::  ) do for %%l in (
-::      tests.test_%%n
-::  ) do if "!unittest.test_cases: %%l = !" == "!unittest.test_cases!" (
-::      echo fail "Label '%%l' not found"
-::   )
+::  set "test_cases=!unittest.test_cases!"
+::  for %%l in (!expected!) do (
+::      if "!test_cases: %%l = !" == "!test_cases!" (
+::          echo fail "Label '%%l' not found"
+::      ) else set "test_cases=!test_cases: %%l = !"
+::  )
+::  if not "!test_cases!" == " " (
+::      echo fail "Labels should not contain: !test_cases!"
+::  )
 ::  exit /b 0
 ::
-::  :tests.test_label_simple
+::  :tests.test_simple
+::  :tests.me.test_hello
 ::  exit /b 0
 exit /b 0
 
