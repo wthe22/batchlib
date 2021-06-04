@@ -19,7 +19,7 @@ call :argparse ^
     ^ "-a,--target-args:store   :unittest.target_args" ^
     ^ "-s,--self-args:store     :unittest.self_args" ^
     ^ "-o,--output:store        :unittest.output_macro" ^
-    ^ -- %* || exit /b 3
+    ^ -- %* || exit /b 2
 call :unittest._setup || (
     1>&2 echo%0: Failed to setup tmp dir
     exit /b 4
@@ -32,7 +32,7 @@ call :unittest._load_tests || (
 call :unittest._run
 %unittest.output% stop
 call :unittest._cleanup
-if defined unittest._failed exit /b 2
+if defined unittest._failed exit /b 3
 exit /b 0
 #+++
 
@@ -229,10 +229,10 @@ exit /b 0
 ::          Fallback path for tmp_dir if tmp_dir does not exist
 ::
 ::  EXIT STATUS
-::      0:  - Unittest passed.
-::      1:  - An unexpected error occured.
-::      2:  - Unittest failed
-::      3:  - Invalid parameters.
+::      0:  - Unittest passed
+::      1:  - An unexpected error occured
+::      2:  - Invalid argument
+::      3:  - Unittest failed
 ::      4:  - Cannot do necessary setups
 ::
 ::  NOTES
