@@ -108,7 +108,10 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
                     ^ "Test function did not exit correctly [exit code %%e]."
             )
         )
-        if defined unittest._should_stop exit /b 0
+        if defined unittest._should_stop (
+            %unittest.output% should_stop
+            exit /b 0
+        )
         if defined unittest.fail_fast if defined unittest._failed (
             %unittest.output% fail_fast
             exit /b 0
@@ -124,7 +127,6 @@ exit /b 0
 
 :unittest.outcome <outcome> [message]
 if "%~1" == "should_stop" (
-    %unittest.output% should_stop
     set "unittest._should_stop=true"
     exit /b 0
 )
@@ -560,8 +562,8 @@ exit /b 0
 :tests.expected.should_stop
 ::  start
 ::  run "dummy:tests.test_should_stop"
-::  should_stop
 ::  outcome "dummy:tests.test_should_stop",success,
+::  should_stop
 ::  stop
 exit /b 0
 
