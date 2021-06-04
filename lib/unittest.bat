@@ -84,16 +84,17 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
         setlocal EnableDelayedExpansion
         set "unittest._test_file=%%k"
         set "unittest._test_label="
-        set "unittest._outcome="
+        set "unittest._setup_outcome="
         call "%unittest.top_dir%\%%k" %unittest.target_args% :tests.setup || (
             call :unittest.outcome error ^
                 ^ "Test setup did not exit correctly [exit code !errorlevel!]."
         )
     )
     set "unittest._test_label=%%l"
+    set "unittest._outcome="
     %unittest.output% run "!unittest._test_file!:!unittest._test_label!"
-    if defined unittest._outcome (
-        call :unittest.outcome !unittest._outcome!
+    if defined unittest._setup_outcome (
+        call :unittest.outcome !unittest._setup_outcome!
     ) else (
         setlocal EnableDelayedExpansion EnableExtensions
         call "%unittest.top_dir%\!unittest._test_file!" ^
@@ -130,7 +131,7 @@ for %%e in (fail error) do if "%~1" == "%%e" (
 )
 if defined unittest._test_label (
     %unittest.output% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
-) else set unittest._outcome=%1,%2
+) else set unittest._setup_outcome=%1,%2
 exit /b 0
 
 
