@@ -127,29 +127,35 @@ exit /b 0
 
 
 :tests.setup
-set "server_is_up="
+set "server_is_down="
 set "test_server_title=test_server_!random!"
-start /min "!test_server_title!" cmd /c twistd ftp -r .
+rem Start a FTP/HTTP file server in current directory
+call :tests.setup.start_server
 timeout /t 3 > nul
-call :get_pid_by_title server_pid "!test_server_title!" && (
-    set "server_is_up=true"
+call :get_pid_by_title server_pid "!test_server_title!" || (
+    set "server_is_down=true"
+    call %unittest% skip "Cannot start dummy server"
+    exit /b 0
 )
 call :coderender "%~f0" tests.template.dummy  > "dummy.bat"
 exit /b 0
 
+:tests.setup.start_server
+rem Install Python first, then run:
+rem pip install twisted
+
+start /min "!test_server_title!" cmd /c twistd ftp -r .
+exit /b 0
+
 
 :tests.teardown
-if defined server_is_up (
+if not defined server_is_down (
     taskkill /f /t /pid !server_pid! > nul
 )
 exit /b 0
 
 
 :tests.test_notify
-if not defined server_is_up (
-    call %unittest% skip "Test server is down"
-    exit /b 0
-)
 call :updater -n "dummy.bat" > nul || (
     call %unittest% fail
 )
@@ -157,10 +163,6 @@ exit /b 0
 
 
 :tests.test_force_update
-if not defined server_is_up (
-    call %unittest% skip "Test server is down"
-    exit /b 0
-)
 call :updater -f -y "dummy.bat" > nul || (
     call %unittest% fail
 )
