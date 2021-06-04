@@ -257,7 +257,7 @@ exit /b
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
-call :run_lib_test %1
+call :test_lib %1
 exit /b
 
 
@@ -320,7 +320,7 @@ if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" call :browse_lib
 if "!user_input!" == "2" call :conemu
 if "!user_input!" == "3" (
-    call :run_lib_test
+    call :test_lib
     pause
     goto main_menu
 )
@@ -561,7 +561,7 @@ exit /b 0
 
 
 :LibMenu.run_tests
-call :run_lib_test !_library!
+call :test_lib !_library!
 pause
 exit /b 0
 
@@ -724,22 +724,6 @@ rem ======================================== Core Functions ====================
 
 :core  # Core Functions
 exit /b 0
-
-
-:run_lib_test [library]
-setlocal EnableDelayedExpansion
-set "_library=%~1"
-if defined _library (
-    call :LibBuild.update "!_library!"
-    set "target=!build_dir!\!_library!.bat"
-) else (
-    call :LibBuild.update
-    set "target=!build_dir!\*.bat"
-)
-call :Library.unload_info
-set test_reporter=call :ut_fmt_basic
-cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "test_reporter""
-exit /b
 
 
 :build_script <input_file> [backup_name]
@@ -1527,6 +1511,22 @@ exit /b 0
 set test_reporter=call :ut_fmt_basic
 call :unittest --output test_reporter
 exit /b 0
+
+
+:test_lib [library]
+setlocal EnableDelayedExpansion
+set "_library=%~1"
+if defined _library (
+    call :LibBuild.update "!_library!"
+    set "target=!build_dir!\!_library!.bat"
+) else (
+    call :LibBuild.update
+    set "target=!build_dir!\*.bat"
+)
+call :Library.unload_info
+set test_reporter=call :ut_fmt_basic
+cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "test_reporter""
+exit /b
 
 
 :tests.setup
