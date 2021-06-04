@@ -12,7 +12,7 @@ if ^"%1^" == "" (
     set "unittest.test_cases= "
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
     for /f "usebackq tokens=1 delims=: " %%a in (
-        `findstr /r /c:"^^[!TAB! @]*:test.\.test." "%~f0"`
+        `findstr /r /c:"^^[!TAB! @]*:test.*\.test.*" "%~f0"`
     ) do set "unittest.test_cases=!unittest.test_cases!%%a "
 ) else set "unittest.test_cases=%~1"
 set "unittest.test_count=0"
