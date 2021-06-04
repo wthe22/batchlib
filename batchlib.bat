@@ -215,8 +215,6 @@ call :true 2> nul || (
 )
 call :Library.read_args
 call :Category.load
-call :LibBuild.remove_orphans
-timeout /t 1
 call :main_menu
 exit /b
 
@@ -336,6 +334,8 @@ if "!user_input!" == "7" (
     call :Library.read_args
     call :Category.load
     call :LibBuild.remove_orphans
+    pause
+    goto main_menu
 )
 if /i "!user_input!" == "B" (
     setlocal EnableDelayedExpansion
