@@ -3,13 +3,13 @@ call %*
 exit /b
 
 
-:utpy
+:ut_fmt_basic
 setlocal EnableDelayedExpansion EnableExtensions
 2> nul (
-    for /f "usebackq tokens=* delims= eol=#" %%v in (".utpy_vars") do set %%v
+    for /f "usebackq tokens=* delims= eol=#" %%v in (".ut_fmt_basic._vars") do set %%v
 )
-call :utpy.%*
-> ".utpy_vars" (
+call :ut_fmt_basic.%*
+> ".ut_fmt_basic._vars" (
     for %%v in (
         _start_time _stop_time
         _tests_run _test_count
@@ -19,7 +19,7 @@ call :utpy.%*
 exit /b 0
 #+++
 
-:utpy.start
+:ut_fmt_basic.start
 set "_start_time=!time!"
 set "_tests_run=0"
 set "_test_count="
@@ -28,7 +28,7 @@ for %%e in (success fail error skip) do set "_%%e_count=0"
 exit /b 0
 #+++
 
-:utpy.run <test_name>
+:ut_fmt_basic.run <test_name>
 set /a "_tests_run+=1"
 call :difftime _elapsed_time !time! !_start_time!
 call :ftime _elapsed_time !_elapsed_time!
@@ -36,7 +36,7 @@ echo !_elapsed_time! [!_tests_run!/!_test_count!] %~1
 exit /b 0
 #+++
 
-:utpy.outcome <test_name> <outcome> [message]
+:ut_fmt_basic.outcome <test_name> <outcome> [message]
 set /a "_%~2_count+=1"
 if "%~2" == "success" exit /b 0
 if "%~3" == "" echo test '%~1' %~2
@@ -44,7 +44,7 @@ if not "%~3" == "" echo test '%~1' %~2: %~3
 exit /b 0
 #+++
 
-:utpy.stop
+:ut_fmt_basic.stop
 set "_stop_time=!time!"
 call :difftime _time_taken !_stop_time! !_start_time!
 call :ftime _time_taken !_time_taken!
@@ -71,7 +71,7 @@ echo=
 exit /b 0
 
 
-:utpy._num_padded
+:ut_fmt_basic._num_padded
 set "_num_min=1"
 set "_num_width=0"
 for /l %%n in (1,1,4) do if !_num_min! GEQ !_test_count! (
@@ -94,13 +94,13 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      utpy - a console outcome/report generator for unittest
+::      ut_fmt_basic - basic outcome formatter/report generator for unittest
 ::
 ::  SYNOPSIS
-::      utpy start
-::      utpy run <test_case>
-::      utpy outcome <test_name> <outcome> [message]
-::      utpy stop
+::      ut_fmt_basic start
+::      ut_fmt_basic run <test_case>
+::      ut_fmt_basic outcome <test_name> <outcome> [message]
+::      ut_fmt_basic stop
 ::
 ::  ACTIONS
 ::      Actions are the outputs from the unittest() library.
@@ -110,7 +110,7 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-set "test_reporter=call :utpy"
+set "test_reporter=call :ut_fmt_basic"
 call :tests.type template.simple > "simple.bat"
 call :unittest "simple.bat" -a "" -s "" -o test_reporter
 exit /b 0

@@ -106,7 +106,7 @@ rem ======================================== Changelog =========================
 ::  - Capitalize error messages
 ::  - New functions:
 ::      - quicktest()
-::      - utpy()
+::      - ut_fmt_basic()
 ::      - mtime_to_isotime()
 ::      - get_pid_by_title()
 ::      - true()
@@ -737,7 +737,7 @@ if defined _library (
     set "target=!build_dir!\*.bat"
 )
 call :Library.unload_info
-set test_reporter=call :utpy
+set test_reporter=call :ut_fmt_basic
 cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "test_reporter""
 exit /b
 
@@ -1200,7 +1200,7 @@ exit /b 0
 :lib.build_system [return_prefix]
 set %~1install_requires= ^
     ^ functions.range readline ^
-    ^ true coderender unittest utpy ^
+    ^ true coderender unittest ut_fmt_basic ^
     ^ conemu Input.path Input.yesno Input.string ^
     ^ difftime ftime
 exit /b 0
@@ -1524,7 +1524,7 @@ exit /b 0
 :test
 @setlocal EnableDelayedExpansion
 @echo off
-set test_reporter=call :utpy
+set test_reporter=call :ut_fmt_basic
 call :unittest --output test_reporter
 exit /b 0
 
