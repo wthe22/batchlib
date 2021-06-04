@@ -339,7 +339,7 @@ if "!user_input!" == "7" (
 )
 if /i "!user_input!" == "B" (
     setlocal EnableDelayedExpansion
-    echo Adding dependencies to this script...
+    echo Adding/updating dependencies to this script...
     set "lib=:lib.call "
     call :build_script "%~f0"
     endlocal
