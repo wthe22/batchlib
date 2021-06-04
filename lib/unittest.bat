@@ -235,7 +235,7 @@ exit /b 0
 ::      run <file:label>
 ::          Unittest is running tests in the following file and label
 ::
-::      outcome <file:label>,<success|fail|error|skip>,<message>
+::      outcome <file:label>,<success|fail|error|skip>,[message]
 ::          Report outcome of the test as either: success, fail, error, or skip,
 ::          with the following message/reason
 ::
