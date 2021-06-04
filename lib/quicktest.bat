@@ -59,6 +59,7 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      quicktest <label [...]>
+::      call %unittest% <outcome> [message]
 ::
 ::  DESCRIPTION
 ::      A tiny unittest framework made from the urgent need of testing. No fancy
@@ -69,6 +70,27 @@ exit /b 0
 ::      label
 ::          List of labels to be tested. If the label is not specified,
 ::          any label that matches 'test*.test*' is used.
+::
+::  UNITTEST USAGE
+::      Test File
+::          Each test file should contain tests.setup(), tests.teardown(), and at
+::          least 1 test case to run unittest.
+::
+::      tests.setup()
+::          A function called before tests in a file is run. A skip/fail/error
+::          signal will abort unittest.
+::
+::      tests.teardown()
+::          A function called after tests in a file is run. This is called even
+::          if all tests or tests.setup() fails.
+::
+::      Failure/Error/Skip
+::              call %unittest% (fail|error|skip) <message>
+::
+::          Signals a test as failure/error/skip. Use case for each outcome:
+::          - Fail: Function did not give the expected result.
+::          - Error: Test case fails to run or unexpected error occur.
+::          - Skip: Functionality cannot be tested yet (WIP), so we skip first.
 exit /b 0
 
 
