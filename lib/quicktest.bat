@@ -15,6 +15,7 @@ if ^"%1^" == "" (
         `findstr /r /c:"^^[!TAB! @]*:test.*\.test.*" "%~f0"`
     ) do set "unittest.test_cases=!unittest.test_cases!%%a "
 ) else set "unittest.test_cases=%~1"
+set "unittest._outcome="
 call :tests.setup
 set "unittest.test_count=0"
 if not defined unittest._outcome call :quicktest._run
@@ -26,23 +27,17 @@ exit /b 0
 #+++
 
 :quicktest._run
-set "unittest._outcome="
 for %%t in (%unittest.test_cases%) do (
     set /a "unittest.test_count+=1"
     echo !time! [!unittest.test_count!] %%t
     setlocal
     call :%%t
-    if defined unittest._should_stop exit /b 0
     endlocal
 )
 exit /b 0
 #+++
 
 :quicktest.outcome
-if "%~1" == "should_stop" (
-    set "unittest._should_stop=true"
-    exit /b 0
-)
 set "unittest._outcome=%~1"
 goto 2> nul & (
     1>&2 call echo%%0: %~1: %~2
@@ -149,30 +144,6 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_not_called
-::  echo fail > outcome
-::  exit /b 0
-exit /b 0
-
-
-:tests.test_should_stop
-call :tests.type template.should_stop > "dummy.bat" || exit /b
-call 2> outcome
-call "dummy.bat" %STDERR_REDIRECTION% > nul
-for /f "usebackq tokens=*" %%o in ("outcome") do (
-    call %unittest% %%o
-)
-exit /b 0
-
-:tests.template.should_stop
-::  :tests.setup
-::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_should_stop
-::  call %unittest% should_stop
 ::  exit /b 0
 ::
 ::  :tests.test_not_called

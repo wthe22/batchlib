@@ -72,7 +72,6 @@ exit /b 0
 :unittest._run
 set unittest="%~f0" !unittest.self_args! :unittest.outcome %=REQUIRED=%
 set "unittest._failed="
-set "unittest._should_stop="
 set "unittest._test_file="
 setlocal EnableDelayedExpansion
 for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test_cases") do (
@@ -108,10 +107,6 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
                     ^ "Test function did not exit correctly [exit code %%e]."
             )
         )
-        if defined unittest._should_stop (
-            %unittest.output% should_stop
-            exit /b 0
-        )
         if defined unittest.fail_fast if defined unittest._failed (
             %unittest.output% fail_fast
             exit /b 0
@@ -126,10 +121,6 @@ exit /b 0
 #+++
 
 :unittest.outcome <outcome> [message]
-if "%~1" == "should_stop" (
-    set "unittest._should_stop=true"
-    exit /b 0
-)
 set "unittest._outcome=%~1"
 for %%e in (fail error) do if "%~1" == "%%e" (
     set "unittest._failed=true"
@@ -240,11 +231,6 @@ exit /b 0
 ::          Signals a test as skipped. Running the code above does not quit the
 ::          test case immediately so 'exit /b 0' is still required to actually
 ::          skip the test.
-::
-::      Should Stop
-::              call %unittest% should_stop
-::
-::          Execution of tests should be stopped. No additional tests is run.
 ::
 ::  OUTPUTS
 ::      start
@@ -573,40 +559,6 @@ exit /b 0
 ::  outcome "dummy:tests.test_set_var",success,
 ::  run "dummy:tests.test_no_var"
 ::  outcome "dummy:tests.test_no_var",success,
-::  stop
-exit /b 0
-
-
-:tests.test_should_stop
-call :tests.type template.should_stop > "dummy.bat" || exit /b
-call :tests.type expected.should_stop > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" > result
-fc /a /lb1 result expected > nul || (
-    call %unittest% fail
-)
-exit /b 0
-
-:tests.template.should_stop
-::  call %*
-::  exit /b
-::
-::  :tests.setup
-::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_should_stop
-::  call %unittest% should_stop
-::  exit /b 0
-::
-::  :tests.test_success
-::  exit /b 0
-exit /b 0
-
-:tests.expected.should_stop
-::  start
-::  run "dummy:tests.test_should_stop"
-::  outcome "dummy:tests.test_should_stop",success,
-::  should_stop
 ::  stop
 exit /b 0
 
