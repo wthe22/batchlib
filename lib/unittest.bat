@@ -145,8 +145,7 @@ exit /b 0
 ::  SYNOPSIS
 ::      unittest [-f] [-p pattern] [-a target_args] [-s self_args]
 ::               [-o output_macro] [target]
-::      unittest.outcome <outcome> [message]
-::      %unittest% <outcome> [message]
+::      call %unittest% <outcome> [message]
 ::
 ::  DESCRIPTION
 ::      unittest() is a unit testing framework for batch script. It search for
@@ -222,7 +221,7 @@ exit /b 0
 ::      Error
 ::              call %unittest% error <message>
 ::
-::          Signals a test as error. Used when an unexpected error happened
+::          Signals a test as error. Used when an unexpected error occur
 ::          (e.g. test case fails to run).
 ::
 ::      Skip
