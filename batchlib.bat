@@ -1166,15 +1166,6 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 
 
-:legacy_support.updater
-:module.entry_point   [-c command]
-:__init__ > nul 2> nul
-exit /b 0
-:__metadata__   [return_prefix]
-call :metadata %1
-exit /b
-
-
 rem ======================================== Library ========================================
 
 :lib  # Functions/snippets from library
