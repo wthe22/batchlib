@@ -623,7 +623,7 @@ echo    batchlib -c ^<:label^> [arguments]
 echo        Call the specified label with arguments
 echo=
 echo    batchlib build ^<input_file^> [backup_name]
-echo        Add dependency to a file
+echo        Add/update dependency of a file
 echo=
 echo    batchlib (run^|debug) ^<library^> ^<:label^> [arguments]
 echo        Run/debug a library (Not available in minified version)
@@ -658,8 +658,8 @@ exit /b 0
 ::  BUILD SUBCOMMAND
 ::          batchlib build <input_file> [backup_name]
 ::
-::      Build a script and add/update dependency to the file and do backup if the
-::      backup path is specified. The procedures are:
+::      Add/update dependency of the file and do backup if the backup path is
+::      specified. The procedures are:
 ::          - File is called with '-c :lib.build_system' parameter and dependencies
 ::            is set to the 'install_requires' variable.
 ::          - Codes between entry_point() and EOF() are persisted. The rest will
@@ -702,6 +702,7 @@ exit /b 0
 ::
 ::      Create the specified template and output to STDOUT.
 ::      Valid template names are: minified, new_script, new_library.
+::      Only 'new_script' is available in minified script.
 exit /b 0
 
 
