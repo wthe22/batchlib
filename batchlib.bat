@@ -592,12 +592,14 @@ exit /b 0
 call :Input.path script_file --file --exist --optional ^
     ^ --message "Input script path: " ^
     ^ || exit /b 2
-call :Input.path save_file --file --warn-overwrite --optional  ^
-    ^ --message "Input save path: " || goto build_menu
+call :Input.path backup_file --file --warn-overwrite --optional  ^
+    ^ --message "Input backup path (optional): "
 echo=
 echo Generating...
 set "start_time=!time!"
-call :scripts.build "!script_file!" -c :lib.build_system > "!save_file!"
+if defined backup_file (
+    call :build_script "!script_file!" "!backup_file!"
+) else call :build_script "!script_file!"
 call :difftime time_taken "!time!" "!start_time!"
 call :ftime time_taken !time_taken!
 echo=
