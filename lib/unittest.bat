@@ -285,15 +285,15 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_no_opts
-call :tests.type expected.no_opts > expected || exit /b
+:tests.test_default
+call :tests.type expected.default > expected || exit /b
 call :unittest "simple.bat" -a "" -s "" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
-:tests.expected.no_opts
+:tests.expected.default
 ::  start
 ::  run "simple:tests.test_success"
 ::  outcome "simple:tests.test_success",success,
