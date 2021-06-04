@@ -203,6 +203,49 @@ exit /b 0
 ::          Pass output results, in the form of arguments, to COMMAND stored in
 ::          the OUTPUT_MACRO. The default COMMAND is 'echo'.
 ::
+::  UNITTEST USAGE
+::      Test File
+::          Each test file should contain tests.setup(), tests.teardown(), and at
+::          least 1 test case to run unittest.
+::
+::      tests.setup()
+::          A function called before tests in a file is run. Use skip/fail/error
+::          here to mark all tests at once.
+::
+::      tests.teardown()
+::          A function called after tests in a file is run. This is called even
+::          if all tests or tests.setup() fails.
+::
+::      Success
+::          A test is marked as successful if no failure/error/skip is signaled
+::          and the test case returns exit code 0.
+::
+::      Failure
+::              call %unittest% fail <message>
+::
+::          Signals a test as failure. Used when a test case fails
+::          (e.g. the function did not give the expected result).
+::
+::          Can be used multiple times in a test case (e.g. for subtests).
+::
+::      Error
+::              call %unittest% error <message>
+::
+::          Signals a test as error. Used when an unexpected error happened
+::          (e.g. test case fails to run).
+::
+::      Skip
+::              call %unittest% skip <reason>
+::
+::          Signals a test as skipped. Running the code above does not quit the
+::          test case immediately so 'exit /b 0' is still required to actually
+::          skip the test.
+::
+::      Should Stop
+::              call %unittest% should_stop
+::
+::          Execution of tests should be stopped. No additional tests is run.
+::
 ::  OUTPUTS
 ::      start
 ::          Preparation is done and unittest is about to start
