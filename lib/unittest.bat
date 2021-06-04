@@ -548,6 +548,10 @@ exit /b 0
 ::  :tests.test_should_stop
 ::  call %unittest% should_stop
 ::  exit /b 0
+::
+::  :tests.test_success
+::  echo mark success
+::  exit /b 0
 exit /b 0
 
 :tests.expected.should_stop
