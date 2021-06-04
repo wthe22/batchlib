@@ -126,15 +126,15 @@ exit /b 0
 :tests.setup
 if exist "hello" (
     rd /s /q "hello" || del /f /q "hello"
-) 2> nul || ( call :unittest.error "cannot setup dummy directory" & exit /b 1 )
+) 2> nul || ( call %unittest% skip "Cannot setup dummy directory" & exit /b 0 )
 md "hello"
 if exist "world" (
     del /f /q "world" || rd /s /q "world"
-) 2> nul || ( call :unittest.error "cannot setup dummy file" & exit /b 1 )
+) 2> nul || ( call %unittest% skip "Cannot setup dummy file" & exit /b 0 )
 call 2> "world"
 if exist "none" (
     del /f /q "none" || rd /s /q "none"
-) 2> nul || ( call :unittest.error "cannot setup non-existing file" & exit /b 1 )
+) 2> nul || ( call %unittest% skip "Cannot setup non-existing file" & exit /b 0 )
 exit /b 0
 
 
