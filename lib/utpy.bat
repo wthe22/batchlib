@@ -44,11 +44,6 @@ if not "%~3" == "" echo test '%~1' %~2: %~3
 exit /b 0
 #+++
 
-:utpy.fail_fast
-:utpy.should_stop
-exit /b 0
-#+++
-
 :utpy.stop
 set "_stop_time=!time!"
 call :difftime _time_taken !_stop_time! !_start_time!
@@ -105,7 +100,6 @@ exit /b 0
 ::      utpy start
 ::      utpy run <test_case>
 ::      utpy outcome <test_name> <outcome> [message]
-::      utpy (fail_fast|should_stop)
 ::      utpy stop
 ::
 ::  ACTIONS
