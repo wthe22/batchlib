@@ -107,10 +107,7 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
                     ^ "Test function did not exit correctly [exit code %%e]."
             )
         )
-        if defined unittest.fail_fast if defined unittest._failed (
-            %unittest.output% fail_fast
-            exit /b 0
-        )
+        if defined unittest.fail_fast if defined unittest._failed exit /b 0
         endlocal
     )
 )
@@ -242,9 +239,6 @@ exit /b 0
 ::          Report outcome of the test as either: success, fail, error, or skip,
 ::          with the following message/reason
 ::
-::      fail_fast
-::          Unittest is stopped due to first fail or error
-::
 ::      should_stop
 ::          A test case raised signal to stop test early
 ::
@@ -351,7 +345,6 @@ exit /b 0
 ::  outcome "simple:tests.test_skip",skip,"Not ready"
 ::  run "simple:tests.test_fail"
 ::  outcome "simple:tests.test_fail",fail,"1 + 1 is not 3"
-::  fail_fast
 ::  stop
 exit /b 0
 
