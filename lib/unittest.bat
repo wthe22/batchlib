@@ -550,7 +550,6 @@ exit /b 0
 ::  exit /b 0
 ::
 ::  :tests.test_success
-::  echo mark success
 ::  exit /b 0
 exit /b 0
 
@@ -586,12 +585,18 @@ exit /b 0
 ::  :tests.test_success
 ::  echo mark success
 ::  exit /b 0
+::
+::  :tests.test_success2
+::  echo mark success2
+::  exit /b 0
 exit /b 0
 
 :tests.expected.setup_skip
 ::  start
 ::  run "dummy:tests.test_success"
 ::  outcome "dummy:tests.test_success",skip,"Not ready"
+::  run "dummy:tests.test_success2"
+::  outcome "dummy:tests.test_success2",skip,"Not ready"
 ::  stop
 exit /b 0
 
@@ -615,12 +620,18 @@ exit /b 0
 ::  :tests.test_success
 ::  echo mark success
 ::  exit /b 0
+::
+::  :tests.test_success2
+::  echo mark success2
+::  exit /b 0
 exit /b 0
 
 :tests.expected.setup_error
 ::  start
 ::  run "dummy:tests.test_success"
 ::  outcome "dummy:tests.test_success",error,"Test setup did not exit correctly [exit code 1]."
+::  run "dummy:tests.test_success2"
+::  outcome "dummy:tests.test_success2",error,"Test setup did not exit correctly [exit code 1]."
 ::  stop
 exit /b 0
 
