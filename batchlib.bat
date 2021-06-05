@@ -308,8 +308,8 @@ echo 6. Build/add dependencies to a script
 echo 7. Reload Library
 echo=
 echo B. Self Build
-echo H. Help
 echo C. Change Log
+echo H. Help
 echo A. About Script
 echo 0. Exit
 echo=
@@ -337,6 +337,13 @@ if "!user_input!" == "7" (
     pause
     goto main_menu
 )
+if /i "!user_input!" == "A" (
+    cls
+    call :about
+    echo=
+    pause
+    goto main_menu
+)
 if /i "!user_input!" == "B" (
     setlocal EnableDelayedExpansion
     echo Adding/updating dependencies to this script...
@@ -345,15 +352,8 @@ if /i "!user_input!" == "B" (
     endlocal
     pause
 )
-if /i "!user_input!" == "H" call :show_docs doc.man
 if /i "!user_input!" == "C" call :show_docs changelog
-if /i "!user_input!" == "A" (
-    cls
-    call :about
-    echo=
-    pause
-    goto main_menu
-)
+if /i "!user_input!" == "H" call :show_docs doc.man
 goto main_menu
 
 
