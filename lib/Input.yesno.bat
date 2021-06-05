@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.yesno [-m message] [-y value] [-n value] [-d default] <return_var>
+:Input.yesno [-m message] [-y value] [-n value] [-d default] [return_var]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
@@ -25,8 +25,10 @@ set "_result=!_result:^=^^^^!"
 set "_result=%_result:!=^^^!%"
 for /f "delims= eol=" %%a in ("!_result!") do (
     endlocal
-    set "%_return_var%=%%a"
-    set "%_return_var%=!%_return_var%:~1!"
+    if not "%_return_var%" == "" (
+        set "%_return_var%=%%a"
+        set "%_return_var%=!%_return_var%:~1!"
+    )
     if /i "%user_input:~0,1%" == "Y" exit /b 0
     if /i "%user_input:~0,1%" == "N" exit /b 5
 )
@@ -57,7 +59,7 @@ exit /b 0
 ::      Input.yesno - read a yes/no from standard input
 ::
 ::  SYNOPSIS
-::      Input.yesno [-m message] [-y value] [-n value] [-d default] <return_var>
+::      Input.yesno [-m message] [-y value] [-n value] [-d default] [return_var]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
