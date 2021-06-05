@@ -310,6 +310,7 @@ echo=
 echo B. Self Build
 echo C. Change Log
 echo H. Help
+echo U. Update
 echo A. About Script
 echo 0. Exit
 echo=
@@ -354,6 +355,11 @@ if /i "!user_input!" == "B" (
 )
 if /i "!user_input!" == "C" call :show_docs changelog
 if /i "!user_input!" == "H" call :show_docs doc.man
+if /i "!user_input!" == "U" (
+    call :updater -f "%~f0"
+    pause
+    goto main_menu
+)
 goto main_menu
 
 
@@ -1177,9 +1183,9 @@ exit /b 0
 
 :lib.build_system [return_prefix]
 set %~1install_requires= ^
-    ^ functions.range readline ^
-    ^ true coderender unittest ut_fmt_basic ^
-    ^ conemu Input.path Input.yesno Input.string ^
+    ^ functions.range readline true ^
+    ^ coderender unittest ut_fmt_basic ^
+    ^ conemu Input.path Input.yesno Input.string updater ^
     ^ difftime ftime
 exit /b 0
 
