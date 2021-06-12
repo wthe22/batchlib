@@ -214,6 +214,7 @@ call :true 2> nul || (
     1>&2 echo warning: Dependency not found. Script might not work well.
 )
 call :Library.read_args
+call :Category.unload_info
 call :Category.load
 call :main_menu
 exit /b
@@ -330,6 +331,7 @@ if "!user_input!" == "7" (
     call :Library.read_names
     call :Library.read_build_system
     call :Library.read_args
+    call :Category.unload_info
     call :Category.load
     call :LibBuild.remove_orphans
     pause
@@ -869,6 +871,11 @@ echo=
 exit /b 0
 
 
+:Category.unload_info
+call :unset "Category." "Category_"
+exit /b 0
+
+
 :Category.load
 call :Category.load_names
 call :Category.build
@@ -1024,11 +1031,7 @@ exit /b 0
 
 
 :Library.unload_info
-for %%p in ("Library." "Library_") do (
-    for /f "usebackq tokens=1 delims==" %%v in (`set %%~p 2^> nul`) do (
-        set "%%v="
-    )
-)
+call :unset "Library." "Library_"
 exit /b 0
 
 
@@ -1251,6 +1254,14 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 )
 exit /b 0
 
+
+:unset [variable_prefix] ...
+for %%p in (%*) do (
+    for /f "usebackq tokens=1 delims==" %%v in (`set %%~p 2^> nul`) do (
+        set "%%v="
+    )
+)
+exit /b 0
 
 rem ======================================== Library ========================================
 
