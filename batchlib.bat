@@ -727,6 +727,66 @@ exit /b 0
 exit /b 0
 
 
+:doc.argument_syntax
+::  ARGUMENT SYNTAX
+::      Description about how arguments are processed by functions. Here is a list
+::      of possible arguments syntax used in the library and its usage example:
+::
+::      function_name <number>
+::              call :function_name 1
+::
+::          Angle brackets <> means it is required. Number is a positional argument
+::           and it is required. Errors might occur if argument is not specified.
+::
+::      function_name <number ...>
+::              call :function_name "1 1 1"
+::
+::          Number can be specified multiple times within a pair of quotes.
+::          Values are accessed through %~1.
+::
+::      function_name <number> ...
+::              call :function_name 1 "2" "3"
+::
+::          Number can be specified multiple times and they must not share the
+::          same pair of quotes. Values are accessed through %*.
+::
+::      function_name [number]
+::              call :function_name  # OK, because number is optional
+::              call :function_name 1
+::
+::          Square brackets [] means it is optional.
+::
+::      function_name [-n|--number]
+::              call :function_name -n
+::              call :function_name --number
+::
+::          -n and --number are options. They can be used interchangeably
+::          (they are just the same thing).
+::
+::      function_name [-n number]
+::              call :function_name -n 1
+::              call :function_name -n  # Error: missing expected argument
+::
+::          Number must be specified after the -n flag. Errors might occur if
+::          the expected argument is not specified.
+::
+::      function_name [--number] <message>
+::              call :function_name --number "Hello"  # OK
+::              call :function_name "Hello" --number  # Also OK
+::
+::          An option can be placed anywhere if it occurs before the positional
+::          arguments.
+::
+::      function_name <message> [--number]
+::              call :function_name "Hello" --number  # OK
+::              call :function_name --number "Hello"  # Error: wrong position
+::
+::          An option must occur in the same position if it occurs after the
+::          positional arguments. In this case, --number must be specified in
+::          the second position if used.
+exit /b 0
+
+
 rem ========================================================================
 
 rem ======================================== Core Functions ========================================
