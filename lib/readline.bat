@@ -39,7 +39,7 @@ for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
 )
 for /f "tokens=1-2 delims=:" %%a in ("!_offset!") do (
     set /a "_start+=%%a" || exit /b 2
-    if defined _end set /a "_end+=%%b" || exit /b 2
+    if defined _end if not "%%b" == "" set /a "_end+=%%b" || exit /b 2
 )
 exit /b 0
 
@@ -72,7 +72,7 @@ exit /b 0
 ::          Stop reading after reading the END line.
 ::
 ::      offset
-::          Offset to apply to RANGE. The syntax is <start_offset>:<end_offset>.
+::          Offset to apply to RANGE. The syntax is <start_offset>[:<end_offset>].
 ::          E.g. to exclude first line and last line of RANGE, use 1:-1 as the
 ::          offset. End offset will not be applied if end line is not specified.
 ::
