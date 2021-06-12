@@ -308,10 +308,7 @@ echo 6. Build/add dependencies to a script
 echo 7. Reload Library
 echo=
 echo B. Self Build
-echo C. Change Log
-echo H. Help
-echo U. Update
-echo A. About Script
+echo A. About
 echo 0. Exit
 echo=
 echo What do you want to do?
@@ -338,13 +335,6 @@ if "!user_input!" == "7" (
     pause
     goto main_menu
 )
-if /i "!user_input!" == "A" (
-    cls
-    call :about
-    echo=
-    pause
-    goto main_menu
-)
 if /i "!user_input!" == "B" (
     setlocal EnableDelayedExpansion
     echo Adding/updating dependencies to this script...
@@ -353,46 +343,64 @@ if /i "!user_input!" == "B" (
     endlocal
     pause
 )
-if /i "!user_input!" == "C" call :show_docs changelog
-if /i "!user_input!" == "H" call :show_docs doc.man
-if /i "!user_input!" == "U" (
-    call :updater -f "%~f0"
-    pause
-    goto main_menu
-)
+if /i "!user_input!" == "A" call :about_menu
 goto main_menu
 
 
-:show_docs <label>
+:about_menu
+set "user_input="
 cls
-call :functions.range _range "%~f0" %1
-call :readline "%~f0" !_range! 1:-1 4
+echo 1. Usage
+echo 2. Argument Syntax
+echo 3. Change Log
 echo=
-pause
-exit /b 0
+echo U. Check for Update
+echo A. About Script
+echo 0. Exit
+echo=
+echo What do you want to do?
+set /p "user_input="
+echo=
+if "!user_input!" == "0" exit /b 0
+if "!user_input!" == "1" call :show_docs doc.man
+if "!user_input!" == "2" call :show_docs doc.argument_syntax
+if "!user_input!" == "3" call :show_docs changelog
+if /i "!user_input!" == "A" (
+    cls
+    call :about
+    echo=
+    pause
+    goto about_menu
+)
+if /i "!user_input!" == "U" (
+    call :updater -n "%~f0"
+    pause
+    goto about_menu
+)
+goto about_menu
 
 
 :browse_lib
 set "selected.quit="
 set "selected.category="
 set "selected.function="
-:browse_lib.loop
+:browse_lib._loop
 if defined selected.quit exit /b 2
 if not defined selected.category (
     call :InputCategory selected.category || (
         set "selected.quit=true"
-        goto browse_lib.loop
+        goto browse_lib._loop
     )
 )
 if not defined selected.function (
     call :InputFunction selected.function !selected.category! || (
         set "selected.category="
-        goto browse_lib.loop
+        goto browse_lib._loop
     )
 )
 call :LibMenu !selected.function!
 set "selected.function="
-goto browse_lib.loop
+goto browse_lib._loop
 
 
 :InputCategory <return_var>
@@ -610,6 +618,15 @@ call :difftime time_taken "!time!" "!start_time!"
 call :ftime time_taken !time_taken!
 echo=
 echo Done in !time_taken!
+pause
+exit /b 0
+
+
+:show_docs <label>
+cls
+call :functions.range _range "%~f0" %1
+call :readline "%~f0" !_range! 1:-1 4
+echo=
 pause
 exit /b 0
 
