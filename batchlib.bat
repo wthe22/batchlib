@@ -943,7 +943,7 @@ for %%l in ("!build_dir!\*") do (
 exit /b 0
 
 
-:LibBuild.update [library [...]]
+:LibBuild.update [library ...]
 setlocal EnableDelayedExpansion
 set "_library=%~1"
 if not defined _library set "_library=!Library.all!"
@@ -957,7 +957,7 @@ for %%l in (!_to_build!) do (
 exit /b 0
 
 
-:LibBuild.find_outdated <return_var> <library [...]>
+:LibBuild.find_outdated <return_var> <library ...>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_library=%~2"
@@ -988,7 +988,7 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 
 
-:LibBuild.build <library [...]>
+:LibBuild.build <library ...>
 setlocal EnableDelayedExpansion
 set "_library=%~1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -1006,7 +1006,7 @@ for %%l in (!_library!) do (
 exit /b 0
 #+++
 
-:LibBuild.build._template <source> [dependency [...]]
+:LibBuild.build._template <source> [dependency ...]
 setlocal EnableDelayedExpansion
 set "_source=%~f1"
 set "_dependencies=%~2"
@@ -1095,7 +1095,7 @@ for %%l in (!Library.all!) do (
 exit /b 0
 
 
-:Library.depends <return_var> <library [...]> [requires [...]]
+:Library.depends <return_var> <library ...> [requires ...]
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_library=%~2"
@@ -1125,7 +1125,7 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 1
 #+++
 
-:Library.depends._visit <library [...]>
+:Library.depends._visit <library ...>
 set "_lib= "
 for %%l in (%~1) do ( rem
 ) & for /f "tokens=1-2 delims=[]" %%a in ("%%l[install]") do (
@@ -1156,7 +1156,7 @@ for %%l in (%_lib%) do ( rem
 exit /b 0
 
 
-:Library.rdepends <return_var> <search_list> <library [...]> [requires [...]]
+:Library.rdepends <return_var> <search_list> <library ...> [requires ...]
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_search_list_raw=%~2"
@@ -1191,7 +1191,7 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 #+++
 
-:Library.rdepends._visit <library [...]>
+:Library.rdepends._visit <library ...>
 for %%l in (%~1) do ( rem
 ) & for /f "tokens=1-2 delims=[]" %%a in ("%%l[install]") do (
     set "_stack=%%a[%%b] !_stack!"
