@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:argparse [-i] [-s] <spec> [...] -- [arg] [...]
+:argparse [-i] [-s] <spec> ... -- [arg] ...
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
@@ -235,7 +235,7 @@ exit /b 0
 ::      argparse - parse options passed to script or function
 ::
 ::  SYNOPSIS
-::      argparse [-i] [-s] <spec> [...] -- [arg] [...]
+::      argparse [-i] [-s] <spec> ... -- [arg] ...
 ::
 ::  OPTIONS
 ::      Note: They must appear before all SPECs

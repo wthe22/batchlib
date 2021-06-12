@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:capchar   <char> [...] | *
+:capchar   <char> ...
 setlocal EnableDelayedExpansion
 set "_all="
 if "%~1" == "*" set "_all=true"
@@ -70,7 +70,7 @@ exit /b 0
 ::      capchar - capture control characters
 ::
 ::  SYNOPSIS
-::      capchar   <char> [...]
+::      capchar   <char> ...
 ::      capchar   *
 ::
 ::  POSITIONAL ARGUMENTS
