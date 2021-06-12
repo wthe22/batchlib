@@ -3,22 +3,19 @@ call %*
 exit /b
 
 
-:coderender  <file> <label>
+:coderender <file> <label> [arg]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
 set "_label=%~2"
+set _args=%3
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :functions.range _range "!_source_file!" "!_label!"
 call :readline "!_source_file!" !_range! 1:-1 > ".coderender._template" || exit /b 2
-for %%f in (code literal) do call 2> ".coderender._%%f" (
+for %%f in (code literal) do call 2> ".coderender._%%f"
 findstr /n "^" ".coderender._template" > ".coderender._numbered"
 call :coderender._group_lines
 > ".coderender._render.bat" (
-    echo call :coderender._render
-    echo exit /b
-    echo=
-    echo=
-    type "%~f0"
+    echo goto coderender._render
     echo=
     echo=
     echo :coderender._render
@@ -27,8 +24,11 @@ call :coderender._group_lines
     echo=
     echo=
     type ".coderender._literal"
+    echo=
+    echo=
+    type "%~f0"
 )
-call ".coderender._render.bat" || exit /b 3
+call ".coderender._render.bat" !_args! || exit /b 3
 exit /b 0
 #+++
 
@@ -94,7 +94,7 @@ exit /b 0
 ::      coderender - a renderer for batch script
 ::
 ::  SYNOPSIS
-::      coderender  <file> <label>
+::      coderender <file> <label> [arg]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      file
@@ -103,6 +103,9 @@ exit /b 0
 ::      label
 ::          The function label that contains the template. Function/template
 ::          line range is determined by functions.range().
+::
+::      arg
+::          A single argument to pass to template function.
 ::
 ::  TEMPLATE SYNTAX
 ::      Each line of literal blocks starts with '::  ' or '::' (for empty lines), and the rest is codes.
@@ -304,6 +307,21 @@ if "a" == "a" (
 ) else (
 ::  Nah
 )
+exit /b 0
+
+
+:tests.test_args
+call :tests.type output.hello > "expected"
+call :coderender "%~f0" "tests.template.args" Howdy > "result"
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.args
+::  Hello
+::  Hi
+echo %1
 exit /b 0
 
 
