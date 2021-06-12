@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:endlocal   <old[:new]> ...
+:endlocal <old[:new]> ...
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
@@ -61,7 +61,7 @@ exit /b 0
 ::      endlocal - make variables survive ENDLOCAL
 ::
 ::  SYNOPSIS
-::      endlocal   <old[:new]> ...
+::      endlocal <old[:new]> ...
 ::
 ::  POSITIONAL ARGUMENTS
 ::      old

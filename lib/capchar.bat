@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:capchar   <char> ...
+:capchar <char> ...
 setlocal EnableDelayedExpansion
 set "_all="
 if "%~1" == "*" set "_all=true"

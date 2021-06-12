@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:functions.match  <return_var> <input_file> <pattern>
+:functions.match <return_var> <input_file> <pattern>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_return_var=%~1"
 set "_input_file=%~f2"
@@ -56,7 +56,7 @@ exit /b 0
 ::      functions.match - find labels that matches the specified pattern
 ::
 ::  SYNOPSIS
-::      functions.match  <return_var> <input_file> <pattern>
+::      functions.match <return_var> <input_file> <pattern>
 ::
 ::  DESCRIPTION
 ::      Find all labels that matches the pattern in the input file.
