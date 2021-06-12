@@ -37,7 +37,7 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
-::          Variable to store the result, each seperated by space if multiple 
+::          Variable to store the result, each seperated by space if multiple
 ::          processes is found.
 ::
 ::      window_title
