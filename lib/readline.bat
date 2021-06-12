@@ -136,6 +136,17 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_no_end_offset
+call :readline simple 2:4 1 > "result"
+set expected=3;4;
+set "result="
+for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_substr
 call :readline commented 2:4 0:0 4 > "result"
 set expected=2;3;4;
