@@ -10,7 +10,7 @@ set "_label=%~2"
 set _args=%3
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :functions.range _range "!_source_file!" "!_label!"
-call :readline "!_source_file!" !_range! 1:-1 > ".coderender._template" || exit /b 2
+call :readline "!_source_file!" !_range! 1 > ".coderender._template" || exit /b 2
 for %%f in (code literal) do call 2> ".coderender._%%f"
 findstr /n "^" ".coderender._template" > ".coderender._numbered"
 call :coderender._group_lines
