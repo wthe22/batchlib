@@ -520,6 +520,7 @@ exit /b 0
 
 
 :LibMenu <function>
+setlocal EnableDelayedExpansion
 set "_library=%~1"
 set "_library_source=!lib_dir!\!_library!.bat"
 set "_library_build=!build_dir!\!_library!.bat"
@@ -537,6 +538,7 @@ echo=
 echo 1. Read manual
 echo 2. Run demo
 echo 3. Run tests
+echo 4. More information
 echo=
 echo 0. Back
 echo=
@@ -547,11 +549,11 @@ if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" call :LibMenu.read_manual
 if "!user_input!" == "2" call :LibMenu.run_demo
 if "!user_input!" == "3" call :LibMenu.run_tests
+if "!user_input!" == "4" call :LibMenu.show_info
 goto LibMenu.menu
 
 
 :LibMenu.read_manual
-setlocal EnableDelayedExpansion
 cls
 call :functions.range _range "!_library_source!" "doc.man" && (
     call :readline "!_library_source!" !_range! 1:-1 4
@@ -577,7 +579,28 @@ exit /b 0
 
 
 :LibMenu.run_tests
+setlocal EnableDelayedExpansion
 call :test_lib !_library!
+pause
+exit /b 0
+
+
+:LibMenu.show_info
+cls
+set "category= "
+for %%c in (!Library_%_library%.category!) do set "category=!category!!Category_%%c.name!, "
+set "category=!category:~1,-2!"
+call :Library.rdepends rdepends "!Library.all!" "!_library!" "install"
+set "rdepends=!rdepends: %_library% = !"
+
+echo Name               : !_library!
+echo Argument Syntax    : !Library_%_library%.args!
+echo Category           : !category!
+echo=
+echo Install requires   : !Library_%_library%.install_requires!
+echo Extra requires     : !Library_%_library%.extra_requires!
+echo Required by        : !rdepends!
+echo=
 pause
 exit /b 0
 
