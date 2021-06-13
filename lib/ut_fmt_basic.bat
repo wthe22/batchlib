@@ -6,10 +6,12 @@ exit /b
 :ut_fmt_basic <action> [args]
 setlocal EnableDelayedExpansion EnableExtensions
 2> nul (
-    for /f "usebackq tokens=* delims= eol=#" %%v in (".ut_fmt_basic._vars") do set %%v
+    for /f "usebackq tokens=* delims= eol=#" %%v in (
+        "%unittest.tmp_dir%\.ut_fmt_basic._vars"
+    ) do set %%v
 )
 call :ut_fmt_basic.%*
-> ".ut_fmt_basic._vars" (
+> "%unittest.tmp_dir%\.ut_fmt_basic._vars" (
     for %%v in (
         _start_time _stop_time
         _tests_run _test_count
