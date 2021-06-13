@@ -7,11 +7,11 @@ exit /b
 setlocal EnableDelayedExpansion EnableExtensions
 2> nul (
     for /f "usebackq tokens=* delims= eol=#" %%v in (
-        "%unittest.tmp_dir%\.ut_fmt_basic._vars"
+        "!unittest.tmp_dir!\.ut_fmt_basic_vars"
     ) do set %%v
 )
 call :ut_fmt_basic.%*
-> "%unittest.tmp_dir%\.ut_fmt_basic._vars" (
+> "!unittest.tmp_dir!\.ut_fmt_basic_vars" (
     for %%v in (
         _start_time _stop_time
         _tests_run _test_count
@@ -25,7 +25,7 @@ exit /b 0
 set "_start_time=!time!"
 set "_tests_run=0"
 set "_test_count="
-for /f "usebackq" %%k in ("%unittest.tmp_dir%\.unittest_test_cases") do set /a "_test_count+=1"
+for /f "usebackq" %%k in ("!unittest.tmp_dir!\.unittest_test_cases") do set /a "_test_count+=1"
 for %%e in (success fail error skip) do set "_%%e_count=0"
 exit /b 0
 #+++
