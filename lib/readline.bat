@@ -87,6 +87,13 @@ exit /b 0
 ::  ENVIRONMENT
 ::      cd
 ::          Affects the base path of input_file if relative path is given.
+::
+::      tmp_dir
+::          Path to store the temporary output.
+::
+::      temp
+::          Fallback path for tmp_dir if tmp_dir does not exist
+::
 exit /b 0
 
 

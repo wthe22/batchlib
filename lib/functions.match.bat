@@ -77,6 +77,12 @@ exit /b 0
 ::      cd
 ::          Affects the base path of input_file if relative path is given.
 ::
+::      tmp_dir
+::          Path to store the temporary results.
+::
+::      tmp
+::          Fallback path for tmp_dir if tmp_dir does not exist
+::
 ::  EXIT STATUS
 ::      0:  - Label is found.
 ::      2:  - Label is not found.

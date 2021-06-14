@@ -108,6 +108,10 @@ exit /b 0
 ::  ACTIONS
 ::      Actions are the outputs from the unittest() library.
 ::      For more information, read documentation of unittest()
+::
+::  ENVIRONMENT
+::      unittest.tmp_dir
+::          Directory to store state information.
 exit /b 0
 
 
