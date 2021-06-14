@@ -208,7 +208,7 @@ exit /b 0
 ::          and the test case returns exit code 0.
 ::
 ::      Failure
-::              call %unittest% fail [reason]
+::              call %unittest% fail [message]
 ::
 ::          Signals a test as failure. Used when a test case fails
 ::          (e.g. the function did not give the expected result).
@@ -216,7 +216,7 @@ exit /b 0
 ::          Can be used multiple times in a test case (e.g. for subtests).
 ::
 ::      Error
-::              call %unittest% error [reason]
+::              call %unittest% error [message]
 ::
 ::          Signals a test as error. Used when an unexpected error occur
 ::          (e.g. test case fails to run).
