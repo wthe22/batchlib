@@ -539,6 +539,7 @@ echo 1. Read manual
 echo 2. Run demo
 echo 3. Run tests
 echo 4. More information
+echo 5. View source
 echo=
 echo 0. Back
 echo=
@@ -550,6 +551,7 @@ if "!user_input!" == "1" call :LibMenu.read_manual
 if "!user_input!" == "2" call :LibMenu.run_demo
 if "!user_input!" == "3" call :LibMenu.run_tests
 if "!user_input!" == "4" call :LibMenu.show_info
+if "!user_input!" == "5" call :LibMenu.view_source
 goto LibMenu.menu
 
 
@@ -600,6 +602,16 @@ echo=
 echo Install requires   : !Library_%_library%.install_requires!
 echo Extra requires     : !Library_%_library%.extra_requires!
 echo Required by        : !rdepends!
+echo=
+pause
+exit /b 0
+
+
+:LibMenu.view_source
+cls
+call :functions.range _range "!_library_source!" "!_library!" && (
+    call :readline "!_library_source!" !_range!
+)
 echo=
 pause
 exit /b 0
