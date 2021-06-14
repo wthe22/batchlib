@@ -866,7 +866,7 @@ for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
     call %lib%:readline "!_input_file!" !_range! || exit /b 3
     echo=
     echo=
-    echo :: Automatically Added on !date! !time!
+    echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.version! on !date! !time!
     echo=
     if defined _minified (
         call :functions.range _ranges "%~f0" "!_dep!" || exit /b 3
@@ -1333,7 +1333,7 @@ call :Category.load
 ::  :your_library_name_here [--options] <args>
 ::  rem Library name should start with an alphablet. Library name should only
 ::  rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
-::  rem File name should be the same as the library name.
+::  rem The file name should be "<your_library_name_here>.bat"
 ::
 ::  rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
 ::  exit /b 0
@@ -1362,11 +1362,18 @@ echo set "%%~1category=!Category.valid_values!"
 ::  ::
 ::  ::  DESCRIPTION
 ::  ::      A good library should have a good documentation too!
+::  ::
+::  ::  EXIT STATUS
+::  ::      What the exit code of your function means. Some examples are:
+::  ::      0:  - Success
+::  ::      1:  - An unexpected error occured
+::  ::      2:  - Invalid argument
+::  ::      3:  - Other failures/errors/signals...
 ::  exit /b 0
 ::
 ::
 ::  :doc.demo
-::  rem A demo would help users understand how to use it
+::  echo A demo to help users understand how to use it
 ::  call :your_library_name_here && (
 ::      echo Success
 ::  ) || echo Failed...
@@ -1374,17 +1381,29 @@ echo set "%%~1category=!Category.valid_values!"
 ::
 ::
 ::  :tests.setup
-::  rem Called before running tests
+::  rem Called before running any tests here
+::
+::  rem Run these commands to unittest your function:
+::  :: cmd /c batchlib.bat test <your_library_name_here>
+::
+::  rem Or use quicktest():
+::  :: cmd /c batchlib.bat debug <your_library_name_here> :quicktest
+::  rem Run specific unittests
+::  :: cmd /c batchlib.bat debug <your_library_name_here> :quicktest <label> ...
 ::  exit /b 0
 ::
 ::
 ::  :tests.teardown
-::  rem Called after running tests
+::  rem Called after running all tests here. Useful for cleanups.
 ::  exit /b 0
 ::
 ::
 ::  :tests.test_something
 ::  rem Do some tests here...
+::  rem And if something goes wrong:
+::  :: call %unittest% fail "Something failed"
+::  :: call %unittest% error "The unexpected happened"
+::  :: call %unittest% skip "No internet detected..."
 ::  exit /b 0
 ::
 ::
@@ -1403,11 +1422,11 @@ for /l %%n in (1,1,40) do set "sep_line=!sep_line!="
 echo rem !sep_line! Metadata !sep_line!
 ::
 ::  :metadata [return_prefix]
-::  set "%~1name=__main__"
+::  set "%~1name=Script Name Here"
 ::  set "%~1version=0"
-::  set "%~1author="
+::  set "%~1author=Your Name Here"
 ::  set "%~1license="
-::  set "%~1description=%~nx0"
+::  set "%~1description=Description here"
 ::  set "%~1release_date=05/18/2021"   :: mm/dd/YYYY
 ::  set "%~1url="
 ::  set "%~1download_url="
@@ -1566,7 +1585,7 @@ for %%l in (!Library.all!) do (
     )
 )
 if defined _value echo     ^^^^ !_value:~1! ^^^^
-echo     ^^^^ %%=END=%%!!
+echo     ^^^^ %%=END=%%!=DUMMY=!
 ::  exit /b 0
 ::
 ::
@@ -1781,4 +1800,6 @@ exit /b 0
 rem ======================================== End ========================================
 
 :EOF  # End of File
+rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
+rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
 exit /b
