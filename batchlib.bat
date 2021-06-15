@@ -1494,7 +1494,11 @@ echo rem !sep_line! Library !sep_line!
 echo=
 call :self_extract_func "lib"
 ::  :lib.build_system
+::  rem List libraries you use in this file here:
 ::  set "%~1install_requires="
+::
+::  rem Add dependencies to this file by running:
+::  :: cmd /c batchlib.bat build script_name.bat
 ::  exit /b 0
 ::
 ::
