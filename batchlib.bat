@@ -188,7 +188,7 @@ rem ======================================== Entry points ======================
 @exit /b 0
 
 
-:scripts.call <label> [arguments]
+:scripts.call -c <label> [arguments]
 @(
     setlocal DisableDelayedExpansion
     call set command=%%*
@@ -365,7 +365,7 @@ set /p "user_input="
 echo=
 if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" call :show_docs doc.man
-if "!user_input!" == "2" call :show_docs doc.argument_syntax
+if "!user_input!" == "2" call :show_docs doc.lib.argument_syntax
 if "!user_input!" == "3" call :show_docs changelog
 if /i "!user_input!" == "A" (
     cls
@@ -476,7 +476,7 @@ exit /b 0
 set "user_input="
 cls
 for %%c in (!_category!) do (
-    echo=!Category_%%c.name!
+    echo=!Category_%%c.name! ^(%%c^)
 )
 echo=
 set "_count=0"
@@ -781,7 +781,7 @@ exit /b 0
 exit /b 0
 
 
-:doc.argument_syntax
+:doc.lib.argument_syntax
 ::  ARGUMENT SYNTAX
 ::      Description about how arguments are processed by functions. Here is a list
 ::      of possible arguments syntax used in the library and its usage example:
@@ -841,6 +841,46 @@ exit /b 0
 exit /b 0
 
 
+:doc.lib.man
+::  NAME
+::      library_name_here - a custom library
+::
+::  SYNOPSIS
+::      library_name_here [--options] <args>
+::
+::  DESCRIPTION
+::      A good library should have a good documentation too!
+::
+::  EXIT STATUS
+::      What the exit code of your function means. Some examples are:
+::      0:  - Success
+::      1:  - An unexpected error occured
+::      2:  - Invalid argument
+::      3:  - Other failures/errors/signals
+::          - Another possibility...
+exit /b 0
+
+
+:doc.lib.tests
+::  :tests.setup
+::  rem Called before running any tests here
+::  exit /b 0
+::
+::
+::  :tests.teardown
+::  rem Called after running all tests here. Useful for cleanups.
+::  exit /b 0
+::
+::
+::  :tests.test_something
+::  rem Do some tests here...
+::  rem And if something goes wrong:
+::  :: call %unittest% fail "Something failed"
+::  :: call %unittest% error "The unexpected happened"
+::  :: call %unittest% skip "No internet detected..."
+::  exit /b 0
+exit /b 0
+
 rem ========================================================================
 
 rem ======================================== Core Functions ========================================
@@ -898,11 +938,18 @@ call :coderender "%~f0" "template.!template_name!"
 exit /b
 
 
-:self_extract_func <label>
-call :functions.range _range "%~f0" "%~1" || exit /b 2
-call :readline "%~f0" !_range!
-echo=
-echo=
+:self_extract_func <label> ...
+setlocal EnableDelayedExpansion
+set "_success=true"
+set "_labels= "
+for %%l in (%*) do set "_labels=!_labels!%%~l "
+call :functions.range _range "%~f0" "!_labels!" || set "_success="
+for %%r in (!_range!) do (
+    call :readline "%~f0" %%r || set "_success="
+    echo=
+    echo=
+)
+if not defined _success exit /b 3
 exit /b 0
 
 
@@ -1324,16 +1371,15 @@ exit /b 0
 rem ======================================== Templates ========================================
 
 :template.new_library
-call :Category.load
 ::  :entry_point > nul 2> nul
 ::  call %*
 ::  exit /b
 ::
 ::
-::  :your_library_name_here [--options] <args>
+::  :library_name_here [--options] <args>
 ::  rem Library name should start with an alphablet. Library name should only
 ::  rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
-::  rem The file name should be "<your_library_name_here>.bat"
+::  rem The file name should be "<library_name_here>.bat"
 ::
 ::  rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
 ::  exit /b 0
@@ -1349,64 +1395,39 @@ call :Category.load
 ::
 ::  rem Category of the library. Choose ones that fit.
 ::  rem Multiple values are supported (each seperated by space)
-echo set "%%~1category=!Category.valid_values!"
+::  set "%%~1category="
 ::  exit /b 0
 ::
 ::
 ::  :doc.man
-::  ::  NAME
-::  ::      your_library_name_here - a new library
-::  ::
-::  ::  SYNOPSIS
-::  ::      your_library_name_here [--options] <args>
-::  ::
-::  ::  DESCRIPTION
-::  ::      A good library should have a good documentation too!
-::  ::
-::  ::  EXIT STATUS
-::  ::      What the exit code of your function means. Some examples are:
-::  ::      0:  - Success
-::  ::      1:  - An unexpected error occured
-::  ::      2:  - Invalid argument
-::  ::      3:  - Other failures/errors/signals...
-::  exit /b 0
+call :functions.range _range "%~f0" "doc.lib.man" && (
+    call :readline "%~f0" !_range! 1:
+)
 ::
 ::
 ::  :doc.demo
 ::  echo A demo to help users understand how to use it
-::  call :your_library_name_here && (
+::  call :library_name_here && (
 ::      echo Success
 ::  ) || echo Failed...
 ::  exit /b 0
 ::
 ::
-::  :tests.setup
-::  rem Called before running any tests here
-::
+::  :test
 ::  rem Run these commands to unittest your function:
-::  :: cmd /c batchlib.bat test <your_library_name_here>
+::  :: cmd /c batchlib.bat test <library_name_here>
 ::
 ::  rem Or use quicktest():
-::  :: cmd /c batchlib.bat debug <your_library_name_here> :quicktest
+::  :: cmd /c batchlib.bat debug <library_name_here> :quicktest
 ::  rem Run specific unittests
-::  :: cmd /c batchlib.bat debug <your_library_name_here> :quicktest <label> ...
+::  :: cmd /c batchlib.bat debug <library_name_here> :quicktest <label> ...
 ::  exit /b 0
 ::
 ::
-::  :tests.teardown
-::  rem Called after running all tests here. Useful for cleanups.
-::  exit /b 0
-::
-::
-::  :tests.test_something
-::  rem Do some tests here...
-::  rem And if something goes wrong:
-::  :: call %unittest% fail "Something failed"
-::  :: call %unittest% error "The unexpected happened"
-::  :: call %unittest% skip "No internet detected..."
-::  exit /b 0
-::
-::
+call :functions.range _range "%~f0" "doc.lib.tests"
+call :readline "%~f0" !_range! 1:-1 4
+echo=
+echo=
 call :self_extract_func "EOF"
 exit /b 0
 
@@ -1427,7 +1448,7 @@ echo rem !sep_line! Metadata !sep_line!
 ::  set "%~1author=Your Name Here"
 ::  set "%~1license="
 ::  set "%~1description=Description here"
-::  set "%~1release_date=05/18/2021"   :: mm/dd/YYYY
+echo set "%%~1release_date=!date:~4!"   :: mm/dd/YYYY
 ::  set "%~1url="
 ::  set "%~1download_url="
 ::  exit /b 0
@@ -1483,14 +1504,16 @@ call :self_extract_func "lib"
 echo rem !sep_line! Tests !sep_line!
 echo=
 call :self_extract_func "tests"
-::  :tests.setup
+::  :test
+::  rem If you add quicktest() to your script:
+::  :: cmd /c script_name_here.bat -c :quicktest
 ::  exit /b 0
 ::
 ::
-::  :tests.teardown
-::  exit /b 0
-::
-::
+call :functions.range _range "%~f0" "doc.lib.tests"
+call :readline "%~f0" !_range! 1:-1 4
+echo=
+echo=
 
 echo rem !sep_line! End !sep_line!
 echo=
@@ -1510,10 +1533,8 @@ call :self_extract_func "entry_point"
 
 echo rem !sep_line! Metadata !sep_line!
 echo=
-for %%l in (
-    metadata
-    about
-) do call :self_extract_func "%%l"
+call :self_extract_func "metadata"
+call :self_extract_func "about"
 
 echo rem !sep_line! License !sep_line!
 echo=
@@ -1521,9 +1542,11 @@ call :self_extract_func "license"
 
 echo rem !sep_line! Configurations !sep_line!
 echo=
-call :self_extract_func "config"
-call :self_extract_func "config.default"
-call :self_extract_func "config.preference"
+call :self_extract_func ^
+    ^ config ^
+    ^ config.default ^
+    ^ config.preference ^
+    ^ %=END=%
 
 echo rem !sep_line! Main !sep_line!
 echo=
@@ -1548,28 +1571,28 @@ call :self_extract_func "scripts.call"
 ::  exit /b 0
 ::
 ::
-for %%l in (
-    scripts.build
-    scripts.template
-    common_setup
-) do call :self_extract_func "%%l"
+call :self_extract_func ^
+    ^ scripts.build ^
+    ^ scripts.template ^
+    ^ common_setup ^
+    ^ %=END=%
 
 echo rem !sep_line! Documentation !sep_line!
 echo=
-for %%l in (
-    doc.help
-    doc.man
-) do call :self_extract_func "%%l"
+call :self_extract_func ^
+    ^ doc.help ^
+    ^ doc.man ^
+    ^ %=END=%
 
 echo rem !sep_line! Core Functions !sep_line!
 echo=
-for %%l in (
-    core
-    build_script
-    make_template
-    self_extract_func
-    Library.unload_info
-) do call :self_extract_func "%%l"
+call :self_extract_func ^
+    ^ core ^
+    ^ build_script ^
+    ^ make_template ^
+    ^ self_extract_func ^
+    ^ Library.unload_info ^
+    ^ %=END=%
 
 ::  :Library.read_names
 ::  set Library.all= ^
@@ -1604,13 +1627,13 @@ for %%l in (!Library.all!) do (
 ::  goto Library.read_args.from_self
 ::
 ::
-for %%l in (
-    Library.read_args.from_self
-    Library.depends
-    Library.rdepends
-    Library.remove_extras_pkg
-    Library.search
-) do call :self_extract_func "%%l"
+call :self_extract_func ^
+    ^ Library.read_args.from_self ^
+    ^ Library.depends ^
+    ^ Library.rdepends ^
+    ^ Library.remove_extras_pkg ^
+    ^ Library.search ^
+    ^ %=END=%
 
 echo rem !sep_line! Templates !sep_line!
 echo=
@@ -1622,11 +1645,11 @@ call :self_extract_func "tests"
 
 echo rem !sep_line! Library !sep_line!
 echo=
-for %%l in (
-    lib
-    lib.build_system
-    lib.call
-) do call :self_extract_func "%%l"
+call :self_extract_func ^
+    ^ lib ^
+    ^ lib.build_system ^
+    ^ lib.call ^
+    ^ %=END=%
 call :Library.depends ordered_lib "!Library.all!"
 for %%l in (!ordered_lib!) do (
     call :functions.range _range "!lib_dir!\%%l.bat" "%%l"
