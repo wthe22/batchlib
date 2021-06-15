@@ -13,11 +13,16 @@ Features
 * Does not use global variables (otherwise specified in documentation)
 * Extensive documentation and demo
 * Functions have unittest and demo so functionality can be tested before use
+* Library dependency management for scripts
 
 First Time Use
 --------------
 For first time use, run ``setup.bat`` to do the setups. If the setup is
 successful, running ``setup.bat`` again will only run unittests.
+
+A good way to get stated with batchlib is to explore the features and libraries
+first. After you are somehow familiar with them, generate a `Template For New
+Scripts`_, read the documentations inside, and try to make something out of it.
 
 Template For New Scripts
 ------------------------
@@ -29,7 +34,7 @@ for you. To generate it, type:
     cmd /c batchlib.bat template new_script > your_script_name.bat
 
 Now you can use this newly generated script as your starting point.
-You are ready to code!
+There are guides inside to help you get started.
 
 Dependency Management
 -------------------------------
@@ -66,8 +71,7 @@ First, we need to generate a template for the library. To generate it, type:
     cmd /c batchlib.bat template new_library > lib\your_library_name.bat
 
 This template contains all the structures you need for your function to work
-correctly with Batchlib. Now you can start adding your own library function and
-there are guides inside to help you too!
+correctly with Batchlib. Now you can start adding your own library function.
 
 Minified Batchlib
 -----------------
@@ -85,14 +89,8 @@ To generate it, type:
 Unit Testing Your Script
 ------------------------
 There are 2 unit testing frameworks: unittest() and quicktest(). Unittest() is
-the powerful one (supports test suite), and quicktest is the expressive one.
+the powerful one (supports test suite), and quicktest() is the expressive one.
 Both have the same syntax so compatibility is not a problem.
-Here are some of the usage syntax:
-::
-
-    call %unittest% fail [message]
-    call %unittest% error [message]
-    call %unittest% skip [reason]
 
 In this project, unittests are placed inside the script to be tested (not in a
 seperate file, but could be seperate if you want to).
