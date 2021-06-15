@@ -75,7 +75,9 @@ correctly with Batchlib. Now you can start adding your own library function.
 
 Minified Batchlib
 -----------------
-Minified Batchlib is a stripped down version of Batchlib. The differences are:
+Minified Batchlib is a stripped down and packed version of Batchlib.
+
+The differences are:
 
 * All library functions (only the function) are compiled into the file.
 * No library docs, demo, or tests included.
