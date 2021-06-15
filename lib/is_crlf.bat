@@ -6,7 +6,7 @@ exit /b
 :is_crlf [--check-exist]
 :is_crlf.alt1
 :is_crlf.alt2
-for %%f in (-c, --check-exist) do if /i "%1" == "%%f" exit /b 0
+for %%f in (-c, --check-exist) do if /i ^"%1^" == "%%f" exit /b 0
 @call :is_crlf._test 2> nul && exit /b 0 || exit /b 2
 rem  1  DO NOT REMOVE / MODIFY THIS COMMENT SECTION           #
 rem  2  IT IS IMPORTANT FOR THIS FUNCTION TO WORK CORRECTLY   #
