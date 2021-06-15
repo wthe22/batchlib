@@ -14,11 +14,10 @@ Features
 * Extensive documentation and demo
 * Functions have unittest and demo so functionality can be tested before use
 
-First Use
----------
-For first time use, run ``setup.py`` to do the setups. It will also run unittest
-after the setup. If the setup is successful, running ``setup.py`` again will
-only run unittests.
+First Time Use
+--------------
+For first time use, run ``setup.bat`` to do the setups. If the setup is
+successful, running ``setup.bat`` again will only run unittests.
 
 Template For New Scripts
 ------------------------
