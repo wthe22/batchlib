@@ -16,20 +16,9 @@ Features
 
 First Use
 ---------
-For first time use, we need to do some setups:
-::
-
-    # Convert linux EOL to windows EOL
-    type batchlib.bat > batchlib.bat.tmp
-    move /y batchlib.bat.tmp batchlib.bat
-
-    # Add dependencies to batchlib
-    cmd /c batchlib.bat build batchlib.bat
-
-This solves the following problem:
-
-1. If you downloaded it as zip file from GitHub, the file is probably using Linux EOL (`LF`)
-2. Satisfy dependency of batchlib (yes, batchlib also have dependencies)
+For first time use, run ``setup.py`` to do the setups. It will also run unittest
+after the setup. If the setup is successful, running ``setup.py`` again will
+only run unittests.
 
 Template For New Scripts
 ------------------------
@@ -93,19 +82,6 @@ To generate it, type:
 ::
 
     cmd /c batchlib.bat template minified > batchlib-min.bat
-
-Testing
--------
-.
-It is recommended to run unittest first before usage to find out if Batchlib
-works on your system. Use these commands to run unittest:
-::
-
-    rem Test the Batchlib core
-    cmd /c batchlib.bat -c :test
-
-    rem Test all library functions
-    cmd /c batchlib.bat test
 
 Unit Testing Your Script
 ------------------------
