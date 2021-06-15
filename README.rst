@@ -125,5 +125,6 @@ For more information, you can read the documentation of unittest().
 
 TAP Compliance
 ^^^^^^^^^^^^^^
-Neither unittest() or quicktest() are `TAP <http://testanything.org/>`_ compliant.
-However, the output of unittest() can be easily formatted to TAP.
+Neither unittest() or quicktest() are `TAP <http://testanything.org/>`_
+compliant. However, after skimming through the specs, I think the output of
+unittest() can be easily formatted to TAP.
