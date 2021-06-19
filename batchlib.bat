@@ -12,7 +12,7 @@ set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
 set "%~1release_date=06/15/2021"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
-set "%~1download_url=https://raw.githubusercontent.com/wthe22/batch-scripts/master/batchlib.bat"
+set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
 exit /b 0
 
 
