@@ -436,7 +436,7 @@ for %%c in (!Category.all!) do (
         set /a "_count+=1"
         if /i ^"%1^" == "list" (
             set "_count=   !_count!"
-            echo !_count:~-3,3!. !Category_%%c.name! [!Category_%%c.item_count!]
+            echo !_count:~-3,3!. !Category_%%c.name! ^(%%c^) [!Category_%%c.item_count!]
         ) else if "%~1" == "!_count!" set "_selected=%%c"
     )
 )
@@ -473,9 +473,7 @@ exit /b 0
 :InputFunction.select_menu
 set "user_input="
 cls
-for %%c in (!_category!) do (
-    echo=!Category_%%c.name! ^(%%c^)
-)
+echo=!Category_%_category%.name!
 echo=
 set "_count=0"
 for %%c in (!_category!) do ( rem
