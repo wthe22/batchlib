@@ -62,20 +62,16 @@ exit /b 0
 ::      readline <input_file> <range> [offset] [substr]
 ::
 ::  POSITIONAL ARGUMENTS
-::      filename
+::      input_file
 ::          Path of the input file.
 ::
 ::      range
 ::          Range of lines to read. The syntax is <start>:[end]. Function will
 ::          start reading from START line until END line. If END line is
-::          not specified then read until the end of file. START and END can
-::          contain
-::
-::      end
-::          Stop reading after reading the END line.
+::          not specified then read until the end of file.
 ::
 ::      offset
-::          Offset to apply to RANGE. The syntax is <start_offset>[:<end_offset>].
+::          Offset to apply to RANGE. The syntax is <start_offset>:[end_offset].
 ::          E.g. to exclude first line and last line of RANGE, use 1:-1 as the
 ::          offset. End offset will not be applied if end line is not specified.
 ::
