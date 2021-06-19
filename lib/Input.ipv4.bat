@@ -3,25 +3,28 @@ call %*
 exit /b
 
 
-:Input.ipv4 [-m message] [-w] <return_var>
+:Input.ipv4 [-m message] [-w] [-o] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_msg_is_set _message _allow_wildcard _check_options) do set "%%v="
-for %%v in (_return_var _message _range _as_is) do set "%%v="
+for %%v in (_return_var _message _allow_wildcard _check_options) do set "%%v="
 call :argparse ^
     ^ "#1:store                         :_return_var" ^
     ^ "-m,--message:store               :_message" ^
+    ^ "-o,--optional:store_const        :_optional=true" ^
     ^ "-w,--allow-wildcard:store_const  :_allow_wildcard=true" ^
     ^ -- %* || exit /b 2
 if defined _allow_wildcard set "_check_options= --wildcard"
 if not defined _message (
-    if defined _allow_wildcard (
-        set "_message=Input !_return_var! (Wildcard allowed): "
+    if defined _allow_wildcard set "_message=!_message!wildcard allowed, "
+    if defined _optional set "_message=!_message!optional, "
+    if defined _message (
+        set "_message=Input !_return_var! (!_message:~0,-2!): "
     ) else set "_message=Input !_return_var!: "
 )
 call :Input.ipv4._loop || exit /b 4
-for /f "delims= eol=" %%r in ("!user_input!") do (
+for /f "tokens=1* delims=:" %%q in ("Q:!user_input!") do (
     endlocal
     set "%_return_var%=%%r"
+    if not defined %_return_var% exit /b 3
 )
 exit /b 0
 #+++
@@ -30,7 +33,9 @@ exit /b 0
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
-    call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
+    if defined user_input (
+        call :check_ipv4 "!user_input!" !_check_options! && exit /b 0
+    ) else if defined _optional exit /b 0
 )
 exit /b 1
 
@@ -47,7 +52,7 @@ exit /b 0
 ::      Input.ipv4 - read an IPv4 from standard input
 ::
 ::  SYNOPSIS
-::      Input.ipv4 [-m message] [-w] <return_var>
+::      Input.ipv4 [-m message] [-w] [-o] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -60,16 +65,20 @@ exit /b 0
 ::      -m MESSAGE, --message MESSAGE
 ::          By default, the message is generated automatically.
 ::
+::      -o, --optional
+::          Input is optional and could be skipped by entering nothing.
+::
 ::  EXIT STATUS
 ::      0:  - Input is successful.
 ::      2:  - Invalid argument.
+::      3:  - User skips the input.
 ::      4:  - Input attempt reaches the 100 attempt limit.
 exit /b 0
 
 
 :doc.demo
-call :Input.ipv4 -w user_input --message "Input an IPv4 (wildcard allowed): "
-echo Your input: !user_input!
+call :Input.ipv4 -w --optional ipv4_address
+echo Your input: '!ipv4_address!'
 exit /b 0
 
 
