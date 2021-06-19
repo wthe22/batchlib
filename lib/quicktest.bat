@@ -72,13 +72,10 @@ exit /b 0
 ::          any label that matches 'test*.test*' is used.
 ::
 ::  UNITTEST USAGE
-::      Test File
-::          Each test file should contain tests.setup(), tests.teardown(), and at
-::          least 1 test case to run unittest.
-::
 ::      tests.setup()
-::          A function called before tests in a file is run. A skip/fail/error
-::          signal will abort unittest.
+::          A function called before tests in a file is run. Unittest will be
+::          aborted if this function is not callable or a skip/fail/error signal
+::          is received from this function.
 ::
 ::      tests.teardown()
 ::          A function called after tests in a file is run. This is called even
