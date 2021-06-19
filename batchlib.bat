@@ -84,6 +84,7 @@ exit /b 0
 
 :config.preference
 rem Configurations to change/override
+:: set "tmp_dir=%~dp0tmp\tmp"
 exit /b 0
 
 
