@@ -11,7 +11,7 @@ set "_pattern=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
 findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" > "_tokens" 2> nul || (
-    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 3
+    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
 )
 set "_parts="
 set "_leftover=:!_pattern!:"
@@ -39,7 +39,7 @@ for /f "usebackq tokens=*" %%o in ("_tokens") do (
 for /f "tokens=1* delims= " %%q in ("Q !_result!") do (
     endlocal
     set "%_return_var%=%%r"
-    if not defined %_return_var% exit /b 2
+    if not defined %_return_var% exit /b 3
 )
 exit /b 0
 
@@ -67,7 +67,7 @@ exit /b 0
 ::
 ::  OPTIONS
 ::      -p PATTERN, --pattern PATTERN
-::          Pattern of the function label to match. Supports up to 4 wildcards '*'.
+::          Pattern of the function label to match. Supports up to 10 wildcards '*'.
 ::          It uses path pattern matching sytle. By default, it is '*'.
 ::
 ::      -f INPUT_FILE, --file INPUT_FILE
@@ -85,7 +85,8 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Label is found.
-::      2:  - Label is not found.
+::      2:  - Cannot open input file.
+::      3:  - Label is not found.
 ::
 ::  NOTES
 ::      - The label of the function MUST only be preceeded by either nothing or
