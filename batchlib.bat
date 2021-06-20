@@ -772,8 +772,6 @@ exit /b 0
 ::  - Ends with an alphabet, underscore, or number
 ::  - Use variable names as a namespace
 ::
-::  Note:
-::  - Most functions assumes that the syntax is valid
 ::  - external: something that is stored in other files
 exit /b 0
 
@@ -835,6 +833,14 @@ exit /b 0
 ::          An option must occur in the same position if it occurs after the
 ::          positional arguments. In this case, --number must be specified in
 ::          the second position if used.
+::
+::  ARGUMENT VALIDATION
+::      Some libraries have argument validation. Usually they can be identified by
+::      having the 'invalid argument' exit status. However, most library did not
+::      have argument validation. It assumes that the given argument syntax and
+::      values are valid. Make sure you validate the value first before passing it
+::      to the function (e.g. if the function only accept numbers, make sure you
+::      pass numbers too, not alphabets, symbols, variable names, etc.).
 exit /b 0
 
 
