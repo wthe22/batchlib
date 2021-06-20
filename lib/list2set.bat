@@ -14,6 +14,7 @@ for %%v in (%~1) do (
     )
 )
 exit /b 0
+#+++
 
 :list2set._convert
 set "_result= "
