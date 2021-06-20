@@ -11,6 +11,7 @@ set "_offset=%~3"
 set "_substr=%~4"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :readline._adjust_range || ( 1>&2 echo%0: Invalid arguments & exit /b 2 )
+if !_start! LEQ 0 set "_start=1"
 if defined _end if !_start! GTR !_end! exit /b 0
 if !_start! GTR 1 (
     set /a "_skip=!_start! - 1"
