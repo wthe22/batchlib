@@ -73,20 +73,6 @@ echo=
 exit /b 0
 
 
-:ut_fmt_basic._num_padded
-set "_num_min=1"
-set "_num_width=0"
-for /l %%n in (1,1,4) do if !_num_min! GEQ !_test_count! (
-    set /a "_num_width=%%n"
-    set /a "_num_min*=10"
-)
-set "_num_padding="
-for /l %%n in (1,1,!_num_width!) do set "_num_padding=!_num_padding! "
-set "_test_num=!_num_padding!!_tests_run!"
-set "_test_num=!_test_num:~-%_num_width%,%_num_width%!"
-exit /b 0
-
-
 :lib.build_system [return_prefix]
 set "%~1install_requires=difftime ftime"
 set "%~1extra_requires=unittest functions.range readline"
