@@ -72,17 +72,22 @@ exit /b 0
 ::
 ::      range
 ::          Range of lines to read. The syntax is <start>:[end]. Function will
-::          start reading from START line until END line. If END line is
-::          not specified then read until the end of file.
+::          start reading from START line until END line. If END line is not
+::          specified then read until the end of file. First line starts from 1.
+::          This value is validated.
 ::
 ::      offset
 ::          Offset to apply to RANGE. The syntax is <start_offset>:[end_offset].
 ::          E.g. to exclude first line and last line of RANGE, use 1:-1 as the
-::          offset. End offset will not be applied if end line is not specified.
+::          offset. End offset have no effect if end line is not specified. If
+::          offset causes start range to be negative (e.g. start at line 0 or -1)
+::          it will be set to 1. If offset causes end range to be negative, it will
+::          not read any lines and exit successfully. This value is not validated.
 ::
 ::      substr
-::          Substring to apply to each line. The syntax is <start>[,<length>].
-::          This must be placedas the fourth argument.
+::          Substring to apply to each line. The syntax is similar to batch script
+::          substring: <start>[,<length>]. This must be placed as the fourth
+::          argument. This value is not validated.
 ::
 ::  EXIT STATUS
 ::      0:  - Successful.
