@@ -163,6 +163,37 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_invalid_range
+call :readline simple hello > nul 2> nul && (
+    call %unittest% fail "Success with invalid range"
+)
+exit /b 0
+
+
+:tests.test_negative_start
+call :readline simple 1:4 -2: > "result"
+set expected=1;2;3;4;
+set "result="
+for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_negative_ranges
+call :readline simple 1:1 -2:-1 > "result" || (
+    call %unittest% fail "Exit status is not successful"
+)
+set expected=
+set "result="
+for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_substr
 call :readline commented 2:4 0:0 4 > "result"
 set expected=2;3;4;
