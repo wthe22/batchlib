@@ -1079,6 +1079,7 @@ set "_library=%~1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if not exist "!build_dir!" mkdir "!build_dir!"
 for %%l in (!_library!) do (
+    call :LibBuild.check_extraction "!lib_dir!\%%l.bat" "%%l"
     set "_dep=!Library_%%l.install_requires!"
     for %%r in (install extra) do set "_dep=!_dep! !Library_%%l.%%r_requires!"
     call :LibBuild.build._template "!lib_dir!\%%l.bat" "!_dep!" > "%%l.bat.tmp" && (
@@ -1087,6 +1088,22 @@ for %%l in (!_library!) do (
         1>&2 echo%0: Could not build %%l^(^)
         del /f /q "%%l.bat.tmp"
     )
+)
+exit /b 0
+#+++
+
+:LibBuild.check_extraction <input_file> <label>
+set "_input_file=%~f1"
+set "_label=%~2"
+call %lib%:functions.range _range "!_input_file!" "!_label!" || exit /b 4
+for /f "tokens=1-2 delims=: " %%a in ("!_range!") do (
+    call %lib%:readline "!_input_file!" 1:%%a 0:-1
+    if not "%%b" == "" call %lib%:readline "!_input_file!" %%b: 1:
+) > "_other"
+call %lib%:functions.match _match "_other" "!_label!*" || exit /b 4
+if defined _match (
+    1>&2 echo%0: warning: possible incomplete extraction of !_label!^(^)
+     exit /b 3
 )
 exit /b 0
 #+++
