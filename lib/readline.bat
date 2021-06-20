@@ -33,13 +33,17 @@ exit /b 0
 
 :readline._adjust_range
 if not defined _range exit /b 2
+set "_start="
+set "_end="
 for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
     if %%a LSS 1 exit /b 2
     if %%a GTR 2147483647 exit /b 2
     set /a "_start=%%a" || exit /b 2
-    if "%%b" == "" (
-        set "_end="
-    ) else set /a "_end=%%b" || exit /b 2
+    if not "%%b" == "" (
+        if %%b LSS 1 exit /b 2
+        if %%b GTR 2147483647 exit /b 2
+        set /a "_end=%%b" || exit /b 2
+    )
 )
 for /f "tokens=1-2 delims=:" %%a in ("!_offset!") do (
     set /a "_start+=%%a" || exit /b 2
