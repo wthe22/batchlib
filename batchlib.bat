@@ -308,7 +308,7 @@ echo 6. Build/add dependencies to a script
 echo 7. Reload Library
 echo=
 echo B. Self Build
-echo A. About
+echo H. Help
 echo 0. Exit
 echo=
 echo What do you want to do?
@@ -344,15 +344,15 @@ if /i "!user_input!" == "B" (
     endlocal
     pause
 )
-if /i "!user_input!" == "A" call :about_menu
+if /i "!user_input!" == "H" call :help_menu
 goto main_menu
 
 
-:about_menu
+:help_menu
 set "user_input="
 cls
 echo 1. Usage
-echo 2. Argument Syntax
+echo 2. Library Argument Syntax
 echo 3. Change Log
 echo=
 echo U. Check for Update
@@ -371,14 +371,14 @@ if /i "!user_input!" == "A" (
     call :about
     echo=
     pause
-    goto about_menu
+    goto help_menu
 )
 if /i "!user_input!" == "U" (
     call :updater -n "%~f0"
     pause
-    goto about_menu
+    goto help_menu
 )
-goto about_menu
+goto help_menu
 
 
 :browse_lib
