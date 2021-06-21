@@ -839,14 +839,14 @@ exit /b 0
 ::      having the 'invalid argument' exit status. However, most library did not
 ::      have argument validation. It assumes that the given argument syntax and
 ::      values are valid. Make sure you validate the value first before passing it
-::      to the function (e.g. if the function only accept numbers, make sure you
-::      pass numbers too, not alphabets, symbols, variable names, etc.).
+::      to the function (e.g. if the function only accepts an integer, make sure
+::      you pass an integer too, not alphabets, symbols, hexadecimal, etc.).
 exit /b 0
 
 
 :doc.lib.man
 ::  NAME
-::      library_name_here - a custom library
+::      library_name_here - a sample library
 ::
 ::  SYNOPSIS
 ::      library_name_here [--options] <args>
