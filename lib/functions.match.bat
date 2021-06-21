@@ -118,7 +118,7 @@ exit /b 0
 
 :tests.setup
 set "return.found=0"
-set "return.not_found=2"
+set "return.not_found=3"
 call :capchar TAB
 call :capchar LF
 > "left_side" (
