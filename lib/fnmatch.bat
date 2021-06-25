@@ -49,8 +49,12 @@ exit /b 0
 ::          The string to check.
 ::
 ::      pattern
-::          The pattern to match. Supported pattern is only wildcards '*'.
-::          Supports up to 10 wildcards.
+::          The pattern to match. The comparison is case sensitive.
+::          Supported pattern is only wildcards '*'. Supports up to 10 wildcards.
+::
+::  EXIT STATUS
+::      0:  - Success.
+::      3:  - String does not match pattern.
 exit /b 0
 
 
