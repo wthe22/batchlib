@@ -117,6 +117,7 @@ exit /b 0
 
 
 :tests.test_match_symbols
+call :tests.check_match "test" "*"
 call :tests.check_match "test#:" "test*:"
 call :tests.check_match "test:#" "test:*"
 call :tests.check_match "#:test" "*:test"
