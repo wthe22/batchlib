@@ -1095,15 +1095,22 @@ exit /b 0
 #+++
 
 :LibBuild.check_extraction <input_file> <label>
+setlocal EnableDelayedExpansion
 set "_input_file=%~f1"
 set "_label=%~2"
-set "_match="
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call %lib%:functions.range _range "!_input_file!" "!_label!" || exit /b 4
 for /f "tokens=1-2 delims=: " %%a in ("!_range!") do (
     call %lib%:readline "!_input_file!" 1:%%a 0:-1
     if not "%%b" == "" call %lib%:readline "!_input_file!" %%b: 1:
 ) > "_other"
-call %lib%:functions.match _match "_other" "!_label!*"
+call %lib%:functions.list "_other" > "_labels"
+set "_match="
+for /f "usebackq tokens=*" %%l in ("_labels") do (
+    set "_leftover=:%%l"
+    set _leftover=!_leftover::%_label%=x:!
+    if "!_leftover:~0,2!" == "x:" set "_match=true"
+)
 if defined _match exit /b 3
 exit /b 0
 #+++
@@ -1373,7 +1380,7 @@ exit /b 0
 
 :lib.build_system [return_prefix]
 set %~1install_requires= ^
-    ^ functions.range readline true ^
+    ^ functions.range readline functions.list true ^
     ^ coderender unittest ut_fmt_basic ^
     ^ conemu Input.path Input.yesno Input.string updater ^
     ^ difftime ftime
