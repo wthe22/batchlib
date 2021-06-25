@@ -8,11 +8,11 @@ setlocal EnableDelayedExpansion EnableExtensions
 set "_input_file=%~f1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
-findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" > "_tokens" 2> nul || (
-    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
-)
+findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" ^
+    ^ > ".functions.list._tokens" 2> nul ^
+    ^ || ( 1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2 )
 set "_result="
-for /f "usebackq tokens=*" %%o in ("_tokens") do (
+for /f "usebackq tokens=*" %%o in (".functions.list._tokens") do (
     set "_label=%%o"
     set "_label=!_label:*:=!"
     for /f "tokens=* delims=@%TAB% " %%a in ("!_label!") do set "_label=%%a"
