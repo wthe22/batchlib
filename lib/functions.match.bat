@@ -9,32 +9,9 @@ set "_return_var=%~1"
 set "_input_file=%~f2"
 set "_pattern=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
-findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" > "_tokens" 2> nul || (
-    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
-)
-set "_parts="
-set "_leftover=:!_pattern!:"
-for /l %%n in (1,1,10) do if defined _leftover (
-    for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
-        set _parts=!_parts! "%%a"
-        set "_leftover=%%b"
-    )
-)
-set "_result="
-for /f "usebackq tokens=*" %%o in ("_tokens") do (
-    set "_label=%%o"
-    set "_label=!_label:*:=!"
-    for /f "tokens=* delims=@%TAB% " %%a in ("!_label!") do set "_label=%%a"
-    for /f "tokens=1 delims=:%TAB% " %%a in ("!_label!") do set "_label=%%a"
-    set "_leftover=:!_label!:"
-    set "_match=true"
-    for %%p in (!_parts!) do if defined _match (
-        set "_leftover=!_leftover:*%%~p= !"
-        if not "!_leftover:~0,1!" == " " set "_match="
-        set "_leftover=!_leftover:~1!"
-    )
-    if defined _match set "_result=!_result! !_label!"
+call :functions.list "!_input_file!" > ".functions.match._tokens" 2> nul || exit /b 2
+for /f "usebackq tokens=*" %%l in (".functions.match._tokens") do (
+    call :fnmatch "%%l" "!_pattern!" && set "_result=!_result! %%l"
 )
 for /f "tokens=1* delims= " %%q in ("Q !_result!") do (
     endlocal
@@ -45,7 +22,7 @@ exit /b 0
 
 
 :lib.build_system [return_prefix]
-set "%~1install_requires= "
+set "%~1install_requires=functions.list fnmatch"
 set "%~1extra_requires=Input.string Input.path capchar"
 set "%~1category=packaging"
 exit /b 0
