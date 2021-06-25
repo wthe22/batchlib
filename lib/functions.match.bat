@@ -119,33 +119,7 @@ exit /b 0
 :tests.setup
 set "return.found=0"
 set "return.not_found=3"
-call :capchar TAB
 call :capchar LF
-> "left_side" (
-    echo=call %*
-    echo exit /b
-    echo=
-    echo :plain
-    echo    :space
-    echo !TAB!:tab
-    echo @:at
-    echo !TAB!@ :mix
-    echo ::comment
-    echo exit /b 0
-    echo=
-)
-> "right_side" (
-    echo=call %*
-    echo exit /b
-    echo=
-    echo :plain
-    echo :space    %=END=%
-    echo :tab!TAB!%=END=%
-    echo :colon:%=END=%
-    echo :argspecs ^<arg1^> [--opt]%=END=%
-    echo exit /b 0
-    echo=
-)
 > "pattern_basic" (
     echo=call %*
     echo exit /b
@@ -170,42 +144,6 @@ exit /b 0
 
 
 :tests.teardown
-exit /b 0
-
-
-:tests.test_trim_leading
-for %%a in (
-    "plain"
-    "space"
-    "tab"
-    "at"
-    "mix"
-) do (
-    set "given=%%~a"
-    set "expected=%%~a"
-    call :functions.match result "left_side" "!given!"
-    if not "!result!" == "!expected!" (
-        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
-    )
-)
-exit /b 0
-
-
-:tests.test_trim_trailing
-for %%a in (
-    "plain"
-    "space"
-    "tab"
-    "colon"
-    "argspecs"
-) do (
-    set "given=%%~a"
-    set "expected=%%~a"
-    call :functions.match result "right_side" "!given!"
-    if not "!result!" == "!expected!" (
-        call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
-    )
-)
 exit /b 0
 
 
