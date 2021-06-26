@@ -69,7 +69,7 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      string
-::          The string to check. Double quote and equal sign are not supported.
+::          The string to check. Symbols that are not supported: ="^!
 ::
 ::      pattern
 ::          The pattern to match. The supported pattern is only wildcards '*'.
