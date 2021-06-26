@@ -7,50 +7,38 @@ exit /b
 @setlocal EnableDelayedExpansion EnableExtensions
 set "_string=%~1"
 set "_pattern=%~2"
-set "_first="
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 set "_last="
 set "_parts="
 set "_leftover=!_pattern!"
 for /l %%n in (1,1,10) do if defined _leftover (
     for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
-        if not defined _first set "_first=%%a"
-        set "_last=%%a"
-        set _parts=!_parts! "%%a"
+        set "_part="
+        if "%%n" == "1" if not "!_pattern:~0,1!" == "*" set "_part=%%a"
+        if not defined _part set "_part=*%%a"
+        set "_parts=!_parts!!_part!!LF!"
         set "_leftover=%%b"
     )
 )
-if not defined _pattern (
-    if defined _string (
-        exit /b 3
-    ) else exit /b 0
-)
-set "_match=true"
-if not "!_pattern:~0,1!" == "*" (
-    set "_leftover=!_string!"
-    set _leftover=!_leftover:%_first%=^"!
-    if not "!_leftover:~0,1!" == ^"^"^" set "_match="
-)
+set "_last=!_part:~1!"
 set "_leftover=!_string!"
-for %%p in (!_parts!) do if defined _match (
-    if defined _leftover (
-        set _leftover=!_leftover:*%%~p=^"!
-        if not "!_leftover:~0,1!" == ^"^"^" set "_match="
-        set "_leftover=!_leftover:~1!"
-    ) else set "_match="
+for /f "tokens=* delims=" %%p in ("!_parts!") do (
+    if not defined _leftover exit /b 3
+    set _leftover=!_leftover:%%p=^"!
+    if not "!_leftover:~0,1!" == ^"^"^" exit /b 3
+    set "_leftover=!_leftover:~1!"
 )
-if not "!_pattern:~-1,1!" == "*" (
-    for /l %%n in (1,1,10) do if defined _match if defined _leftover (
-        set _leftover=!_leftover:*%_last%=^"!
-        if not "!_leftover:~0,1!" == ^"^"^" set "_match="
-        set "_leftover=!_leftover:~1!"
-    )
-)
-if not defined _match exit /b 3
+if "!_pattern:~-1,1!" == "*" exit /b 0
+if not defined _leftover exit /b 0
+call :strlen _len _last
+if not "!_leftover:~-%_len%!" == "!_last!" exit /b 3
 exit /b 0
 
 
 :lib.build_system [return_prefix]
-set "%~1install_requires= "
+set "%~1install_requires=strlen"
 set "%~1extra_requires=Input.string"
 set "%~1category=string"
 exit /b 0
