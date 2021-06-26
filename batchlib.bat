@@ -707,16 +707,9 @@ exit /b 0
 ::  BUILD SUBCOMMAND
 ::          batchlib build <input_file> [backup_name]
 ::
-::      Add/update dependency of the file and do backup if the backup path is
-::      specified. The procedures are:
-::          - File is called with '-c :lib.build_system' parameter and dependencies
-::            is set to the 'install_requires' variable.
-::          - Codes between entry_point() and EOF() are persisted. The rest will
-::            be lost (e.g. if you write notes above entry_point or below the EOF
-::            label) so do backup if you are unsure.
-::          - Add/update dependency listed in 'install_requires' variable to file,
-::            below the EOF() label.
-::          - Build is aborted if any steps above fails.
+::      Add/update dependencies of a file (based on the new script template).
+::      Dependencies are found in 'install_requires' in lib.build_system() and
+::      'extra_requires' is ignored. Build is aborted if any errors occur.
 ::
 ::      POSITIONAL ARGUMENTS
 ::          input_file
@@ -731,7 +724,7 @@ exit /b 0
 ::      Debug the library and call :LABEL with the ARGUMENTS.
 ::      The debugging features are:
 ::      - The quicktest() library is included.
-::      - The 'debug' variable is set to '1>&2' if it is not defined so output
+::      - The 'debug' variable is set to '1>&2' if it is not defined, so output
 ::        is redirected to STDERR.
 ::      - Library is always rebuilt before running.
 ::
