@@ -65,15 +65,15 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Match string with filename-style wildcards. For example, '*.bat' matches
-::      any string that ends with '.bat'.
+::      any string that ends with '.bat'. The comparison is case sensitive.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      string
-::          The string to check.
+::          The string to check. Double quote and equal sign are not supported.
 ::
 ::      pattern
-::          The pattern to match. The comparison is case sensitive. Supported
-::          pattern is only wildcards '*'. Supports up to 10 wildcards.
+::          The pattern to match. The supported pattern is only wildcards '*'.
+::          Supports up to 10 wildcards.
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
