@@ -243,18 +243,6 @@ call %*
 exit /b
 
 
-:scripts.run <library> [arguments]
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :common_setup
-set "library=%~1"
-call :LibBuild.update "!library!"
-endlocal & cd /d "%build_dir%"
-if not defined debug set "debug=rem"
-call %*
-exit /b
-
-
 :scripts.test <library>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
@@ -686,8 +674,8 @@ echo=
 echo    batchlib build ^<input_file^> [backup_name]
 echo        Add/update dependency of a file
 echo=
-echo    batchlib (run^|debug) ^<library^> ^<:label^> [arguments]
-echo        Run/debug a library (Not available in minified version)
+echo    batchlib debug ^<library^> ^<:label^> [arguments]
+echo        Debug a library (Not available in minified version)
 echo=
 echo    batchlib test [library]
 echo        Run unittest to a library (Not available in minified version)
@@ -707,7 +695,7 @@ exit /b 0
 ::      batchlib (-h|--help|/?)
 ::      batchlib -c <:label> [arguments]
 ::      batchlib build <input_file> [backup_name]
-::      batchlib (run|debug) <library> <:label> [arguments]
+::      batchlib debug <library> <:label> [arguments]
 ::      batchlib test [library]
 ::      batchlib template <name>
 ::
@@ -737,18 +725,17 @@ exit /b 0
 ::          backup_name
 ::              Path of the backup file.
 ::
-::  RUN and DEBUG SUBCOMMAND
-::          batchlib (run|debug) <library> <:label> [arguments]
+::  DEBUG SUBCOMMAND
+::          batchlib debug <library> <:label> [arguments]
 ::
-::      Run the (built) library and call :LABEL with the ARGUMENTS.
+::      Debug the library and call :LABEL with the ARGUMENTS.
+::      The debugging features are:
+::      - The quicktest() library is included.
+::      - The 'debug' variable is set to '1>&2' if it is not defined so output
+::        is redirected to STDERR.
+::      - Library is always rebuilt before running.
+::
 ::      This subcommand is not available in the minified version.
-::
-::      The DEBUG subcommand have some more addition to the RUN subcommand:
-::      - quicktest() is also included in the 'extra_requires' dependency list
-::      - If the 'debug' variable is not defined, then it is set to:
-::          - '1>&2' in the DEBUG subcommand (output is redirected to STDERR)
-::          - 'rem' in the RUN subcommand (command will not be executed)
-::      - Library is always rebuilt before running, even if there is no changes
 ::
 ::  TEST SUBCOMMAND
 ::          batchlib test [library]
