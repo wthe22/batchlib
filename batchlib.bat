@@ -110,6 +110,8 @@ rem ======================================== Changelog =========================
 ::      - get_pid_by_title()
 ::      - true()
 ::      - Input.number()
+::      - functions.list()
+::      - fnmatch()
 ::  - Replaced functions:
 ::      - parse_args() -> argparse()
 ::      - textrender() -> coderender()
