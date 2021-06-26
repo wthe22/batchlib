@@ -113,7 +113,7 @@ call :tests.check_unmatch "" "asd"
 exit /b 0
 
 
-:tests.test_simple_colon_match
+:tests.test_simple_match
 call :tests.check_match "aabbcc" "*"
 call :tests.check_match "aabbcc" "*bcc"
 call :tests.check_match "aabbcc" "a*cc"
