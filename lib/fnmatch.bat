@@ -8,30 +8,43 @@ exit /b
 set "_string=%~1"
 set "_pattern=%~2"
 set "_first="
+set "_last="
 set "_parts="
-set "_leftover=:!_pattern!:"
+set "_leftover=!_pattern!"
 for /l %%n in (1,1,10) do if defined _leftover (
     for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
         if not defined _first set "_first=%%a"
+        set "_last=%%a"
         set _parts=!_parts! "%%a"
         set "_leftover=%%b"
     )
 )
+if not defined _pattern (
+    if defined _string (
+        exit /b 3
+    ) else exit /b 0
+)
 set "_match=true"
 if not "!_pattern:~0,1!" == "*" (
-    set "_leftover=:!_string!:"
+    set "_leftover=!_string!"
     set _leftover=!_leftover:%_first%=^"!
     if not "!_leftover:~0,1!" == ^"^"^" set "_match="
 )
-set "_leftover=:!_string!:"
+set "_leftover=!_string!"
 for %%p in (!_parts!) do if defined _match (
     if defined _leftover (
-        set "_leftover=!_leftover:*%%~p= !"
-        if not "!_leftover:~0,1!" == " " set "_match="
+        set _leftover=!_leftover:*%%~p=^"!
+        if not "!_leftover:~0,1!" == ^"^"^" set "_match="
         set "_leftover=!_leftover:~1!"
     ) else set "_match="
 )
-if not "!_pattern:~-1,1!" == "*" if defined _leftover set "_match="
+if not "!_pattern:~-1,1!" == "*" (
+    for /l %%n in (1,1,10) do if defined _match if defined _leftover (
+        set _leftover=!_leftover:*%_last%=^"!
+        if not "!_leftover:~0,1!" == ^"^"^" set "_match="
+        set "_leftover=!_leftover:~1!"
+    )
+)
 if not defined _match exit /b 3
 exit /b 0
 
