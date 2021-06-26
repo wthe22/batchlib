@@ -122,7 +122,13 @@ exit /b 0
 
 
 :tests.test_nongreedy_end_match
-call :tests.check_match "aabbcc" "aa*c"
+call :tests.check_match "abcccccccccccc" "ab*c"
+call :tests.check_match "abcccccccccccc" "ab*cccccccc"
+exit /b 0
+
+
+:tests.test_nongreedy_end_unmatch
+call :tests.check_unmatch "abccccccccccccd" "ab*c"
 exit /b 0
 
 
