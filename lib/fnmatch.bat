@@ -86,47 +86,37 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_match_literal
-call :tests.check_match "test" "test"
-call :tests.check_match ":test" ":test"
-call :tests.check_match "test:" "test:"
+:tests.test_literal_match
+call :tests.check_match "abc" "abc"
+call :tests.check_match "" ""
 exit /b 0
 
 
-:tests.test_unmatch_literal_colon
-call :tests.check_not_match "test:" "test"
-call :tests.check_not_match ":test" "test"
-call :tests.check_not_match "test" ":test"
-call :tests.check_not_match "test" "test:"
+:tests.test_literal_unmatch
+call :tests.check_unmatch "asd" "as"
+call :tests.check_unmatch "asd" "sd"
+call :tests.check_unmatch "asd" ""
+call :tests.check_unmatch "" "asd"
 exit /b 0
 
 
-:tests.test_unmatch_literal_hashtag
-call :tests.check_not_match "test#" "test"
-call :tests.check_not_match "#test" "test"
-call :tests.check_not_match "test" "#test"
-call :tests.check_not_match "test" "test#"
+:tests.test_simple_colon_match
+call :tests.check_match "aabbcc" "*"
+call :tests.check_match "aabbcc" "*bcc"
+call :tests.check_match "aabbcc" "a*cc"
+call :tests.check_match "aabbcc" "aab*"
 exit /b 0
 
 
-:tests.test_match_letters
-call :tests.check_match "helloooo" "hell*"
-call :tests.check_match "helloooo" "hel*o"
-call :tests.check_match "hheeello" "*ello"
+:tests.test_nongreedy_end_match
+call :tests.check_match "aabbcc" "aa*c"
 exit /b 0
 
 
-:tests.test_match_symbols
-call :tests.check_match "test" "*"
-call :tests.check_match "test#:" "test*:"
-call :tests.check_match "test:#" "test:*"
-call :tests.check_match "#:test" "*:test"
-call :tests.check_match ":#test" ":*test"
-exit /b 0
-
-
-:tests.test_unmatch_pattern
-call :tests.check_not_match "holla" "h*ll*o"
+:tests.test_simple_unmatch
+call :tests.check_unmatch "a" "ab*"
+call :tests.check_unmatch "abc" "a*b"
+call :tests.check_unmatch "abc" "abc*abc"
 exit /b 0
 
 
@@ -138,7 +128,7 @@ call :fnmatch %* || (
 exit /b 0
 
 
-:tests.check_not_match <args>
+:tests.check_unmatch <args>
 call :fnmatch %* && (
     call %unittest% fail ^
         ^ "Given string '%~1' and pattern '%~2', unexpected success"
