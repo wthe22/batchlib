@@ -238,7 +238,7 @@ set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
 call :LibBuild.build "!library!"
 endlocal & cd /d "%build_dir%"
-if not defined debug set "debug=1>&2"
+if not defined debug set "debug=/? > nul & 1>&2"
 call %*
 exit /b
 
@@ -724,8 +724,8 @@ exit /b 0
 ::      Debug the library and call :LABEL with the ARGUMENTS.
 ::      The debugging features are:
 ::      - The quicktest() library is included.
-::      - The 'debug' variable is set to '1>&2' if it is not defined, so output
-::        is redirected to STDERR.
+::      - Debug commands are executed and output is redirected to STDERR
+::        if 'debug' variable is not defined.
 ::      - Library is always rebuilt before running.
 ::
 ::      This subcommand is not available in the minified version.
@@ -1389,6 +1389,9 @@ rem ======================================== Templates =========================
 ::  rem Library name should start with an alphablet. Library name should only
 ::  rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
 ::  rem The file name should be "<library_name_here>.bat"
+::
+::  rem Use this to run command only in debug mode:
+::  rem %debug% echo Debug mode is ON
 ::
 ::  rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
 ::  exit /b 0
