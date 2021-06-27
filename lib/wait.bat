@@ -58,24 +58,23 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      delay
-::          The number of milliseconds to delay. Supports delay up to 21474 milliseconds.
+::          The number of milliseconds to delay. Supports up to 21474 milliseconds.
 ::
 ::      delay_target
-::          The delay (in milliseconds) to use for calibration. This is used to adjust the
-::          calibration time. By default, it is automatically adjusted according
-::          to the result of each calibration.
+::          The delay (in milliseconds) to use for calibration. By default, it is
+::          automatically adjusted according to the result of each calibration.
 ::
 ::  ENVIRONMENT
 ::      wait._increment
 ::          The increment speed for wait(). This value is set by wait.calibrate().
+::          Higher value means that the computer is slower.
 ::
 ::  NOTES
-::      - wait.calibrate():
-::          - Based on: difftime()
 ::      - wait() have high CPU usage
 ::      - Using %wait% macro is more preferable than calling the function
 ::        because it has more consistent results
-::      - wait.calibrate() calibrates up to 12 times before exiting.
+::      - Accuracy depends on power mode of windows. Best Performance mode have
+::        the best accuracy while Battery Saver mode have the worst accuracy.
 exit /b 0
 
 
