@@ -1,4 +1,4 @@
-:entry_point > nul 2> nul
+:entry_point  # Beginning of file
 @goto main
 
 
@@ -1380,7 +1380,7 @@ exit /b 0
 rem ======================================== Templates ========================================
 
 :template.new_library
-::  :entry_point > nul 2> nul
+::  :entry_point  # Beginning of file
 ::  call %*
 ::  exit /b
 ::
@@ -1445,10 +1445,7 @@ exit /b 0
 set "sep_line="
 for /l %%n in (1,1,40) do set "sep_line=!sep_line!="
 
-::  :entry_point > nul 2> nul
-::  @goto main
-::
-::
+call :self_extract_func "entry_point"
 echo rem !sep_line! Metadata !sep_line!
 ::
 ::  :metadata [return_prefix]
