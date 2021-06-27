@@ -104,13 +104,13 @@ exit /b 0
 
 
 :tests.setup
-set "threshold=200"  milliseconds
+set "threshold=250"  milliseconds
 set "expected=1250"  milliseconds
-call :wait.setup_macro
 call :wait.calibrate > nul || (
     call %unittest% error "Calibration failed"
     exit /b 0
 )
+call :wait.setup_macro
 exit /b 0
 
 
