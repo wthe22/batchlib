@@ -278,6 +278,7 @@ set "STDERR_REDIRECTION=2> nul"
 call :tests.type template.simple > "simple.bat"
 exit /b 0
 
+
 :tests.teardown
 exit /b 0
 
@@ -351,7 +352,7 @@ exit /b 0
 
 :tests.test_pattern
 call :tests.type expected.pattern > expected || exit /b
-call :unittest "simple.bat" -p "tests.test_s*" -a "" -s "" > result
+call :unittest "simple.bat" -p "test*.test_s*" -a "" -s "" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
