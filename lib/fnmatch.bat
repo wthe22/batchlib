@@ -113,6 +113,7 @@ call :tests.check_match "aabbcc" "*"
 call :tests.check_match "aabbcc" "*bcc"
 call :tests.check_match "aabbcc" "a*cc"
 call :tests.check_match "aabbcc" "aab*"
+call :tests.check_match "abcabc" "a*c"
 exit /b 0
 
 
@@ -134,8 +135,19 @@ call :tests.check_unmatch "abc" "abc*abc"
 exit /b 0
 
 
+:tests.test_multi_match
+call :tests.check_match "ab" "a*b*"
+call :tests.check_match "ab_" "a*b*"
+call :tests.check_match "a_b" "a*b*"
+call :tests.check_match "ab" "*a*b"
+call :tests.check_match "_ab" "*a*b"
+call :tests.check_match "a_b" "*a*b"
+exit /b 0
+
+
 :tests.test_multi_unmatch
-call :tests.check_unmatch "ab" "a*c*"
+call :tests.check_unmatch "a_" "a*b*"
+call :tests.check_unmatch "_b" "*a*b"
 exit /b 0
 
 
