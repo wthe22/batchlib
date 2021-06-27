@@ -10,35 +10,27 @@ exit /b 0
 
 :wait.calibrate [delay_target]
 setlocal EnableDelayedExpansion
-echo Calibrating wait()
 call :wait.setup_macro
 set "wait._increment=100000"
 if not "%~1" == "" set /a "_delay_target=%~1" || exit /b 1
 set "_time_taken=-1"
-for /l %%i in (1,1,12) do if not "!wait._increment!" == "-1" if not "!_time_taken!" == "!_delay_target!" (
+for /l %%i in (1,1,12) do if not "!_time_taken!" == "!_delay_target!" (
     if "%~1" == "" set "_delay_target=!wait._increment:~0,3!"
     set "_start_time=!time!"
     for %%t in (!_delay_target!) do %wait%
-    set "_time_taken=0"
-    for %%t in ("!time!" "!_start_time!") do for /f "tokens=1-4 delims=:., " %%a in ("%%~t") do (
-        set /a "_time_taken+=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
-        set /a "_time_taken*=0xffffffff"
-    )
-    if "!_time_taken:~0,1!" == "-" set /a "_time_taken+=0x83D600"
+    call :difftime _time_taken "!time!" "!_start_time!"
     set /a "_time_taken*=10"
-    echo Calibration #%%i: !wait._increment!, !_delay_target! -^> ~!_time_taken! milliseconds
+    echo [%%i] !wait._increment!: !_delay_target! -^> ~!_time_taken!
     set /a "_next=!wait._increment! * !_time_taken! / !_delay_target!"
     if "!_next!" == "0" (
-        set /a "wait._increment=!wait._increment! / 10"
+        set /a "wait._increment=!wait._increment! / 10 + 1"
     ) else set "wait._increment=!_next!"
-    if !wait._increment! LEQ 0 set "wait._increment=-1"
 )
-echo Calibration done: !wait._increment!
+echo [END] !wait._increment!
 for /f "tokens=*" %%r in ("!wait._increment!") do (
     endlocal
     set "wait._increment=%%r"
 )
-if "!wait._increment!" == "-1" exit /b 1
 exit /b 0
 #+++
 
@@ -48,7 +40,7 @@ exit /b 0
 
 
 :lib.build_system [return_prefix]
-set "%~1install_requires= "
+set "%~1install_requires=difftime"
 set "%~1extra_requires=Input.number difftime"
 set "%~1category=time"
 exit /b 0
@@ -88,8 +80,10 @@ exit /b 0
 
 
 :doc.demo
-call :wait.setup_macro
+echo Calibrating wait()
 call :wait.calibrate
+echo Calibration done: !wait._increment!
+call :wait.setup_macro
 echo=
 call :Input.number time_in_milliseconds --range "0~10000"
 echo=
