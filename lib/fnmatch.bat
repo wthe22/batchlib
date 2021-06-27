@@ -76,7 +76,9 @@ exit /b 0
 call :Input.string pattern || set "pattern=*.bat"
 call :Input.string string || set "string=batchlib.bat"
 echo=
-call :fnmatch "!pattern!" "!string!" && (
+echo Pattern    : '!pattern!'
+echo String     : '!string!'
+call :fnmatch "!string!" "!pattern!" && (
     echo String matches pattern
 ) || echo String does not match pattern
 exit /b 0
