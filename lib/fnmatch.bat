@@ -12,6 +12,7 @@ set LF=^
 %=REQUIRED=%
 set "_part="
 set "_to_match="
+set "_last="
 set "_leftover=!_pattern!"
 for /l %%n in (1,1,10) do if defined _leftover (
     for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
@@ -25,8 +26,10 @@ for /l %%n in (1,1,10) do if defined _leftover (
         set "_leftover=%%b"
     )
 )
-set "_last=.!_part!"
-set "_last=!_last:~2!"
+if defined _part (
+    if "!_pattern:~-1,1!" == "*" set "_to_match=!_to_match!!_part!!LF!"
+    set "_last=!_part:~1!"
+)
 set "_leftover=!_string!"
 for /f "tokens=* delims=" %%p in ("!_to_match!") do (
     if not defined _leftover exit /b 3
@@ -128,6 +131,11 @@ exit /b 0
 call :tests.check_unmatch "a" "ab*"
 call :tests.check_unmatch "abc" "a*b"
 call :tests.check_unmatch "abc" "abc*abc"
+exit /b 0
+
+
+:tests.test_multi_unmatch
+call :tests.check_unmatch "ab" "a*c*"
 exit /b 0
 
 
