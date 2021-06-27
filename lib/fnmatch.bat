@@ -10,32 +10,28 @@ set "_pattern=%~2"
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-set "_part="
-set "_to_match="
-set "_last="
+for %%v in (_part _pieces _first _last) do set "%%v="
 set "_leftover=!_pattern!"
 for /l %%n in (1,1,10) do if defined _leftover (
     for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
-        if defined _part set "_to_match=!_to_match!!_part!!LF!"
-        set "_part=*%%a"
         if "%%n" == "1" (
-            if not "!_pattern:~0,1!" == "*" set "_part=%%a"
-            set "_to_match=!_to_match!!_part!!LF!"
-            set "_part="
-        )
+            set "_first=%%a"
+        ) else if defined _last set "_pieces=!_pieces!*!_last!!LF!"
+        set "_last=%%a"
         set "_leftover=%%b"
     )
 )
-if defined _part (
-    if "!_pattern:~-1,1!" == "*" set "_to_match=!_to_match!!_part!!LF!"
-    set "_last=!_part:~1!"
-)
+if not "!_pattern:~0,1!" == "*" if defined _first set "_pieces=!_first!!LF!!_pieces!"
+if "!_pattern:~-1,1!" == "*" if defined _last set "_pieces=!_pieces!*!_last!!LF!"
 set "_leftover=!_string!"
-for /f "tokens=* delims=" %%p in ("!_to_match!") do (
+for /f "tokens=* delims=" %%p in ("!_pieces!") do (
     if not defined _leftover exit /b 3
     set _leftover=!_leftover:%%p=^"!
     if not "!_leftover:~0,1!" == ^"^"^" exit /b 3
-    set "_leftover=!_leftover:~1!"
+    if defined _first (
+        set "_leftover=!_string!"
+        set "_first="
+    ) else set "_leftover=!_leftover:~1!"
 )
 if "!_pattern:~-1,1!" == "*" exit /b 0
 if not defined _last if not defined _leftover exit /b 0
