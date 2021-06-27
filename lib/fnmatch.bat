@@ -60,11 +60,11 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      string
-::          The string to check. Symbols that are not supported: ="^!
+::          The string to check. Symbols that are not supported: "!
 ::
 ::      pattern
 ::          The pattern to match. The supported pattern is only wildcards '*'.
-::          Supports up to 10 wildcards.
+::          Supports up to 10 wildcards. Symbols that are not supported: "!=
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
