@@ -78,7 +78,7 @@ call :Input.string string || set "string=batchlib.bat"
 echo=
 call :fnmatch "!pattern!" "!string!" && (
     echo String matches pattern
-) else echo String does not match pattern
+) || echo String does not match pattern
 exit /b 0
 
 
