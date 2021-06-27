@@ -291,6 +291,8 @@ exit /b 0
 ::  NOTES
 ::      - Multi-character short options are not supported.
 ::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
+::      - Do not use duplicate flags in specification. Although currently it is
+::        not enforced, it could cause unwanted behavior.
 ::      - Maximum argument count is 400
 ::      - Maximum specification count is 100
 exit /b 0
