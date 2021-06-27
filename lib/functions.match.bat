@@ -96,7 +96,7 @@ exit /b 0
 :tests.setup
 set "return.found=0"
 set "return.not_found=3"
-call :capchar LF
+call :capchar LF TAB
 > "pattern_basic" (
     echo=call %*
     echo exit /b
@@ -109,18 +109,27 @@ call :capchar LF
     echo :howdy
     echo ::comment
 )
-> "for_unittest" (
-    echo :tests.test_
-    echo :tests.test_single_dot
-    echo :tests..test_double_dot
-    echo :tests.test_1
-    echo :tests.test_1.prepare
-    echo :tests.part.test_1
-)
 exit /b 0
 
 
 :tests.teardown
+exit /b 0
+
+
+
+:tests.test_trim
+> "needs_trimming" (
+    echo !TAB!@ :leading
+    echo ::comment
+    echo :trailing ^<arg1^> [--opt] %=END=%
+    echo exit /b 0
+    echo=
+)
+call :functions.match result "needs_trimming" "*"
+set "expected=leading trailing"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
 exit /b 0
 
 
@@ -158,18 +167,6 @@ for %%t in (
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
     )
-)
-exit /b 0
-
-
-:tests._test_for_unittest
-rem TODO: Make pattern for unittest labels
-set "expected=4"
-call :functions.match labels "for_unittest" "tests*.test_*"
-set "result=0"
-for %%l in (!labels!) do set /a "result+=1"
-if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
