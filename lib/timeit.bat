@@ -202,7 +202,7 @@ echo Measure time taken to read this file (using macro)
 %timeit% for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 echo=
 echo Measure time taken to read this file (using macro with parameters)
-%timeit: $args = -n 10 -r 5 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
+%timeit: $args = -n 299 -r 5 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 exit /b 0
 
 
