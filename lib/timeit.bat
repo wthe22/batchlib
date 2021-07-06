@@ -5,6 +5,7 @@ exit /b
 
 :timeit [-n loops] [-r repetitions] <code>
 setlocal EnableDelayedExpansion
+set "_is_macro="
 call :timeit._setup %*
 if not defined _code ( 1>&2 echo error: No command to execute & exit /b 1 )
 set _code=!_code:'="!
@@ -15,7 +16,7 @@ exit /b 0
 
 :timeit._setup
 (
-    goto 2> nul
+    if not defined _is_macro goto 2> nul
     for %%v in (_code _loops) do set "%%v="
     set "_repeat=5"
     call :argparse ^
@@ -32,8 +33,9 @@ exit /b 0
     set "_min_time=20"
     set "_best_time=2147483647"
     set "_result=0"
+    ( call )
 )
-exit /b 1
+exit /b 0
 #+++
 
 :timeit._measure
@@ -121,6 +123,7 @@ for /l %%# in (1,1,4) do ^
   if "%%#" == "1" (
     setlocal EnableDelayedExpansion EnableExtensions
     set "_abort="
+    set "_is_macro=true"
     call :timeit._setup  $args  || set "_abort=true"
 ) else if "%%#" == "3" (
     if not defined _abort call :timeit._show_result
@@ -198,9 +201,8 @@ echo=
 echo Measure time taken to read this file (using macro)
 %timeit% for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 echo=
-::echo Measure time taken to read this file (using macro with parameters)
-::%timeit: $args = -n 10 -r 5 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
-:: TODO: adjust $args to argparse
+echo Measure time taken to read this file (using macro with parameters)
+%timeit: $args = -n 10 -r 5 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 exit /b 0
 
 
