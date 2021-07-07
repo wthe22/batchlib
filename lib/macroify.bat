@@ -58,6 +58,9 @@ exit /b 0
 ::      macroify._line
 ::          A temporary variable. Might be overwritten if used.
 ::
+::      LF
+::          A Line Feed character. Needs to be defined before using this function.
+::
 ::  EXIT STATUS
 ::      What the exit code of your function means. Some examples are:
 ::      0:  - Success
@@ -69,7 +72,7 @@ exit /b 0
 
 :doc.demo
 call :capchar LF
-call :macroify codes "%~f0" "tests.template.echo"
+call :macroify codes "%~f0" "tests.template.multiline"
 echo CODES
 echo =====
 echo !codes!
@@ -81,6 +84,7 @@ exit /b 0
 
 
 :tests.setup
+call :capchar LF
 exit /b 0
 
 
@@ -88,9 +92,63 @@ exit /b 0
 exit /b 0
 
 
-:tests.template.echo
+:tests.test_multiline
+set "codes="
+call :macroify codes "%~f0" "tests.template.multiline"
+> "result" (
+    %codes%
+)
+set expected=Hello;Multiline macro;
+set "result="
+for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.template.multiline
 echo Hello
-echo Hi
+echo Multiline^
+ macro
+exit /b 0
+
+
+:tests.test_set_var
+for %%v in (codes var1 var2) do set "%%v="
+call :macroify codes "%~f0" "tests.template.set_var"
+( %codes% )
+set result=!var1!, !var2!
+set expected=hello, 6
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.template.set_var
+set "var1=hello"
+set /a "var2=1 + 2 + 3"
+exit /b 0
+
+
+:tests.test_for_loop
+set "codes="
+call :macroify codes "%~f0" "tests.template.for_loop"
+> "result" (
+    %codes%
+)
+set expected=#1;#2;#3;#4;
+set "result="
+for /f "usebackq tokens=* delims=" %%o in ("result") do set "result=!result!%%o;"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.template.for_loop
+for /l %%n in (1,1,4) do echo #%%n
 exit /b 0
 
 
