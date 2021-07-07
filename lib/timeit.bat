@@ -58,53 +58,31 @@ exit /b 0
 #+++
 
 :timeit._show_result
-set "_sf=1"
-set "_nodot=-2"
-set "_temp=!_best_time!"
-for /l %%n in (1,1,10) do (
-    set /a "_temp/=10"
-    if not "!_temp!" == "0" set /a "_sf+=1"
-)
-for %%t in (3) do if !_sf! LEQ %%t (
-    for /l %%n in (1,1,%%t) do set /a "_best_time*=10"
-    set /a "_nodot-=%%t"
-)
-set /a "_best_time/=!_loops:~0,1!"
-set "_temp=!_loops!"
-for /l %%n in (1,1,5) do (
-    set /a "_temp/=10"
-    if not "!_temp!" == "0" set /a "_nodot-=1"
-)
+call :timeit._format_time
+echo !_loops! loops, best of !_repeat!: !_result! !_unit! per loop
+exit /b 0
+#+++
+
+:timeit._format_time
 set "_unit="
 for %%a in (
-    "nsec:-9"
-    "usec:-6"
-    "msec:-3"
-    "sec:0"
-    "min:60"
-    "hour:3600  :last"
-) do for /f "tokens=1-2* delims=:" %%b in (%%a) do ( rem
-) & if not defined _unit (
-    if %%c LEQ 0 (
-        set "_div=1"
-        for /l %%n in (!_nodot!,1,%%c) do set "_div=10*!_div!"
-    ) else (
-        set "_div=%%c"
-        for /l %%n in (!_nodot!,1,0) do set "_div=10*!_div!"
+    "nsec:10000000"
+    "usec:10000"
+    "msec:10"
+    "sec:1/100"
+    "min:1/6000"
+    "hour:1/360000"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    for /f "usebackq delims=" %%o in (
+        `powershell -Command "'{0:g3}' -f (!_best_time! * %%c / !_loops!)"`
+    ) do set "_result=%%o"
+    set "_unit=%%b"
+    if "!_result:e=!" == "!_result!" (
+        for /f "tokens=1-2 delims=." %%d in ("!_result!") do (
+            if %%d GTR 0 if %%d LSS 1000 exit /b 0
+        )
     )
-    set /a "_div=!_div!/10"
-    if "!_div!" == "0" set "_div=1"
-    set /a "_whole=!_best_time!/!_div!"
-    if !_whole! LSS 1000 set "_unit=%%b"
-    if "%%c" == "last" set "_unit=%%b"
 )
-set /a "_remainder=!_best_time! %% !_div! * 100 / !_div!"
-set "_remainder=00!_remainder!"
-set "_remainder=!_remainder:~-2,2!"
-set "_result=!_whole!.!_remainder!"
-set "_result=!_result:~0,4!"
-if "!_result:~3,1!" == "." set "_result=!_result:~0,3!"
-echo !_loops! loops, best of !_repeat!: !_result! !_unit! per loop
 exit /b 0
 #+++
 
