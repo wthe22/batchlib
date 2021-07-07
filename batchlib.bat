@@ -1407,7 +1407,7 @@ rem ======================================== Templates =========================
 ::
 ::  rem Category of the library. Choose ones that fit.
 ::  rem Multiple values are supported (each seperated by space)
-::  set "%%~1category="
+::  set "%~1category="
 ::  exit /b 0
 ::
 ::
