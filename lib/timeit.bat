@@ -128,7 +128,7 @@ exit /b 0
 
 
 :lib.build_system [return_prefix]
-set "%~1install_requires=argparse difftime macroify"
+set "%~1install_requires=argparse difftime macroify ext.powershell"
 set "%~1category=time devtools"
 exit /b 0
 
