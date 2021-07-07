@@ -59,7 +59,8 @@ exit /b 0
 ::          A temporary variable. Might be overwritten if used.
 ::
 ::      LF
-::          A Line Feed character. Needs to be defined before using this function.
+::          A Line Feed character. Needs to be defined (by capchar) before
+::          using this function.
 ::
 ::  EXIT STATUS
 ::      What the exit code of your function means. Some examples are:
@@ -73,8 +74,13 @@ exit /b 0
 :doc.demo
 call :capchar LF
 call :macroify codes "%~f0" "tests.template.multiline"
-echo CODES
-echo =====
+echo RAW CODE
+echo ========
+call :functions.range _range "%~f0" "tests.template.multiline" || exit /b 3
+call :readline "%~f0" !_range! 1:-1 || exit /b 3
+echo=
+echo MACRO CODE
+echo ==========
 echo !codes!
 echo=
 echo RESULT
