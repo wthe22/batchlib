@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:ut_fmt_basic <action> [args]
+:ut_fmt_basic <action> [args] ...
 setlocal EnableDelayedExpansion EnableExtensions
 2> nul (
     for /f "usebackq tokens=* delims= eol=#" %%v in (
@@ -85,7 +85,7 @@ exit /b 0
 ::      ut_fmt_basic - basic outcome formatter/report generator for unittest
 ::
 ::  SYNOPSIS
-::      ut_fmt_basic <action> [args]
+::      ut_fmt_basic <action> [args] ...
 ::      ut_fmt_basic start
 ::      ut_fmt_basic run <test_case>
 ::      ut_fmt_basic outcome <test_name> <outcome> [message]
