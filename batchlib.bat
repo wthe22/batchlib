@@ -668,13 +668,13 @@ echo=
 echo    batchlib (-h^|--help^|/?)
 echo        Show this help
 echo=
-echo    batchlib -c ^<:label^> [arguments]
+echo    batchlib -c ^<:label^> [arguments] ...
 echo        Call the specified label with arguments
 echo=
 echo    batchlib build ^<input_file^> [backup_name]
 echo        Add/update dependency of a file
 echo=
-echo    batchlib debug ^<library^> ^<:label^> [arguments]
+echo    batchlib debug ^<library^> ^<:label^> [arguments] ...
 echo        Debug a library (Not available in minified version)
 echo=
 echo    batchlib test [library]
@@ -700,7 +700,7 @@ exit /b 0
 ::      batchlib template <name>
 ::
 ::  CALL SUBCOMMAND
-::          batchlib -c <:label> [arguments]
+::          batchlib -c <:label> [arguments] ...
 ::
 ::      Make batchlib CALL the specified label with the following arguments.
 ::
@@ -719,7 +719,7 @@ exit /b 0
 ::              Path of the backup file.
 ::
 ::  DEBUG SUBCOMMAND
-::          batchlib debug <library> <:label> [arguments]
+::          batchlib debug <library> <:label> [arguments] ...
 ::
 ::      Debug the library and call :LABEL with the ARGUMENTS.
 ::      The debugging features are:
@@ -733,7 +733,7 @@ exit /b 0
 ::  TEST SUBCOMMAND
 ::          batchlib test [library]
 ::
-::      Run unittest to a library. If no library is given, it will
+::      Run unittests of a library. If no library is given, it will
 ::      test all libraries instead.
 ::
 ::      This subcommand is not available in the minified version.
