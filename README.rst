@@ -61,7 +61,7 @@ And run:
 
 And batchlib will magically add the libraries into your script! Backup file can
 be specified if necessary. When you have changed the dependency list, you can
-run the same code again to reinstall the libraries.
+run the same code again to update the libraries.
 
 Adding Your Own Functions To Library
 ------------------------------------
