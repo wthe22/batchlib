@@ -682,7 +682,6 @@ echo        Run unittest to a library (Not available in minified version)
 echo=
 echo    batchlib template ^<name^>
 echo        Create the specified template and output to STDOUT.
-echo=
 exit /b 0
 
 
