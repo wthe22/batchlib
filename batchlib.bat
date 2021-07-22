@@ -1643,8 +1643,7 @@ exit /b 0
 :test
 @setlocal EnableDelayedExpansion
 @echo off
-set test_reporter=call :ut_fmt_basic
-call :unittest --output test_reporter
+call :unittest --output "call :ut_fmt_basic"
 exit /b 0
 
 
@@ -1659,8 +1658,7 @@ if defined _library (
     set "target=!build_dir!\*.bat"
 )
 call :Library.unload_info
-set test_reporter=call :ut_fmt_basic
-cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "test_reporter""
+cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "call :ut_fmt_basic""
 exit /b
 
 
