@@ -629,6 +629,36 @@ exit /b 0
 exit /b 0
 
 
+:tests.test_output_cmd
+call :tests.type template.output_cmd > "dummy.bat" || exit /b
+call :tests.type expected.output_cmd > expected || exit /b
+call :unittest "dummy.bat" -a "" -s "" -o "echo '#'" > result
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.output_cmd
+::  call %*
+::  exit /b
+::
+::  :tests.setup
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_success
+::  exit /b 0
+::
+exit /b 0
+
+:tests.expected.output_cmd
+::  "#" start
+::  "#" run "dummy:tests.test_success"
+::  "#" outcome "dummy:tests.test_success",success,
+::  "#" stop
+exit /b 0
+
+
 :tests.type <name>
 call :functions.range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
