@@ -754,7 +754,7 @@ exit /b 0
 ::          batchlib template <name>
 ::
 ::      Create the specified template and output to STDOUT.
-::      Valid template names are: minified, new_script, new_library.
+::      Valid template names are: minified, new_script.
 ::      Only 'new_script' is available in minified script.
 exit /b 0
 
