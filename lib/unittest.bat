@@ -3,47 +3,46 @@ call %*
 exit /b
 
 
-:unittest [-f] [-p pattern] [-a target_args] [-s self_args] [-o output_macro] [target]
+:unittest [-f] [-p pattern] [-a target_args] [-s self_args] [-o output_cmd] [target]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (target fail_fast pattern argument output_macro) do set "unittest.%%v="
 set "unittest.target=%~f0"
 set "unittest.pattern=test*.test*"
 set "unittest.target_args=-c"
 set "unittest.self_args=-c"
-set "unittest.default_output_macro=echo"
-set "unittest.output_macro=unittest.default_output_macro"
+set "unittest.output_cmd=echo"
 call :argparse ^
     ^ "#1:store                 :unittest.target" ^
     ^ "-f,--failfast:store_const:unittest.fail_fast=true" ^
     ^ "-p,--pattern:store       :unittest.pattern" ^
     ^ "-a,--target-args:store   :unittest.target_args" ^
     ^ "-s,--self-args:store     :unittest.self_args" ^
-    ^ "-o,--output:store        :unittest.output_macro" ^
+    ^ "-o,--output:store        :unittest.output_cmd" ^
     ^ -- %* || exit /b 2
-call :unittest._setup || (
-    1>&2 echo%0: Failed to setup tmp dir
+call :unittest._init || (
+    1>&2 echo%0: Failed to initialize unittest
     exit /b 4
 )
 call :unittest._load_tests || (
     1>&2 echo%0: Failed to load tests
     exit /b 4
 )
-%unittest.output% start
+%unittest.output_cmd% start
 call :unittest._run
-%unittest.output% stop
+%unittest.output_cmd% stop
 call :unittest._cleanup
 if defined unittest._failed exit /b 3
 exit /b 0
 #+++
 
-:unittest._setup
+:unittest._init
 set "unittest.start_dir=!cd!"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for %%f in ("unittest") do set "unittest.tmp_dir=%%~ff"
 md "!unittest.tmp_dir!"
 cd /d "!unittest.tmp_dir!" || exit /b 1
 set "tmp_dir=!unittest.tmp_dir!"
-for %%v in ("!unittest.output_macro!") do set "unittest.output=!%%~v!"
+set unittest.output_cmd=!unittest.output_cmd:'="!
 exit /b 0
 #+++
 
@@ -92,7 +91,7 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
     )
     set "unittest._test_label=%%l"
     set "unittest._outcome="
-    %unittest.output% run "!unittest._test_file!:!unittest._test_label!"
+    %unittest.output_cmd% run "!unittest._test_file!:!unittest._test_label!"
     if defined unittest._setup_outcome (
         call :unittest.outcome !unittest._setup_outcome!
     ) else (
@@ -123,7 +122,7 @@ for %%e in (fail error) do if "%~1" == "%%e" (
     set "unittest._failed=true"
 )
 if defined unittest._test_label (
-    %unittest.output% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
+    %unittest.output_cmd% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
 ) else set unittest._setup_outcome=%1,%2
 exit /b 0
 
@@ -141,7 +140,7 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      unittest [-f] [-p pattern] [-a target_args] [-s self_args]
-::               [-o output_macro] [target]
+::               [-o output_cmd] [target]
 ::      call %unittest% <outcome> [message]
 ::
 ::  DESCRIPTION
@@ -186,9 +185,9 @@ exit /b 0
 ::          use 'unittest.bat --call :unittest.outcome' to report outcome in your
 ::          unittests, so the SELF_ARGS is '--call'. By default it is '-c'.
 ::
-::      -o OUTPUT_MACRO, --output OUTPUT_MACRO
-::          Pass output results, in the form of arguments, to COMMAND stored in
-::          the OUTPUT_MACRO. The default COMMAND is 'echo'.
+::      -o OUTPUT_CMD, --output OUTPUT_CMD
+::          Pass output results, in the form of arguments, to OUTPUT_CMD. Single
+::          quotes are converted to double quotes. By default it is 'echo'.
 ::
 ::  UNITTEST USAGE
 ::      Test File
