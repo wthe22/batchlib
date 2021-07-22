@@ -1155,6 +1155,7 @@ for %%l in (!Library.all!) do (
     )
     if not defined Library_%%l.args (
         1>&2 echo%0: Could not read arguments for '%%l'
+        set "Library_%%l.args=%%l   ???"
     )
 )
 exit /b 0
