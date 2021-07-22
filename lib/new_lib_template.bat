@@ -3,13 +3,16 @@ call %*
 exit /b
 
 
-:library_name_here [--options] <args>
+:new_lib_template [--options] <args>
 rem Library name should start with an alphablet. Library name should only
 rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
-rem The file name should be "<library_name_here>.bat"
+rem The file name should be the same as the function name and use '.bat'
+rem extension, i.e. "<library name here>.bat".
 
 rem Use this to run command only in debug mode:
 rem %debug% echo Debug mode is ON
+
+echo This is a template for new library
 
 rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
 exit /b 0
@@ -31,13 +34,21 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      library_name_here - a sample library
+::      new_lib_template - a template for new library
 ::
 ::  SYNOPSIS
-::      library_name_here [--options] <args>
+::      new_lib_template [-o|--options] <args>
 ::
 ::  DESCRIPTION
 ::      A good library should have a good documentation too!
+::
+::  POSITIONAL ARGUMENTS
+::      args
+::          Describe the arguments and its usage here...
+::
+::  OPTIONS
+::      -o, --options
+::          Describe the options and its usage here...
 ::
 ::  EXIT STATUS
 ::      What the exit code of your function means. Some examples are:
@@ -51,21 +62,19 @@ exit /b 0
 
 :doc.demo
 echo A demo to help users understand how to use it
-call :library_name_here && (
+call :new_lib_template && (
     echo Success
 ) || echo Failed...
 exit /b 0
 
 
-:test
 rem Run these commands to unittest your function:
-:: cmd /c batchlib.bat test <library_name_here>
+:: cmd /c batchlib.bat test <library name>
 
 rem Or use quicktest():
-:: cmd /c batchlib.bat debug <library_name_here> :quicktest
+:: cmd /c batchlib.bat debug <library name> :quicktest
 rem Run specific unittests
-:: cmd /c batchlib.bat debug <library_name_here> :quicktest <label> ...
-exit /b 0
+:: cmd /c batchlib.bat debug <library name> :quicktest <label> ...
 
 
 :tests.setup
