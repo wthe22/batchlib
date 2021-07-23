@@ -1399,11 +1399,13 @@ rem ############################################################################
 
 :template.new_script
 set "sep_line="
-for /l %%n in (1,1,40) do set "sep_line=!sep_line!="
+for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
 
 call :self_extract_func "entry_point"
 
-echo rem !sep_line! Metadata !sep_line!
+echo rem !sep_line!
+echo rem Metadata
+echo rem !sep_line!
 ::
 ::  :metadata [return_prefix]
 ::  set "%~1name=Script Name Here"
@@ -1418,7 +1420,9 @@ echo set "%%~1release_date=!date:~4!"   :: mm/dd/YYYY
 ::
 ::
 
-echo rem !sep_line! Configurations !sep_line!
+echo rem !sep_line!
+echo rem Configurations
+echo rem !sep_line!
 ::
 ::  :config
 ::  call :config.default
@@ -1437,7 +1441,9 @@ echo rem !sep_line! Configurations !sep_line!
 ::
 ::
 
-echo rem !sep_line! Main !sep_line!
+echo rem !sep_line!
+echo rem Main
+echo rem !sep_line!
 ::
 ::  :main
 ::  @if ^"%1^" == "-c" @goto scripts.call
@@ -1445,7 +1451,9 @@ echo rem !sep_line! Main !sep_line!
 ::
 ::
 
-echo rem !sep_line! Entry Points !sep_line!
+echo rem !sep_line!
+echo rem Entry Points
+echo rem !sep_line!
 echo=
 call :self_extract_func "scripts.call"
 ::  :scripts.main
@@ -1456,7 +1464,9 @@ call :self_extract_func "scripts.call"
 ::
 ::
 
-echo rem !sep_line! Library !sep_line!
+echo rem !sep_line!
+echo rem Library
+echo rem !sep_line!
 echo=
 call :self_extract_func "lib"
 ::  :lib.build_system
@@ -1469,7 +1479,9 @@ call :self_extract_func "lib"
 ::
 ::
 
-echo rem !sep_line! Tests !sep_line!
+echo rem !sep_line!
+echo rem Tests
+echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
 ::  :test
@@ -1483,7 +1495,9 @@ call :readline "%~f0" !_range! 1:-1 4
 echo=
 echo=
 
-echo rem !sep_line! End !sep_line!
+echo rem !sep_line!
+echo rem End of File
+echo rem !sep_line!
 echo=
 call :self_extract_func "EOF"
 exit /b 0
