@@ -1356,21 +1356,6 @@ for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
 call :self_extract_func "entry_point"
 
 echo rem !sep_line!
-echo rem Documentation
-echo rem !sep_line!
-::
-::  :doc.help
-::  @setlocal EnableDelayedExpansion EnableExtensions
-::  @echo off
-::
-::  echo usage:
-::  echo    Script Name Here.bat
-::  echo        A good library should have a good documentation too!
-::  exit /b 0
-::
-::
-
-echo rem !sep_line!
 echo rem Metadata
 echo rem !sep_line!
 ::
@@ -1431,6 +1416,21 @@ call :self_extract_func "subcommand.call"
 ::  @echo off
 ::  rem TODO: start scripting...
 ::  @exit /b
+::
+::
+
+echo rem !sep_line!
+echo rem Documentation
+echo rem !sep_line!
+::
+::  :doc.help
+::  @setlocal EnableDelayedExpansion EnableExtensions
+::  @echo off
+::
+::  echo usage:
+::  echo    Script Name Here.bat
+::  echo        A good library should have a good documentation too!
+::  exit /b 0
 ::
 ::
 
