@@ -843,8 +843,8 @@ set "_input_file=%~f1"
 set "_backup_file=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "_minified="
-call :scripts.minified 2> nul && set "_minified=true"
-if defined _minified set "lib="
+call :flags.is_minified 2> nul && set "flags.is_minified=true"
+if defined flags.is_minified set "lib="
 call "!_input_file!" -c :lib.dependencies || exit /b 3
 call :Library.depends _dep "!install_requires!" || exit /b 3
 call :Library.unload_info
@@ -856,7 +856,7 @@ for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
     echo=
     echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.version! on !date! !time!
     echo=
-    if defined _minified (
+    if defined flags.is_minified (
         call :functions.range _ranges "%~f0" "!_dep!" || exit /b 3
         for %%r in (!_ranges!) do (
             call :readline "%~f0" %%r || exit /b 3
@@ -1514,7 +1514,7 @@ call :self_extract_func "main"
 echo rem !sep_line! Entry Points !sep_line!
 echo=
 call :self_extract_func "subcommand.call"
-::  :scripts.minified
+::  :flags.is_minified
 ::  rem Indicator that script is minified
 ::  exit /b 0
 ::
