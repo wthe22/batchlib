@@ -830,26 +830,6 @@ exit /b 0
 exit /b 0
 
 
-:doc.lib.man
-::  NAME
-::      library_name_here - a sample library
-::
-::  SYNOPSIS
-::      library_name_here [--options] <args>
-::
-::  DESCRIPTION
-::      A good library should have a good documentation too!
-::
-::  EXIT STATUS
-::      What the exit code of your function means. Some examples are:
-::      0:  - Success
-::      1:  - An unexpected error occured
-::      2:  - Invalid argument
-::      3:  - Other failures/errors/signals
-::          - Another possibility...
-exit /b 0
-
-
 :doc.lib.tests
 ::  :tests.setup
 ::  rem Called before running any tests here
