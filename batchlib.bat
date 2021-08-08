@@ -187,12 +187,12 @@ rem ############################################################################
 @if ^"%1^" == "-c" @goto subcommand.call
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
-@if ^"%1^" == "" @goto ui_main
+@if ^"%1^" == "" @goto main_script
 @call :subcommand.%*
 @exit /b
 
 
-:ui_main
+:main_script
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -1400,16 +1400,11 @@ echo rem !sep_line!
 ::  @if ^"%1^" == "-c" @goto subcommand.call
 ::  @if ^"%1^" == "-h" @goto doc.help
 ::  @if ^"%1^" == "--help" @goto doc.help
-::  @goto ui_main
+::  @goto main_script
 ::
 ::
-
-echo rem !sep_line!
-echo rem Entry Points
-echo rem !sep_line!
-echo=
 call :self_extract_func "subcommand.call"
-::  :ui_main
+::  :main_script
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
 ::  rem TODO: start scripting...
@@ -1519,7 +1514,7 @@ call :self_extract_func "subcommand.call"
 ::  exit /b 0
 ::
 ::
-::  :ui_main
+::  :main_script
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
 ::  call :common_setup
