@@ -1509,7 +1509,6 @@ call :self_extract_func "main"
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
 ::  call :common_setup
-::  cls
 ::  echo !SOFTWARE.description! !SOFTWARE.version!
 ::  echo=
 ::  call :conemu
