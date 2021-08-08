@@ -223,7 +223,7 @@ for /f "tokens=1-2* delims=:" %%b in ("!_specs!") do (
 exit /b 0
 
 
-:lib.build_system
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.string"
 set "%~1category=devtools"

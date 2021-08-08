@@ -18,7 +18,7 @@ rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 rem If your libaray have dependencies, write it here. If there isn't any
 rem dependencies, just put a space inside.
 set "%~1install_requires= "

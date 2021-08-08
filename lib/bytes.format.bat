@@ -39,7 +39,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.number"
 set "%~1category=number"

@@ -73,7 +73,7 @@ echo=
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=difftime ftime"
 set "%~1extra_requires=unittest functions.range readline"
 set "%~1category=devtools"

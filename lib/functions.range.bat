@@ -67,7 +67,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_ranges!") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=capchar Input.path Input.string"
 set "%~1category=packaging"

@@ -25,7 +25,7 @@ if "!~1loss!" == "100" exit /b 2
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.string"
 set "%~1category=net"

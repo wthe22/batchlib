@@ -52,7 +52,7 @@ for /f "tokens=1-2 delims=:" %%a in ("!_offset!") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.number Input.path"
 set "%~1category=file"

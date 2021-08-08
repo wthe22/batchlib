@@ -8,7 +8,7 @@ set /a "%~1=((!random!<<16) + (!random!<<1) + (!random!>>14)) %% ((%~3)-(%~2)+1)
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.number"
 set "%~1category=number"

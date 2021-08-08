@@ -127,7 +127,7 @@ for /l %%# in (1,1,4) do ^
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=argparse difftime macroify ext.powershell"
 set "%~1category=time devtools"
 exit /b 0

@@ -56,7 +56,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
 exit /b 1
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=argparse check_path Input.yesno"
 set "%~1extra_requires="
 set "%~1category=ui"

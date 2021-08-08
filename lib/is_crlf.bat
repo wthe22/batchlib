@@ -20,7 +20,7 @@ rem  8  shorter than the rest               DO NOT MODIFY -> #
 @exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1category=packaging"
 exit /b 0

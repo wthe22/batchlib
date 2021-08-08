@@ -16,7 +16,7 @@ for %%u in (
 exit /b 1
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=ext.powershell"
 set "%~1category=net env"
 exit /b 0

@@ -127,7 +127,7 @@ if defined unittest._test_label (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=argparse functions.match"
 set "%~1extra_requires=functions.range readline"
 set "%~1category=devtools"

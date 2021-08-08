@@ -59,7 +59,7 @@ if not defined _assume_yes (
 exit /b 1
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=argparse download_file parse_version Input.yesno"
 set "%~1extra_requires=ping_test coderender get_pid_by_title Input.path"
 set "%~1category=packaging"

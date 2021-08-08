@@ -17,7 +17,7 @@ for /f "tokens=*" %%r in ("!_result!") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=fdate ftime"
 set "%~1extra_requires=Input.number"
 set "%~1category=time"

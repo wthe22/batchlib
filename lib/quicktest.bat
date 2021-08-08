@@ -46,7 +46,7 @@ goto 2> nul & (
 exit /b 1
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=coderender functions.range readline functions.match"
 set "%~1category=devtools"

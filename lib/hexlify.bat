@@ -52,7 +52,7 @@ set "_hex=!_hex:~0,-1!"
 exit /b
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=argparse strlen"
 set "%~1extra_requires=Input.path"
 set "%~1category=file"

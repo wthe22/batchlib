@@ -14,7 +14,7 @@ set /a "%~1=!%~1:.=!"
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=Input.string"
 set "%~1category=number"

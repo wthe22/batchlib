@@ -58,7 +58,7 @@ set EM=^^!
 rem ================================================
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=functions.range readline"
 set "%~1category=console"

@@ -276,7 +276,7 @@ for %%p in (
 
 call :Library.unload_info
 call :Library.read_names
-call :Library.read_build_system
+call :Library.read_dependencies
 exit /b 0
 
 rem ############################################################################
@@ -321,7 +321,7 @@ if "!user_input!" == "6" call :build_menu
 if "!user_input!" == "7" (
     call :Library.unload_info
     call :Library.read_names
-    call :Library.read_build_system
+    call :Library.read_dependencies
     call :Library.read_args
     call :Category.unload_info
     call :Category.load
@@ -514,7 +514,7 @@ setlocal EnableDelayedExpansion
 set "_library=%~1"
 set "_library_source=!lib_dir!\!_library!.bat"
 set "_library_build=!build_dir!\!_library!.bat"
-call "!_library_source!" :lib.build_system "Library_!_library!." 2> nul
+call "!_library_source!" :lib.dependencies "Library_!_library!." 2> nul
 call :LibBuild.update "!_library!"
 call :LibMenu.menu
 exit /b 0
@@ -712,7 +712,7 @@ exit /b 0
 ::          batchlib build <input_file> [backup_name]
 ::
 ::      Add/update dependencies of a file (based on the new script template).
-::      Dependencies are found in 'install_requires' in lib.build_system() and
+::      Dependencies are found in 'install_requires' in lib.dependencies() and
 ::      'extra_requires' is ignored. Build is aborted if any errors occur.
 ::
 ::      POSITIONAL ARGUMENTS
@@ -886,7 +886,7 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "_minified="
 call :scripts.minified 2> nul && set "_minified=true"
 if defined _minified set "lib="
-call "!_input_file!" -c :lib.build_system || exit /b 3
+call "!_input_file!" -c :lib.dependencies || exit /b 3
 call :Library.depends _dep "!install_requires!" || exit /b 3
 call :Library.unload_info
 call %lib%:functions.range _range "!_input_file!" "entry_point EOF" || exit /b 3
@@ -1181,11 +1181,11 @@ for %%l in (!Library.all!) do (
 exit /b 0
 
 
-:Library.read_build_system
+:Library.read_dependencies
 for %%l in (!Library.all!) do (
     set "Library_%%l.install_requires=?"
-    call "!lib_dir!\%%l.bat" :lib.build_system "Library_%%l." 2> nul || (
-        1>&2 echo%0: Failed to call lib.build_system^(^) in '%%l'
+    call "!lib_dir!\%%l.bat" :lib.dependencies "Library_%%l." 2> nul || (
+        1>&2 echo%0: Failed to call lib.dependencies^(^) in '%%l'
     )
 )
 exit /b 0
@@ -1368,7 +1368,7 @@ rem ############################################################################
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ functions.range readline functions.list true ^
     ^ coderender unittest ut_fmt_basic ^
@@ -1479,7 +1479,7 @@ echo rem Library
 echo rem !sep_line!
 echo=
 call :self_extract_func "lib"
-::  :lib.build_system
+::  :lib.dependencies
 ::  rem List libraries you use in this file here:
 ::  set "%~1install_requires="
 ::
@@ -1510,7 +1510,7 @@ exit /b 0
 :template.minified
 call :Library.unload_info
 call :Library.read_names
-call :Library.read_build_system
+call :Library.read_dependencies
 call :Category.load
 set "sep_line="
 for /l %%n in (1,1,40) do set "sep_line=!sep_line!="
@@ -1598,7 +1598,7 @@ echo     ^^^^ %%=END=%%!=DUMMY=!
 ::  exit /b 0
 ::
 ::
-::  :Library.read_build_system
+::  :Library.read_dependencies
 for %%l in (!Library.all!) do (
     for %%a in (
         install_requires extra_requires
@@ -1633,7 +1633,7 @@ echo rem !sep_line! Library !sep_line!
 echo=
 call :self_extract_func ^
     ^ lib ^
-    ^ lib.build_system ^
+    ^ lib.dependencies ^
     ^ lib.call ^
     ^ %=END=%
 call :Library.depends ordered_lib "!Library.all!"

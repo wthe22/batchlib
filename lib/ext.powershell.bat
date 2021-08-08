@@ -8,7 +8,7 @@ powershell -Command "$PSVersionTable.PSVersion.ToString()"
 exit /b
 
 
-:lib.build_system
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1category=external"
 exit /b 0

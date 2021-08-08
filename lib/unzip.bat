@@ -24,7 +24,7 @@ if not defined success exit /b 3
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=ext.vbscript"
 set "%~1extra_requires=Input.path"
 set "%~1category=file"

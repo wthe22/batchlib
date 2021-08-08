@@ -23,7 +23,7 @@ for /f "tokens=1-2 delims=:" %%q in ("Q:!_result!:Q") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires=capchar get_os"
 set "%~1extra_requires=get_con_size"
 set "%~1category=console"

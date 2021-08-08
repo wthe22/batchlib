@@ -29,7 +29,7 @@ for /f "tokens=* delims=" %%a in ("!%~1!!_result!") do (
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1category=string"
 exit /b 0

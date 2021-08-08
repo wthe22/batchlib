@@ -9,7 +9,7 @@ for /f "tokens=2" %%s in ('whoami /user /fo table /nh') do set "%~1=%%s"
 exit /b 0
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1category=env"
 exit /b 0

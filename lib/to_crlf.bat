@@ -15,7 +15,7 @@ type "%~f1" 2> nul | more /t4 > "%~f1.tmp" && (
 exit /b 3
 
 
-:lib.build_system [return_prefix]
+:lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=is_crlf"
 set "%~1category=packaging"
