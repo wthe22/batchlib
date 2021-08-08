@@ -1403,7 +1403,6 @@ echo rem !sep_line!
 ::  @goto main_script
 ::
 ::
-call :self_extract_func "subcommand.call"
 ::  :main_script
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
@@ -1411,6 +1410,7 @@ call :self_extract_func "subcommand.call"
 ::  @exit /b
 ::
 ::
+call :self_extract_func "subcommand.call"
 
 echo rem !sep_line!
 echo rem Documentation
