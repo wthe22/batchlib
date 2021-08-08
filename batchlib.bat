@@ -187,35 +187,13 @@ rem ############################################################################
 @if ^"%1^" == "/?" @goto doc.help
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
-@if ^"%1^" == "-c" @goto scripts.call
-@if ^"%1^" == "" @goto scripts.main
-@call :scripts.%*
+@if ^"%1^" == "-c" @goto subcommand.call
+@if ^"%1^" == "" @goto ui_main
+@call :subcommand.%*
 @exit /b
 
 
-rem ############################################################################
-rem Entry points
-rem ############################################################################
-
-:scripts  # Entry points of the script
-@exit /b 0
-
-
-:scripts.call -c <label> [arguments]
-@(
-    setlocal DisableDelayedExpansion
-    call set command=%%*
-    setlocal EnableDelayedExpansion
-    for /f "tokens=1* delims== " %%a in ("!command!") do @(
-        endlocal
-        endlocal
-        call %%b
-    )
-)
-@exit /b
-
-
-:scripts.main
+:ui_main
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -233,7 +211,21 @@ call :main_menu
 exit /b
 
 
-:scripts.build <file>
+:subcommand.call -c <label> [arguments]
+@(
+    setlocal DisableDelayedExpansion
+    call set command=%%*
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1* delims== " %%a in ("!command!") do @(
+        endlocal
+        endlocal
+        call %%b
+    )
+)
+@exit /b
+
+
+:subcommand.build <file>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -242,7 +234,7 @@ call :build_script %*
 exit /b
 
 
-:scripts.debug <library> [arguments]
+:subcommand.debug <library> [arguments]
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -255,7 +247,7 @@ call %*
 exit /b
 
 
-:scripts.test <library>
+:subcommand.test <library>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -263,7 +255,7 @@ call :test_lib %1
 exit /b
 
 
-:scripts.template <name>
+:subcommand.template <name>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
@@ -1446,8 +1438,11 @@ echo rem Main
 echo rem !sep_line!
 ::
 ::  :main
-::  @if ^"%1^" == "-c" @goto scripts.call
-::  @goto scripts.main
+::  @if ^"%1^" == "/?" @goto doc.help
+::  @if ^"%1^" == "-h" @goto doc.help
+::  @if ^"%1^" == "--help" @goto doc.help
+::  @if ^"%1^" == "-c" @goto subcommand.call
+::  @goto ui_main
 ::
 ::
 
@@ -1455,8 +1450,8 @@ echo rem !sep_line!
 echo rem Entry Points
 echo rem !sep_line!
 echo=
-call :self_extract_func "scripts.call"
-::  :scripts.main
+call :self_extract_func "subcommand.call"
+::  :ui_main
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
 ::  rem TODO: start scripting...
@@ -1484,12 +1479,6 @@ echo rem Tests
 echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
-::  :test
-::  rem If you add quicktest() to your script:
-::  :: cmd /c script_name_here.bat -c :quicktest
-::  exit /b 0
-::
-::
 call :functions.range _range "%~f0" "doc.lib.tests"
 call :readline "%~f0" !_range! 1:-1 4
 echo=
@@ -1536,13 +1525,13 @@ call :self_extract_func "main"
 
 echo rem !sep_line! Entry Points !sep_line!
 echo=
-call :self_extract_func "scripts.call"
+call :self_extract_func "subcommand.call"
 ::  :scripts.minified
 ::  rem Indicator that script is minified
 ::  exit /b 0
 ::
 ::
-::  :scripts.main
+::  :ui_main
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
 ::  call :common_setup
@@ -1554,8 +1543,8 @@ call :self_extract_func "scripts.call"
 ::
 ::
 call :self_extract_func ^
-    ^ scripts.build ^
-    ^ scripts.template ^
+    ^ subcommand.build ^
+    ^ subcommand.template ^
     ^ common_setup ^
     ^ %=END=%
 
