@@ -1505,15 +1505,6 @@ call :self_extract_func ^
 echo rem !sep_line! Main !sep_line!
 echo=
 call :self_extract_func "main"
-
-echo rem !sep_line! Entry Points !sep_line!
-echo=
-call :self_extract_func "subcommand.call"
-::  :flags.is_minified
-::  rem Indicator that script is minified
-::  exit /b 0
-::
-::
 ::  :main_script
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
@@ -1526,6 +1517,7 @@ call :self_extract_func "subcommand.call"
 ::
 ::
 call :self_extract_func ^
+    ^ subcommand.call ^
     ^ subcommand.build ^
     ^ subcommand.template ^
     ^ common_setup ^
@@ -1588,6 +1580,11 @@ call :self_extract_func ^
     ^ Library.remove_extras_pkg ^
     ^ Library.search ^
     ^ %=END=%
+::  :flags.is_minified
+::  rem Indicator that script is minified
+::  exit /b 0
+::
+::
 
 echo rem !sep_line! Templates !sep_line!
 echo=
