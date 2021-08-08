@@ -1537,6 +1537,7 @@ call :self_extract_func ^
     ^ make_template ^
     ^ self_extract_func ^
     ^ Library.unload_info ^
+    ^ unset ^
     ^ %=END=%
 
 ::  :Library.read_names
