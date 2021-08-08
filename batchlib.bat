@@ -357,7 +357,7 @@ set /p "user_input="
 echo=
 if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" call :show_docs doc.man
-if "!user_input!" == "2" call :show_docs doc.lib.argument_syntax
+if "!user_input!" == "2" call :show_docs doc.argument_syntax
 if "!user_input!" == "3" call :show_docs changelog
 if /i "!user_input!" == "A" (
     cls
@@ -762,7 +762,7 @@ exit /b 0
 exit /b 0
 
 
-:doc.lib.argument_syntax
+:doc.argument_syntax
 ::  ARGUMENT SYNTAX
 ::      Description about how arguments are processed by functions. Here is a list
 ::      of possible arguments syntax used in the library and its usage example:
@@ -829,26 +829,6 @@ exit /b 0
 ::      you pass an integer too, not alphabets, symbols, hexadecimal, etc.).
 exit /b 0
 
-
-:doc.lib.tests
-::  :tests.setup
-::  rem Called before running any tests here
-::  exit /b 0
-::
-::
-::  :tests.teardown
-::  rem Called after running all tests here. Useful for cleanups.
-::  exit /b 0
-::
-::
-::  :tests.test_something
-::  rem Do some tests here...
-::  rem And if something goes wrong:
-::  :: call %unittest% fail "Something failed"
-::  :: call %unittest% error "The unexpected happened"
-::  :: call %unittest% skip "No internet detected..."
-::  exit /b 0
-exit /b 0
 
 rem ############################################################################
 rem Core
@@ -1474,8 +1454,23 @@ echo rem Tests
 echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
-call :functions.range _range "%~f0" "doc.lib.tests"
-call :readline "%~f0" !_range! 1:-1 4
+::  :tests.setup
+::  rem Called before running any tests here
+::  exit /b 0
+::
+::
+::  :tests.teardown
+::  rem Called after running all tests here. Useful for cleanups.
+::  exit /b 0
+::
+::
+::  :tests.test_something
+::  rem Do some tests here...
+::  rem And if something goes wrong:
+::  :: call %unittest% fail "Something failed"
+::  :: call %unittest% error "The unexpected happened"
+::  :: call %unittest% skip "No internet detected..."
+::  exit /b 0
 echo=
 echo=
 
