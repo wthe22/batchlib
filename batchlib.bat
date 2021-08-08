@@ -184,7 +184,6 @@ rem Main
 rem ############################################################################
 
 :main
-@if ^"%1^" == "/?" @goto doc.help
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
 @if ^"%1^" == "-c" @goto subcommand.call
@@ -1398,7 +1397,6 @@ echo rem Main
 echo rem !sep_line!
 ::
 ::  :main
-::  @if ^"%1^" == "/?" @goto doc.help
 ::  @if ^"%1^" == "-h" @goto doc.help
 ::  @if ^"%1^" == "--help" @goto doc.help
 ::  @if ^"%1^" == "-c" @goto subcommand.call
