@@ -1421,7 +1421,7 @@ echo rem !sep_line!
 ::
 ::  echo usage:
 ::  echo    Script Name Here.bat
-::  echo        A good library should have a good documentation too!
+::  echo        A good documentation to help users how to use this script
 ::  exit /b 0
 ::
 ::
