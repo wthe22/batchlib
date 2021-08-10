@@ -79,7 +79,6 @@ exit /b 0
 
 :config.default
 rem Default/common configurations. DO NOT MODIFY
-
 rem Directory for temporary files
 set "tmp_dir=!tmp!\!SOFTWARE.name!\!__name__!"
 rem Directory to keep library, builds, etc.
@@ -103,7 +102,7 @@ rem ############################################################################
 ::  - Renamed/remove all double underscore labels
 ::  - Improve menu structure
 ::  - Adjust function and category loading to read from each library file
-::  - Add call, build, debug, run, test, and template command
+::  - Add call, build, debug, run, test, and template subcommand
 ::  - Script needs to be build to satisfy dependencies
 ::
 ::  Library
