@@ -38,15 +38,12 @@ There are guides inside to help you get started.
 
 Dependency Management
 -------------------------------
-Your script might use some library functions of batchlib and you decided to copy
-them into your script. But some library have dependencies, and its dependencies
-might have dependencies too. You might not know which to copy.
-
-To make things easier, use the `Template For New Scripts`_ and specify the
-dependencies in this section of the script:
+Batchlib have an automated way of adding libraries into a script. Use the
+`Template For New Scripts`_ and specify the dependencies in this section of
+the script:
 ::
 
-    :lib.build_system
+    :lib.dependencies
     set "%~1install_requires=<your_dependencies_here>"
     exit /b 0
 
@@ -65,13 +62,14 @@ run the same code again to update the libraries.
 
 Adding Your Own Functions To Library
 ------------------------------------
-First, we need to generate a template for the library. To generate it, type:
+You can use the template for new library as the starting point.
+Generate it by copying the template:
 ::
 
-    cmd /c batchlib.bat template new_library > lib\your_library_name.bat
+    copy lib\new_lib_template.bat lib\your_library_name.bat
 
 This template contains all the structures you need for your function to work
-correctly with Batchlib. Now you can start adding your own library function.
+correctly with Batchlib. There are documentations inside to help you.
 
 Minified Batchlib
 -----------------
@@ -94,8 +92,6 @@ There are 2 unit testing frameworks: unittest() and quicktest(). Unittest() is
 the powerful one (supports test suite), and quicktest() is the expressive one.
 Both have the same syntax so compatibility is not a problem.
 
-In this project, unittests are placed inside the script to be tested (not in a
-seperate file, but could be seperate if you want to).
 For more information, you can read the documentation of unittest().
 
 TAP Compliance
