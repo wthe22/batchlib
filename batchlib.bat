@@ -1480,20 +1480,26 @@ call :Library.read_names
 call :Library.read_dependencies
 call :Category.load
 set "sep_line="
-for /l %%n in (1,1,40) do set "sep_line=!sep_line!="
+for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
 
 call :self_extract_func "entry_point"
 
-echo rem !sep_line! Metadata !sep_line!
+echo rem !sep_line!
+echo rem Metadata
+echo rem !sep_line!
 echo=
 call :self_extract_func "metadata"
 call :self_extract_func "about"
 
-echo rem !sep_line! License !sep_line!
+echo rem !sep_line!
+echo rem License
+echo rem !sep_line!
 echo=
 call :self_extract_func "license"
 
-echo rem !sep_line! Configurations !sep_line!
+echo rem !sep_line!
+echo rem Configurations
+echo rem !sep_line!
 echo=
 call :self_extract_func ^
     ^ config ^
@@ -1501,7 +1507,9 @@ call :self_extract_func ^
     ^ config.preference ^
     ^ %=END=%
 
-echo rem !sep_line! Main !sep_line!
+echo rem !sep_line!
+echo rem Main
+echo rem !sep_line!
 echo=
 call :self_extract_func "main"
 ::  :main_script
@@ -1521,14 +1529,18 @@ call :self_extract_func ^
     ^ common_setup ^
     ^ %=END=%
 
-echo rem !sep_line! Documentation !sep_line!
+echo rem !sep_line!
+echo rem Documentation
+echo rem !sep_line!
 echo=
 call :self_extract_func ^
     ^ doc.help ^
     ^ doc.man ^
     ^ %=END=%
 
-echo rem !sep_line! Core Functions !sep_line!
+echo rem !sep_line!
+echo rem Core
+echo rem !sep_line!
 echo=
 call :self_extract_func ^
     ^ core ^
@@ -1585,15 +1597,21 @@ call :self_extract_func ^
 ::
 ::
 
-echo rem !sep_line! Templates !sep_line!
+echo rem !sep_line!
+echo rem Templates
+echo rem !sep_line!
 echo=
 call :self_extract_func "template.new_script"
 
-echo rem !sep_line! Tests !sep_line!
+echo rem !sep_line!
+echo rem Tests
+echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
 
-echo rem !sep_line! Library !sep_line!
+echo rem !sep_line!
+echo rem Library
+echo rem !sep_line!
 echo=
 call :self_extract_func ^
     ^ lib ^
@@ -1608,7 +1626,9 @@ for %%l in (!ordered_lib!) do (
     echo=
 )
 
-echo rem !sep_line! End !sep_line!
+echo rem !sep_line!
+echo rem End
+echo rem !sep_line!
 echo=
 call :self_extract_func "EOF"
 exit /b 0
