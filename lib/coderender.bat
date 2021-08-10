@@ -108,15 +108,16 @@ exit /b 0
 ::          A single argument to pass to template function.
 ::
 ::  TEMPLATE SYNTAX
-::      Each line of literal blocks starts with '::  ' or '::' (for empty lines), and the rest is codes.
-::      Codes will run normally while literal blocks is just printed out literally.
+::      Each line of literal blocks starts with '::  ' or '::' (for empty lines),
+::      and the rest are codes. Codes will run normally while literal blocks are
+::      printed out literally.
 ::
 ::  ENVIRONMENT
 ::      tmp_dir
 ::          Path to store the temporary output.
 ::
 ::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::          Fallback path for tmp_dir if tmp_dir does not exist.
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
