@@ -266,11 +266,16 @@ call :metadata SOFTWARE.
 call :config
 set "lib="
 
+call :flags.is_minified 2> nul && (
+    set "lib_dir="
+    set "build_dir="
+)
+
 for %%p in (
-    "!tmp_dir!"
-    "!lib_dir!"
-    "!build_dir!"
-) do if not exist %%p md %%p
+    tmp_dir
+    lib_dir
+    build_dir
+) do if defined %%p if not exist "!%%p!" md "!%%p!"
 
 call :Library.unload_info
 call :Library.read_names
