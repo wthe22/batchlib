@@ -1336,7 +1336,8 @@ set %~1install_requires= ^
     ^ functions.range readline functions.list true ^
     ^ coderender unittest ut_fmt_basic ^
     ^ conemu Input.path Input.yesno Input.string updater ^
-    ^ difftime ftime
+    ^ difftime ftime ^
+    ^ %=END=%
 exit /b 0
 
 
