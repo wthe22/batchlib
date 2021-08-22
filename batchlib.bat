@@ -751,8 +751,9 @@ exit /b 0
 ::          batchlib template <name>
 ::
 ::      Create the specified template and output to STDOUT.
-::      Valid template names are: minified, new_script.
-::      Only 'new_script' is available in minified script.
+::      Available templates: minified.
+::
+::      This subcommand have no templates in the minified version.
 exit /b 0
 
 
@@ -1351,131 +1352,6 @@ rem ############################################################################
 rem Templates
 rem ############################################################################
 
-:template.new_script
-set "sep_line="
-for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
-
-call :self_extract_func "entry_point"
-
-echo rem !sep_line!
-echo rem Metadata
-echo rem !sep_line!
-::
-::  :metadata [return_prefix]
-::  set "%~1name=Script Name Here"
-::  set "%~1version=0"
-::  set "%~1author=Your Name Here"
-::  set "%~1license="
-::  set "%~1description=Description here"
-echo set "%%~1release_date=!date:~4!"   :: mm/dd/YYYY
-::  set "%~1url="
-::  set "%~1download_url="
-::  exit /b 0
-::
-::
-
-echo rem !sep_line!
-echo rem Configurations
-echo rem !sep_line!
-::
-::  :config
-::  call :config.default
-::  call :config.preference
-::  exit /b 0
-::
-::
-::  :config.default
-::  rem Default/common configurations
-::  exit /b 0
-::
-::
-::  :config.preference
-::  rem Configurations to change/override
-::  exit /b 0
-::
-::
-
-echo rem !sep_line!
-echo rem Main
-echo rem !sep_line!
-::
-::  :main
-::  @if ^"%1^" == "-c" @goto subcommand.call
-::  @if ^"%1^" == "-h" @goto doc.help
-::  @if ^"%1^" == "--help" @goto doc.help
-::  @goto main_script
-::
-::
-::  :main_script
-::  @setlocal EnableDelayedExpansion EnableExtensions
-::  @echo off
-::  rem TODO: start scripting...
-::  @exit /b
-::
-::
-call :self_extract_func "subcommand.call"
-
-echo rem !sep_line!
-echo rem Documentation
-echo rem !sep_line!
-::
-::  :doc.help
-::  @setlocal EnableDelayedExpansion EnableExtensions
-::  @echo off
-::
-::  echo usage:
-::  echo    Script Name Here.bat
-::  echo        A good documentation to help users how to use this script
-::  exit /b 0
-::
-::
-
-echo rem !sep_line!
-echo rem Library
-echo rem !sep_line!
-echo=
-::  :lib.dependencies
-::  rem List libraries you use in this file here:
-::  set "%~1install_requires="
-::
-::  rem Add dependencies to this file by running:
-::  :: cmd /c batchlib.bat build script_name.bat
-::  exit /b 0
-::
-::
-
-echo rem !sep_line!
-echo rem Tests: Tests codes and data
-echo rem !sep_line!
-echo=
-::  :tests.setup
-::  rem Called before running any tests here
-::  exit /b 0
-::
-::
-::  :tests.teardown
-::  rem Called after running all tests here. Useful for cleanups.
-::  exit /b 0
-::
-::
-::  :tests.test_something
-::  rem Do some tests here...
-::  rem And if something goes wrong:
-::  :: call %unittest% fail "Something failed"
-::  :: call %unittest% error "The unexpected happened"
-::  :: call %unittest% skip "No internet detected..."
-::  exit /b 0
-echo=
-echo=
-
-echo rem !sep_line!
-echo rem End of File
-echo rem !sep_line!
-echo=
-call :self_extract_func "EOF"
-exit /b 0
-
-
 :template.minified
 call :Library.unload_info
 call :Library.read_names
@@ -1600,13 +1476,7 @@ call :self_extract_func ^
 ::
 
 echo rem !sep_line!
-echo rem Templates
-echo rem !sep_line!
-echo=
-call :self_extract_func "template.new_script"
-
-echo rem !sep_line!
-echo rem Tests: Tests codes and data
+echo rem Tests
 echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
@@ -1636,7 +1506,7 @@ exit /b 0
 
 
 rem ############################################################################
-rem Tests: Tests codes and data
+rem Tests
 rem ############################################################################
 
 :tests
