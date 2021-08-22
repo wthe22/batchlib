@@ -1,6 +1,21 @@
 :entry_point  # Beginning of file
+if ^"%1^" == "-c" goto subcommand.call
 call %*
 exit /b
+
+
+:subcommand.call -c <label> [arguments]
+@(
+    setlocal DisableDelayedExpansion
+    call set command=%%*
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1* delims== " %%a in ("!command!") do @(
+        endlocal
+        endlocal
+        call %%b
+    )
+)
+@exit /b
 
 
 :unittest [-f] [-p pattern] [-a target_args] [-s self_args] [-o output_cmd] [target]
@@ -268,13 +283,21 @@ exit /b 0
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :tests.type template.simple > "simple.bat"
-call :unittest "simple.bat" -a "" -s ""
+call :unittest "simple.bat"
 exit /b 0
 
 
 :tests.setup
 set "STDERR_REDIRECTION=2> nul"
-call :tests.type template.simple > "simple.bat"
+call :tests.type template.normal_entry_point > "normal_entry_point.bat" || exit /b
+> "simple.bat" (
+    type "normal_entry_point.bat" || exit /b
+    call :tests.type template.simple || exit /b
+)
+> "success.bat" (
+    type "normal_entry_point.bat" || exit /b
+    call :tests.type template.success || exit /b
+)
 exit /b 0
 
 
@@ -282,10 +305,22 @@ exit /b 0
 exit /b 0
 
 
-:tests.template.simple
+:tests.template.normal_entry_point
+::  if not ^"%1^" == "-c" (
+::      echo mark missing_argument
+::      exit /b 2
+::  )
+::  call :%*
+::  exit /b
+::
+::  :-c
 ::  call %*
 ::  exit /b
 ::
+exit /b 0
+
+
+:tests.template.simple
 ::  :tests.setup
 ::  :tests.teardown
 ::  exit /b 0
@@ -307,9 +342,19 @@ exit /b 0
 exit /b 0
 
 
+:tests.template.success
+::  :tests.setup
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_success_only
+::  exit /b 0
+exit /b 0
+
+
 :tests.test_default
 call :tests.type expected.default > expected || exit /b
-call :unittest "simple.bat" -a "" -s "" > result
+call :unittest "simple.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -331,7 +376,7 @@ exit /b 0
 
 :tests.test_failfast
 call :tests.type expected.failfast > expected || exit /b
-call :unittest "simple.bat" -f -a "" -s "" > result
+call :unittest "simple.bat" -f > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -351,7 +396,7 @@ exit /b 0
 
 :tests.test_pattern
 call :tests.type expected.pattern > expected || exit /b
-call :unittest "simple.bat" -p "test*.test_s*" -a "" -s "" > result
+call :unittest "simple.bat" -p "test*.test_s*" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -368,25 +413,13 @@ exit /b 0
 
 
 :tests.test_wildcard_target
-call :tests.type template.success > "dummy.bat" || exit /b
-copy /b /y /v "dummy.bat" "dummy2.bat" > nul || exit /b
+type "success.bat" > "dummy.bat" || exit /b
+type "success.bat" > "dummy2.bat" || exit /b
 call :tests.type expected.wildcard_target > expected || exit /b
-call :unittest "dummy*.bat" -a "" -s "" > result
+call :unittest "dummy*.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
-exit /b 0
-
-:tests.template.success
-::  call :%*
-::  exit /b
-::
-::  :tests.setup
-::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_success_only
-::  exit /b 0
 exit /b 0
 
 :tests.expected.wildcard_target
@@ -400,64 +433,59 @@ exit /b 0
 
 
 :tests.test_target_args
-call :tests.type template.target_args > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.target_args_ep || exit /b
+    call :tests.type template.simple || exit /b
+)
 call :tests.type expected.target_args > expected || exit /b
-call :unittest "dummy.bat" -s "" > result
+call :unittest "dummy.bat" -a "--call" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
-:tests.template.target_args
-::  if not ^"%1^" == "-c" (
+:tests.template.target_args_ep
+::  if not ^"%1^" == "--call" (
 ::      echo mark missing_argument
 ::      exit /b 2
 ::  )
 ::  call :%*
 ::  exit /b
 ::
-::  :-c
+::  :--call
 ::  call %*
 ::  exit /b
 ::
-::  :tests.setup
-::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_success
-::  echo mark success
-::  exit /b 0
-::
-::  :tests.test_skip
-::  call %unittest% skip "Not ready"
-::  exit /b 0
 exit /b 0
 
 :tests.expected.target_args
 ::  start
 ::  run "dummy:tests.test_success"
-::  mark success
 ::  outcome "dummy:tests.test_success",success,
 ::  run "dummy:tests.test_skip"
 ::  outcome "dummy:tests.test_skip",skip,"Not ready"
+::  run "dummy:tests.test_fail"
+::  outcome "dummy:tests.test_fail",fail,"1 + 1 is not 3"
+::  run "dummy:tests.test_error"
+::  outcome "dummy:tests.test_error",error,"Something unexpected happen"
 ::  stop
 exit /b 0
 
 
 :tests.test_setup_teardown
-call :tests.type template.setup_teardown > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.setup_teardown || exit /b
+)
 copy /b /y /v "dummy.bat" "dummy2.bat" > nul || exit /b
 call :tests.type expected.setup_teardown > expected || exit /b
-call :unittest "dummy*.bat" -a "" -s "" > result
+call :unittest "dummy*.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
 :tests.template.setup_teardown
-::  call %*
-::  exit /b
-::
 ::  :tests.setup
 ::  echo mark setup
 ::  set "hello=hi"
@@ -487,18 +515,18 @@ exit /b 0
 
 
 :tests.test_pass_no_args
-call :tests.type template.pass_no_args > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.pass_no_args || exit /b
+)
 call :tests.type expected.pass_no_args > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" > result
+call :unittest "dummy.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
 :tests.template.pass_no_args
-::  call %*
-::  exit /b
-::
 ::  :tests.setup
 ::  :tests.teardown
 ::  exit /b 0
@@ -517,9 +545,12 @@ exit /b 0
 
 
 :tests.test_isolate
-call :tests.type template.isolate > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.isolate || exit /b
+)
 call :tests.type expected.isolate > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" > result
+call :unittest "dummy.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -556,18 +587,18 @@ exit /b 0
 
 
 :tests.test_setup_skip
-call :tests.type template.setup_skip > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.setup_skip || exit /b
+)
 call :tests.type expected.setup_skip > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" > result
+call :unittest "dummy.bat" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
 :tests.template.setup_skip
-::  call %*
-::  exit /b
-::
 ::  :tests.setup
 ::  call %unittest% skip "Not ready"
 ::  exit /b 0
@@ -595,18 +626,18 @@ exit /b 0
 
 
 :tests.test_setup_error
-call :tests.type template.setup_error > "dummy.bat" || exit /b
+> "dummy.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.setup_error || exit /b
+)
 call :tests.type expected.setup_error > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" %STDERR_REDIRECTION% > result
+call :unittest "dummy.bat" %STDERR_REDIRECTION% > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
 :tests.template.setup_error
-::  call %*
-::  exit /b
-::
 ::  :tests.teardown
 ::  exit /b 0
 ::
@@ -630,31 +661,17 @@ exit /b 0
 
 
 :tests.test_output_cmd
-call :tests.type template.output_cmd > "dummy.bat" || exit /b
 call :tests.type expected.output_cmd > expected || exit /b
-call :unittest "dummy.bat" -a "" -s "" -o "echo '#'" > result
+call :unittest "success.bat" -o "echo '#'" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
-:tests.template.output_cmd
-::  call %*
-::  exit /b
-::
-::  :tests.setup
-::  :tests.teardown
-::  exit /b 0
-::
-::  :tests.test_success
-::  exit /b 0
-::
-exit /b 0
-
 :tests.expected.output_cmd
 ::  "#" start
-::  "#" run "dummy:tests.test_success"
-::  "#" outcome "dummy:tests.test_success",success,
+::  "#" run "success:tests.test_success_only"
+::  "#" outcome "success:tests.test_success_only",success,
 ::  "#" stop
 exit /b 0
 
