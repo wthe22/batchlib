@@ -17,7 +17,7 @@ exit /b 0
 
 :test_all
 rem Test the Batchlib core
-cmd /c batchlib.bat -c :test
+cmd /c batchlib.bat -c :tests
 rem Test all library functions
 cmd /c batchlib.bat test
 pause
