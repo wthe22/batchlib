@@ -1327,10 +1327,6 @@ rem ############################################################################
 rem Library
 rem ############################################################################
 
-:lib  # Functions/snippets from library
-exit /b 0
-
-
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ functions.range readline functions.list true ^
@@ -1436,7 +1432,6 @@ echo rem !sep_line!
 echo rem Library
 echo rem !sep_line!
 echo=
-call :self_extract_func "lib"
 ::  :lib.dependencies
 ::  rem List libraries you use in this file here:
 ::  set "%~1install_requires="
@@ -1619,7 +1614,6 @@ echo rem Library
 echo rem !sep_line!
 echo=
 call :self_extract_func ^
-    ^ lib ^
     ^ lib.dependencies ^
     ^ lib.call ^
     ^ %=END=%
