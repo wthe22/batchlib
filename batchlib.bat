@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 @goto main
 
 
@@ -714,9 +714,11 @@ exit /b 0
 ::  BUILD SUBCOMMAND
 ::          batchlib build <input_file> [backup_name]
 ::
-::      Add/update dependencies of a file (based on the new script template).
+::      Add/update dependencies of a file (made from the new script template).
 ::      Dependencies are found in 'install_requires' in lib.dependencies() and
 ::      'extra_requires' is ignored. Build is aborted if any errors occur.
+::      Please keep codes between 'entry_point' and 'EOF'. Codes beyond that will
+::      be removed.
 ::
 ::      POSITIONAL ARGUMENTS
 ::          input_file
@@ -1809,7 +1811,7 @@ rem ############################################################################
 rem End of File
 rem ############################################################################
 
-:EOF  # End of File
-rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
-rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
+:EOF
+@rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
+@rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
 exit /b
