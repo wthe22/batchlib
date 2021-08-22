@@ -249,7 +249,7 @@ exit /b
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
-call :test_lib %1
+call :tests.run_lib_test %1
 exit /b
 
 
@@ -314,7 +314,7 @@ if "!user_input!" == "0" exit /b 0
 if "!user_input!" == "1" call :browse_lib
 if "!user_input!" == "2" call :conemu
 if "!user_input!" == "3" (
-    call :test_lib
+    call :tests.run_lib_test
     pause
     goto main_menu
 )
@@ -575,7 +575,7 @@ exit /b 0
 
 :LibMenu.run_tests
 setlocal EnableDelayedExpansion
-call :test_lib !_library!
+call :tests.run_lib_test !_library!
 pause
 exit /b 0
 
@@ -1655,7 +1655,7 @@ call :unittest --output "call :ut_fmt_basic"
 exit /b 0
 
 
-:test_lib [library]
+:tests.run_lib_test [library]
 setlocal EnableDelayedExpansion
 set "_library=%~1"
 if defined _library (
