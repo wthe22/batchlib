@@ -299,9 +299,8 @@ echo 1. Browse documentation
 echo 2. Use command line
 echo 3. Test Libraries
 echo 4. Generate minified version
-echo 5. Generate new script template
-echo 6. Build/add dependencies to a script
-echo 7. Reload Library
+echo 5. Build/add dependencies to a script
+echo 6. Reload Library
 echo=
 echo B. Self Build
 echo H. Help
@@ -319,9 +318,8 @@ if "!user_input!" == "3" (
     goto main_menu
 )
 if "!user_input!" == "4" call :new_template_menu "minified" "Minified Script"
-if "!user_input!" == "5" call :new_template_menu "new_script" "New Script Template"
-if "!user_input!" == "6" call :build_menu
-if "!user_input!" == "7" (
+if "!user_input!" == "5" call :build_menu
+if "!user_input!" == "6" (
     call :Library.unload_info
     call :Library.read_names
     call :Library.read_dependencies
