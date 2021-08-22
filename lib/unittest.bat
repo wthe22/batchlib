@@ -106,7 +106,7 @@ for /f "usebackq tokens=1-2 delims=:" %%k in ("%unittest.tmp_dir%\.unittest_test
     )
     set "unittest._test_label=%%l"
     set "unittest._outcome="
-    %unittest.output_cmd% run "!unittest._test_file!:!unittest._test_label!"
+    %unittest.output_cmd% run "!unittest._test_file!","!unittest._test_label!"
     if defined unittest._setup_outcome (
         call :unittest.outcome !unittest._setup_outcome!
     ) else (
@@ -137,7 +137,7 @@ for %%e in (fail error) do if "%~1" == "%%e" (
     set "unittest._failed=true"
 )
 if defined unittest._test_label (
-    %unittest.output_cmd% outcome "!unittest._test_file!:!unittest._test_label!",%1,%2
+    %unittest.output_cmd% outcome "!unittest._test_file!","!unittest._test_label!",%1,%2
 ) else set unittest._setup_outcome=%1,%2
 exit /b 0
 
@@ -246,10 +246,10 @@ exit /b 0
 ::      start
 ::          Preparation is done and unittest is about to start
 ::
-::      run <file:label>
+::      run <file>,<label>
 ::          Unittest is running tests in the following file and label
 ::
-::      outcome <file:label>,<success|fail|error|skip>,[message]
+::      outcome <file>,<label>,<success|fail|error|skip>,[message]
 ::          Report outcome of the test as either: success, fail, error, or skip,
 ::          with the following message/reason
 ::
@@ -362,14 +362,14 @@ exit /b 0
 
 :tests.expected.default
 ::  start
-::  run "simple:tests.test_success"
-::  outcome "simple:tests.test_success",success,
-::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"Not ready"
-::  run "simple:tests.test_fail"
-::  outcome "simple:tests.test_fail",fail,"1 + 1 is not 3"
-::  run "simple:tests.test_error"
-::  outcome "simple:tests.test_error",error,"Something unexpected happen"
+::  run "simple","tests.test_success"
+::  outcome "simple","tests.test_success",success,
+::  run "simple","tests.test_skip"
+::  outcome "simple","tests.test_skip",skip,"Not ready"
+::  run "simple","tests.test_fail"
+::  outcome "simple","tests.test_fail",fail,"1 + 1 is not 3"
+::  run "simple","tests.test_error"
+::  outcome "simple","tests.test_error",error,"Something unexpected happen"
 ::  stop
 exit /b 0
 
@@ -384,12 +384,12 @@ exit /b 0
 
 :tests.expected.failfast
 ::  start
-::  run "simple:tests.test_success"
-::  outcome "simple:tests.test_success",success,
-::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"Not ready"
-::  run "simple:tests.test_fail"
-::  outcome "simple:tests.test_fail",fail,"1 + 1 is not 3"
+::  run "simple","tests.test_success"
+::  outcome "simple","tests.test_success",success,
+::  run "simple","tests.test_skip"
+::  outcome "simple","tests.test_skip",skip,"Not ready"
+::  run "simple","tests.test_fail"
+::  outcome "simple","tests.test_fail",fail,"1 + 1 is not 3"
 ::  stop
 exit /b 0
 
@@ -404,10 +404,10 @@ exit /b 0
 
 :tests.expected.pattern
 ::  start
-::  run "simple:tests.test_success"
-::  outcome "simple:tests.test_success",success,
-::  run "simple:tests.test_skip"
-::  outcome "simple:tests.test_skip",skip,"Not ready"
+::  run "simple","tests.test_success"
+::  outcome "simple","tests.test_success",success,
+::  run "simple","tests.test_skip"
+::  outcome "simple","tests.test_skip",skip,"Not ready"
 ::  stop
 exit /b 0
 
@@ -424,10 +424,10 @@ exit /b 0
 
 :tests.expected.wildcard_target
 ::  start
-::  run "dummy:tests.test_success_only"
-::  outcome "dummy:tests.test_success_only",success,
-::  run "dummy2:tests.test_success_only"
-::  outcome "dummy2:tests.test_success_only",success,
+::  run "dummy","tests.test_success_only"
+::  outcome "dummy","tests.test_success_only",success,
+::  run "dummy2","tests.test_success_only"
+::  outcome "dummy2","tests.test_success_only",success,
 ::  stop
 exit /b 0
 
@@ -460,14 +460,14 @@ exit /b 0
 
 :tests.expected.target_args
 ::  start
-::  run "dummy:tests.test_success"
-::  outcome "dummy:tests.test_success",success,
-::  run "dummy:tests.test_skip"
-::  outcome "dummy:tests.test_skip",skip,"Not ready"
-::  run "dummy:tests.test_fail"
-::  outcome "dummy:tests.test_fail",fail,"1 + 1 is not 3"
-::  run "dummy:tests.test_error"
-::  outcome "dummy:tests.test_error",error,"Something unexpected happen"
+::  run "dummy","tests.test_success"
+::  outcome "dummy","tests.test_success",success,
+::  run "dummy","tests.test_skip"
+::  outcome "dummy","tests.test_skip",skip,"Not ready"
+::  run "dummy","tests.test_fail"
+::  outcome "dummy","tests.test_fail",fail,"1 + 1 is not 3"
+::  run "dummy","tests.test_error"
+::  outcome "dummy","tests.test_error",error,"Something unexpected happen"
 ::  stop
 exit /b 0
 
@@ -503,12 +503,12 @@ exit /b 0
 :tests.expected.setup_teardown
 ::  start
 ::  mark setup
-::  run "dummy:tests.test_setup_var"
-::  outcome "dummy:tests.test_setup_var",success,
+::  run "dummy","tests.test_setup_var"
+::  outcome "dummy","tests.test_setup_var",success,
 ::  mark teardown
 ::  mark setup
-::  run "dummy2:tests.test_setup_var"
-::  outcome "dummy2:tests.test_setup_var",success,
+::  run "dummy2","tests.test_setup_var"
+::  outcome "dummy2","tests.test_setup_var",success,
 ::  mark teardown
 ::  stop
 exit /b 0
@@ -538,8 +538,8 @@ exit /b 0
 
 :tests.expected.pass_no_args
 ::  start
-::  run "dummy:tests.test_pass_no_args"
-::  outcome "dummy:tests.test_pass_no_args",success,
+::  run "dummy","tests.test_pass_no_args"
+::  outcome "dummy","tests.test_pass_no_args",success,
 ::  stop
 exit /b 0
 
@@ -578,10 +578,10 @@ exit /b 0
 
 :tests.expected.isolate
 ::  start
-::  run "dummy:tests.test_set_var"
-::  outcome "dummy:tests.test_set_var",success,
-::  run "dummy:tests.test_no_var"
-::  outcome "dummy:tests.test_no_var",success,
+::  run "dummy","tests.test_set_var"
+::  outcome "dummy","tests.test_set_var",success,
+::  run "dummy","tests.test_no_var"
+::  outcome "dummy","tests.test_no_var",success,
 ::  stop
 exit /b 0
 
@@ -617,10 +617,10 @@ exit /b 0
 
 :tests.expected.setup_skip
 ::  start
-::  run "dummy:tests.test_success"
-::  outcome "dummy:tests.test_success",skip,"Not ready"
-::  run "dummy:tests.test_success2"
-::  outcome "dummy:tests.test_success2",skip,"Not ready"
+::  run "dummy","tests.test_success"
+::  outcome "dummy","tests.test_success",skip,"Not ready"
+::  run "dummy","tests.test_success2"
+::  outcome "dummy","tests.test_success2",skip,"Not ready"
 ::  stop
 exit /b 0
 
@@ -652,10 +652,10 @@ exit /b 0
 
 :tests.expected.setup_error
 ::  start
-::  run "dummy:tests.test_success"
-::  outcome "dummy:tests.test_success",error,"Test setup did not exit correctly [exit code 1]."
-::  run "dummy:tests.test_success2"
-::  outcome "dummy:tests.test_success2",error,"Test setup did not exit correctly [exit code 1]."
+::  run "dummy","tests.test_success"
+::  outcome "dummy","tests.test_success",error,"Test setup did not exit correctly [exit code 1]."
+::  run "dummy","tests.test_success2"
+::  outcome "dummy","tests.test_success2",error,"Test setup did not exit correctly [exit code 1]."
 ::  stop
 exit /b 0
 
@@ -670,8 +670,8 @@ exit /b 0
 
 :tests.expected.output_cmd
 ::  "#" start
-::  "#" run "success:tests.test_success_only"
-::  "#" outcome "success:tests.test_success_only",success,
+::  "#" run "success","tests.test_success_only"
+::  "#" outcome "success","tests.test_success_only",success,
 ::  "#" stop
 exit /b 0
 
