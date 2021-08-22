@@ -18,7 +18,7 @@ Features
 First Time Use
 --------------
 For first time use, run ``setup.bat`` to do the setups. If the setup is
-successful, running ``setup.bat`` again will only run unittests.
+successful, running ``setup.bat`` again will build libraries and run unittests.
 
 A good way to get stated with batchlib is to explore the features and libraries
 first. After you are somehow familiar with them, generate a `Template For New
@@ -27,13 +27,8 @@ Scripts`_, read the documentations inside, and try to make something out of it.
 Template For New Scripts
 ------------------------
 To take full advantage of batchlib, there are some structures to follow.
-Batchlib can generate a template that have all the recommended structures
-for you. To generate it, type:
-::
-
-    cmd /c batchlib.bat template new_script > your_script_name.bat
-
-Now you can use this newly generated script as your starting point.
+Use the template script ``template.bat`` as your starting point. It has all
+the recommended structures to work flawlessly with batchlib.
 There are guides inside to help you get started.
 
 Dependency Management
@@ -63,7 +58,7 @@ run the same code again to update the libraries.
 Adding Your Own Functions To Library
 ------------------------------------
 You can use the template for new library as the starting point.
-Generate it by copying the template:
+Copying the library template and rename it:
 ::
 
     copy lib\new_lib_template.bat lib\your_library_name.bat
