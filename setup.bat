@@ -1,7 +1,7 @@
 @echo off
 
 rem If setup is already done before, proceed to testing
-call batchlib.bat -c :true && goto test_all
+call batchlib.bat -c :true 2> nul && goto test_all
 goto setup
 
 
