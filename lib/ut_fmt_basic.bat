@@ -30,19 +30,19 @@ for %%e in (success fail error skip) do set "_%%e_count=0"
 exit /b 0
 #+++
 
-:ut_fmt_basic.run <test_name>
+:ut_fmt_basic.run <test_file> <test_label>
 set /a "_tests_run+=1"
 call :difftime _elapsed_time !time! !_start_time!
 call :ftime _elapsed_time !_elapsed_time!
-echo !_elapsed_time! [!_tests_run!/!_test_count!] %~1
+echo !_elapsed_time! [!_tests_run!/!_test_count!] %~1:%~2
 exit /b 0
 #+++
 
-:ut_fmt_basic.outcome <test_name> <outcome> [message]
-set /a "_%~2_count+=1"
-if "%~2" == "success" exit /b 0
-if "%~3" == "" echo test '%~1' %~2
-if not "%~3" == "" echo test '%~1' %~2: %~3
+:ut_fmt_basic.outcome <test_file> <test_label> <outcome> [message]
+set /a "_%~3_count+=1"
+if "%~3" == "success" exit /b 0
+if "%~4" == "" echo test '%~1:%~2' %~3
+if not "%~4" == "" echo test '%~1:%~2' %~3: %~4
 exit /b 0
 #+++
 
@@ -87,8 +87,8 @@ exit /b 0
 ::  SYNOPSIS
 ::      ut_fmt_basic <action> [args] ...
 ::      ut_fmt_basic start
-::      ut_fmt_basic run <test_case>
-::      ut_fmt_basic outcome <test_name> <outcome> [message]
+::      ut_fmt_basic run <test_file> <test_label>
+::      ut_fmt_basic outcome <test_file> <test_label> <outcome> [message]
 ::      ut_fmt_basic stop
 ::
 ::  ACTIONS
@@ -103,9 +103,8 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-set "test_reporter=call :ut_fmt_basic"
 call :tests.type template.simple > "simple.bat"
-call :unittest "simple.bat" -a "" -s "" -o test_reporter
+call :unittest "simple.bat" -a "" -s "" -o "call :ut_fmt_basic"
 exit /b 0
 
 
