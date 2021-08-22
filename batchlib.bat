@@ -32,7 +32,7 @@ echo Feel free to use, share, or modify this script for your projects :)
 echo Visit http://winscr.blogspot.com/ for more scripts^^!
 echo=
 echo=
-echo Copyright (C) 2020 by !author!
+echo Copyright (C) 2017 by !author!
 echo Licensed under !license!
 endlocal
 exit /b 0
@@ -45,7 +45,7 @@ rem ############################################################################
 :license
 echo MIT License
 echo=
-echo Copyright 2020 wthe22
+echo Copyright 2017 wthe22
 echo=
 echo Permission is hereby granted, free of charge, to any person obtaining a
 echo copy of this software and associated documentation files (the "Software"),
