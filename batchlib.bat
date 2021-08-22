@@ -1448,10 +1448,9 @@ call :self_extract_func "lib"
 ::
 
 echo rem !sep_line!
-echo rem Tests
+echo rem Tests: Tests codes and data
 echo rem !sep_line!
 echo=
-call :self_extract_func "tests"
 ::  :tests.setup
 ::  rem Called before running any tests here
 ::  exit /b 0
@@ -1610,7 +1609,7 @@ echo=
 call :self_extract_func "template.new_script"
 
 echo rem !sep_line!
-echo rem Tests
+echo rem Tests: Tests codes and data
 echo rem !sep_line!
 echo=
 call :self_extract_func "tests"
@@ -1641,14 +1640,10 @@ exit /b 0
 
 
 rem ############################################################################
-rem Tests
+rem Tests: Tests codes and data
 rem ############################################################################
 
-:tests  # Tests codes and data
-exit /b 0
-
-
-:test
+:tests
 @setlocal EnableDelayedExpansion
 @echo off
 call :unittest --output "call :ut_fmt_basic"
