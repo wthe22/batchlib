@@ -87,7 +87,7 @@ call :wait.calibrate
 echo Calibration done: !wait._increment!
 call :wait.setup_macro
 echo=
-call :Input.number time_in_milliseconds --range "0~10000"
+call :Input.number time_in_milliseconds --range "0~21474"
 echo=
 echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
