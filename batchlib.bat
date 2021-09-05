@@ -199,9 +199,7 @@ cls
 echo !SOFTWARE.description! !SOFTWARE.version!
 echo=
 echo Loading...
-call :true 2> nul || (
-    1>&2 echo warning: Dependency not found. Script might not work well.
-)
+call :true 2> nul || call :self_build
 call :Library.read_args
 call :Category.unload_info
 call :Category.load
@@ -302,7 +300,6 @@ echo 4. Generate minified version
 echo 5. Build/add dependencies to a script
 echo 6. Reload Library
 echo=
-echo B. Self Build
 echo H. Help
 echo 0. Exit
 echo=
@@ -330,16 +327,18 @@ if "!user_input!" == "6" (
     pause
     goto main_menu
 )
-if /i "!user_input!" == "B" (
-    setlocal EnableDelayedExpansion
-    echo Adding/updating dependencies to this script...
-    set "lib=:lib.call "
-    call :build_script "%~f0"
-    endlocal
-    pause
-)
 if /i "!user_input!" == "H" call :help_menu
 goto main_menu
+
+
+:self_build
+setlocal EnableDelayedExpansion
+echo Adding/updating dependencies to this script...
+set "lib=:lib.call "
+call :build_script "%~f0"
+echo Build done [exit code !errorlevel!]
+pause
+exit /b 0
 
 
 :help_menu
