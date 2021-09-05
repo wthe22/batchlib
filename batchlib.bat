@@ -1099,12 +1099,24 @@ setlocal EnableDelayedExpansion
 set "_result= "
 for %%f in ("!lib_dir!\*.bat") do (
     set "_filename=%%~nf"
-) & if not "!_filename:~0,1!" == "_" (
-    set "_tokens="
-    for %%_ in (!_filename!) do set "_tokens=!_tokens!1"
-) & if not "!_tokens!" == "1" (
-    1>&2 echo%0: Invalid function name: '%%~nf'
-) else set "_result=!_result!!_filename! "
+    set "_valid=true"
+    if defined _valid (
+        for %%s in (. _) do (
+            if "!_filename:~0,1!" == "%%s" set "_valid="
+        )
+    )
+    if defined _valid (
+        set "_tokens="
+        for %%_ in (!_filename!) do set "_tokens=!_tokens!1"
+        if not "!_tokens!" == "1" (
+             set "_valid="
+            1>&2 echo%0: Invalid function name: '%%~nf'
+        )
+    )
+    if defined _valid (
+        set "_result=!_result!!_filename! "
+    )
+)
 for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
     endlocal
     set "Library.all=%%b"
