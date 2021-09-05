@@ -54,7 +54,7 @@ exit /b 0
 ::      wait.calibrate [delay_target]
 ::      wait <delay>
 ::      wait.setup_macro
-::      for %t in (delay) do %wait%
+::      for %t in (<delay>) do %wait%
 ::
 ::  POSITIONAL ARGUMENTS
 ::      delay
