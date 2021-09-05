@@ -69,28 +69,31 @@ exit /b 0
 
 
 :tests.setup
+call :wait.calibrate > nul || (
+    call %unittest% error "Calibration failed"
+    exit /b 0
+)
+call :wait.setup_macro
+exit /b 0
+
+
 :tests.teardown
 exit /b 0
 
 
-:tests.test_accuracy
-set "threshold=300"  milliseconds
-set "test_delay=2000"  milliseconds
-
-call :wait.setup_macro
-call :wait.calibrate > nul || (
-    call %unittest% fail "Calibration failed"
-    exit /b 0
-)
-
+:tests.test_consistency
+set "expected=2250"  milliseconds
+set "minimum=2000"  milliseconds
+set "maximum=2750"  milliseconds
 set "start_time=!time!"
-call :sleep !test_delay!
-call :difftime time_taken "!time!" "!start_time!"
-set /a "time_taken*=10"
-set /a "inaccuracy=!time_taken! - !test_delay!"
-set /a "fail=!inaccuracy!/!threshold!"
-if not "!fail!" == "0" (
-    call %unittest% fail "Given threshold '!threshold!', expected '!test_delay!', got '!time_taken!'"
+call :sleep !expected!
+call :difftime result "!time!" "!start_time!"
+set /a "result*=10"
+if !result! LSS !minimum! (
+    call %unittest% fail "Given '!expected!', expected minimum '!minimum!', got '!result!'"
+)
+if !result! GTR !maximum! (
+    call %unittest% fail "Given '!expected!', expected maximum '!maximum!', got '!result!'"
 )
 exit /b 0
 
