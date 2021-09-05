@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 @goto main
 
 
@@ -125,8 +125,6 @@ rem End of File
 rem ############################################################################
 
 :EOF
-rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
-rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
+@rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
+@rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
 exit /b
-
-
