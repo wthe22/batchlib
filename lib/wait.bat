@@ -123,34 +123,30 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_macro
+:tests.test_macro_consistency
 set "start_time=!time!"
 for %%t in (!expected!) do %wait%
 call :difftime result "!time!" "!start_time!"
 set /a "result*=10"
 if !result! LSS !minimum! (
-    call %unittest% fail ^
-        ^ "Given threshold '!threshold!', expected minimum '!minimum!', got '!result!'"
+    call %unittest% fail "Given '!expected!', expected minimum '!minimum!', got '!result!'"
 )
 if !result! GTR !maximum! (
-    call %unittest% fail ^
-        ^ "Given threshold '!threshold!', expected maximum '!maximum!', got '!result!'"
+    call %unittest% fail "Given '!expected!', expected maximum '!maximum!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.test_call
+:tests.test_call_consistency
 set "start_time=!time!"
 call :wait !expected!
 call :difftime result "!time!" "!start_time!"
 set /a "result*=10"
 if !result! LSS !minimum! (
-    call %unittest% fail ^
-        ^ "Given threshold '!threshold!', expected minimum '!minimum!', got '!result!'"
+    call %unittest% fail "Given '!expected!', expected minimum '!minimum!', got '!result!'"
 )
 if !result! GTR !maximum! (
-    call %unittest% fail ^
-        ^ "Given threshold '!threshold!', expected maximum '!maximum!', got '!result!'"
+    call %unittest% fail "Given '!expected!', expected maximum '!maximum!', got '!result!'"
 )
 exit /b 0
 
