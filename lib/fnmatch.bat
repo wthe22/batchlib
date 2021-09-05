@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 

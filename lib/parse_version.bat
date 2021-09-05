@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -328,5 +328,5 @@ if "!version1!" %~2 "!version2!" exit /b 0
 exit /b 1
 
 
-:EOF  # End of File
+:EOF
 exit /b

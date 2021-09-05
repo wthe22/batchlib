@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -50,5 +50,5 @@ echo Your OS version is !os_ver!
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

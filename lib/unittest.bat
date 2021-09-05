@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 if ^"%1^" == "-c" goto subcommand.call
 call %*
 exit /b
@@ -688,5 +688,5 @@ call %*
 exit /b
 
 
-:EOF  # End of File
+:EOF
 exit /b

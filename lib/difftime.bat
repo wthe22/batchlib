@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -157,5 +157,5 @@ rem This is faster, assuming minutes, seconds, and centiseconds is always 2 digi
 set /a "_centiseconds=24%%a %% 0x18 *0x57E40 +1%%b*0x1770 +1%%c*0x64 +1%%d -0x94F34"
 
 
-:EOF  # End of File
+:EOF
 exit /b

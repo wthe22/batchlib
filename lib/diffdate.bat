@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -190,5 +190,5 @@ rem
 rem     In here, 1 means it is true and 0 means it is false.
 
 
-:EOF  # End of File
+:EOF
 exit /b

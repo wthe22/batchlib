@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -58,5 +58,5 @@ echo Time taken : !time_taken!
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

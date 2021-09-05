@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -104,5 +104,5 @@ for %%a in (%*) do for /f "tokens=1* delims=: " %%b in (%%a) do (
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

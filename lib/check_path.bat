@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -260,5 +260,5 @@ rem * and ? is treated as wildcard
 rem (!) Drive letter checking can be improved maybe?
 
 
-:EOF  # End of File
+:EOF
 exit /b

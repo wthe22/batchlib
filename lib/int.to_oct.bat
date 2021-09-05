@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -52,5 +52,5 @@ echo The octal value of '!decimal!' is 0!result!
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

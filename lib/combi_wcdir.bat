@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -150,5 +150,5 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

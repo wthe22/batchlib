@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -65,5 +65,5 @@ for %%n in (1 2) do call :to_crlf.alt%%n --check-exist 2> nul && (
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

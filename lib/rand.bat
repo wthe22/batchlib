@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -56,5 +56,5 @@ rem Generate random number from -2^31 to 2^31-1:
 set /a "%~1=(!random!<<17 + !random!<<2 + !random!>>13) %% ((%~3)-(%~2)+1) + (%~2)"
 
 
-:EOF  # End of File
+:EOF
 exit /b

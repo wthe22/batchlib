@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -240,5 +240,5 @@ for %%l in (!letters!) do set "%~1=!%~1!\%%l"
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

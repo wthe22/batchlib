@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -148,5 +148,5 @@ rem Implementation details:
 rem http://howardhinnant.github.io/date_algorithms.html
 
 
-:EOF  # End of File
+:EOF
 exit /b

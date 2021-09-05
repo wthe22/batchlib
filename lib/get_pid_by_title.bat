@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -59,5 +59,5 @@ echo Window PID     : !pid!
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

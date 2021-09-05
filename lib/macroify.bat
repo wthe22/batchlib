@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -158,9 +158,5 @@ for /l %%n in (1,1,4) do echo #%%n
 exit /b 0
 
 
-:EOF  # End of File
-rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
-rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
+:EOF
 exit /b
-
-

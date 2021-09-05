@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -67,5 +67,5 @@ echo Color print: !ESC!!color_code!Hello World!ESC![0m
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

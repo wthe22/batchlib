@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -71,5 +71,5 @@ rem Alternative command, but blocked by windows defender
 certutil -urlcache -split -f "%~2" "!_save_path!\!_filename!"
 
 
-:EOF  # End of File
+:EOF
 exit /b

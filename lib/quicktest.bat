@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -213,5 +213,5 @@ call :readline "%~f0" !_range! 1:-1 4
 exit /b
 
 
-:EOF  # End of File
+:EOF
 exit /b

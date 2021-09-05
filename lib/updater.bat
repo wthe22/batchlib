@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -170,7 +170,7 @@ exit /b 0
 
 
 :tests.template.dummy
-::  :entry_point  # Beginning of file
+::  :entry_point
 ::  @goto main
 ::
 ::
@@ -213,5 +213,5 @@ exit /b 0
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b

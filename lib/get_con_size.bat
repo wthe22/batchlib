@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -56,5 +56,5 @@ rem This could cause tests that uses file as input stream to fail.
 rem Calling it from pipe will prevent this.
 
 
-:EOF  # End of File
+:EOF
 exit /b

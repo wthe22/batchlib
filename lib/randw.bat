@@ -1,4 +1,4 @@
-:entry_point  # Beginning of file
+:entry_point
 call %*
 exit /b
 
@@ -70,5 +70,5 @@ for /l %%n in (1,1,5) do (
 exit /b 0
 
 
-:EOF  # End of File
+:EOF
 exit /b
