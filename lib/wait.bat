@@ -103,8 +103,11 @@ exit /b 0
 
 
 :tests.setup
-set "threshold=250"  milliseconds
 set "expected=1250"  milliseconds
+rem The computer might get a bit faster sometimes
+set "minimum=1000"  milliseconds
+rem Although it tends to get significantly slower most of the time
+set "maximum=1750"  milliseconds
 call :wait.calibrate > nul || (
     call %unittest% error "Calibration failed"
     exit /b 0
@@ -117,28 +120,34 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_macro_accuracy
+:tests.test_macro
 set "start_time=!time!"
 for %%t in (!expected!) do %wait%
 call :difftime result "!time!" "!start_time!"
 set /a "result*=10"
-set /a "inaccuracy=!result! - !expected!"
-set /a "fail=!inaccuracy!/!threshold!"
-if not "!fail!" == "0" (
-    call %unittest% fail "Given threshold '!threshold!', expected '!expected!', got '!result!'"
+if !result! LSS !minimum! (
+    call %unittest% fail ^
+        ^ "Given threshold '!threshold!', expected minimum '!minimum!', got '!result!'"
+)
+if !result! GTR !maximum! (
+    call %unittest% fail ^
+        ^ "Given threshold '!threshold!', expected maximum '!maximum!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.test_call_accuracy
+:tests.test_call
 set "start_time=!time!"
 call :wait !expected!
 call :difftime result "!time!" "!start_time!"
 set /a "result*=10"
-set /a "inaccuracy=!result! - !expected!"
-set /a "fail=!inaccuracy!/!threshold!"
-if not "!fail!" == "0" (
-    call %unittest% fail "Given threshold '!threshold!', expected '!expected!', got '!result!'"
+if !result! LSS !minimum! (
+    call %unittest% fail ^
+        ^ "Given threshold '!threshold!', expected minimum '!minimum!', got '!result!'"
+)
+if !result! GTR !maximum! (
+    call %unittest% fail ^
+        ^ "Given threshold '!threshold!', expected maximum '!maximum!', got '!result!'"
 )
 exit /b 0
 
