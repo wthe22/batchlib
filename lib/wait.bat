@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:wait <delay>
+:wait <milliseconds>
 for %%t in (%~1) do %wait%
 exit /b 0
 #+++
@@ -52,12 +52,12 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      wait.calibrate [delay_target]
-::      wait <delay>
+::      wait <milliseconds>
 ::      wait.setup_macro
-::      for %t in (<delay>) do %wait%
+::      for %t in (<milliseconds>) do %wait%
 ::
 ::  POSITIONAL ARGUMENTS
-::      delay
+::      milliseconds
 ::          The number of milliseconds to delay.
 ::          The valid range is from 0 to 21474 milliseconds.
 ::
