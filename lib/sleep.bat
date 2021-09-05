@@ -7,7 +7,7 @@ exit /b
 (
     setlocal EnableDelayedExpansion
     set "_start=!time!"
-    set /a "_sec=%~1 / 1000"
+    set /a "_sec=%~1 / 1000 - 1"
     if not "!_sec:~0,1!" == "-" timeout /t !_sec! /nobreak > nul
     set "_remaining=0"
     for %%t in ("!time!" "!_start!") do for /f "tokens=1-4 delims=:., " %%a in ("%%~t") do (
