@@ -58,7 +58,8 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      delay
-::          The number of milliseconds to delay. Supports up to 21474 milliseconds.
+::          The number of milliseconds to delay.
+::          The valid range is from 0 to 21474 milliseconds.
 ::
 ::      delay_target
 ::          The delay (in milliseconds) to use for calibration. By default, it is
@@ -70,11 +71,13 @@ exit /b 0
 ::          Higher value means that the computer is slower.
 ::
 ::  NOTES
-::      - wait() have high CPU usage
+::      - wait() have high CPU usage (for 1 logical processor only)
 ::      - Using %wait% macro is more preferable than calling the function
 ::        because it has more consistent results
-::      - Accuracy depends on power mode of windows. Best Performance mode have
-::        the best accuracy while Battery Saver mode have the worst accuracy.
+::      - Consistency depends greatly on system state. It is best when device is
+::        plugged in, uses Best Performance mode, and is idle. The worst is seen
+::        when the device is on battery, uses Battery Saver mode, or under
+::        significat load.
 exit /b 0
 
 
