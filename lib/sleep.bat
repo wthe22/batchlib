@@ -38,6 +38,7 @@ exit /b 0
 ::  POSITIONAL ARGUMENTS
 ::      milliseconds
 ::          The number of milliseconds to delay.
+::          The valid range is from 0 to 100,000,000.
 ::
 ::  ENVIRONMENT
 ::      wait._increment
@@ -45,7 +46,7 @@ exit /b 0
 ::
 ::  NOTES
 ::      - Based on: difftime()
-::      - This function have high CPU usage for maximum of 1 seconds on each call
+::      - This function have high CPU usage for maximum of 2 seconds on each call
 ::        because it is uses wait()
 exit /b 0
 
@@ -54,7 +55,7 @@ exit /b 0
 call :wait.setup_macro
 call :wait.calibrate
 echo=
-call :Input.number time_in_milliseconds --range "0~2147483647"
+call :Input.number time_in_milliseconds --range "0~100000000"
 echo=
 echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
