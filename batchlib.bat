@@ -101,14 +101,13 @@ rem ############################################################################
 ::  Core
 ::  - Renamed/remove all double underscore labels
 ::  - Improve menu structure
-::  - Adjust function and category loading to read from each library file
-::  - Add call, build, debug, run, test, and template subcommand
+::  - Add call, build, debug, test, and template subcommand
 ::  - Script needs to be build to satisfy dependencies
 ::
 ::  Library
 ::  - Added dependency listing for extra requirements (for tests and demo)
-::  - Move libraries to out of this script, with each library having its own file
-::  - Since each library have its own file, it needs to be build to run correctly
+::  - Move libraries to out of this script, so each library have its own file
+::  - Since each library have its own file, it needs to be built to run correctly
 ::  - Capitalize error messages
 ::  - New functions:
 ::      - quicktest()
@@ -155,6 +154,8 @@ rem ############################################################################
 ::          - extract_func()/functions.range()/readline()
 ::      - Input.path()
 ::      - timeleft(): improve usability when copied
+::      - wait(): Simplify codes
+::      - sleep(): Improve accuracy and fix docs
 ::  - Has backward incompatible changes:
 ::      - find_label() or functions.match(): Change function signature
 ::      - combi_wcdir(): Change function signature
@@ -166,10 +167,12 @@ rem ############################################################################
 ::      - get_os(): Return full os version
 ::
 ::  Minified Script
-::  - Removed library tests
+::  - Removed all tests
 ::
 ::  Tests
 ::  - Simplify test label names
+::  - Improve all unittests
+::  - Use new syntax (see unittest() for more details)
 ::
 ::  Documentation
 ::  - All documentations is now written in comments
