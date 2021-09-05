@@ -55,7 +55,9 @@ exit /b 0
 call :wait.setup_macro
 call :wait.calibrate
 echo=
-call :Input.number time_in_milliseconds --range "0~100000000"
+call :Input.number time_in_milliseconds --range "0~100000000" --optional || (
+    set /a "time_in_milliseconds=!random! %% 500 * 10 + 100"
+)
 echo=
 echo Wait for !time_in_milliseconds! milliseconds...
 set "start_time=!time!"
