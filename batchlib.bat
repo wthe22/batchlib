@@ -155,7 +155,7 @@ rem ############################################################################
 ::      - Input.path()
 ::      - timeleft(): improve usability when copied
 ::      - wait(): Simplify codes
-::      - sleep(): Improve accuracy and fix docs
+::      - sleep(): Improve accuracy
 ::  - Has backward incompatible changes:
 ::      - find_label() or functions.match(): Change function signature
 ::      - combi_wcdir(): Change function signature
