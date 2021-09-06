@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:updater [-n] [-y] [-f] [-d url] <script_path>
+:updater [-n] [-y] [-f] [-u url] <script_path>
 setlocal EnableDelayedExpansion
 for %%v in (_assume_yes _query_only _force _main_url _alt_url) do set "%%v="
 call :argparse ^
@@ -11,7 +11,7 @@ call :argparse ^
     ^ "-n,--notify-only:store_const :_notify_only=true" ^
     ^ "-y,--yes:store_const         :_assume_yes=true" ^
     ^ "-f,--force:store_const       :_force=true" ^
-    ^ "-d,--download-url:store      :_main_url" ^
+    ^ "-u,--download-url:store      :_main_url" ^
     ^ -- %* || exit /b 2
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )
@@ -71,7 +71,7 @@ exit /b 0
 ::      updater - update a batch script from the internet
 ::
 ::  SYNOPSIS
-::      updater [-n] [-y] [-f] [-d url] <script_path>
+::      updater [-n] [-y] [-f] [-u url] <script_path>
 ::
 ::  DESCRIPTION
 ::      Notify for updates, download them, and update the script.
@@ -96,7 +96,7 @@ exit /b 0
 ::          Force update even if incompatibility is detected or script is
 ::          already the newest version
 ::
-::      -d URL, --download-url URL
+::      -u URL, --download-url URL
 ::          Use this URL to download instead of the one set in metadata()
 ::
 ::  ENVIRONMENT
