@@ -80,7 +80,7 @@ exit /b 0
 :config.default
 rem Default/common configurations. DO NOT MODIFY
 rem Directory for temporary files
-set "tmp_dir=!tmp!\!SOFTWARE.name!\!__name__!"
+set "tmp_dir=!tmp!\!SOFTWARE.name!"
 rem Directory to keep library, builds, etc.
 set "lib_dir=%~dp0lib"
 set "build_dir=%~dp0build"
