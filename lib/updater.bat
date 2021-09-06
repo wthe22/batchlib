@@ -25,9 +25,9 @@ if not defined _main_url (
 )
 set "_success="
 call :download_file "!_main_url!" "!_other!" && set "_success=true"
-if not defined _success ( 1>&2 echo%0: Download failed & exit /b 4 )
+if not defined _success ( 1>&2 echo%0: Download failed & exit /b 3 )
 call "!_other!" -c :metadata _other. || (
-    1>&2 echo%0: Fail to read downloaded metadata & exit /b 5
+    1>&2 echo%0: Fail to read downloaded metadata & exit /b 4
 )
 set "_mismatch="
 if not "!_other.name!" == "!_this.name!" (
@@ -55,7 +55,7 @@ if not defined _assume_yes (
 ) && (
     echo Update success
     exit /b 0
-) || exit /b 7
+) || exit /b 5
 exit /b 1
 
 
@@ -108,12 +108,13 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Success
+::      1:  - Unknown failure
 ::      2:  - Invalid parameters
-::      3:  - Failed to get script upgrade information
-::      4:  - Failed to download update
-::      5:  - Failed to retrive update information
-::      6:  - Module name does not match.
-::      7:  - Upgrade failed.
+::      3:  - Fail to obtain download url
+::          - Fail to download update
+::          - Invalid download link
+::      4:  - Fail to read downloaded metadata
+::      5:  - Upgrade failed.
 ::
 ::  NOTES
 ::      - This function is still experimetal and is subject to change.
