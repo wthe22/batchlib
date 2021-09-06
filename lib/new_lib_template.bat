@@ -40,7 +40,7 @@ exit /b 0
 ::      new_lib_template [-o|--options] <args>
 ::
 ::  DESCRIPTION
-::      A good library should have a good documentation too^^!
+::      A good library should have a good documentation too!
 ::
 ::  POSITIONAL ARGUMENTS
 ::      args
