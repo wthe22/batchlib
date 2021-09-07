@@ -197,11 +197,13 @@ rem ############################################################################
 :main_script
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
-call :common_setup
+call :metadata SOFTWARE.
+call :config
 cls
 echo !SOFTWARE.description! !SOFTWARE.version!
 echo=
 echo Loading...
+call :common_setup
 call :true 2> nul || call :self_build
 call :Library.read_args
 call :Category.unload_info
@@ -227,6 +229,8 @@ exit /b
 :subcommand.build <file>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
+call :metadata SOFTWARE.
+call :config
 call :common_setup
 call :true 2> nul || set "lib=:lib.call "
 call :build_script %*
@@ -236,6 +240,8 @@ exit /b
 :subcommand.debug <library> [arguments]
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
+call :metadata SOFTWARE.
+call :config
 call :common_setup
 set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
@@ -249,6 +255,8 @@ exit /b
 :subcommand.test <library>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
+call :metadata SOFTWARE.
+call :config
 call :common_setup
 call :tests.run_lib_test %1
 exit /b
@@ -257,6 +265,8 @@ exit /b
 :subcommand.template <name>
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
+call :metadata SOFTWARE.
+call :config
 call :common_setup
 set "template_name=%~1"
 call :coderender "%~f0" "template.!template_name!"
@@ -264,8 +274,6 @@ exit /b
 
 
 :common_setup
-call :metadata SOFTWARE.
-call :config
 set "lib="
 
 call :flags.is_minified 2> nul && (
