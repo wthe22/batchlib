@@ -5,19 +5,11 @@ exit /b
 
 :capchar <char> ...
 setlocal EnableDelayedExpansion
-set "_all="
-if "%~1" == "*" set "_all=true"
 for %%v in (
     BEL BS ESC TAB CR LF
     BASE BACK DQ NL
-) do (
-    if defined _all (
-        set "%%v=true"
-    ) else set "%%v="
-)
-if not defined _all (
-    for %%a in (%*) do set "%%a=true"
-)
+) do set "%%v="
+for %%a in (%*) do set "%%a=true"
 for %%a in (
     "BASE: BS"
     "BACK: BS"
@@ -71,13 +63,11 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      capchar   <char> ...
-::      capchar   *
 ::
 ::  POSITIONAL ARGUMENTS
 ::      char
-::          The character to capture. See 'LIST OF CHARACTERS'
-::          and 'LIST OF MACROS' for list of valid options.
-::          Use '*' to capture all available characters and macros.
+::          The character to capture. See LIST OF CHARACTERS
+::          and LIST OF MACROS for list of valid options.
 ::
 ::  LIST OF CHARACTERS
 ::      Var     Hex     Name
@@ -103,7 +93,10 @@ exit /b 0
 :doc.demo
 echo Capture control characters
 echo=
-call :capchar *
+call :capchar ^
+    ^ BEL BS ESC TAB CR LF ^
+    ^ BASE BACK DQ NL ^
+    ^ %=END=%
 echo ======================== CODE ========================
 call :functions.range _range "%~f0" "doc.demo.proof"
 call :readline "%~f0" !_range! 1:-1
