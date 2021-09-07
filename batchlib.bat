@@ -616,7 +616,7 @@ setlocal EnableDelayedExpansion
 set "_template=%~1"
 set "_description=%~2"
 call :Input.path save_file --file --warn-overwrite --optional ^
-    ^ --message "Input new template file path: " ^
+    ^ --message "Input new !_description! path (Enter nothing to cancel): " ^
     ^ || exit /b 2
 echo=
 echo !_description! path:
@@ -635,7 +635,7 @@ exit /b 0
 
 :build_menu
 call :Input.path script_file --file --exist --optional ^
-    ^ --message "Input script path: " ^
+    ^ --message "Input script path (Enter nothing to cancel): " ^
     ^ || exit /b 2
 call :Input.path backup_file --file --warn-overwrite --optional  ^
     ^ --message "Input backup path (optional): "
