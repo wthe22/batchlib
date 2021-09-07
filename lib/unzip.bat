@@ -7,7 +7,7 @@ exit /b
 setlocal EnableDelayedExpansion
 set "_zip_file=%~f1"
 set "_dest_path=%~f2"
-cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if not exist "!_dest_path!" md "!_dest_path!" || ( 1>&2 echo error: create folder failed & exit /b 2 )
 > "unzip.vbs" (
     echo zip_file = WScript.Arguments(0^)

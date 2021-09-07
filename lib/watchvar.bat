@@ -5,7 +5,7 @@ exit /b
 
 :watchvar [-i] [-n]
 setlocal EnableDelayedExpansion EnableExtensions
-cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for %%d in ("watchvar") do (
     if not exist "%%~d" md "%%~d"
     cd /d "%%~d"

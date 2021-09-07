@@ -14,7 +14,7 @@ call :argparse ^
     ^ -- %* || exit /b 2
 for %%v in (_input_file _output_file) do for %%f in ("!%%v!") do set "%%v=%%~ff"
 call :strlen _eol_len _eol
-cd /d "!tmp!" & ( cd /d "!tmp_dir!" 2> nul )
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if exist "raw_hex" del /f /q "raw_hex"
 certutil -encodehex "!_input_file!" "raw_hex" > nul || (
     1>&2 echo%0: encode failed exit /b 3
