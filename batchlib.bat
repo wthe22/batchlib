@@ -258,7 +258,8 @@ exit /b
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :common_setup
-call :make_template %1
+set "template_name=%~1"
+call :coderender "%~f0" "template.!template_name!"
 exit /b
 
 
@@ -886,13 +887,6 @@ move /y "_build_script.tmp" "!_input_file!" > nul || exit /b 3
 exit /b 0
 
 
-:make_template <name>
-setlocal EnableDelayedExpansion
-set "template_name=%~1"
-call :coderender "%~f0" "template.!template_name!"
-exit /b
-
-
 :self_extract_func <label> ...
 setlocal EnableDelayedExpansion
 set "_success=true"
@@ -1435,7 +1429,6 @@ echo=
 call :self_extract_func ^
     ^ core ^
     ^ build_script ^
-    ^ make_template ^
     ^ self_extract_func ^
     ^ Library.unload_info ^
     ^ unset ^
