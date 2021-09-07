@@ -45,7 +45,7 @@ if "!_other._p_ver!" LSS "!_this._p_ver!" (
 )
 if defined _notify_only exit /b 0
 if not defined _force (
-    if "!_other._p_ver!" LEQ "!_this._p_ver!" exit /b 0
+    if "!_other._p_ver!" LEQ "!_this._p_ver!" exit /b 5
 )
 if not defined _assume_yes (
     call :Input.yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 0
@@ -55,7 +55,7 @@ if not defined _assume_yes (
 ) && (
     echo Update success
     exit /b 0
-) || exit /b 5
+) || exit /b 6
 exit /b 1
 
 
@@ -114,7 +114,8 @@ exit /b 0
 ::          - Fail to download update
 ::          - Invalid download link
 ::      4:  - Fail to read downloaded metadata
-::      5:  - Upgrade failed.
+::      5:  - No updates available / using latest version
+::      6:  - Upgrade failed.
 ::
 ::  NOTES
 ::      - This function is still experimetal and is subject to change.
