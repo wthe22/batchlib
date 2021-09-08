@@ -137,7 +137,7 @@ call :get_pid_by_title server_pid "!test_server_title!" || (
     call %unittest% skip "Cannot start dummy server"
     exit /b 0
 )
-call :coderender "%~f0" tests.template.dummy  > "dummy.bat"
+call :coderender "%~f0" tests.template.dummy  > "remote.bat"
 exit /b 0
 
 :tests.setup.start_server
@@ -156,33 +156,57 @@ exit /b 0
 
 
 :tests.test_notify
-call :updater -n "dummy.bat" > nul || (
-    call %unittest% fail
+for %%a in (
+    "upgradable: -v 0.1"
+    "latest"
+    "no updates: -v 2.0"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    call :coderender "%~f0" tests.template.dummy "%%c" > "local.bat"
+    call :updater -n "local.bat" > message.stdout
+
+    set "message="
+    set /p "message=" < message.stdout
+    set "message=[!message!]"
+
+    set "keword_in_text="
+    if not "!message!" == "!message:%%b=!" set "keword_in_text=true"
+    if not defined keword_in_text (
+        call %unittest% fail "Notification does not show '%%b' when it is supposed to"
+    )
 )
 exit /b 0
 
 
 :tests.test_force_update
-call :updater -f -y "dummy.bat" > nul || (
+type "remote.bat" > "local.bat" || exit /b
+echo !random! >> "local.bat" || exit /b
+call :updater -f -y "local.bat" > nul
+fc /a /lb1 remote.bat local.bat > nul || (
     call %unittest% fail
 )
 exit /b 0
 
 
-:tests.template.dummy
+:tests.template.dummy [-n name] [-v version]
+set "name=dummy"
+set "version=1.0"
+call :argparse ^
+    ^ "-n,--name:store      :name" ^
+    ^ "-v,--version:store   :version" ^
+    ^ -- %* || ( 1>&2 echo parse failed & exit /b 2 )
 ::  :entry_point
 ::  @goto main
 ::
 ::
 ::  :metadata [return_prefix]
-::  set "%~1name=dummy"
-::  set "%~1version=0.1"
-::  set "%~1author=anon"
+echo set "%%~1name=!name!"
+echo set "%%~1version=!version!"
+::  set "%~1author=Someone"
 ::  set "%~1license=The MIT License"
 ::  set "%~1description=Dummy Script"
 ::  set "%~1release_date=12/31/2000"
 ::  set "%~1url="
-::  set "%~1download_url=ftp://localhost:2121/dummy.bat"
+::  set "%~1download_url=ftp://localhost:2121/remote.bat"
 ::  exit /b 0
 ::
 ::
