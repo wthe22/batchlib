@@ -7,7 +7,7 @@ exit /b
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
 set "_label=%~2"
-set _args=%3
+set "_args=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :functions.range _range "!_source_file!" "!_label!"
 call :readline "!_source_file!" !_range! 1 > ".coderender._template" || exit /b 2
@@ -105,7 +105,9 @@ exit /b 0
 ::          line range is determined by functions.range().
 ::
 ::      arg
-::          A single argument to pass to template function.
+::          Argument to pass to template function with surrounding quotes ommited.
+::          i.e. if ARG is "-v -a", function sees it as 2 arguments because the
+::          surrounding quotes are removed.
 ::
 ::  TEMPLATE SYNTAX
 ::      Each line of literal blocks starts with '::  ' or '::' (for empty lines),
