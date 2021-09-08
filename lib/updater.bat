@@ -46,7 +46,7 @@ if not defined _force (
 )
 if defined _notify_only exit /b 0
 if not defined _assume_yes (
-    call :Input.yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 0
+    call :Input.yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 5
 )
 (
     copy /b /y /v "!_other!" "!_this!" > nul
