@@ -15,7 +15,7 @@ call :argparse ^
     ^ -- %* || exit /b 2
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-set "_other=!cd!\latest.bat"
+set "_other=!cd!\.updater.downloaded.bat"
 call "!_this!" -c :metadata _this. || (
     1>&2 echo%0: Fail to read metadata & exit /b 3
 )
