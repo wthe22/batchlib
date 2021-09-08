@@ -81,7 +81,7 @@ exit /b 0
 ::          Prefix of the variable to store the metadata (if exit code is 0)
 ::
 ::      script_path
-::          Path of the (batch) file.
+::          Path of the batch file.
 ::
 ::  OPTIONS
 ::      -n, --notify-only
@@ -105,18 +105,18 @@ exit /b 0
 ::          Fallback path for tmp_dir if tmp_dir does not exist
 ::
 ::  EXIT STATUS
-::      0:  - Success
+::      0:  - Update successful
+::          - Update is available (--notify-only)
 ::      1:  - Unknown failure
 ::      2:  - Invalid parameters
-::      3:  - Fail to obtain download url
-::          - Fail to download update
-::          - Invalid download link
-::      4:  - Fail to read downloaded metadata
-::      5:  - No updates available / using latest version
+::      3:  - Cannot read script metadata
+::          - No download url found
+::          - Download update fail
+::      4:  - Cannot read downloaded metadata
+::      5:  - No updates available (current > downloaded)
+::          - Using latest version (current == downloaded)
+::          - Update is available but not proceeded
 ::      6:  - Upgrade failed.
-::
-::  NOTES
-::      - This function is still experimetal and is subject to change.
 exit /b 0
 
 
