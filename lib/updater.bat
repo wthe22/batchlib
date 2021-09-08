@@ -5,13 +5,13 @@ exit /b
 
 :updater [-n] [-y] [-f] [-u url] <script_path>
 setlocal EnableDelayedExpansion
-for %%v in (_assume_yes _query_only _force _main_url _alt_url) do set "%%v="
+for %%v in (_assume_yes _notify_only _force _dl_url) do set "%%v="
 call :argparse ^
     ^ "#1:store                     :_this" ^
     ^ "-n,--notify-only:store_const :_notify_only=true" ^
     ^ "-y,--yes:store_const         :_assume_yes=true" ^
     ^ "-f,--force:store_const       :_force=true" ^
-    ^ "-u,--download-url:store      :_main_url" ^
+    ^ "-u,--download-url:store      :_dl_url" ^
     ^ -- %* || exit /b 2
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -19,23 +19,21 @@ set "_other=!cd!\latest.bat"
 call "!_this!" -c :metadata _this. || (
     1>&2 echo%0: Fail to read metadata & exit /b 3
 )
-if not defined _main_url set "_main_url=!_this.download_url!"
-if not defined _main_url (
+if not defined _dl_url set "_dl_url=!_this.download_url!"
+if not defined _dl_url (
     1>&2 echo%0: No download url found & exit /b 3
 )
-set "_success="
-call :download_file "!_main_url!" "!_other!" && set "_success=true"
-if not defined _success ( 1>&2 echo%0: Download failed & exit /b 3 )
+call :download_file "!_dl_url!" "!_other!" || (
+    1>&2 echo%0: Download failed & exit /b 3
+)
 call "!_other!" -c :metadata _other. || (
     1>&2 echo%0: Fail to read downloaded metadata & exit /b 4
 )
-set "_mismatch="
 if not "!_other.name!" == "!_this.name!" (
-    echo warning: script name is different: '!_this.name!' and '!_other.name!'
-    set "_mismatch=true"
+    1>&2 echo%0: warning: Script name is different: '!_this.name!' and '!_other.name!'
 )
 call :parse_version _this._p_ver "!_this.version!"
-call :parse_version _other._p_ver "!_this.version!"
+call :parse_version _other._p_ver "!_other.version!"
 if "!_other._p_ver!" LSS "!_this._p_ver!" (
     echo No updates are available
 ) else if "!_other._p_ver!" == "!_this._p_ver!" (
@@ -43,10 +41,10 @@ if "!_other._p_ver!" LSS "!_this._p_ver!" (
 ) else (
     echo !_this.name! !_this.version! upgradable to !_other.name! !_other.version!
 )
-if defined _notify_only exit /b 0
 if not defined _force (
     if "!_other._p_ver!" LEQ "!_this._p_ver!" exit /b 5
 )
+if defined _notify_only exit /b 0
 if not defined _assume_yes (
     call :Input.yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 0
 )
