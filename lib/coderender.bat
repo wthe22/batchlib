@@ -129,7 +129,13 @@ exit /b 0
 
 
 :doc.demo
-echo Render result of 'doc.demo.template':
+echo Codes
+echo =====
+call :functions.range _range "%~f0" "doc.demo.template" || exit /b 2
+call :readline "%~f0" !_range! 1:-1
+echo=
+echo Result
+echo ======
 call :coderender "%~f0" "doc.demo.template"
 exit /b 0
 
@@ -137,7 +143,8 @@ exit /b 0
 :doc.demo.template
 set "favorite=French fries"
 ::  Hello! I am a literal block
-::  You get what you see: <|> ^()^
+::  What You See Is What You Get
+::  <|> ^()^
 ::
 ::  Marked by '::  ' at front, or '::' only for empty lines
 :: I'm a comment
