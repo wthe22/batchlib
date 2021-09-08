@@ -379,7 +379,9 @@ if /i "!user_input!" == "A" (
     goto help_menu
 )
 if /i "!user_input!" == "U" (
-    call :updater -n "%~f0"
+    call :updater -n "%~f0" && (
+        echo Get the latest version at !SOFTWARE.url!
+    )
     pause
     goto help_menu
 )
