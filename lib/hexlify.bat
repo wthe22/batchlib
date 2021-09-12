@@ -20,17 +20,14 @@ certutil -encodehex "!_input_file!" "raw_hex" > nul || (
     1>&2 echo%0: encode failed exit /b 3
 )
 rem Group hex according to EOL
-> "!_output_file!" (
-    set "_hex="
-    for /f "usebackq tokens=1*" %%a in ("raw_hex") do (
-        set "_input=%%b"
-        set "_hex=!_hex! !_input:~0,48!"
-        if not "!_hex:~7680!" == "" call :hexlify._format
-    )
-    call :hexlify._format
-    echo=!_hex!
-    set "_hex="
+set "_hex="
+for /f "usebackq tokens=1*" %%a in ("raw_hex") do (
+    set "_input=%%b"
+    set "_hex=!_hex! !_input:~0,48!"
+    if not "!_hex:~7680!" == "" call :hexlify._format
 )
+call :hexlify._format
+echo=!_hex!
 exit /b 0
 #+++
 
@@ -61,17 +58,14 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      hexlify - convert a file to hex file
+::      hexlify - convert a file to hex
 ::
 ::  SYNOPSIS
-::      hexlify <input_file> <output_file> [--eol hex]
+::      hexlify <input_file> [--eol hex]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_file
 ::          Path of the input file.
-::
-::      output_file
-::          Path of the output file.
 ::
 ::  OPTIONS
 ::      --eol HEX
@@ -101,7 +95,7 @@ call :Input.path --exist --file source_file
 call :Input.path --not-exist destination_file
 echo=
 echo Converting to hex...
-call :hexlify "!source_file!" "!destination_file!"
+call :hexlify "!source_file!" > "!destination_file!"
 echo Done
 exit /b 0
 
@@ -112,7 +106,7 @@ exit /b 0
 
 
 :tests.test_all
-call :hexlify "%~f0" "hexlify.hex"
+call :hexlify "%~f0" > "hexlify.hex"
 if exist "hexlify.rebuild" del /f /q "hexlify.rebuild"
 certutil -decodehex "hexlify.hex" "hexlify.rebuild" > nul
 fc /a /lb1 "%~f0" "hexlify.rebuild" > nul || (

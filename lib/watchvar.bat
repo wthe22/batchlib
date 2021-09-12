@@ -26,7 +26,7 @@ call :argparse ^
     ^ "-n,--name:store_const        :_list_names=true" ^
     ^ -- %* || exit /b 2
 rem Convert to hex and format
-call :hexlify "latest.txt" "latest.hex.tmp"
+call :hexlify "latest.txt" > "latest.hex.tmp"
 > "latest.hex" (
     for /f "usebackq tokens=*" %%o in ("latest.hex.tmp") do (
         set "_hex=%%o"
