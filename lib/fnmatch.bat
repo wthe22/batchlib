@@ -36,7 +36,7 @@ for /f "tokens=* delims=" %%p in ("!_pieces!") do (
 if "!_pattern:~-1,1!" == "*" exit /b 0
 if not defined _last if not defined _leftover exit /b 0
 call :strlen _len _last
-if not "!_leftover:~-%_len%!" == "!_last!" exit /b 3
+if /i not "!_leftover:~-%_len%!" == "!_last!" exit /b 3
 exit /b 0
 
 
@@ -56,7 +56,7 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Match string with filename-style wildcards. For example, '*.bat' matches
-::      any string that ends with '.bat'. The comparison is case sensitive.
+::      any string that ends with '.bat'. The comparison is case insensitive.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      string
@@ -103,6 +103,14 @@ call :tests.check_unmatch "asd" "as"
 call :tests.check_unmatch "asd" "sd"
 call :tests.check_unmatch "asd" ""
 call :tests.check_unmatch "" "asd"
+exit /b 0
+
+
+:tests.test_case_insensitive
+call :tests.check_match "qwerty" "QWERTY"
+call :tests.check_match "qwerty" "Q*e*ty"
+call :tests.check_match "qwerty" "q*E*ty"
+call :tests.check_match "qwerty" "q*e*TY"
 exit /b 0
 
 
