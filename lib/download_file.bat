@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:download_file <download_url> <save_path>
+:download_file <url> <save_path>
 if exist "%~2" del /f /q "%~2"
 if not exist "%~dp2" md "%~dp2"
 powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
@@ -23,21 +23,21 @@ exit /b 0
 ::      download_file - download file from the internet
 ::
 ::  SYNOPSIS
-::      download_file <download_url> <save_path>
+::      download_file <url> <save_path>
 ::
 ::  POSITIONAL ARGUMENTS
-::      link
+::      url
 ::          The download link.
 ::
 ::      save_path
-::          The save location of the downloaded file.
+::          The save location of the file.
 ::
 ::  ENVIRONMENT
 ::      cd
 ::          Affects the base path of save_path if relative path is given.
 ::
 ::  NOTES
-::      - PowerShell is used to download the information file.
+::      - PowerShell is used to download the file.
 ::      - Download is buffered to disk.
 ::      - Follows redirects automatically.
 ::      - Overwrites existing file.
@@ -47,7 +47,7 @@ exit /b 0
 
 :doc.demo
 echo For this demo, file will be saved to "!cd!"
-echo Enter nothing to download the logo of Git (1.87 KB)
+echo Enter nothing to download the logo of Git (1.87 KB on Sept 2021)
 echo=
 call :Input.string download_url || set "download_url=https://git-scm.com/images/logo.png"
 call :Input.path --file --optional save_path || set "save_path=logo.png"
