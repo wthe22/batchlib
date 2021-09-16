@@ -3,19 +3,19 @@ call %*
 exit /b
 
 
-:clear_line_macro <return_var> <max_length>
+:clear_line_macro <return_var> <width>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
-set "_max_length=%~2"
-if not defined _max_length set "_max_length=80"
+set "_width=%~2"
+if not defined _width set "_width=80"
 call :capchar CR BACK
 call :get_os _os
 for /f "tokens=1 delims=. " %%a in ("!_os!") do set "_os=%%a"
 set "_result="
 if !_os! GEQ 10 (
-    for /l %%n in (1,1,%_max_length%) do set "_result=!_result! "
+    for /l %%n in (1,1,%_width%) do set "_result=!_result! "
     set "_result=_!CR!!_result!!CR!"
-) else for /l %%n in (1,1,%_max_length%) do set "_result=!_result!!BACK!"
+) else for /l %%n in (1,1,%_width%) do set "_result=!_result!!BACK!"
 for /f "tokens=1-2 delims=:" %%q in ("Q:!_result!:Q") do (
     endlocal
     set "%_return_var%=%%r"
@@ -35,7 +35,7 @@ exit /b 0
 ::      clear_line_macro - create a macro to clear current line
 ::
 ::  SYNOPSIS
-::      clear_line_macro <return_var> [max_length]
+::      clear_line_macro <return_var> [width]
 ::      echo !CL![text]
 ::      < nul set /p "=!CL![text]"
 ::
@@ -44,11 +44,11 @@ exit /b 0
 ::          Variable to store the macro. There is no default, but the suggested
 ::          name is 'CL'.
 ::
-::      max_length
-::          Maximum number of characters to clear. By default, it is 80.
+::      width
+::          The width of the console. By default, it is 80.
 ::
 ::  NOTES
-::      - Text should not reach the end of the line.
+::      - The macro will fail if the text/cursor reached the end of the line.
 exit /b 0
 
 
