@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:combi_wcdir [-f|-d] [-s] <return_var> <search_paths> <wildcard_paths>
+:combi_wcdir [-f|-d] [-s] <return_var> <first_parts> <second_parts>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_list_dir=true"
 set "_list_file=true"
@@ -64,24 +64,23 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      combi_wcdir - find files/folders that matches the wildcard paths
-::                    within the search paths
+::      combi_wcdir - find files within a combination of paths
 ::
 ::  SYNOPSIS
-::      combi_wcdir [-f|-d] [-s] <return_var> <search_paths> <wildcard_paths>
+::      combi_wcdir [-f|-d] [-s] <return_var> <first_parts> <second_parts>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the results. By default, each path is seperated
 ::          by a Line Feed (hex code '0A').
 ::
-::      search_paths
-::          String that contains the base paths of wildcard_paths, each seperated
-::          by a semicolon ';'. May contain multiple wildcards.
+::      first_parts
+::          The list of paths for the first part, each seperated by a semicolon.
+::          May contain multiple wildcards.
 ::
-::      wildcard_paths
-::          String that contains the wildcard paths to find, each seperated by a
-::          semicolon ';'. May contain multiple wildcards.
+::      second_parts
+::          The list of paths for the second part, each seperated by a semicolon.
+::           May contain multiple wildcards.
 ::
 ::  OPTIONS
 ::      -f, --file
@@ -105,21 +104,21 @@ exit /b 0
 
 :doc.demo
 call :capchar LF
-call :Input.string search_paths || set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
-call :Input.string wildcard_paths || set "wildcard_paths=*script.exe"
-call :combi_wcdir result "!search_paths!" "!wildcard_paths!" -s LF
+call :Input.string first_parts || set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
+call :Input.string second_parts || set "second_parts=*script.exe"
+call :combi_wcdir result "!first_parts!" "!second_parts!" -s LF
 echo=
-echo Search paths:
-echo !search_paths:;=^
+echo First parts of path:
+echo !first_parts:;=^
 %=REQUIRED=%
 !
 echo=
-echo Wildcard paths:
-echo !wildcard_paths:;=^
+echo Second parts of path:
+echo !second_parts:;=^
 %=REQUIRED=%
 !
 echo=
-echo Found List:
+echo Combination of paths found:
 echo=!result!
 exit /b 0
 
@@ -141,9 +140,9 @@ if not defined expected (
     call %unittest% skip "No file with matching pattern found to run test"
     exit /b 0
 )
-set "search_paths=C:\Windows\System32;C:\Windows\SysWOW64"
-set "wildcard_paths=*script.exe"
-call :combi_wcdir result "!search_paths!" "!wildcard_paths!"
+set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
+set "second_parts=*script.exe"
+call :combi_wcdir result "!first_parts!" "!second_parts!"
 if not "!result!" == "!expected!" (
     call %unittest% fail
 )
