@@ -51,7 +51,6 @@ exit /b 0
 ::          Path to store the temporary text file.
 ::
 ::  NOTES
-::      - Based on: get_con_size(), get_os()
 ::      - Printing special characters (the invalid path characters: '"<>|?*:\/')
 ::        are not supported.
 exit /b 0

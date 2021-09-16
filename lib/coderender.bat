@@ -105,7 +105,7 @@ exit /b 0
 ::          line range is determined by functions.range().
 ::
 ::      arg
-::          Argument to pass to template function with surrounding quotes ommited.
+::          Argument to pass to template function with surrounding quotes removed.
 ::          i.e. if ARG is "-v -a", function sees it as 2 arguments because the
 ::          surrounding quotes are removed.
 ::

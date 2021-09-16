@@ -51,7 +51,7 @@ exit /b 0
 ::          The number of days since epoch (January 1, 1970).
 ::
 ::  NOTES
-::      - This function uses Gregorian calendar system.
+::      - This function uses Gregorian calendar system (the generally used one).
 ::      - The format of the date is 'mm/dd/YYYY'.
 exit /b 0
 

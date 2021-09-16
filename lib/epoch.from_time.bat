@@ -40,12 +40,16 @@ exit /b 0
 ::
 ::  NOTES
 ::      - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
+::      - Function is not timezone aware thus no timezone conversion is done
 exit /b 0
 
 
 :doc.demo
 call :Input.string date_time || set "date_time=!date:* =!_!time!"
 call :epoch.from_time result !date_time!
+echo=
+echo Date and time:
+echo=!date_time!
 echo=
 echo Epoch time : !result!
 exit /b 0

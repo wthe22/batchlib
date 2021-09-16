@@ -40,6 +40,7 @@ exit /b 0
 ::
 ::  NOTES
 ::      - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
+::      - Function is not timezone aware thus no timezone conversion is done
 exit /b 0
 
 

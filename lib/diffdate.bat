@@ -49,13 +49,13 @@ exit /b 0
 ::          The start date. By default, it is epoch (1/01/1970).
 ::
 ::  NOTES
-::      - This function uses Gregorian calendar system.
+::      - This function uses Gregorian calendar system (the generally used one).
 ::      - The date format used is 'mm/dd/YYYY'.
 exit /b 0
 
 
 :doc.demo
-call :Input.string start_date || set "start_date=1/01/2000"
+call :Input.string start_date || set "start_date=1/01/1970"
 call :Input.string end_date || set "end_date=!date:* =!"
 call :diffdate difference !end_date! !start_date!
 echo=

@@ -50,19 +50,21 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_var
-::          The input variable name.
+::          The input variable name that contains hexadecimal string. Hexadecimal
+::          must not start with '0x' and can contain spaces as seperator.
 exit /b 0
 
 
 :doc.demo
-set "BEL=07"
-set "CURLY=7b 7d"
-echo BEL=!BEL!
-echo CURLY=!CURLY!
+set "arrow=2D2D3E"
+set "curly=7b 7d"
+
+echo arrow=!arrow!
+echo curly=!curly!
 echo=
-call :hex2str BEL CURLY
-echo BEL=!BEL!
-echo CURLY=!CURLY!
+call :hex2str arrow curly
+echo arrow=!arrow!
+echo curly=!curly!
 exit /b 0
 
 

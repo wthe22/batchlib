@@ -31,7 +31,7 @@ exit /b 0
 ::      bytes - convert human readable size to bytes
 ::
 ::  SYNOPSIS
-::      bytes decode <return_var> <readable_bytes>
+::      bytes.parse <return_var> <readable_bytes>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -39,13 +39,14 @@ exit /b 0
 ::
 ::      readable_bytes
 ::          The human readable size. Units and number can be seperated by space.
-::          The 'B' is optional (only using 'K' to represent kilobytes is accepted).
-::          Decimals are not supported.
+::          The units supported are K, M, and G. The 'B' is optional (only using
+::          'K' to represent kilobytes is accepted). Decimals are not supported.
+::          Calculations are allowed (e.g. '2M + 512K' is valid).
 exit /b 0
 
 
 :doc.demo
-call :Input.string readable_bytes || set "readable_bytes=2 K"
+call :Input.string readable_bytes || set "readable_bytes=2M + 512K"
 call :bytes.parse bytes "!readable_bytes!"
 echo=
 echo Readable bytes: !readable_bytes!

@@ -61,7 +61,7 @@ exit /b 0
 call :Input.string ip_address
 echo=
 echo Your entered: '!ip_address!'
-call :check_ipv4 "!ip_address!" && (
+call :check_ipv4 "!ip_address!" --wildcard && (
     echo IP is valid
 ) || echo IP is invalid
 exit /b 0

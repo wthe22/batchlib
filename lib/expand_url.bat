@@ -65,16 +65,16 @@ exit /b 0
 ::      url        https://blog.example.com:80/1970/01/news.html?page=1#top
 ::      scheme     https
 ::                      ://
-::      hostname           blog.example.com
+::      hostname   .....   blog.example.com
 ::                                         :
-::      port                                80
-::      path                                  /1970/01/
-::      filename                                       news
-::      extension                                          .html
+::      port       ......................   80
+::      path       ........................   /1970/01/
+::      filename   .................................   news
+::      extension  .....................................   .html
 ::                                                              ?
-::      query                                                    page=1
+::      query      ...........................................   page=1
 ::                                                                     #
-::      fragment                                                        top
+::      fragment   ..................................................   top
 ::
 ::  NOTES
 ::      - IPv6 URLs are not supported.
