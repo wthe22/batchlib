@@ -53,6 +53,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
         )
     ) else if defined _optional exit /b 0
 )
+echo%0: Too many invalid inputs
 exit /b 1
 
 
@@ -108,7 +109,7 @@ exit /b 0
 ::      0:  - Input is successful.
 ::      2:  - Invalid argument.
 ::      3:  - User skips the input.
-::      4:  - Input attempt reaches the 100 attempt limit.
+::      4:  - Too many invalid inputs (100 attempts).
 exit /b 0
 
 

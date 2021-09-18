@@ -45,6 +45,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     if /i "!user_input:~0,1!" == "Y" exit /b 0
     if /i "!user_input:~0,1!" == "N" exit /b 0
 )
+echo%0: Too many invalid inputs
 exit /b 1
 
 
@@ -84,7 +85,7 @@ exit /b 0
 ::  EXIT STATUS
 ::      0:  - User enters any string that starts with 'Y'.
 ::      2:  - Invalid argument.
-::      4:  - Input attempt reaches the 100 attempt limit.
+::      4:  - Too many invalid inputs (100 attempts).
 ::      5:  - User enters any string that starts with 'N'.
 exit /b 0
 
@@ -94,13 +95,13 @@ call :Input.yesno your_ans --message "Do you like programming? Y/N? " && (
     echo Its a yes^^!
 ) || echo Its a no...
 echo Your input: !your_ans!
-
+echo=
 call :Input.yesno your_ans --message "Is it true? Y/N? " --yes "true" --no "false"
 echo Your input ('true', 'false'): '!your_ans!'
-
+echo=
 call :Input.yesno your_ans --message "Do you excercise? [y/N] " --default="N"
 echo Your input ('Y', 'N', default 'N'): '!your_ans!'
-
+echo=
 call :Input.yesno your_ans --message "Is this defined? Y/N? " -y="yes" -n=""
 echo Your input ('yes', ''): '!your_ans!'
 exit /b 0

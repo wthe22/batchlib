@@ -33,6 +33,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
         exit /b 0
     ) else if not defined _require_filled exit /b 0
 )
+echo%0: Too many invalid inputs
 exit /b 1
 
 
@@ -65,7 +66,7 @@ exit /b 0
 ::      0:  - Input is not empty.
 ::      2:  - Invalid argument.
 ::      3:  - Input is an empty string.
-::      4:  - Input attempt reaches the 100 attempt limit.
+::      4:  - Too many invalid inputs (100 attempts).
 exit /b 0
 
 
