@@ -165,9 +165,6 @@ exit /b 0
 ::      In unittest(), test cases that is successful is indicated by not having
 ::      outcome of fail/error/skip and return exit code 0.
 ::
-::      If an important test failed and continuing is pointless, run
-::      'call %unittest% should_stop' to stop the test early.
-::
 ::      Unittests can be initialized by adding tests.setup(). It will be called
 ::      first before running any tests in each file. Cleanup function can also
 ::      be run after running all tests by implementing tests.teardown().
@@ -178,7 +175,7 @@ exit /b 0
 ::          current script.
 ::
 ::      outcome
-::          Outcome of the test. Valid values are: fail, error, skip, should_stop
+::          Outcome of the test. Valid values are: fail, error, skip
 ::
 ::      message
 ::          Message of the outcome (fail/error/skip)
@@ -252,9 +249,6 @@ exit /b 0
 ::      outcome <file>,<label>,<success|fail|error|skip>,[message]
 ::          Report outcome of the test as either: success, fail, error, or skip,
 ::          with the following message/reason
-::
-::      should_stop
-::          A test case raised signal to stop test early
 ::
 ::      stop
 ::          Unittest have stopped gracefully
