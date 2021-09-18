@@ -23,7 +23,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      loop_macro - create a macro to do "infinite" loop
+::      loop_macro - create a macro to do large loops
 ::
 ::  SYNOPSIS
 ::      loop_macro <return_var> [loops] [stacks]
@@ -33,6 +33,9 @@ exit /b 0
 ::      Simulate "infinite" loop using FOR loops instead of using GOTO loops
 ::      (which is much slower). Unlike a normal single large loop, it is designed
 ::      to exit the FOR loop quickly when the 'EXIT /b' command is executed.
+::
+::      The FOR loop parameter '%_' is used internally. However, it does not
+::      represent the current loops count.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
