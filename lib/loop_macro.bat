@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:while_range_macro [return_var] [loops] [stacks]
+:loop_macro [return_var] [loops] [stacks]
 for %%v in (%1) do ( rem
 ) & for /f "tokens=1 delims==" %%b in ("%~2=256") do (
     set "%%v="
@@ -23,11 +23,11 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      while_range_macro - create a macro to do "infinite" loop
+::      loop_macro - create a macro to do "infinite" loop
 ::
 ::  SYNOPSIS
-::      while_range_macro <return_var> [loops] [stacks]
-::      %while_range%   code
+::      loop_macro <return_var> [loops] [stacks]
+::      %macro_name%   code
 ::
 ::  DESCRIPTION
 ::      Simulate "infinite" loop using FOR loops instead of using GOTO loops
@@ -68,7 +68,7 @@ call :pow max_loops !loops! !stacks! || set "max_loops=> 2147483647"
 echo Maximum macro loops    : !max_loops!
 echo=
 echo Measuring time needed to exit the loop...
-call :while_range_macro while_range !loops! !stacks!
+call :loop_macro while_range !loops! !stacks!
 call :timeit.setup_macro
 %timeit% call :tests.stop_at !quit_at_loop!
 exit /b 0
