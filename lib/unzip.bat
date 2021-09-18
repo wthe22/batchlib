@@ -8,7 +8,9 @@ setlocal EnableDelayedExpansion
 set "_zip_file=%~f1"
 set "_dest_path=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-if not exist "!_dest_path!" md "!_dest_path!" || ( 1>&2 echo error: create folder failed & exit /b 2 )
+if not exist "!_dest_path!" md "!_dest_path!" || (
+    1>&2 echo%0 Fail to create destination directory & exit /b 2
+)
 > "unzip.vbs" (
     echo zip_file = WScript.Arguments(0^)
     echo dest_path = WScript.Arguments(1^)
@@ -47,19 +49,19 @@ exit /b 0
 ::
 ::  ENVIRONMENT
 ::      cd
-::          Affects the base path of input_file and output_file
+::          Affects the base path of zip_file and destination_dir
 ::          if relative path is given.
 ::
 ::      tmp_dir
 ::          Path to store the temporary VBScript file.
 ::
 ::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::          Fallback path for tmp_dir if tmp_dir does not exist.
 ::
 ::  EXIT STATUS
-::      0:  - The path satisfy the requirements.
-::      2:  - Create folder failed.
-::      3:  - Unzip failed.
+::      0:  - Successful
+::      2:  - Fail to create destination directory
+::      3:  - Unzip failed
 ::
 ::  NOTES
 ::      - VBScript is used to extract the zip file.
