@@ -35,20 +35,16 @@ exit /b 0
 ::  SYNOPSIS
 ::      functions.match <return_var> <input_file> <pattern>
 ::
-::  DESCRIPTION
-::      Find all labels that matches the pattern in the input file.
-::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
-::          Variable to store the results, each seperated by space.
+::          Variable to store the results, each seperated by space
 ::
-::  OPTIONS
-::      -p PATTERN, --pattern PATTERN
-::          Pattern of the function label to match. Supports up to 10 wildcards '*'.
-::          It uses path pattern matching sytle. By default, it is '*'.
+::      input_file
+::          Path of the input file
 ::
-::      -f INPUT_FILE, --file INPUT_FILE
-::          Path of the input file. By default, it is the current file.
+::      pattern
+::          Pattern of the function label to match. Supports up to 10 wildcards.
+::          It uses filename-style pattern matching.
 ::
 ::  ENVIRONMENT
 ::      cd

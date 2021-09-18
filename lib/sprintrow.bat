@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:sprintrow <buffer_var> <seperator> <cell_sizes> <text> [...]
+:sprintrow <buffer_var> <seperator> <size ...> <text> ...
 setlocal EnableDelayedExpansion
 set "_result="
 set "_spaces= "
@@ -40,7 +40,7 @@ exit /b 0
 ::      sprintrow - write formatted row data to variable
 ::
 ::  SYNOPSIS
-::      sprintrow <buffer_var> <seperator> <cell_sizes> <text> [...]
+::      sprintrow <buffer_var> <seperator> <size ...> <text> ...
 ::
 ::  POSITIONAL ARGUMENTS
 ::      buffer_var
@@ -49,8 +49,8 @@ exit /b 0
 ::      seperator
 ::          The string to seperate each cell
 ::
-::      cell_sizes
-::          Size of each cells. The maximum size is 256.
+::      size
+::          Size of each text. The maximum size is 256.
 ::          - Positive    : Left justify
 ::          - Negative    : Right justify
 ::          - Zero        : No justify and padding
@@ -91,7 +91,6 @@ for /l %%n in (1,1,2) do (
 echo=
 
 echo ==================== Split Column View ====================
-set "column_sizes=12 2 12 12 2 12"
 for /l %%n in (1,1,2) do (
     set "display="
     call :sprintrow display ^

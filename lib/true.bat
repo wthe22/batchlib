@@ -15,7 +15,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      true - sets exit status to 0
+::      true - set exit status to 0
 ::
 ::  SYNOPSIS
 ::      true

@@ -37,7 +37,8 @@ exit /b 0
 ::
 ::  OPTIONS
 ::      -c, --check-exist
-::          Check if function exist / is callable.
+::          Check if function exist / is callable. EOL is not checked when this
+::          flag is used.
 ::
 ::  EXIT STATUS
 ::      0:  - EOL is Windows (CRLF)

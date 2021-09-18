@@ -72,7 +72,7 @@ exit /b 0
 ::      updater [-n] [-y] [-f] [-u url] <script_path>
 ::
 ::  DESCRIPTION
-::      Notify for updates, download them, and update the script.
+::      Check for updates, download them, notify user, and update the script.
 ::      The script must accept the argument '-c :metadata <prefix>' to get
 ::      metadata of the script (name, version, download_url).
 ::
@@ -91,11 +91,11 @@ exit /b 0
 ::          Assume yes when prompt
 ::
 ::      -f, --force
-::          Force update even if incompatibility is detected or script is
+::          Force update even if problems are detected or script is
 ::          already the newest version
 ::
 ::      -u URL, --download-url URL
-::          Use this URL to download instead of the one set in metadata()
+::          Use this URL to download instead of the one defined in metadata()
 ::
 ::  ENVIRONMENT
 ::      tmp_dir

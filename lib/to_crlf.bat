@@ -37,8 +37,8 @@ exit /b 0
 ::      3:  - EOL conversion failed.
 ::
 ::  NOTES
-::      - Tabs are converted to 4 spaces (Limitation of more.com)
-::      - An empty line is added to end of file (Limitation of more.com)
+::      - Tabs are converted to 4 spaces (Limitation of MORE command)
+::      - An empty line is added to end of file (Limitation of MORE command)
 ::      - If the input file is '%~f0', the script SHOULD exit (not 'exit /b')
 ::        after a successful conversion to prevent unexpected errors.
 exit /b 0

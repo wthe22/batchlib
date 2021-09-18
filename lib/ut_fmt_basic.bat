@@ -82,7 +82,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      ut_fmt_basic - basic outcome formatter/report generator for unittest
+::      ut_fmt_basic - basic output formatter/report generator for unittest
 ::
 ::  SYNOPSIS
 ::      ut_fmt_basic <action> [args] ...
@@ -91,13 +91,16 @@ exit /b 0
 ::      ut_fmt_basic outcome <test_file> <test_label> <outcome> [message]
 ::      ut_fmt_basic stop
 ::
-::  ACTIONS
-::      Actions are the outputs from the unittest() library.
-::      For more information, read documentation of unittest()
+::  POSITIONAL ARGUMENTS
+::      action
+::          Actions are the outputs from the unittest() library.
+::          Valid actions are: start, run, outcome, stop.
+::
+::      For more information, read documentation of unittest().
 ::
 ::  ENVIRONMENT
 ::      unittest.tmp_dir
-::          Directory to store state information.
+::          Directory to store unittest information.
 exit /b 0
 
 

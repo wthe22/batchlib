@@ -73,7 +73,7 @@ exit /b 0
 ::      range
 ::          Range of lines to read. The syntax is <start>:[end]. Function will
 ::          start reading from START line until END line. If END line is not
-::          specified then read until the end of file. First line starts from 1.
+::          specified, then read until the end of file. First line starts from 1.
 ::          This value is validated.
 ::
 ::      offset
@@ -102,7 +102,6 @@ exit /b 0
 ::
 ::      temp
 ::          Fallback path for tmp_dir if tmp_dir does not exist
-::
 exit /b 0
 
 

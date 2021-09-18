@@ -21,10 +21,6 @@ exit /b 0
 ::  SYNOPSIS
 ::      is_admin
 ::
-::  POSITIONAL ARGUMENTS
-::      return_var
-::          Variable to store the result.
-::
 ::  EXIT STATUS
 ::      0:  - Administrator privilege is detected.
 ::      2:  - No administrator privilege is detected.

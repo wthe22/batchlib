@@ -24,6 +24,10 @@ exit /b 0
 ::  SYNOPSIS
 ::      is_echo_on
 ::
+::  ENVIRONMENT
+::      tmp
+::          Path to store the temporary results.
+::
 ::  NOTES
 ::      - Temporary file is used in this function.
 ::      - This function produces no output, even if echo is on.

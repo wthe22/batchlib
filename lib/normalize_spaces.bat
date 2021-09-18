@@ -34,9 +34,12 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Adds a single space to the beginning and the end of the string
-::      and replace multiple spaces with a single space. Maximum number
-::      of consecutive space that can be replaced to a single space is
-::      459 spaces. By default, if the resulting variable only contains
+::      and replace multiple spaces with a single space. For example:
+::
+::          '    a        bb    ccc' --> ' a bb ccc '
+::
+::      Maximum number of consecutive space that can be replaced to a single space
+::      is 459 spaces. By default, if the resulting variable only contains
 ::      one space, the variable is set to undefined/null.
 ::
 ::  POSITIONAL ARGUMENTS

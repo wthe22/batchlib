@@ -140,7 +140,7 @@ exit /b 0
 ::  SYNOPSIS
 ::      timeit [-n loops] [-r repetitions] <code>
 ::      timeit.setup_macro
-::      %timeit[:$args=[-n loops] [-r repetitions]]%   code
+::      %timeit[:$args=[-n loops] [-r repetitions]]% <code>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -152,7 +152,9 @@ exit /b 0
 ::
 ::  OPTIONS
 ::      -n N, --number N
-::          How many times to execute function.
+::          How many times to execute the code. By default, function repeatedly
+::          execute the code until the total time is at least 0.2 second per
+::          measurement.
 ::
 ::      -r N, --repeat N
 ::          How many times to repeat the timer (default 5).

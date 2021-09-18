@@ -36,6 +36,10 @@ exit /b 0
 ::  SYNOPSIS
 ::      functions.list <input_file>
 ::
+::  POSITIONAL ARGUMENTS
+::      input_file
+::          Path of the input file
+::
 ::  ENVIRONMENT
 ::      cd
 ::          Affects the base path of input_file if relative path is given.
@@ -44,7 +48,7 @@ exit /b 0
 ::          Path to store the temporary results.
 ::
 ::      tmp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::          Fallback path for tmp_dir if tmp_dir does not exist.
 ::
 ::  EXIT STATUS
 ::      0:  - Label is found.

@@ -23,7 +23,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      roman - convert roman numeral to number
+::      roman.decode - convert roman numeral to number
 ::
 ::  SYNOPSIS
 ::      roman.decode <return_var> <roman_numeral>

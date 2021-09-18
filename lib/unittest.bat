@@ -175,15 +175,15 @@ exit /b 0
 ::  POSITIONAL ARGUMENTS
 ::      target
 ::          Path/pattern to the script(s) to be tested. By default, it is the
-::          current script
+::          current script.
 ::
 ::      outcome
 ::          Outcome of the test. Valid values are: fail, error, skip, should_stop
 ::
-::  OPTIONS
-::      -v, --verbose
-::          Show more results of the tests
+::      message
+::          Message of the outcome (fail/error/skip)
 ::
+::  OPTIONS
 ::      -f, --failfast
 ::          Stop on first fail or error
 ::
@@ -201,8 +201,8 @@ exit /b 0
 ::          unittests, so the SELF_ARGS is '--call'. By default it is '-c'.
 ::
 ::      -o OUTPUT_CMD, --output OUTPUT_CMD
-::          Pass output results, in the form of arguments, to OUTPUT_CMD. Single
-::          quotes are converted to double quotes. By default it is 'echo'.
+::          Pass the command outputs, in the form of arguments, to OUTPUT_CMD.
+::          Single quotes are converted to double quotes. By default it is 'echo'.
 ::
 ::  UNITTEST USAGE
 ::      Test File

@@ -113,9 +113,9 @@ exit /b 0
 ::  SYNOPSIS
 ::      watchvar [-i] [-n]
 ::
-::  POSITIONAL ARGUMENTS
+::  OPTIONS
 ::      -i, --initialize
-::          Initialize variable list.
+::          Initialize variable list. Use this option
 ::
 ::      -n, --name
 ::         Display variable names.
@@ -128,8 +128,8 @@ exit /b 0
 ::          Fallback path for tmp_dir if tmp_dir does not exist
 ::
 ::  NOTES
-::      - Variables that can be detected is the ones that have length
-::        of 2725 characters (variable name + content)
+::      - Variables that are longer than 2725 characters (variable name + content)
+::        are not detectable and treated as undefined.
 exit /b 0
 
 

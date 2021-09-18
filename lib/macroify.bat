@@ -49,7 +49,7 @@ exit /b 0
 ::          Variable to store the macro.
 ::
 ::      input_file
-::          Path of the input (batch) file.
+::          Path of the input file.
 ::
 ::      label
 ::          The function name.
@@ -63,11 +63,21 @@ exit /b 0
 ::          using this function.
 ::
 ::  EXIT STATUS
-::      What the exit code of your function means. Some examples are:
 ::      0:  - Success
 ::      3:  - Cannot open input file
 ::          - Label not found
 ::          - Read line failed
+::
+::  NOTES
+::      - Macro must use parentheses (e.g. '( %macro% )') except if all commands
+::        can be read at once (advanced). For example:
+::          - All commands are read at once:
+::              ::  echo first & (
+::              ::      echo second
+::              ::  )
+::          - Commands are read seperately:
+::              ::  echo first
+::              ::  echo second
 exit /b 0
 
 

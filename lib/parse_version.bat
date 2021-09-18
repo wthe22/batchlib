@@ -125,6 +125,8 @@ exit /b 0
 ::          section. If the version is undefined, it is assumed to be '0'.
 ::
 ::  VERSION SCHEME
+::      Technical information about the parse results.
+::
 ::                                  [N!]N(.N)*[{a|b|rc}N][.postN][.devN]
 ::      Repr  | Segment
 ::      F       Epoch               [N!]

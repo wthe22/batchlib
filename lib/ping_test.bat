@@ -34,7 +34,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      ping_test - Test if an host/IP responds to a ping test (WIP)
+::      ping_test - Test if an host/IP responds to a ping test
 ::
 ::  SYNOPSIS
 ::      ping_test <return_prefix> <host> [ping_opts]
@@ -54,7 +54,7 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Ping test receives response (at least once).
-::      2:  - Ping test failed.
+::      2:  - Ping test failed (100% packet loss).
 exit /b 0
 
 

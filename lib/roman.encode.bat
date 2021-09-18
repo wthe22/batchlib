@@ -33,7 +33,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      roman - convert number to roman numeral
+::      roman.encode - convert number to roman numeral
 ::
 ::  SYNOPSIS
 ::      roman.encode <return_var> <integer>

@@ -55,7 +55,7 @@ exit /b 0
 ::          the third argument. Mutually exclusive with '--number'.
 ::
 ::  NOTES
-::      - This function uses Gregorian calendar system.
+::      - This function uses Gregorian calendar system (the generally used one).
 exit /b 0
 
 

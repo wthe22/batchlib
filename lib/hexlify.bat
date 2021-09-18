@@ -63,6 +63,10 @@ exit /b 0
 ::  SYNOPSIS
 ::      hexlify <input_file> [--eol hex]
 ::
+::  DESCRIPTION
+::      Convert a file to hexadecimal. Unlike certutil, the output maintains the
+::      line number and it only contains hex and whitespaces.
+::
 ::  POSITIONAL ARGUMENTS
 ::      input_file
 ::          Path of the input file.

@@ -33,8 +33,8 @@ exit /b 0
 ::          Maximum value (inclusive) of the random number.
 ::
 ::  LIMITATIONS
-::      rand() does not generate uniform random numbers. Its simplicity comes
-::      along with the modulo bias. Do not rely on the quality of this random number.
+::      - Does not generate uniform random numbers (modulo bias)
+::      - Incapable of generating high quality random numbers
 exit /b 0
 
 

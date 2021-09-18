@@ -61,10 +61,11 @@ exit /b 0
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result. Each path is seperated
-::          by a Line Feed character (hex code '0A').
+::          by a Line Feed character (\n).
 ::
 ::      wildcard_path
 ::          The wildcard path to find. May contain multiple wildcards.
+::          Supports wildcard drive letter (*:\).
 ::
 ::  OPTIONS
 ::      -f, --file
