@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:randw <return_var> <weights>
+:randw <return_var> <weight ...>
 set "%~1="
 setlocal EnableDelayedExpansion
 set "_sum=0"
@@ -37,7 +37,7 @@ exit /b 0
 ::      randw - select random option based on weights
 ::
 ::  SYNOPSIS
-::      randw <return_var> <weights>
+::      randw <return_var> <weight ...>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -45,15 +45,14 @@ exit /b 0
 ::          option (i.e. the first option is 0, the second option is 1, etc.).
 ::
 ::      weight
-::          The weight of the option. The syntax of RANGE is "weight [...]".
-::          There should be at least 1 weight.
+::          The weight of the options. There should be at least 1 weight.
 ::
 ::  NOTES
 ::      - Based on: rand()
 ::
 ::  LIMITATIONS
-::      randw() does not generate uniform random numbers. Its simplicity comes
-::      along with the modulo bias. Do not use this for statistical computation.
+::      - Does not generate uniform random numbers (modulo bias)
+::      - Incapable of generating high quality random numbers
 exit /b 0
 
 

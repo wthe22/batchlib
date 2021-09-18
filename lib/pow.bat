@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:pow <return_var> <integer> <power>
+:pow <return_var> <base> <exponent>
 set "%~1="
 setlocal EnableDelayedExpansion
 set "_base=%~2"
@@ -34,16 +34,16 @@ exit /b 0
 ::      pow - calculate x to the power of y
 ::
 ::  SYNOPSIS
-::      pow <return_var> <integer> <power>
+::      pow <return_var> <base> <exponent>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result.
 ::
-::      integer
-::          The base number (the 'x').
+::      base
+::          The base integer (the 'x').
 ::
-::      power
+::      exponent
 ::          How many times to multiply (the 'y').
 ::
 ::  EXIT STATUS

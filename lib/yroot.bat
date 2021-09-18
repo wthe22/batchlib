@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:yroot <return_var> <integer> <power>
+:yroot <return_var> <integer> <n>
 set "%~1="
 setlocal EnableDelayedExpansion
 set "_result=0"
@@ -32,23 +32,23 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      yroot - calculate y root of x
+::      yroot - calculate nth root of x
 ::
 ::  SYNOPSIS
-::      yroot <return_var> <integer> <power>
+::      yroot <return_var> <integer> <n>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result (rounded down to the nearest integer).
 ::
 ::      integer
-::          The number to yroot (the 'x').
+::          The number to root (the 'x').
 ::
-::      power
-::          The power of the root (the 'y').
+::      n
+::          The power of the root (the 'n').
 ::
 ::  NOTES
-::      - In case someone needs it: yroot of x to the power of 0 does not exist.
+::      - In case someone needs it: 0th root of x does not exist.
 exit /b 0
 
 
