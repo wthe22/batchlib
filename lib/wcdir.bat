@@ -85,7 +85,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string wildcard_path || set "wildcard_path=C:\Windows\Sys*\*script.exe"
+call :Input.string wildcard_path || set "wildcard_path=*:\Windows\Sys*\*script.exe"
 call :strip_dquotes wildcard_path
 call :wcdir result "!wildcard_path!"
 echo=

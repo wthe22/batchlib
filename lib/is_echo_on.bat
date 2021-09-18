@@ -39,9 +39,22 @@ exit /b 0
 
 
 :doc.demo
+@call :is_echo_on && @(
+    set "echo_status=on"
+) || @set "echo_status=off"
+@echo on
+
+echo on
 call :is_echo_on && (
     echo Echo is on
 ) || echo Echo is off
+
+echo off
+call :is_echo_on && (
+    echo Echo is on
+) || echo Echo is off
+
+@echo !echo_status!
 exit /b 0
 
 
