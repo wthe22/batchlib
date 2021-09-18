@@ -6,8 +6,8 @@ exit /b
 :is_in_range <number> <range>
 setlocal EnableDelayedExpansion
 set "_evaluated="
-set /a "_evaluated=%~1" || ( 1>&2 echo error: failed to evaluate number & exit /b 2 )
-set /a "_input=!_evaluated!" || ( 1>&2 echo error: failed to evaluate number & exit /b 2 )
+set /a "_evaluated=%~1" || ( 1>&2 echo error: failed to evaluate number & exit /b 3 )
+set /a "_input=!_evaluated!" || ( 1>&2 echo error: failed to evaluate number & exit /b 3 )
 if !_input! GEQ 0 (
     set "_input.sym=+"
 ) else set "_input.sym=-"
@@ -19,8 +19,8 @@ for %%r in (!_range!) do for /f "tokens=1,2 delims=~ " %%a in ("%%~r") do (
     if not defined _max set "_max=!_min!"
     for %%v in (_min _max) do (
         set "_evaluated="
-        set /a "_evaluated=!%%v!" || ( 1>&2 echo error: invalid range '!%%v!' & exit /b 3 )
-        set /a "%%v=!_evaluated!" || ( 1>&2 echo error: invalid range '!%%v!' & exit /b 3 )
+        set /a "_evaluated=!%%v!" || ( 1>&2 echo error: invalid range '!%%v!' & exit /b 2 )
+        set /a "%%v=!_evaluated!" || ( 1>&2 echo error: invalid range '!%%v!' & exit /b 2 )
         if !%%v! GEQ 0 (
             set "%%v.sym=+"
         ) else set "%%v.sym=-"
@@ -31,7 +31,7 @@ for %%r in (!_range!) do for /f "tokens=1,2 delims=~ " %%a in ("%%~r") do (
     if "!_input.sym!" == "!_max.sym!" if !_input! GTR !_max! set "_invalid=true"
     if not defined _invalid exit /b 0
 )
-exit /b 2
+exit /b 3
 
 
 :lib.dependencies [return_prefix]
@@ -60,9 +60,9 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - The number is within the specified range.
-::      2:  - The number is not within the specified range.
+::      2:  - The range is invalid.
+::      3:  - The number is not within the specified range.
 ::          - The number is invalid.
-::      3:  - The range is invalid.
 exit /b 0
 
 
@@ -80,8 +80,8 @@ exit /b 0
 
 :tests.setup
 set "return.true=0"
-set "return.false=2"
-set "return.invalid=3"
+set "return.invalid=2"
+set "return.false=3"
 exit /b 0
 
 
