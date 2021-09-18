@@ -51,7 +51,7 @@ exit /b 0
 
 :doc.demo
 set "window_name=get_pid_by_title - Demo Window"
-start "!window_name!" cmd /c pause
+start "!window_name!" cmd /c timeout /t 10
 call :get_pid_by_title pid "!window_name!"
 
 echo Window name    : !window_name!

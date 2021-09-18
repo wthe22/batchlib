@@ -59,9 +59,13 @@ exit /b 0
 set "arrow=2D2D3E"
 set "curly=7b 7d"
 
+echo Before
+echo -------------
 echo arrow=!arrow!
 echo curly=!curly!
 echo=
+echo After
+echo -------------
 call :hex2str arrow curly
 echo arrow=!arrow!
 echo curly=!curly!

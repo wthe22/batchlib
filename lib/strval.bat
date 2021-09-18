@@ -39,7 +39,7 @@ exit /b 0
 :doc.demo
 call :Input.string string || (
     set "string="
-    for %%c in (# A - ) do if !random! LSS 8000 (
+    for %%c in (# A - +) do if !random! LSS 5461 (
         set "string=!string!%%c"
     )
     set "string=!string!!random!"

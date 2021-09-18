@@ -91,8 +91,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file source_file
-call :Input.path --not-exist destination_file
+call :Input.path --exist --file --optional source_file || exit /b 0
+call :Input.path --not-exist destination_file || goto doc.demo
 echo=
 echo Converting to hex...
 call :hexlify "!source_file!" > "!destination_file!"

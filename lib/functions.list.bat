@@ -60,7 +60,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path input_file --file --exist
+call :Input.path --file --exist --optional input_file || set "input_file=%~f0"
 echo=
 echo Input file : !input_file!
 echo=

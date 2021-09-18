@@ -75,8 +75,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path input_file --file --exist
-call :Input.string pattern || set "pattern=l*e*"
+call :Input.path --file --exist --optional input_file || set "input_file=%~f0"
+call :Input.string pattern || set "pattern=*e*.*e*"
 echo=
 echo Input file : !input_file!
 echo Pattern    : !pattern!
