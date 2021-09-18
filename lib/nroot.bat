@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:yroot <return_var> <integer> <n>
+:nroot <return_var> <integer> <n>
 set "%~1="
 setlocal EnableDelayedExpansion
 set "_result=0"
@@ -32,10 +32,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      yroot - calculate nth root of x
+::      nroot - calculate nth root of x
 ::
 ::  SYNOPSIS
-::      yroot <return_var> <integer> <n>
+::      nroot <return_var> <integer> <n>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -60,7 +60,7 @@ call :Input.number power --range "0~2147483647"  --optional || (
     set /a "power=!random! %% 3 + 1"
 )
 echo=
-call :yroot result !number! !power!
+call :nroot result !number! !power!
 echo Root to the power of !power! of !number! is !result!
 echo Result is round down
 exit /b 0
@@ -73,7 +73,7 @@ exit /b 0
 
 :tests.test_zero_one
 for /l %%p in (1,1,31) do for %%n in (0 1) do (
-    call :yroot result %%n %%p
+    call :nroot result %%n %%p
     if not "!result!" == "%%n" (
         call %unittest% fail "Given '%%n %%p', expected '%%n', got  '!result!'"
     )
@@ -118,7 +118,7 @@ for %%a in (
     %*
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
-    call :yroot result !given! || (
+    call :nroot result !given! || (
         call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%b"
