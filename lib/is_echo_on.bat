@@ -4,9 +4,9 @@ exit /b
 
 
 :is_echo_on
-@(
-    ( for %%n in (1) do call ) > "%temp%\result"
-    for %%f in ("%temp%\result") do @if "%%~zf" == "0" @exit /b 2
+@for %%f in ("%tmp%\.is_echo_on") do @(
+    ( for %%n in (1) do call ) > %%f
+    for %%r in (%%f) do @if "%%~zr" == "0" @exit /b 2
 ) > nul 2>&1
 @exit /b 0
 
