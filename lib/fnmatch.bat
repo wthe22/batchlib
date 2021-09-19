@@ -157,6 +157,11 @@ call :tests.check_unmatch "_b" "*a*b"
 exit /b 0
 
 
+:tests.test_bugfix
+call :tests.check_unmatch "lib.dependencies" "*e*.*e*"
+exit /b 0
+
+
 :tests.check_match <args>
 call :fnmatch %* || (
     call %unittest% fail ^
