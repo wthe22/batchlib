@@ -118,6 +118,7 @@ rem ############################################################################
 ::      - Input.number()
 ::      - functions.list()
 ::      - fnmatch()
+::      - hex2str()
 ::  - Replaced functions:
 ::      - parse_args() -> argparse()
 ::      - textrender() -> coderender()
@@ -132,6 +133,8 @@ rem ############################################################################
 ::      - *2int() -> int.from_*()
 ::      - time2epoch() -> epoch.from_time()
 ::      - epoch2time() -> epoch.to_time()
+::      - while_range_macro() -> loop_macro()
+::      - yroot() -> nroot()
 ::  - Removed functions:
 ::      - depsolve(): Reworked, it is now a core function, not a library anymore.
 ::      - module(): Unmaintainable, too complex. Use new script template instead.
@@ -165,6 +168,9 @@ rem ############################################################################
 ::      - Input.*(): Exit status adjustment
 ::      - clear_line_macro(): Return var is now required
 ::      - get_os(): Return full os version
+::      - capchar(): Remove support for wildcard argument
+::      - hexlify(): Ouput to stdout instead of file
+::      - is_in_range(): Swap exit code 2 and 3
 ::
 ::  Minified Script
 ::  - Removed all tests
@@ -175,8 +181,8 @@ rem ############################################################################
 ::  - Use new syntax (see unittest() for more details)
 ::
 ::  Documentation
-::  - All documentations is now written in comments
-::  - Make library parameters usage docs more consistent
+::  - Most documentations are now written in comments
+::  - Make library parameter syntax more consistent
 ::  - Most demo now have auto generated input
 exit /b 0
 
