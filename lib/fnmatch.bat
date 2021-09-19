@@ -14,15 +14,19 @@ for %%v in (_part _pieces _first _last) do set "%%v="
 set "_leftover=!_pattern!"
 for /l %%n in (1,1,10) do if defined _leftover (
     for /f "tokens=1* delims=*" %%a in ("!_leftover!") do (
-        if "%%n" == "1" (
-            set "_first=%%a"
-        ) else if defined _last set "_pieces=!_pieces!*!_last!!LF!"
+        if "%%n" == "1" set "_first=%%a"
+        if defined _last set "_pieces=!_pieces!*!_last!!LF!"
         set "_last=%%a"
         set "_leftover=%%b"
     )
 )
-if not "!_pattern:~0,1!" == "*" if defined _first set "_pieces=!_first!!LF!!_pieces!"
-if "!_pattern:~-1,1!" == "*" if defined _last set "_pieces=!_pieces!*!_last!!LF!"
+rem Check for literal string at first and last part
+if "!_pattern:~0,1!" == "*" (
+    set "_first="
+) else set "_pieces=!_first!!LF!!_pieces!"
+if "!_pattern:~-1,1!" == "*" (
+    if defined _last set "_pieces=!_pieces!*!_last!!LF!"
+)
 set "_leftover=!_string!"
 for /f "tokens=* delims=" %%p in ("!_pieces!") do (
     if not defined _leftover exit /b 3
@@ -34,7 +38,10 @@ for /f "tokens=* delims=" %%p in ("!_pieces!") do (
     ) else set "_leftover=!_leftover:~1!"
 )
 if "!_pattern:~-1,1!" == "*" exit /b 0
-if not defined _last if not defined _leftover exit /b 0
+if not defined _last (
+    if defined _leftover exit /b 3
+    exit /b 0
+)
 call :strlen _len _last
 if /i not "!_leftover:~-%_len%!" == "!_last!" exit /b 3
 exit /b 0
