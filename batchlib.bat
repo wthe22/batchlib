@@ -209,6 +209,7 @@ call :Library.read_args
 call :Category.unload_info
 call :Category.load
 call :main_menu
+cls
 exit /b
 
 
