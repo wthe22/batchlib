@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:gcf <return_var> <integer1> <integer2>
+:gcd <return_var> <integer1> <integer2>
 setlocal EnableDelayedExpansion
 set /a "_result=%~2"
 set /a "_temp=%~3"
@@ -27,26 +27,26 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      gcf - calculate the greatest common factor of two numbers
+::      gcd - calculate the greatest common factor of two numbers
 ::
 ::  SYNOPSIS
-::      gcf <return_var> <integer1> <integer2>
+::      gcd <return_var> <integer1> <integer2>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result.
 ::
 ::      integer
-::          The numbers to calculate its GCF.
+::          The numbers to calculate its gcd.
 exit /b 0
 
 
 :doc.demo
 call :Input.number number1 --range "0~2147483647" --optional || set "number1=!random!"
 call :Input.number number2 --range "0~2147483647" --optional || set "number2=!random!"
-call :gcf result !number1! !number2!
+call :gcd result !number1! !number2!
 echo=
-echo GCF of !number1! and !number2! is !result!
+echo gcd of !number1! and !number2! is !result!
 exit /b 0
 
 
@@ -61,7 +61,7 @@ for %%a in (
     "28657:         1836311903 1134903171"
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     set "given=%%c"
-    call :gcf result !given! || (
+    call :gcd result !given! || (
         call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%b"
