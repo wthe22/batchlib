@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:expand_url <return_prefix> <url>
+:url_split <return_prefix> <url>
 pushd "%~d0\"
 for %%v in (url scheme host port path name ext query fragment) do set "%~1%%v="
 for /f "tokens=1* delims=#" %%a in ("%~2") do (
@@ -49,10 +49,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      expand_url - expands a given URL to several smaller pieces
+::      url_split - expands a given URL to several smaller pieces
 ::
 ::  SYNOPSIS
-::      expand_url <return_prefix> <url>
+::      url_split <return_prefix> <url>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_prefix
@@ -84,7 +84,7 @@ exit /b 0
 
 :doc.demo
 call :Input.string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
-call :expand_url web_url. "!web_url!"
+call :url_split web_url. "!web_url!"
 set web_url
 exit /b 0
 
@@ -99,7 +99,7 @@ for %%a in (
     "https://blog.example.com:80/1970/01/news.html?page=1#top"
 ) do (
     set "result="
-    call :expand_url result. %%a
+    call :url_split result. %%a
     if not "!result.url!" == "%%~a" (
         call %unittest% fail "Expected '%%~a', got '!result.url!'"
     )
