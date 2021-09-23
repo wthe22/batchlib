@@ -49,7 +49,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      url_split - expands a given URL to several smaller pieces
+::      url_split - split a given URL to several smaller parts
 ::
 ::  SYNOPSIS
 ::      url_split <return_prefix> <url>
@@ -58,8 +58,8 @@ exit /b 0
 ::      return_prefix
 ::          The prefix of the variable to store the results.
 ::
-::      link
-::          The string of the link to expand.
+::      url
+::          The string of the link.
 ::
 ::  EXAMPLE
 ::      url        https://blog.example.com:80/1970/01/news.html?page=1#top
