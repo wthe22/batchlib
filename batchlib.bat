@@ -119,6 +119,7 @@ rem ############################################################################
 ::      - functions.list()
 ::      - fnmatch()
 ::      - hex2str()
+::      - unset_all()
 ::  - Replaced functions:
 ::      - parse_args() -> argparse()
 ::      - textrender() -> coderender()
@@ -135,6 +136,8 @@ rem ############################################################################
 ::      - epoch2time() -> epoch.to_time()
 ::      - while_range_macro() -> loop_macro()
 ::      - yroot() -> nroot()
+::      - expand_url() -> url_split()
+::      - gcf() -> gcd()
 ::  - Removed functions:
 ::      - depsolve(): Reworked, it is now a core function, not a library anymore.
 ::      - module(): Unmaintainable, too complex. Use new script template instead.
