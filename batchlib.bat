@@ -923,7 +923,7 @@ exit /b 0
 
 
 :Category.unload_info
-call :unset "Category." "Category_"
+call :unset_all "Category." "Category_"
 exit /b 0
 
 
@@ -1106,7 +1106,7 @@ exit /b 0
 
 
 :Library.unload_info
-call :unset "Library." "Library_"
+call :unset_all "Library." "Library_"
 exit /b 0
 
 
@@ -1343,22 +1343,13 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 
 
-:unset [variable_prefix] ...
-for %%p in (%*) do (
-    for /f "usebackq tokens=1 delims==" %%v in (`set %%~p 2^> nul`) do (
-        set "%%v="
-    )
-)
-exit /b 0
-
-
 rem ############################################################################
 rem Library
 rem ############################################################################
 
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
-    ^ functions.range readline functions.list true ^
+    ^ functions.range readline functions.list true unset_all ^
     ^ coderender unittest ut_fmt_basic ^
     ^ conemu Input.path Input.yesno Input.string updater ^
     ^ difftime ftime ^
@@ -1451,7 +1442,6 @@ call :self_extract_func ^
     ^ build_script ^
     ^ self_extract_func ^
     ^ Library.unload_info ^
-    ^ unset ^
     ^ %=END=%
 
 ::  :Library.read_names
