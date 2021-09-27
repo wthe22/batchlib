@@ -78,9 +78,14 @@ rem ############################################################################
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 
+echo A good documentation to help users how to use this script
+echo=
 echo usage:
-echo    Script Name Here.bat
-echo        A good documentation to help users how to use this script
+echo    Script-Name-Here.bat
+echo        The default way to run this script
+echo=
+echo    Script-Name-Here.bat -c :^<label^> [arguments] ...
+echo        Call the specified label with arguments
 exit /b 0
 
 
@@ -93,21 +98,22 @@ rem List libraries you use in this file here:
 set "%~1install_requires="
 
 rem Add dependencies to this file by running:
-:: cmd /c batchlib.bat build script_name.bat
+:: cmd /c batchlib.bat build Script-Name-Here.bat
 exit /b 0
 
 
 rem ############################################################################
-rem Tests: Tests codes and data
+rem Tests
 rem ############################################################################
 
 :tests.setup
 rem Called before running any tests here
+rem A fail/error/skip here will abort unittest for this file
 exit /b 0
 
 
 :tests.teardown
-rem Called after running all tests here. Useful for cleanups.
+rem Called after unittest for this file is done. Useful for cleanups.
 exit /b 0
 
 
