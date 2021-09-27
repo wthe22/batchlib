@@ -198,89 +198,17 @@ rem ############################################################################
 @if ^"%1^" == "-c" @goto subcommand.call
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
-@if ^"%1^" == "" @goto main_script
-@call :subcommand.%*
+
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+call :metadata SOFTWARE.
+call :config
+call :common_setup
+if ^"%1^" == "" (
+    call :main_script
+) else call :subcommand.%*
+call :common_cleanup
 @exit /b
-
-
-:main_script
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :metadata SOFTWARE.
-call :config
-cls
-echo !SOFTWARE.description! !SOFTWARE.version!
-echo=
-echo Loading...
-call :common_setup
-call :true 2> nul || call :self_build
-call :Library.read_args
-call :Category.unload_info
-call :Category.load
-call :main_menu
-cls
-exit /b
-
-
-:subcommand.call -c <label> [arguments]
-@(
-    setlocal DisableDelayedExpansion
-    call set command=%%*
-    setlocal EnableDelayedExpansion
-    for /f "tokens=1* delims== " %%a in ("!command!") do @(
-        endlocal
-        endlocal
-        call %%b
-    )
-)
-@exit /b
-
-
-:subcommand.build <file>
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :metadata SOFTWARE.
-call :config
-call :common_setup
-call :true 2> nul || set "lib=:lib.call "
-call :build_script %*
-exit /b
-
-
-:subcommand.debug <library> [arguments]
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :metadata SOFTWARE.
-call :config
-call :common_setup
-set "library=%~1"
-for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
-call :LibBuild.build "!library!"
-endlocal & cd /d "%build_dir%"
-if not defined debug set "debug=/? > nul & 1>&2"
-call %*
-exit /b
-
-
-:subcommand.test <library>
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :metadata SOFTWARE.
-call :config
-call :common_setup
-call :tests.run_lib_test %1
-exit /b
-
-
-:subcommand.template <name>
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-call :metadata SOFTWARE.
-call :config
-call :common_setup
-set "template_name=%~1"
-call :coderender "%~f0" "template.!template_name!"
-exit /b
 
 
 :common_setup
@@ -300,7 +228,67 @@ for %%p in (
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_dependencies
+call :LibBuild.remove_orphans
 exit /b 0
+
+
+:common_cleanup
+for %%p in (
+    tmp_dir
+) do if defined %%p if exist "!%%p!" rd /s /q "!%%p!"
+exit /b 0
+
+
+:main_script
+call :true 2> nul || call :self_build
+call :Library.read_args
+call :Category.unload_info
+call :Category.load
+call :main_menu
+cls
+exit /b
+
+
+:subcommand.build <file>
+call :true 2> nul || set "lib=:lib.call "
+call :build_script %*
+exit /b
+
+
+:subcommand.debug <library> [arguments]
+set "library=%~1"
+for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
+call :LibBuild.build "!library!"
+endlocal & cd /d "%build_dir%"
+if not defined debug set "debug=/? > nul & 1>&2"
+call %*
+exit /b
+
+
+:subcommand.test <library>
+call :tests.run_lib_test %1
+exit /b
+
+
+:subcommand.template <name>
+set "template_name=%~1"
+call :coderender "%~f0" "template.!template_name!"
+exit /b
+
+
+:subcommand.call -c <label> [arguments]
+@(
+    setlocal DisableDelayedExpansion
+    call set command=%%*
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1* delims== " %%a in ("!command!") do @(
+        endlocal
+        endlocal
+        call %%b
+    )
+)
+@exit /b
+
 
 rem ############################################################################
 rem User Interfaces
@@ -987,7 +975,7 @@ exit /b 0
 :LibBuild.remove_orphans
 for %%l in ("!build_dir!\*") do (
     if not exist "!lib_dir!\%%~nxl" (
-        echo remove leftover build of %%~nl^(^)
+        echo Remove leftover build of %%~nl^(^)
         del /f /q "%%~fl"
     )
 )
