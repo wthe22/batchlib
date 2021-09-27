@@ -689,7 +689,7 @@ echo usage:
 echo    batchlib
 echo        Run batchlib in interactive mode
 echo=
-echo    batchlib (-h^|--help^|/?)
+echo    batchlib (-h^|--help)
 echo        Show this help
 echo=
 echo    batchlib -c ^<:label^> [arguments] ...
@@ -715,7 +715,7 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      batchlib
-::      batchlib (-h|--help|/?)
+::      batchlib (-h|--help)
 ::      batchlib -c <:label> [arguments]
 ::      batchlib build <input_file> [backup_name]
 ::      batchlib debug <library> <:label> [arguments]
