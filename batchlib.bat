@@ -212,10 +212,12 @@ call :common_cleanup
 
 
 :common_setup
+set "flags.is_minified="
+call :flags.is_minified 2> nul && set "flags.is_minified=true"
+
 set "lib="
 set "no_cleanup="
-
-call :flags.is_minified 2> nul && (
+if defined flags.is_minified (
     set "lib_dir="
     set "build_dir="
 )
@@ -865,8 +867,6 @@ setlocal EnableDelayedExpansion
 set "_input_file=%~f1"
 set "_backup_file=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-set "flags.is_minified="
-call :flags.is_minified 2> nul && set "flags.is_minified=true"
 if defined flags.is_minified set "lib="
 call "!_input_file!" -c :lib.dependencies || exit /b 3
 call :Library.depends _dep "!install_requires!" || exit /b 3
