@@ -207,8 +207,9 @@ call :common_setup
 if ^"%1^" == "" (
     call :main_script
 ) else call :subcommand.%*
+set "exit_code=!errorlevel!"
 call :common_cleanup
-@exit /b
+@exit /b !exit_code!
 
 
 :common_setup
