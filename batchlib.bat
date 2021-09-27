@@ -213,6 +213,7 @@ call :common_cleanup
 
 :common_setup
 set "lib="
+set "no_cleanup="
 
 call :flags.is_minified 2> nul && (
     set "lib_dir="
@@ -233,6 +234,8 @@ exit /b 0
 
 
 :common_cleanup
+if defined no_cleanup exit /b 0
+
 for %%p in (
     tmp_dir
 ) do if defined %%p if exist "!%%p!" rd /s /q "!%%p!"
@@ -262,6 +265,7 @@ call :LibBuild.build "!library!"
 endlocal & cd /d "%build_dir%"
 if not defined debug set "debug=/? > nul & 1>&2"
 call %*
+set "no_cleanup=true"
 exit /b
 
 
