@@ -231,7 +231,9 @@ for %%p in (
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_dependencies
-call :LibBuild.remove_orphans
+if not defined flags.is_minified (
+    call :LibBuild.remove_orphans
+)
 exit /b 0
 
 
