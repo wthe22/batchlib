@@ -262,7 +262,10 @@ exit /b
 set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
 call :LibBuild.build "!library!"
-endlocal & cd /d "%build_dir%"
+endlocal & (
+    cd /d "%build_dir%"
+    set "tmp_dir=%tmp_dir%"
+)
 if not defined debug set "debug=/? > nul & 1>&2"
 call %*
 set "no_cleanup=true"
