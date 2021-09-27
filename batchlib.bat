@@ -870,7 +870,7 @@ setlocal EnableDelayedExpansion
 set "_input_file=%~f1"
 set "_backup_file=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-set "_minified="
+set "flags.is_minified="
 call :flags.is_minified 2> nul && set "flags.is_minified=true"
 if defined flags.is_minified set "lib="
 call "!_input_file!" -c :lib.dependencies || exit /b 3
