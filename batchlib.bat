@@ -1394,11 +1394,12 @@ echo rem !sep_line!
 echo rem Main
 echo rem !sep_line!
 echo=
-call :self_extract_func "main"
+call :self_extract_func ^
+    ^ main ^
+    ^ common_setup ^
+    ^ common_cleanup ^
+    ^ %=END=%
 ::  :main_script
-::  @setlocal EnableDelayedExpansion EnableExtensions
-::  @echo off
-::  call :common_setup
 ::  echo !SOFTWARE.description! !SOFTWARE.version!
 ::  echo=
 ::  call :conemu
@@ -1406,10 +1407,9 @@ call :self_extract_func "main"
 ::
 ::
 call :self_extract_func ^
-    ^ subcommand.call ^
     ^ subcommand.build ^
     ^ subcommand.template ^
-    ^ common_setup ^
+    ^ subcommand.call ^
     ^ %=END=%
 
 echo rem !sep_line!
