@@ -45,10 +45,11 @@ exit /b 0
 ::          The number to root (the 'x').
 ::
 ::      n
-::          The power of the root (the 'n').
+::          The power of the root (the 'n'). Maximum supported is 31.
 ::
 ::  NOTES
 ::      - In case someone needs it: 0th root of x does not exist.
+::      - The result is always 1 if the 'n' is too big.
 exit /b 0
 
 
