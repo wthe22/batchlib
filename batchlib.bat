@@ -263,7 +263,7 @@ call :build_script %*
 exit /b
 
 
-:subcommand.debug <library> [arguments]
+:subcommand.debug <library> :<label> [arguments] ...
 set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
 call :LibBuild.build "!library!"
@@ -288,7 +288,7 @@ call :coderender "%~f0" "template.!template_name!"
 exit /b
 
 
-:subcommand.call -c <label> [arguments]
+:subcommand.call -c :<label> [arguments] ...
 @(
     setlocal DisableDelayedExpansion
     call set command=%%*
@@ -697,13 +697,13 @@ echo=
 echo    batchlib (-h^|--help)
 echo        Show this help
 echo=
-echo    batchlib -c ^<:label^> [arguments] ...
+echo    batchlib -c :^<label^> [arguments] ...
 echo        Call the specified label with arguments
 echo=
 echo    batchlib build ^<input_file^> [backup_name]
 echo        Add/update dependency of a file
 echo=
-echo    batchlib debug ^<library^> ^<:label^> [arguments] ...
+echo    batchlib debug ^<library^> :^<label^> [arguments] ...
 echo        Debug a library (Not available in minified version)
 echo=
 echo    batchlib test [library]
@@ -721,14 +721,14 @@ exit /b 0
 ::  SYNOPSIS
 ::      batchlib
 ::      batchlib (-h|--help)
-::      batchlib -c <:label> [arguments]
+::      batchlib -c :<label> [arguments] ...
 ::      batchlib build <input_file> [backup_name]
-::      batchlib debug <library> <:label> [arguments]
+::      batchlib debug <library> :<label> [arguments] ...
 ::      batchlib test [library]
 ::      batchlib template <name>
 ::
 ::  CALL SUBCOMMAND
-::          batchlib -c <:label> [arguments] ...
+::          batchlib -c :<label> [arguments] ...
 ::
 ::      Make batchlib CALL the specified label with the following arguments.
 ::
@@ -749,7 +749,7 @@ exit /b 0
 ::              Path of the backup file.
 ::
 ::  DEBUG SUBCOMMAND
-::          batchlib debug <library> <:label> [arguments] ...
+::          batchlib debug <library> :<label> [arguments] ...
 ::
 ::      Debug the library and call :LABEL with the ARGUMENTS.
 ::      The debugging features are:

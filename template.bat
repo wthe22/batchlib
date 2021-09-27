@@ -56,7 +56,7 @@ rem TODO: start scripting...
 @exit /b
 
 
-:subcommand.call -c <label> [arguments]
+:subcommand.call -c :<label> [arguments] ...
 @(
     setlocal DisableDelayedExpansion
     call set command=%%*
