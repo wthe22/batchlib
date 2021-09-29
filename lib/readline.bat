@@ -71,21 +71,18 @@ exit /b 0
 ::          Path of the input file.
 ::
 ::      range
-::          Range of lines to read. The syntax is <start>:[end]. Function will
-::          start reading from START line until END line. If END line is not
-::          specified, then read until the end of file. First line starts from 1.
+::          Range of lines to read. The syntax is <start>:[end]. By default, it
+::          reads until the end of the file. First line starts at 1.
 ::          This value is validated.
 ::
 ::      offset
 ::          Offset to apply to RANGE. The syntax is <start_offset>:[end_offset].
 ::          E.g. to exclude first line and last line of RANGE, use 1:-1 as the
-::          offset. End offset have no effect if end line is not specified. If
-::          offset causes start range to be negative (e.g. start at line 0 or -1)
-::          it will be set to 1. If offset causes end range to be negative, it will
-::          not read any lines and exit successfully. This value is not validated.
+::          offset. End offset have no effect if end range is not specified.
+::          This value is not validated.
 ::
 ::      substr
-::          Substring to apply to each line. The syntax is similar to batch script
+::          Substring to apply to each line. The syntax is the same as using
 ::          substring: <start>[,<length>]. This must be placed as the fourth
 ::          argument. This value is not validated.
 ::
@@ -102,6 +99,15 @@ exit /b 0
 ::
 ::      temp
 ::          Fallback path for tmp_dir if tmp_dir does not exist
+::
+::  NOTES
+::      - No lines are read if line ends before the START line.
+::      - If the final range, after considering the offset, causes start to be
+::        negative (e.g. start at line 0 or -1) it will be set to 1.
+::      - No line is read (with exit code 0) if the final range, after considering
+::        the offset, causes the end line to appear before the start line.
+::      - Validated: Invalid values are checked before usage
+::      - Not validated: Invalid values can cause unexpected behaviors
 exit /b 0
 
 
