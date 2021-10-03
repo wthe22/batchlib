@@ -949,6 +949,7 @@ for %%a in (
     "external: External"
     "none: Uncategorized"
     "search: Search Results"
+    "wip: Work In Progress"
 ) do for /f "tokens=1* delims=: " %%c in (%%a) do (
     set "Category.all=!Category.all!%%c "
     set "Category_%%c.name=%%d"
