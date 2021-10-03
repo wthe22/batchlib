@@ -5,7 +5,7 @@ exit /b
 
 :unset_all [variable_prefix] ...
 for %%p in (%*) do (
-    for /f "usebackq tokens=1 delims==" %%v in (`set %%~p 2^> nul`) do (
+    for /f "usebackq tokens=1 delims==" %%v in (`set "%%~p" 2^> nul`) do (
         set "%%v="
     )
 )
