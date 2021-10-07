@@ -78,6 +78,30 @@ And batchlib will magically add the libraries into your script! Backup file can
 be specified if necessary. When you have changed the dependency list, you can
 run the same code again to update the libraries.
 
+Call As External Library
+------------------------
+It is possible to call batchlib as an external program. However, some functions
+will only work when it is copy-pasted (embedded) into the script.
+
+These functions usually have note that says any of these:
+::
+
+    - Function MUST be embedded into the script to work correctly
+    - Function SHOULD be embedded into the script
+
+These are the recommended ways to do this (depending on use case):
+::
+
+    rem 1. Use macro
+    set batchlib="C:\absolute\path\to\batchlib-min.bat" -c %=END=%
+    call %batchlib%:Input.yesno -m "Sleep? [y/n] "
+
+    rem 2. Add to PATH
+    set "path=C:\absolute\path\to;%PATH%"
+    call batchlib-min -c :Input.yesno -m "Midnight snacks? [y/n] "
+
+At method #1, the `%=END=%` is used to prevent accidental truncation of trailing space.
+
 Adding Your Own Functions To Library
 ------------------------------------
 You can use the template for new library as the starting point.
