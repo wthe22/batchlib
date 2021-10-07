@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:argparse [-i] [-s] <spec> ... -- [arg] ...
+:argparse [-i] [-s] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
@@ -235,7 +235,7 @@ exit /b 0
 ::      argparse - parse options passed to script or function
 ::
 ::  SYNOPSIS
-::      argparse [-i] [-s] <spec> ... -- [arg] ...
+::      argparse [-i] [-s] <spec> ... -- %*
 ::
 ::  OPTIONS
 ::      Note: They must appear before all SPECs
@@ -250,6 +250,17 @@ exit /b 0
 ::      -s, --stop-nonopt
 ::          Stop scanning for options as soon as the first non-option argument
 ::          is seen. The rest is treated positional arguments.
+::
+::  POSITIONAL ARGUMENTS
+::      spec
+::          The list of arguments that should be parsed. The complete syntax can
+::          be found in the PARSING SPECIFACTIONS section. Maximum specification
+::          supported is 100
+::
+::      %*
+::          The arguments to parse. Arguments MUST be obtained from '%*' (because
+::          it consumes the caller's %1, %2, etc. argument), or else it will fail.
+::          Maximum argument supported is 400.
 ::
 ::  PARSING SPECIFACTIONS
 ::      Each parsing specification is a string composed of:
@@ -283,6 +294,9 @@ exit /b 0
 ::              append_const
 ::                  Append the value of CONST to VARIABLE, without being seperated
 ::
+::      Do not use duplicate flags in specification. Although currently it is
+::      not enforced/validated, it could cause unwanted behavior.
+::
 ::  EXIT STATUS
 ::      0:  - Success.
 ::      2:  - Invalid specs.
@@ -291,10 +305,7 @@ exit /b 0
 ::  NOTES
 ::      - Multi-character short options are not supported.
 ::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
-::      - Do not use duplicate flags in specification. Although currently it is
-::        not enforced, it could cause unwanted behavior.
-::      - Maximum argument count is 400
-::      - Maximum specification count is 100
+::      - Function SHOULD be embedded into the script.
 exit /b 0
 
 
