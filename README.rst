@@ -39,6 +39,21 @@ Use the template script ``template.bat`` as your starting point. It has all
 the recommended structures to work flawlessly with batchlib.
 There are guides inside to help you get started.
 
+Minified Batchlib
+-----------------
+Minified Batchlib is a stripped down and packed version of Batchlib.
+
+The differences are:
+
+* All library functions (only the function) are compiled into the file.
+* No library docs, demo, or tests included.
+* Command line interface instead of menu interface.
+
+To generate it, type:
+::
+
+    cmd /c batchlib.bat template minified > batchlib-min.bat
+
 Dependency Management
 -------------------------------
 Batchlib have an automated way of adding libraries into a script. Use the
@@ -73,21 +88,6 @@ Copying the library template and rename it:
 
 This template contains all the structures you need for your function to work
 correctly with Batchlib. There are documentations inside to help you.
-
-Minified Batchlib
------------------
-Minified Batchlib is a stripped down and packed version of Batchlib.
-
-The differences are:
-
-* All library functions (only the function) are compiled into the file.
-* No library docs, demo, or tests included.
-* Command line interface instead of menu interface.
-
-To generate it, type:
-::
-
-    cmd /c batchlib.bat template minified > batchlib-min.bat
 
 Unit Testing Your Script
 ------------------------
