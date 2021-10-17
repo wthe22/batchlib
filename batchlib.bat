@@ -187,6 +187,10 @@ rem ############################################################################
 ::  - Most documentations are now written in comments
 ::  - Make library parameter syntax more consistent
 ::  - Most demo now have auto generated input
+::
+::  Batchlib 3.0.1
+::  - Add documentation to run batchlib as exteral library
+::  - argparse(): Add details about positional arguments and its usage
 exit /b 0
 
 
