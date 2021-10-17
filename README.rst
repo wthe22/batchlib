@@ -100,7 +100,7 @@ These are the recommended ways to do this (depending on use case):
     set "path=C:\absolute\path\to;%PATH%"
     call batchlib-min -c :Input.yesno -m "Midnight snacks? [y/n] "
 
-At method #1, the `%=END=%` is used to prevent accidental truncation of trailing space.
+At method #1, the ``%=END=%`` is used to prevent accidental truncation of trailing space.
 
 Adding Your Own Functions To Library
 ------------------------------------
