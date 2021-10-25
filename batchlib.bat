@@ -188,9 +188,10 @@ rem ############################################################################
 ::  - Make library parameter syntax more consistent
 ::  - Most demo now have auto generated input
 ::
-::  Batchlib 3.0.1
+::  Patches from version 3.0
 ::  - Add documentation to run batchlib as exteral library
 ::  - argparse(): Add details about positional arguments and its usage
+::  - url_split(): Fix docs using incorrect return variable name for host/hostname
 exit /b 0
 
 

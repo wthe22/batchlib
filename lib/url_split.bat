@@ -65,7 +65,7 @@ exit /b 0
 ::      url        https://blog.example.com:80/1970/01/news.html?page=1#top
 ::      scheme     https
 ::                      ://
-::      hostname   .....   blog.example.com
+::      host       .....   blog.example.com
 ::                                         :
 ::      port       ......................   80
 ::      path       ........................   /1970/01/
