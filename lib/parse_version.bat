@@ -51,8 +51,8 @@ for %%s in (!_public!) do (
     )
     if not defined _number set "_number=0"
     set "_evaluated="
-    set /a "_evaluated=!_number!" || ( 1>&2 echo error: failed to evaluate number & exit /b 2 )
-    set /a "_number=!_evaluated!" || ( 1>&2 echo error: failed to evaluate number & exit /b 2 )
+    set /a "_evaluated=!_number!" || ( 1>&2 echo%0: Fail to evaluate number: !_number! & exit /b 2 )
+    set /a "_number=!_evaluated!" || ( 1>&2 echo%0: Fail to evaluate number: !_number!& exit /b 2 )
     set "_number=000!_number!"
     set "_number=!_number:~-3,3!"
     if not "!_type!" == "E" set "_buffer="
@@ -178,8 +178,8 @@ exit /b 0
 
 
 :tests.setup
-set "return.true=0"
-set "return.false=1"
+set "compare.true=0"
+set "compare.false=1"
 exit /b 0
 
 
@@ -248,7 +248,7 @@ for %%a in (
     "F000E001E000E002Ba000C+A123abc: 1.0.2a+123abc"
     "F000E001Ba000D000A000C+A: 1.0.0a.post.dev+"
     "F000E001E000E002Ba003D004A005C+B0000000001: 1.0.2-a3.post4.dev5+1"
-) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     call :parse_version result !given!
     set "expected=%%b"
@@ -315,7 +315,7 @@ for %%a in (
     set "given=%%c"
     call :tests.compare !given!
     set "result=!errorlevel!"
-    set "expected=!return.%%b!"
+    set "expected=!compare.%%b!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
