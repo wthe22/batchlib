@@ -104,6 +104,7 @@ call :tests.check_errorlevel ^
     ^ "true: 0x0" ^
     ^ "true: 0x10" ^
     ^ "true: 0xabcdef" ^
+    ^ "true: 0xABCDEF" ^
     ^ %=end=%
 exit /b 0
 
