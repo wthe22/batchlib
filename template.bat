@@ -93,7 +93,7 @@ rem ############################################################################
 rem Library
 rem ############################################################################
 
-:lib.dependencies
+:lib.dependencies  [return_prefix]
 rem List libraries you use in this file here:
 set "%~1install_requires="
 
