@@ -8,7 +8,7 @@ rem ############################################################################
 
 :metadata [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=3.0.1"
+set "%~1version=3.1.dev0"
 set "%~1author=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
@@ -105,93 +105,31 @@ rem ############################################################################
 ::  - Script needs to be build to satisfy dependencies
 ::
 ::  Library
-::  - Added dependency listing for extra requirements (for tests and demo)
-::  - Move libraries to out of this script, so each library have its own file
-::  - Since each library have its own file, it needs to be built to run correctly
-::  - Capitalize error messages
 ::  - New functions:
-::      - quicktest()
-::      - ut_fmt_basic()
-::      - mtime_to_isotime()
-::      - get_pid_by_title()
-::      - true()
-::      - Input.number()
-::      - functions.list()
-::      - fnmatch()
-::      - hex2str()
-::      - unset_all()
+::      -
 ::  - Replaced functions:
-::      - parse_args() -> argparse()
-::      - textrender() -> coderender()
-::      - extract_func() -> functions.range(), readline()
+::      - parse_version() -> version_parse()
 ::  - Renamed functions:
-::      - find_range() -> functions.match()
-::      - roman2int() -> roman.decode()
-::      - int2roman() -> roman.encode()
-::      - bytes2size() -> bytes.format()
-::      - size2bytes() -> bytes.parse()
-::      - int2*() -> int.to_*()
-::      - *2int() -> int.from_*()
-::      - time2epoch() -> epoch.from_time()
-::      - epoch2time() -> epoch.to_time()
-::      - while_range_macro() -> loop_macro()
-::      - yroot() -> nroot()
-::      - expand_url() -> url_split()
-::      - gcf() -> gcd()
+::      -
 ::  - Removed functions:
-::      - depsolve(): Reworked, it is now a core function, not a library anymore.
-::      - module(): Unmaintainable, too complex. Use new script template instead.
+::      -
 ::  - New features:
-::      - Input.yesno(): Add option to set default value
-::      - combi_wcdir(): Custom seperator
-::      - Input.number(): Mark input as optional
-::      - Input.path(): Warn overwrite
-::      - strip(): support question mark character
+::      -
 ::  - Bug fixes:
-::      - dosterm()/conemu(): Multiline commands
-::      - get_pid(): Unique id not used
-::      - capchar(): Only first argument is processed
-::      - wcdir(): Error if LF is not defined before calling script
-::      - pow(): Error if base number is 0
+::      -
 ::  - Non-functional improvements:
-::      - Functions with return values
-::      - Functions that uses:
-::          - parse_args()/argparse(),
-::          - extract_func()/functions.range()/readline()
-::      - Input.path()
-::      - timeleft(): improve usability when copied
-::      - wait(): Simplify codes
-::      - sleep(): Improve accuracy
+::      -
 ::  - Has backward incompatible changes:
-::      - find_label() or functions.match(): Change function signature
-::      - combi_wcdir(): Change function signature
-::      - updater(): Reworked, now includes ui
-::      - unittest(): Reworked
-::      - dosterm()/conemu(): Cannot change prompt message anymore
-::      - Input.*(): Exit status adjustment
-::      - clear_line_macro(): Return var is now required
-::      - get_os(): Return full os version
-::      - capchar(): Remove support for wildcard argument
-::      - hexlify(): Ouput to stdout instead of file
-::      - is_in_range(): Swap exit code 2 and 3
+::      -
 ::
 ::  Minified Script
 ::  - Removed all tests
 ::
 ::  Tests
-::  - Simplify test label names
-::  - Improve all unittests
-::  - Use new syntax (see unittest() for more details)
+::  -
 ::
 ::  Documentation
-::  - Most documentations are now written in comments
-::  - Make library parameter syntax more consistent
-::  - Most demo now have auto generated input
-::
-::  Patches from version 3.0
-::  - Add documentation to run batchlib as exteral library
-::  - argparse(): Add details about positional arguments and its usage
-::  - url_split(): Fix docs using incorrect return variable name for host/hostname
+::  - Fix docs of url_split()
 exit /b 0
 
 
