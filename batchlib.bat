@@ -3,42 +3,6 @@
 
 
 rem ############################################################################
-rem Metadata
-rem ############################################################################
-
-:metadata [return_prefix]
-set "%~1name=batchlib"
-set "%~1version=3.1.dev0"
-set "%~1authors=wthe22"
-set "%~1license=The MIT License"
-set "%~1description=Batch Script Library"
-set "%~1release_date=10/17/2021"   :: mm/dd/YYYY
-set "%~1url=https://github.com/wthe22/batchlib"
-set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
-exit /b 0
-
-
-:about
-setlocal EnableDelayedExpansion
-call :metadata
-echo !description! / !name! !version! ^(!release_date!^)
-echo=
-echo A collection of functions/snippets for batch script
-echo Created to make batch scripting easier
-echo=
-echo Updated on !release_date!
-echo=
-echo Feel free to use, share, or modify this script for your projects :)
-echo Visit http://winscr.blogspot.com/ for more scripts^^!
-echo=
-echo=
-echo Copyright (C) 2017 by !authors!
-echo Licensed under !license!
-endlocal
-exit /b 0
-
-
-rem ############################################################################
 rem License
 rem ############################################################################
 
@@ -68,28 +32,177 @@ exit /b 0
 
 
 rem ############################################################################
-rem Configurations
+rem Documentation
 rem ############################################################################
 
-:config
-call :config.default
-call :config.preference
+:doc.man
+::  NAME
+::      batchlib - batch script library/utility
+::
+::  SYNOPSIS
+::      batchlib
+::      batchlib (-h|--help)
+::      batchlib -c :<label> [arguments] ...
+::      batchlib build <input_file> [backup_name]
+::      batchlib debug <library> :<label> [arguments] ...
+::      batchlib test [library]
+::      batchlib template <name>
+::
+::  CALL SUBCOMMAND
+::          batchlib -c :<label> [arguments] ...
+::
+::      Make batchlib CALL the specified label with the following arguments.
+::
+::  BUILD SUBCOMMAND
+::          batchlib build <input_file> [backup_name]
+::
+::      Add/update dependencies of a file (made from the new script template).
+::      Dependencies are found in 'install_requires' in lib.dependencies() and
+::      'extra_requires' is ignored. Build is aborted if any errors occur.
+::      Please keep codes between 'entry_point' and 'EOF'. Codes beyond that will
+::      be removed.
+::
+::      POSITIONAL ARGUMENTS
+::          input_file
+::              Path of the input file to build.
+::
+::          backup_name
+::              Path of the backup file.
+::
+::  DEBUG SUBCOMMAND
+::          batchlib debug <library> :<label> [arguments] ...
+::
+::      Debug the library and call :LABEL with the ARGUMENTS.
+::      The debugging features are:
+::      - The quicktest() library is included.
+::      - Debug commands are executed and output is redirected to STDERR
+::        if 'debug' variable is not defined.
+::      - Library is always rebuilt before running.
+::
+::      This subcommand is not available in the minified version.
+::
+::  TEST SUBCOMMAND
+::          batchlib test [library]
+::
+::      Run unittests of a library. If no library is given, it will
+::      test all libraries instead.
+::
+::      This subcommand is not available in the minified version.
+::
+::  TEMPLATE SUBCOMMAND
+::          batchlib template <name>
+::
+::      Create the specified template and output to STDOUT.
+::      Available templates: minified.
+::
+::      This subcommand have no templates in the minified version.
 exit /b 0
 
 
-:config.default
-rem Default/common configurations. DO NOT MODIFY
-rem Directory for temporary files
-set "tmp_dir=!tmp!\!SOFTWARE.name!"
-rem Directory to keep library, builds, etc.
-set "lib_dir=%~dp0lib"
-set "build_dir=%~dp0build"
+:doc.argument_syntax
+::  ARGUMENT SYNTAX
+::      Description about how arguments are processed by functions. Here is a list
+::      of possible arguments syntax used in the library and its usage example:
+::
+::      function_name <number>
+::              call :function_name 1
+::
+::          Angle brackets <> means it is required. Number is a positional argument
+::           and it is required. Errors might occur if argument is not specified.
+::
+::      function_name <number ...>
+::              call :function_name "1 1 1"
+::
+::          Number can be specified multiple times within a pair of quotes.
+::          Values are accessed through %~1.
+::
+::      function_name <number> ...
+::              call :function_name 1 "2" "3"
+::
+::          Number can be specified multiple times and they must not share the
+::          same pair of quotes. Values are accessed through %*.
+::
+::      function_name [number]
+::              call :function_name  # OK, because number is optional
+::              call :function_name 1
+::
+::          Square brackets [] means it is optional.
+::
+::      function_name [-n|--number]
+::              call :function_name -n
+::              call :function_name --number
+::
+::          -n and --number are options. They can be used interchangeably
+::          (they are just the same thing).
+::
+::      function_name [-n number]
+::              call :function_name -n 1
+::              call :function_name -n  # Error: missing expected argument
+::
+::          Number must be specified after the -n flag. Errors might occur if
+::          the expected argument is not specified.
+::
+::      function_name [--number] <message>
+::              call :function_name --number "Hello"  # OK
+::              call :function_name "Hello" --number  # Also OK
+::
+::          An option can be placed anywhere if it occurs before the positional
+::          arguments.
+::
+::      function_name <message> [--number]
+::              call :function_name "Hello" --number  # OK
+::              call :function_name --number "Hello"  # Error: wrong position
+::
+::          An option must occur in the same position if it occurs after the
+::          positional arguments. In this case, --number must be specified in
+::          the second position if used.
+::
+::  ARGUMENT VALIDATION
+::      Some libraries have argument validation. Usually they can be identified by
+::      having the 'invalid argument' exit status. However, most library did not
+::      have argument validation. It assumes that the given argument syntax and
+::      values are valid. Make sure you validate the value first before passing it
+::      to the function (e.g. if the function only accepts an integer, make sure
+::      you pass an integer too, not alphabets, symbols, hexadecimal, etc.).
 exit /b 0
 
 
-:config.preference
-rem Configurations to change/override
-:: set "tmp_dir=%~dp0tmp\tmp"
+:doc._guides
+::  Variable names: [A-Za-Z_][A-Za-z0-9_.][A-Za-z0-9]
+::  - Starts with an alphabet or underscore
+::  - Only use alphabets, numbers, underscores, dashes, and dots
+::  - Ends with an alphabet, underscore, or number
+::  - Use variable names as a namespace
+::
+::  - external: something that is stored in other files
+exit /b 0
+
+
+:doc.help
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+
+echo usage:
+echo    batchlib
+echo        Run batchlib in interactive mode
+echo=
+echo    batchlib (-h^|--help)
+echo        Show this help
+echo=
+echo    batchlib -c :^<label^> [arguments] ...
+echo        Call the specified label with arguments
+echo=
+echo    batchlib build ^<input_file^> [backup_name]
+echo        Add/update dependency of a file
+echo=
+echo    batchlib debug ^<library^> :^<label^> [arguments] ...
+echo        Debug a library (Not available in minified version)
+echo=
+echo    batchlib test [library]
+echo        Run unittest to a library (Not available in minified version)
+echo=
+echo    batchlib template ^<name^>
+echo        Create the specified template and output to STDOUT.
 exit /b 0
 
 
@@ -134,6 +247,68 @@ exit /b 0
 
 
 rem ############################################################################
+rem Metadata
+rem ############################################################################
+
+:metadata [return_prefix]
+set "%~1name=batchlib"
+set "%~1version=3.1.dev0"
+set "%~1authors=wthe22"
+set "%~1license=The MIT License"
+set "%~1description=Batch Script Library"
+set "%~1release_date=10/17/2021"   :: mm/dd/YYYY
+set "%~1url=https://github.com/wthe22/batchlib"
+set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
+exit /b 0
+
+
+:about
+setlocal EnableDelayedExpansion
+call :metadata
+echo !description! / !name! !version! ^(!release_date!^)
+echo=
+echo A collection of functions/snippets for batch script
+echo Created to make batch scripting easier
+echo=
+echo Updated on !release_date!
+echo=
+echo Feel free to use, share, or modify this script for your projects :)
+echo Visit http://winscr.blogspot.com/ for more scripts^^!
+echo=
+echo=
+echo Copyright (C) 2017 by !authors!
+echo Licensed under !license!
+endlocal
+exit /b 0
+
+
+rem ############################################################################
+rem Configurations
+rem ############################################################################
+
+:config
+call :config.default
+call :config.preference
+exit /b 0
+
+
+:config.default
+rem Default/common configurations. DO NOT MODIFY
+rem Directory for temporary files
+set "tmp_dir=!tmp!\!SOFTWARE.name!"
+rem Directory to keep library, builds, etc.
+set "lib_dir=%~dp0lib"
+set "build_dir=%~dp0build"
+exit /b 0
+
+
+:config.preference
+rem Configurations to change/override
+:: set "tmp_dir=%~dp0tmp\tmp"
+exit /b 0
+
+
+rem ############################################################################
 rem Main
 rem ############################################################################
 
@@ -141,7 +316,6 @@ rem ############################################################################
 @if ^"%1^" == "-c" @goto subcommand.call
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
-
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :metadata SOFTWARE.
@@ -622,181 +796,6 @@ call :functions.range _range "%~f0" %1
 call :readline "%~f0" !_range! 1:-1 4
 echo=
 pause
-exit /b 0
-
-
-rem ############################################################################
-rem Documentation
-rem ############################################################################
-
-:doc.help
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-
-echo usage:
-echo    batchlib
-echo        Run batchlib in interactive mode
-echo=
-echo    batchlib (-h^|--help)
-echo        Show this help
-echo=
-echo    batchlib -c :^<label^> [arguments] ...
-echo        Call the specified label with arguments
-echo=
-echo    batchlib build ^<input_file^> [backup_name]
-echo        Add/update dependency of a file
-echo=
-echo    batchlib debug ^<library^> :^<label^> [arguments] ...
-echo        Debug a library (Not available in minified version)
-echo=
-echo    batchlib test [library]
-echo        Run unittest to a library (Not available in minified version)
-echo=
-echo    batchlib template ^<name^>
-echo        Create the specified template and output to STDOUT.
-exit /b 0
-
-
-:doc.man
-::  NAME
-::      batchlib - batch script library/utility
-::
-::  SYNOPSIS
-::      batchlib
-::      batchlib (-h|--help)
-::      batchlib -c :<label> [arguments] ...
-::      batchlib build <input_file> [backup_name]
-::      batchlib debug <library> :<label> [arguments] ...
-::      batchlib test [library]
-::      batchlib template <name>
-::
-::  CALL SUBCOMMAND
-::          batchlib -c :<label> [arguments] ...
-::
-::      Make batchlib CALL the specified label with the following arguments.
-::
-::  BUILD SUBCOMMAND
-::          batchlib build <input_file> [backup_name]
-::
-::      Add/update dependencies of a file (made from the new script template).
-::      Dependencies are found in 'install_requires' in lib.dependencies() and
-::      'extra_requires' is ignored. Build is aborted if any errors occur.
-::      Please keep codes between 'entry_point' and 'EOF'. Codes beyond that will
-::      be removed.
-::
-::      POSITIONAL ARGUMENTS
-::          input_file
-::              Path of the input file to build.
-::
-::          backup_name
-::              Path of the backup file.
-::
-::  DEBUG SUBCOMMAND
-::          batchlib debug <library> :<label> [arguments] ...
-::
-::      Debug the library and call :LABEL with the ARGUMENTS.
-::      The debugging features are:
-::      - The quicktest() library is included.
-::      - Debug commands are executed and output is redirected to STDERR
-::        if 'debug' variable is not defined.
-::      - Library is always rebuilt before running.
-::
-::      This subcommand is not available in the minified version.
-::
-::  TEST SUBCOMMAND
-::          batchlib test [library]
-::
-::      Run unittests of a library. If no library is given, it will
-::      test all libraries instead.
-::
-::      This subcommand is not available in the minified version.
-::
-::  TEMPLATE SUBCOMMAND
-::          batchlib template <name>
-::
-::      Create the specified template and output to STDOUT.
-::      Available templates: minified.
-::
-::      This subcommand have no templates in the minified version.
-exit /b 0
-
-
-:doc._guides
-::  Variable names: [A-Za-Z_][A-Za-z0-9_.][A-Za-z0-9]
-::  - Starts with an alphabet or underscore
-::  - Only use alphabets, numbers, underscores, dashes, and dots
-::  - Ends with an alphabet, underscore, or number
-::  - Use variable names as a namespace
-::
-::  - external: something that is stored in other files
-exit /b 0
-
-
-:doc.argument_syntax
-::  ARGUMENT SYNTAX
-::      Description about how arguments are processed by functions. Here is a list
-::      of possible arguments syntax used in the library and its usage example:
-::
-::      function_name <number>
-::              call :function_name 1
-::
-::          Angle brackets <> means it is required. Number is a positional argument
-::           and it is required. Errors might occur if argument is not specified.
-::
-::      function_name <number ...>
-::              call :function_name "1 1 1"
-::
-::          Number can be specified multiple times within a pair of quotes.
-::          Values are accessed through %~1.
-::
-::      function_name <number> ...
-::              call :function_name 1 "2" "3"
-::
-::          Number can be specified multiple times and they must not share the
-::          same pair of quotes. Values are accessed through %*.
-::
-::      function_name [number]
-::              call :function_name  # OK, because number is optional
-::              call :function_name 1
-::
-::          Square brackets [] means it is optional.
-::
-::      function_name [-n|--number]
-::              call :function_name -n
-::              call :function_name --number
-::
-::          -n and --number are options. They can be used interchangeably
-::          (they are just the same thing).
-::
-::      function_name [-n number]
-::              call :function_name -n 1
-::              call :function_name -n  # Error: missing expected argument
-::
-::          Number must be specified after the -n flag. Errors might occur if
-::          the expected argument is not specified.
-::
-::      function_name [--number] <message>
-::              call :function_name --number "Hello"  # OK
-::              call :function_name "Hello" --number  # Also OK
-::
-::          An option can be placed anywhere if it occurs before the positional
-::          arguments.
-::
-::      function_name <message> [--number]
-::              call :function_name "Hello" --number  # OK
-::              call :function_name --number "Hello"  # Error: wrong position
-::
-::          An option must occur in the same position if it occurs after the
-::          positional arguments. In this case, --number must be specified in
-::          the second position if used.
-::
-::  ARGUMENT VALIDATION
-::      Some libraries have argument validation. Usually they can be identified by
-::      having the 'invalid argument' exit status. However, most library did not
-::      have argument validation. It assumes that the given argument syntax and
-::      values are valid. Make sure you validate the value first before passing it
-::      to the function (e.g. if the function only accepts an integer, make sure
-::      you pass an integer too, not alphabets, symbols, hexadecimal, etc.).
 exit /b 0
 
 

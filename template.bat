@@ -3,6 +3,25 @@
 
 
 rem ############################################################################
+rem Documentation
+rem ############################################################################
+
+:doc.help
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+
+echo A good documentation to help users how to use this script
+echo=
+echo usage:
+echo    %~nx0
+echo        The default way to run this script
+echo=
+echo    %~nx0 -c :^<label^> [arguments] ...
+echo        Call the specified label with arguments
+exit /b 0
+
+
+rem ############################################################################
 rem Metadata
 rem ############################################################################
 
@@ -70,22 +89,12 @@ rem TODO: start scripting...
 @exit /b
 
 
-rem ############################################################################
-rem Documentation
-rem ############################################################################
-
-:doc.help
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-
-echo A good documentation to help users how to use this script
-echo=
-echo usage:
-echo    Script-Name-Here.bat
-echo        The default way to run this script
-echo=
-echo    Script-Name-Here.bat -c :^<label^> [arguments] ...
-echo        Call the specified label with arguments
+:build
+setlocal EnableDelayedExpansion
+echo Adding/updating dependencies to this script...
+call "batchlib-min.bat" build "%~f0" "%~f0.bak"
+echo Build done [exit code !errorlevel!]
+pause
 exit /b 0
 
 
