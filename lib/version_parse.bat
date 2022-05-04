@@ -63,12 +63,17 @@ for %%p in (!_tokens!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
     )
     if not defined _skip (
         set "_value=%%u"
-        if not "%%t" == "l" for %%n in (6) do (
-            if not "!_value:~%%n!" == "" (
-                1>&2 echo%0: Truncated to last %%n digits: %%u & exit /b 2
+        if "%%t" == "l" (
+            set "_value=na_%%u"
+        ) else (
+            set "_digits=na"
+            for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
+            if "!_digits!" == "na" (
+                1>&2 echo%0: Digits too long: %%u
             )
-            set "_value=000000%%u"
-            set "_value=!_value:~-%%n,%%n!"
+            set "_digits=00!_digits!"
+            set "_digits=!_digits:~-2,2!"
+            set "_value=!_digits!_%%u"
         )
         set "_result=%%s_%%t_!_value! !_result!"
     )
@@ -182,8 +187,9 @@ exit /b 0
 ::      Development release                              [.devN]
 ::      Local Version label                                     [+<local>]
 ::
-::      Local version label MUST only contain ASCII letters ([a-zA-Z]), ASCII
-::      digits ([0-9]), and periods (.).
+::      The Epoch segment is not supported because the exclamation mark '!' is a
+::      special character in batch script. Local version label MUST only contain
+::      ASCII letters ([a-zA-Z]), ASCII digits ([0-9]), and periods (.).
 ::
 ::  ALIASES
 ::      a   : a, alpha
@@ -195,6 +201,7 @@ exit /b 0
 ::  EXIT STATUS
 ::      0:  - Success
 ::      2:  - Invalid Version
+::          - Digits too long
 ::
 ::  EXAMPLE
 ::      call :version_parse version1 "1.4.1"
@@ -202,15 +209,13 @@ exit /b 0
 ::      if "%version1%" GEQ "%version2%" echo True
 ::
 ::  NOTES
-::      - Support for version numbers is only up to 6 digits of integer.
-::        (e.g.: 999.999, 1.2.3.dev999)
-::      - Numbers longer than the supported digits are truncated.
-::        (e.g.: max 3 digits, 1.dev2345 -> 1.dev345)
+::      - Support for version numbers is only up to 12 digits of integer.
+::        (e.g. 987654321012 is ok, 9876543210123 is too long)
 exit /b 0
 
 
 :doc.dev
-::  VERSION SCHEME
+::  REPRESENTATION
 ::                                 [N!]N(.N)*[{a|b|rc}N][.postN][.devN][+<local>]
 ::      Repr | Segment
 ::      Y      Epoch               [N!]
@@ -221,21 +226,28 @@ exit /b 0
 ::      L      Local Version label                                     [+<local>]
 ::      F      End of String
 ::
-::      The 'Repr' column is the internal representation of the version. Although
-::      the Epoch segment in version is not supported, but it still have its own
-::      internal representation in the result string.
+::      The Epoch segment is not supported, but the representation exist in the
+::      result string.
 ::
-::      The order of suffixes:
-::          Y R E P D L N
+::      Each segment is represented with the following pattern:
 ::
-::      Precedence is determined by alphabetical order:
-::          Y R P L F E D
+::          <segment>_<extra>_<length>_<value>
 ::
-::      For local segment:
-::      - Values are parsed per segment
-::      - Integer if digits only, otherwise alphanumeric
-::      - More segment GTR fewer segment
-::      - Integer GTR alphanumeric
+::      segment
+::          A letter representing a segment. Used to determine segment precedence.
+::
+::      extra
+::          Extra information of a segment. On pre-release segment, this is used
+::          to store pre-release type (a, b, rc). On local version label, this is
+::          used to store precedence information (numeric, lexical)
+::
+::      length
+::          Length of the value. Unknown length is represented by 'na'.
+::          Used to determine number precedence.
+::
+::      value
+::          The value for the segment. This value is normalized.
+exit /b 0
 
 
 :doc.demo
@@ -245,7 +257,7 @@ call :Input.string comparison || set "comparison=LSS"
 echo=
 call :version_parse version1.parsed !version1!
 call :version_parse version2.parsed !version2!
-echo '!version1!' %comparison% '!version2!'?
+set /p "='!version1!' %comparison% '!version2!'? " < nul
 if "!version1.parsed!" %comparison% "!version2.parsed!" (
     echo True
 ) else echo False
@@ -258,7 +270,7 @@ set "message.syntax_invalid=Invalid version syntax"
 set "message.num_invalid=Invalid number"
 set "message.segment_invalid=Invalid segment pattern"
 set "message.public_empty=Public version identifier cannot be empty"
-set "message.public_invalid=Invalid public version identifier"
+set "message.digits_too_long=Digits too long"
 set "message.local_invalid=Invalid local version label"
 exit /b 0
 
@@ -284,6 +296,7 @@ for %%a in (
     "segment_invalid: 1a2a3"
     "segment_invalid: 1cc"
     "segment_invalid: 1rpre"
+    "digits_too_long: 9876543210123"
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     call :tests.invalidate %%b "%%c"
 )
@@ -348,7 +361,6 @@ for %%a in (
     "1.post2: 1-post2 1-2 1r2"
     "1.dev23: 1dev23 1-dev23"
     "1rc0.post0.dev0: 1rcrdev"
-    "1.2b3.post4.dev5: 1.2-b3-4_dev.5"
     "0+0: 0+00000"
     "0+123: 0+00123"
     "0+aa.b.c.ddd: 0+aa-b-c-ddd 0+aa_b_c_ddd 0+aa-b_c.ddd"
@@ -366,25 +378,7 @@ for %%a in (
 exit /b 0
 
 
-:tests.test_not_equal
-for %%a in (
-    "1.4.1-a.5 : 2.4.1-a.5"
-    "1.4.1-a.5 : 1.5.1-a.5"
-    "1.4.1-a.5 : 1.4.2-a.5"
-    "1.4.1-a.5 : 1.4.1-b.5"
-    "1.4.1-a.5 : 1.4.1-a.6"
-) do for /f "tokens=1* delims=: " %%b in (%%a) do (
-    call :version_parse this %%b && (
-        call :version_parse other %%c
-        if "!this!" == "!other!" (
-            call %unittest% fail "Given '%%b', expected not equal to '%%c'"
-        )
-    ) || call %unittest% fail "Given '%%b', expected success"
-)
-exit /b 0
-
-
-:tests.test_comparison_segment
+:tests.test_compare_segment
 for %%a in (
     "1.dev0  1"
     "1rc0  1"
@@ -438,9 +432,11 @@ for %%a in (
 exit /b 0
 
 
-:tests.test_comparison_value
+:tests.test_compare_value
 for %%a in (
     "2  10"
+    "10  11"
+    "987654321012  987654321013"
 
     "1.2  1.10"
 
