@@ -41,7 +41,7 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_prefix
-::          Prefix of the variable to store the metadata.
+::          Prefix of the variable to store the results.
 ::          Variables (as seen in PING command) includes:
 ::          - Packet: sent, received, lost, loss,
 ::          - Ping: min, max, avg.
