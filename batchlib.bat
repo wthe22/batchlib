@@ -9,7 +9,7 @@ rem ############################################################################
 :metadata [return_prefix]
 set "%~1name=batchlib"
 set "%~1version=3.1.dev0"
-set "%~1author=wthe22"
+set "%~1authors=wthe22"
 set "%~1license=The MIT License"
 set "%~1description=Batch Script Library"
 set "%~1release_date=10/17/2021"   :: mm/dd/YYYY
@@ -32,7 +32,7 @@ echo Feel free to use, share, or modify this script for your projects :)
 echo Visit http://winscr.blogspot.com/ for more scripts^^!
 echo=
 echo=
-echo Copyright (C) 2017 by !author!
+echo Copyright (C) 2017 by !authors!
 echo Licensed under !license!
 endlocal
 exit /b 0

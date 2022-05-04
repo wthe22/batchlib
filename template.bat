@@ -9,7 +9,7 @@ rem ############################################################################
 :metadata [return_prefix]
 set "%~1name=template"
 set "%~1version=0"
-set "%~1author="
+set "%~1authors="
 set "%~1license="
 set "%~1description=New Script Template"
 set "%~1release_date=08/22/2021"   :: mm/dd/YYYY

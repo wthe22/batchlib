@@ -201,7 +201,7 @@ call :argparse ^
 ::  :metadata [return_prefix]
 echo set "%%~1name=!name!"
 echo set "%%~1version=!version!"
-::  set "%~1author=Someone"
+::  set "%~1authors=Someone"
 ::  set "%~1license=The MIT License"
 ::  set "%~1description=Dummy Script"
 ::  set "%~1release_date=12/31/2000"
