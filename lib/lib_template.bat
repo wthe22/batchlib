@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:new_lib_template [--options] <args>
+:lib_template [--options] <args>
 rem Library name should start with an alphablet. Library name should only
 rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
 rem The file name should be the same as the function name and use '.bat'
@@ -34,10 +34,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      new_lib_template - a template for new library
+::      lib_template - a template for new library
 ::
 ::  SYNOPSIS
-::      new_lib_template [-o|--options] <args>
+::      lib_template [-o|--options] <args>
 ::
 ::  DESCRIPTION
 ::      A good library should have a good documentation too!
@@ -62,7 +62,7 @@ exit /b 0
 
 :doc.demo
 echo A demo to help users understand how to use it
-call :new_lib_template && (
+call :lib_template && (
     echo Success
 ) || echo Failed...
 exit /b 0
