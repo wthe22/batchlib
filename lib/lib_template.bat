@@ -3,6 +3,9 @@ call %*
 exit /b
 
 
+rem ############################################################################
+rem Documentation
+rem ############################################################################
 
 :doc.man
 ::  NAME
@@ -40,6 +43,10 @@ call :lib_template && (
 exit /b 0
 
 
+rem ############################################################################
+rem Library
+rem ############################################################################
+
 :lib_template [--options] <args>
 rem Library name should start with an alphablet. Library name should only
 rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
@@ -69,6 +76,10 @@ set "%~1category="
 exit /b 0
 
 
+rem ############################################################################
+rem Tests
+rem ############################################################################
+
 rem Run these commands to unittest your function:
 :: cmd /c batchlib.bat test <library name>
 
@@ -96,6 +107,10 @@ rem And if something goes wrong:
 :: call %unittest% skip "No internet detected..."
 exit /b 0
 
+
+rem ############################################################################
+rem End of File
+rem ############################################################################
 
 :EOF
 @rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
