@@ -32,8 +32,8 @@ call "!_other!" -c :metadata _other. || (
 if not "!_other.name!" == "!_this.name!" (
     1>&2 echo%0: warning: Script name is different: '!_this.name!' and '!_other.name!'
 )
-call :parse_version _this._p_ver "!_this.version!"
-call :parse_version _other._p_ver "!_other.version!"
+call :version_parse _this._p_ver "!_this.version!"
+call :version_parse _other._p_ver "!_other.version!"
 if "!_other._p_ver!" LSS "!_this._p_ver!" (
     echo No updates are available
 ) else if "!_other._p_ver!" == "!_this._p_ver!" (
@@ -58,7 +58,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse download_file parse_version Input.yesno"
+set "%~1install_requires=argparse download_file version_parse Input.yesno"
 set "%~1extra_requires=ping_test coderender get_pid_by_title Input.path"
 set "%~1category=packaging"
 exit /b 0
