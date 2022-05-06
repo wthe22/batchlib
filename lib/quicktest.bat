@@ -48,7 +48,7 @@ exit /b 1
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=coderender functions.range readline functions.match"
+set "%~1extra_requires=coderender functions_range readline functions_match"
 set "%~1category=devtools"
 exit /b 0
 
@@ -115,7 +115,7 @@ exit /b 0
 :tests.test_detect_label
 call :tests.type template.detect_label > "dummy.bat" || exit /b
 call 2> outcome
-call :functions.match expected "dummy.bat" "test*.test*"
+call :functions_match expected "dummy.bat" "test*.test*"
 call "dummy.bat" > nul
 for /f "usebackq tokens=*" %%o in ("outcome") do (
     call %unittest% %%o
@@ -178,7 +178,7 @@ exit /b 0
 ::  exit /b
 ::
 ::
-call :functions.range _range "%~f0" "quicktest" || exit /b 2
+call :functions_range _range "%~f0" "quicktest" || exit /b 2
 call :readline "%~f0" !_range!
 ::
 ::
@@ -204,11 +204,11 @@ exit /b 0
 
 
 :tests.type <name>
-call :functions.range _range "%~f0" quicktest || exit /b
+call :functions_range _range "%~f0" quicktest || exit /b
 call :readline "%~f0" !_range!
 echo=
 echo=
-call :functions.range _range "%~f0" tests.%~1 || exit /b
+call :functions_range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
 

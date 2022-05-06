@@ -9,7 +9,7 @@ set "_return_var=%~1"
 set "_input_file=%~f2"
 set "_label=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :functions.range _range "!_input_file!" "!_label!" || exit /b 3
+call :functions_range _range "!_input_file!" "!_label!" || exit /b 3
 call :readline "!_input_file!" !_range! 1:-1 > ".macroify" || exit /b 3
 for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
     set /a "_lines=%%b - %%a - 1"
@@ -31,7 +31,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=functions.range readline"
+set "%~1install_requires=functions_range readline"
 set "%~1extra_requires=capchar"
 set "%~1category=devtools"
 exit /b 0
@@ -86,7 +86,7 @@ call :capchar LF
 call :macroify codes "%~f0" "tests.template.multiline"
 echo RAW CODE
 echo ========
-call :functions.range _range "%~f0" "tests.template.multiline" || exit /b 3
+call :functions_range _range "%~f0" "tests.template.multiline" || exit /b 3
 call :readline "%~f0" !_range! 1:-1 || exit /b 3
 echo=
 echo MACRO CODE

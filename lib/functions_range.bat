@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:functions.range <return_var> <input_file> <label [...]>
+:functions_range <return_var> <input_file> <label [...]>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_input_file=%~f2"
@@ -76,10 +76,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      functions.range - get the line range of functions
+::      functions_range - get the line range of functions
 ::
 ::  SYNOPSIS
-::      functions.range <return_var> <input_file> <label [...]>
+::      functions_range <return_var> <input_file> <label [...]>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -115,7 +115,7 @@ echo=
 echo Input file : !input_file!
 echo Label name : !label_name!
 echo=
-call :functions.range range "!input_file!" "!label_name!"
+call :functions_range range "!input_file!" "!label_name!"
 echo Range  : !range!
 exit /b 0
 
@@ -179,7 +179,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :functions.range range "basic" !given!
+    call :functions_range range "basic" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%s"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
@@ -196,7 +196,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :functions.range range "basic" !given!
+    call :functions_range range "basic" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%t"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
@@ -214,7 +214,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :functions.range range "labels" !given!
+    call :functions_range range "labels" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%s"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
@@ -231,7 +231,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :functions.range range "joined" !given!
+    call :functions_range range "joined" !given!
     for /f "tokens=1-2 delims=: " %%s in ("!range!:None") do set "result=%%t"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"
@@ -247,7 +247,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=!return.%%b!"
-    call :functions.range range "basic" !given! 2> nul
+    call :functions_range range "basic" !given! 2> nul
     set "result=!errorlevel!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' expected '!expected!', got '!result!'"

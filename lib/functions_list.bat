@@ -3,16 +3,16 @@ call %*
 exit /b
 
 
-:functions.list <input_file>
+:functions_list <input_file>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_input_file=%~f1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
 findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" ^
-    ^ > ".functions.list._tokens" 2> nul ^
+    ^ > ".functions_list._tokens" 2> nul ^
     ^ || ( 1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2 )
 set "_result="
-for /f "usebackq tokens=*" %%o in (".functions.list._tokens") do (
+for /f "usebackq tokens=*" %%o in (".functions_list._tokens") do (
     set "_label=%%o"
     set "_label=!_label:*:=!"
     for /f "tokens=* delims=@%TAB% " %%a in ("!_label!") do set "_label=%%a"
@@ -31,10 +31,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      functions.list - display all labels in a file
+::      functions_list - display all labels in a file
 ::
 ::  SYNOPSIS
-::      functions.list <input_file>
+::      functions_list <input_file>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_file
@@ -69,7 +69,7 @@ echo=
 echo Input file : !input_file!
 echo=
 echo Labels:
-call :functions.list "!input_file!"
+call :functions_list "!input_file!"
 exit /b 0
 
 
@@ -112,7 +112,7 @@ exit /b 0
 
 :tests.test_trim_leading
 set "expected= plain space tab at mix"
-call :functions.list "left_side" > result
+call :functions_list "left_side" > result
 set "result="
 for /f "usebackq tokens=*" %%r in ("result") do set "result=!result! %%r"
 if not "!result!" == "!expected!" (
@@ -123,7 +123,7 @@ exit /b 0
 
 :tests.test_trim_trailing
 set "expected= plain space tab colon argspecs"
-call :functions.list "right_side" > result
+call :functions_list "right_side" > result
 set "result="
 for /f "usebackq tokens=*" %%r in ("result") do set "result=!result! %%r"
 if not "!result!" == "!expected!" (

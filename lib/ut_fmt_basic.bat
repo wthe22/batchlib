@@ -75,7 +75,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=difftime ftime"
-set "%~1extra_requires=unittest functions.range readline"
+set "%~1extra_requires=unittest functions_range readline"
 set "%~1category=devtools"
 exit /b 0
 
@@ -145,7 +145,7 @@ exit /b 0
 
 
 :tests.type <name>
-call :functions.range _range "%~f0" tests.%~1 || exit /b
+call :functions_range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
 

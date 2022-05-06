@@ -3,14 +3,14 @@ call %*
 exit /b
 
 
-:functions.match <return_var> <input_file> <pattern>
+:functions_match <return_var> <input_file> <pattern>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_return_var=%~1"
 set "_input_file=%~f2"
 set "_pattern=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :functions.list "!_input_file!" > ".functions.match._tokens" 2> nul || exit /b 2
-for /f "usebackq tokens=*" %%l in (".functions.match._tokens") do (
+call :functions_list "!_input_file!" > ".functions_match._tokens" 2> nul || exit /b 2
+for /f "usebackq tokens=*" %%l in (".functions_match._tokens") do (
     call :fnmatch "%%l" "!_pattern!" && set "_result=!_result! %%l"
 )
 for /f "tokens=1* delims= " %%q in ("Q !_result!") do (
@@ -22,7 +22,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=functions.list fnmatch"
+set "%~1install_requires=functions_list fnmatch"
 set "%~1extra_requires=input_string input_path capchar"
 set "%~1category=packaging"
 exit /b 0
@@ -30,10 +30,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      functions.match - find labels that matches the specified pattern
+::      functions_match - find labels that matches the specified pattern
 ::
 ::  SYNOPSIS
-::      functions.match <return_var> <input_file> <pattern>
+::      functions_match <return_var> <input_file> <pattern>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -76,7 +76,7 @@ call :input_string pattern || set "pattern=*i*.*e*"
 echo=
 echo Input file : !input_file!
 echo Pattern    : !pattern!
-call :functions.match label_match "!input_file!" "!pattern!"
+call :functions_match label_match "!input_file!" "!pattern!"
 echo=
 echo Found match:
 set "match_count=0"
@@ -121,7 +121,7 @@ exit /b 0
     echo exit /b 0
     echo=
 )
-call :functions.match result "needs_trimming" "*"
+call :functions_match result "needs_trimming" "*"
 set "expected=leading trailing"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
@@ -141,7 +141,7 @@ set test_cases= ^
 for /f "tokens=1* delims=: " %%a in ("!test_cases!") do (
     set "given=%%b"
     set "expected=%%a"
-    call :functions.match labels "pattern_basic" "!given!"
+    call :functions_match labels "pattern_basic" "!given!"
     set "result=0"
     for %%l in (!labels!) do set /a "result+=1"
     if not "!result!" == "!expected!" (
@@ -157,7 +157,7 @@ for %%t in (
     "not_found: ola"
 ) do for /f "tokens=1* delims=: " %%a in (%%t) do (
     set "given=%%b"
-    call :functions.match labels "pattern_basic" "!given!"
+    call :functions_match labels "pattern_basic" "!given!"
     set "result=!errorlevel!"
     set "expected=!return.%%a!"
     if not "!result!" == "!expected!" (

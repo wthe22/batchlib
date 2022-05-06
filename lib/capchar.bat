@@ -52,7 +52,7 @@ rem ================================================
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=functions.range readline"
+set "%~1extra_requires=functions_range readline"
 set "%~1category=console"
 exit /b 0
 
@@ -98,7 +98,7 @@ call :capchar ^
     ^ BASE BACK DQ NL ^
     ^ %=END=%
 echo ======================== CODE ========================
-call :functions.range _range "%~f0" "doc.demo.proof"
+call :functions_range _range "%~f0" "doc.demo.proof"
 call :readline "%~f0" !_range! 1:-1
 echo ======================== RESULT ========================
 call :doc.demo.proof

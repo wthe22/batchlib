@@ -688,7 +688,7 @@ goto LibMenu.menu
 
 :LibMenu.read_manual
 cls
-call :functions.range _range "!_library_source!" "doc.man" && (
+call :functions_range _range "!_library_source!" "doc.man" && (
     call :readline "!_library_source!" !_range! 1:-1 4
 )
 echo=
@@ -699,7 +699,7 @@ exit /b 0
 :LibMenu.run_demo
 setlocal EnableDelayedExpansion
 cls
-call :functions.range _range "!_library_source!" "doc.man" && (
+call :functions_range _range "!_library_source!" "doc.man" && (
     call :readline "!_library_source!" !_range! 1:-1 4
 )
 echo=
@@ -740,7 +740,7 @@ exit /b 0
 
 :LibMenu.view_source
 cls
-call :functions.range _range "!_library_source!" "!_library!" && (
+call :functions_range _range "!_library_source!" "!_library!" && (
     call :readline "!_library_source!" !_range!
 )
 echo=
@@ -792,7 +792,7 @@ exit /b 0
 
 :show_docs <label>
 cls
-call :functions.range _range "%~f0" %1
+call :functions_range _range "%~f0" %1
 call :readline "%~f0" !_range! 1:-1 4
 echo=
 pause
@@ -816,7 +816,7 @@ if defined flags.is_minified set "lib="
 call "!_input_file!" -c :lib.dependencies || exit /b 3
 call :Library.depends _dep "!install_requires!" || exit /b 3
 call :Library.unload_info
-call %lib%:functions.range _range "!_input_file!" "entry_point EOF" || exit /b 3
+call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
 for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
 > "_build_script.tmp" (
     call %lib%:readline "!_input_file!" !_range! || exit /b 3
@@ -825,7 +825,7 @@ for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
     echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.version! on !date! !time!
     echo=
     if defined flags.is_minified (
-        call :functions.range _ranges "%~f0" "!_dep!" || exit /b 3
+        call :functions_range _ranges "%~f0" "!_dep!" || exit /b 3
         for %%r in (!_ranges!) do (
             call :readline "%~f0" %%r || exit /b 3
             echo=
@@ -833,7 +833,7 @@ for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
         )
     ) else (
         for %%l in (!_dep!) do (
-            call %lib%:functions.range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
+            call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
             call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
             echo=
             echo=
@@ -852,7 +852,7 @@ setlocal EnableDelayedExpansion
 set "_success=true"
 set "_labels= "
 for %%l in (%*) do set "_labels=!_labels!%%~l "
-call :functions.range _range "%~f0" "!_labels!" || set "_success="
+call :functions_range _range "%~f0" "!_labels!" || set "_success="
 for %%r in (!_range!) do (
     call :readline "%~f0" %%r || set "_success="
     echo=
@@ -1006,12 +1006,12 @@ setlocal EnableDelayedExpansion
 set "_input_file=%~f1"
 set "_label=%~2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call %lib%:functions.range _range "!_input_file!" "!_label!" || exit /b 4
+call %lib%:functions_range _range "!_input_file!" "!_label!" || exit /b 4
 for /f "tokens=1-2 delims=: " %%a in ("!_range!") do (
     call %lib%:readline "!_input_file!" 1:%%a 0:-1
     if not "%%b" == "" call %lib%:readline "!_input_file!" %%b: 1:
 ) > "_other"
-call %lib%:functions.list "_other" > "_labels"
+call %lib%:functions_list "_other" > "_labels"
 set "_match="
 for /f "usebackq tokens=*" %%l in ("_labels") do (
     set "_leftover=:%%l"
@@ -1038,7 +1038,7 @@ echo=
 call :Library.depends _dep "!_dependencies!" || exit /b 3
 call :Library.unload_info
 for %%l in (!_dep!) do (
-    call %lib%:functions.range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
+    call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
     call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
     echo=
     echo=
@@ -1290,7 +1290,7 @@ rem ############################################################################
 
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
-    ^ functions.range readline functions.list true unset_all ^
+    ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest ut_fmt_basic ^
     ^ conemu input_path input_yesno input_string updater ^
     ^ difftime ftime ^
@@ -1447,7 +1447,7 @@ call :self_extract_func ^
     ^ %=END=%
 call :Library.depends ordered_lib "!Library.all!"
 for %%l in (!ordered_lib!) do (
-    call :functions.range _range "!lib_dir!\%%l.bat" "%%l"
+    call :functions_range _range "!lib_dir!\%%l.bat" "%%l"
     call :readline "!lib_dir!\%%l.bat" !_range!
     echo=
     echo=

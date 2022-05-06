@@ -9,7 +9,7 @@ set "_source_file=%~f1"
 set "_label=%~2"
 set "_args=%~3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :functions.range _range "!_source_file!" "!_label!"
+call :functions_range _range "!_source_file!" "!_label!"
 call :readline "!_source_file!" !_range! 1 > ".coderender._template" || exit /b 2
 for %%f in (code literal) do call 2> ".coderender._%%f"
 findstr /n "^" ".coderender._template" > ".coderender._numbered"
@@ -77,14 +77,14 @@ exit /b 0
 #+++
 
 :coderender._type
-call :functions.range _range "%~f0" "coderender._captured.%~1" || exit /b 2
+call :functions_range _range "%~f0" "coderender._captured.%~1" || exit /b 2
 call :readline "%~f0" !_range! 1:-1 4
 exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=functions.range readline"
-set "%~1extra_requires=functions.range readline"
+set "%~1install_requires=functions_range readline"
+set "%~1extra_requires=functions_range readline"
 set "%~1category=packaging"
 exit /b 0
 
@@ -102,7 +102,7 @@ exit /b 0
 ::
 ::      label
 ::          The function label that contains the template. Function/template
-::          line range is determined by functions.range().
+::          line range is determined by functions_range().
 ::
 ::      arg
 ::          Argument to pass to template function with surrounding quotes removed.
@@ -131,7 +131,7 @@ exit /b 0
 :doc.demo
 echo Codes
 echo =====
-call :functions.range _range "%~f0" "doc.demo.template" || exit /b 2
+call :functions_range _range "%~f0" "doc.demo.template" || exit /b 2
 call :readline "%~f0" !_range! 1:-1
 echo=
 echo Result
@@ -358,7 +358,7 @@ exit /b 0
 
 
 :tests.type <name>
-call :functions.range _range "%~f0" tests.%~1
+call :functions_range _range "%~f0" tests.%~1
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
 

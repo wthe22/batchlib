@@ -67,7 +67,7 @@ pushd "!unittest.start_dir!"
 > "!unittest.tmp_dir!\.unittest_test_cases" (
     for %%f in ("!unittest.target!") do (
         if not defined unittest.top_dir set "unittest.top_dir=%%~dpf"
-        call :functions.match _labels "%%~ff" "!unittest.pattern!"
+        call :functions_match _labels "%%~ff" "!unittest.pattern!"
         for %%l in (!_labels!) do echo %%~nf:%%l
     )
 )
@@ -143,8 +143,8 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse functions.match"
-set "%~1extra_requires=functions.range readline"
+set "%~1install_requires=argparse functions_match"
+set "%~1extra_requires=functions_range readline"
 set "%~1category=devtools"
 exit /b 0
 
@@ -671,7 +671,7 @@ exit /b 0
 
 
 :tests.type <name>
-call :functions.range _range "%~f0" tests.%~1 || exit /b
+call :functions_range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
 
