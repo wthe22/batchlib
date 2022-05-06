@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:bytes.format <return_var> <bytes>
+:bytes_format <return_var> <bytes>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_bytes=%~2"
@@ -48,10 +48,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      bytes.format - convert bytes to human readable size
+::      bytes_format - convert bytes to human readable size
 ::
 ::  SYNOPSIS
-::      bytes.format <return_var> <bytes>
+::      bytes_format <return_var> <bytes>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -67,7 +67,7 @@ exit /b 0
 
 :doc.demo
 call :input_number int_bytes --optional || set "int_bytes=2560"
-call :bytes.format readable_size "!int_bytes!"
+call :bytes_format readable_size "!int_bytes!"
 echo=
 echo Int bytes  : !int_bytes!
 echo The human readable form is !readable_size!
@@ -142,7 +142,7 @@ exit /b 0
 for %%a in (%*) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%b"
     set "expected=%%c"
-    call :bytes.format result "!given!"
+    call :bytes_format result "!given!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )

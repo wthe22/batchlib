@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:bytes.parse <return_var> <readable_bytes>
+:bytes_parse <return_var> <readable_bytes>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_result=%~2"
@@ -31,7 +31,7 @@ exit /b 0
 ::      bytes - convert human readable size to bytes
 ::
 ::  SYNOPSIS
-::      bytes.parse <return_var> <readable_bytes>
+::      bytes_parse <return_var> <readable_bytes>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -47,7 +47,7 @@ exit /b 0
 
 :doc.demo
 call :input_string readable_bytes || set "readable_bytes=2M + 512K"
-call :bytes.parse bytes "!readable_bytes!"
+call :bytes_parse bytes "!readable_bytes!"
 echo=
 echo Readable bytes: !readable_bytes!
 echo The size is !bytes! bytes
@@ -97,7 +97,7 @@ exit /b 0
 for %%a in (%*) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :bytes.parse result "!given!"
+    call :bytes_parse result "!given!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
