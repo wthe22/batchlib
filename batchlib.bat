@@ -220,10 +220,18 @@ rem ############################################################################
 ::  Library
 ::  - New functions:
 ::      -
-::  - Replaced functions:
-::      - parse_version() -> version_parse()
+::  - parse_version():
+::      - Replaced with version_parse()
+::      - Increase digit limitation from 3 to 12
+::      - Legacy version syntax is not supported anymore (e.g. 0+)
 ::  - Renamed functions:
-::      -
+::      - int.* -> int_*
+::      - Input.* -> input_*
+::      - functions.* -> functions_*
+::      - roman.* -> roman_*
+::      - bytes.* -> bytes_*
+::      - epoch.* -> epoch_*
+::      - ext.* -> ext_*
 ::  - Removed functions:
 ::      -
 ::  - New features:
