@@ -12,7 +12,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=difftime ext.powershell"
+set "%~1extra_requires=difftime ext_powershell"
 set "%~1category=env"
 exit /b 0
 

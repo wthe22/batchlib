@@ -27,7 +27,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=ext.vbscript"
+set "%~1install_requires=ext_vbscript"
 set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0

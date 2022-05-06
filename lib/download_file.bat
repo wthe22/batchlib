@@ -12,7 +12,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=ext.powershell"
+set "%~1install_requires=ext_powershell"
 set "%~1extra_requires=input_string input_path"
 set "%~1category=net"
 exit /b 0

@@ -3,8 +3,8 @@ call %*
 exit /b
 
 
-:ext.vbscript
-cscript > nul
+:ext_powershell
+powershell -Command "$PSVersionTable.PSVersion.ToString()"
 exit /b
 
 
@@ -16,7 +16,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      ext.vbscript - an external program called VBScript
+::      ext_powershell - an external program called PowerShell
 ::
 ::  NOTES
 ::      - This is just a helper to find functions that depends on it
