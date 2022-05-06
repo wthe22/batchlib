@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:int.to_bin <return_var> <positive_integer>
+:int_to_bin <return_var> <positive_integer>
 setlocal EnableDelayedExpansion
 set "_result="
 for /l %%i in (0,1,31) do (
@@ -28,10 +28,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      int.to_bin - convert decimal to unsigned binary
+::      int_to_bin - convert decimal to unsigned binary
 ::
 ::  SYNOPSIS
-::      int.to_bin <return_var> <positive_integer>
+::      int_to_bin <return_var> <positive_integer>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -46,7 +46,7 @@ exit /b 0
 call :Input.number decimal --range "0~2147483647" --optional || (
     set "decimal=!random!"
 )
-call :int.to_bin result !decimal!
+call :int_to_bin result !decimal!
 echo=
 echo The binary value of '!decimal!' is !result!
 exit /b 0
@@ -68,7 +68,7 @@ for %%a in (
     "2147483647 = 1111111111111111111111111111111"
 ) do for /f "tokens=1* delims== " %%b in (%%a) do (
     set "given=%%b"
-    call :int.to_bin result !given! || (
+    call :int_to_bin result !given! || (
         call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%c"

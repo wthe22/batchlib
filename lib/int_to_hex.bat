@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:int.to_hex <return_var> <positive_integer>
+:int_to_hex <return_var> <positive_integer>
 setlocal EnableDelayedExpansion
 set "_charset=0123456789ABCDEF"
 set "_result="
@@ -29,10 +29,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      int.to_hex - convert decimal to hexadecimal
+::      int_to_hex - convert decimal to hexadecimal
 ::
 ::  SYNOPSIS
-::      int.to_hex <return_var> <positive_integer>
+::      int_to_hex <return_var> <positive_integer>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -47,7 +47,7 @@ exit /b 0
 call :Input.number decimal --range "0~2147483647" --optional || (
     set "decimal=!random!"
 )
-call :int.to_hex result !decimal!
+call :int_to_hex result !decimal!
 echo=
 echo The hexadecimal value of '!decimal!' is 0x!result!
 exit /b 0

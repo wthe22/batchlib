@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:int.from_bin <return_var> <unsigned_binary>
+:int_from_bin <return_var> <unsigned_binary>
 setlocal EnableDelayedExpansion
 set "_input=00000000000000000000000000000000%~2"
 set "_result=0"
@@ -27,7 +27,7 @@ exit /b 0
 ::      Convert binary to decimal
 ::
 ::  SYNOPSIS
-::      int.from_bin <return_var> <unsigned_binary>
+::      int_from_bin <return_var> <unsigned_binary>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -40,7 +40,7 @@ exit /b 0
 
 :doc.demo
 call :Input.string binary || set "binary=10110"
-call :int.from_bin result !binary!
+call :int_from_bin result !binary!
 echo=
 echo The decimal value of '!binary!' is !result!
 exit /b 0
@@ -64,7 +64,7 @@ for %%a in (
     "2147483647 = 1111111111111111111111111111111"
 ) do for /f "tokens=1* delims== " %%b in (%%a) do (
     set "given=%%c"
-    call :int.from_bin result !given! || (
+    call :int_from_bin result !given! || (
         call %unittest% fail "Given '!given!', got failure"
     )
     set "expected=%%b"

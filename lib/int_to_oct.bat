@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:int.to_oct <return_var> <positive_integer>
+:int_to_oct <return_var> <positive_integer>
 setlocal EnableDelayedExpansion
 set "_result="
 for /l %%i in (0,3,31) do (
@@ -28,10 +28,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      int.to_oct - convert decimal to octal
+::      int_to_oct - convert decimal to octal
 ::
 ::  SYNOPSIS
-::      int.to_oct <return_var> <positive_integer>
+::      int_to_oct <return_var> <positive_integer>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -46,7 +46,7 @@ exit /b 0
 call :Input.number decimal --range "0~2147483647" --optional || (
     set "decimal=!random!"
 )
-call :int.to_oct result !decimal!
+call :int_to_oct result !decimal!
 echo=
 echo The octal value of '!decimal!' is 0!result!
 exit /b 0
