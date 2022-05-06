@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:roman.encode <return_var> <integer>
+:roman_encode <return_var> <integer>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set /a "_remainder=%~2"
@@ -33,10 +33,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      roman.encode - convert number to roman numeral
+::      roman_encode - convert number to roman numeral
 ::
 ::  SYNOPSIS
-::      roman.encode <return_var> <integer>
+::      roman_encode <return_var> <integer>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -50,7 +50,7 @@ exit /b 0
 :doc.demo
 call :input_number number --range "1~3999" --optional || set /a "number=!random!/9"
 echo=
-call :roman.encode result !number!
+call :roman_encode result !number!
 echo The roman numeral value of '!number!' is !result!
 exit /b 0
 
@@ -74,7 +74,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%b"
     set "expected=%%c"
-    call :roman.encode result "!given!"
+    call :roman_encode result "!given!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )

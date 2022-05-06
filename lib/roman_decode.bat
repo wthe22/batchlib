@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:roman.decode <return_var> <roman_numeral>
+:roman_decode <return_var> <roman_numeral>
 set "%~1=%~2"
 for %%r in (
     IV.4 XL.40 CD.400
@@ -23,10 +23,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      roman.decode - convert roman numeral to number
+::      roman_decode - convert roman numeral to number
 ::
 ::  SYNOPSIS
-::      roman.decode <return_var> <roman_numeral>
+::      roman_decode <return_var> <roman_numeral>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -40,7 +40,7 @@ exit /b 0
 :doc.demo
 call :input_string roman_numeral || set "roman_numeral=MCMLXIX"
 echo=
-call :roman.decode result !roman_numeral!
+call :roman_decode result !roman_numeral!
 echo The decimal value of '!roman_numeral!' is !result!
 exit /b 0
 
@@ -64,7 +64,7 @@ for %%a in (
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
-    call :roman.decode result "!given!"
+    call :roman_decode result "!given!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
