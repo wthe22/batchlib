@@ -28,7 +28,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=ext.vbscript"
-set "%~1extra_requires=Input.path"
+set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0
 
@@ -70,8 +70,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file zip_file --optional || exit /b 0
-call :Input.path --directory destination_folder --optional || exit /b 0
+call :input_path --exist --file zip_file --optional || exit /b 0
+call :input_path --directory destination_folder --optional || exit /b 0
 echo=
 call :unzip "!zip_file!" "!destination_folder!" && (
     echo Unzip successful

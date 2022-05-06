@@ -16,7 +16,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=capchar"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=console"
 exit /b 0
 
@@ -60,8 +60,8 @@ exit /b 0
 rem Satisfy dependencies
 call :capchar LF BACK
 
-call :Input.string text || set "text=Hello World"
-call :Input.string hexadecimal_color || set "hexadecimal_color=02"
+call :input_string text || set "text=Hello World"
+call :input_string hexadecimal_color || set "hexadecimal_color=02"
 echo=
 call :color_print "!hexadecimal_color!" "!text!" && (
     echo !LF!Print Success

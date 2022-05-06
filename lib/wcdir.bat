@@ -46,7 +46,7 @@ exit /b
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string strip_dquotes capchar"
+set "%~1extra_requires=input_string strip_dquotes capchar"
 set "%~1category=file"
 exit /b 0
 
@@ -85,7 +85,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string wildcard_path || set "wildcard_path=*:\Windows\Sys*\*script.exe"
+call :input_string wildcard_path || set "wildcard_path=*:\Windows\Sys*\*script.exe"
 call :strip_dquotes wildcard_path
 call :wcdir result "!wildcard_path!"
 echo=

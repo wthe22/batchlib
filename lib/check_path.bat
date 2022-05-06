@@ -61,7 +61,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=file"
 exit /b 0
 
@@ -106,17 +106,17 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string config_file  --message "Input an existing file: "
+call :input_string config_file  --message "Input an existing file: "
 call :check_path --exist --file config_file && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :Input.string folder  --message "Input an existing folder or a new folder name: "
+call :input_string folder  --message "Input an existing folder or a new folder name: "
 call :check_path --directory folder && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :Input.string new_name  --message "Input a non-existing file name: "
+call :input_string new_name  --message "Input a non-existing file name: "
 call :check_path --not-exist new_name && (
     echo Your input is valid
 ) || echo Your input is invalid

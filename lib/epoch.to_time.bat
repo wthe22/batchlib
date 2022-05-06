@@ -19,7 +19,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=fdate ftime"
-set "%~1extra_requires=Input.number"
+set "%~1extra_requires=input_number"
 set "%~1category=time"
 exit /b 0
 
@@ -45,7 +45,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.number seconds_since_epoch --optional || (
+call :input_number seconds_since_epoch --optional || (
     set "seconds_since_epoch=1234567890"
 )
 echo=

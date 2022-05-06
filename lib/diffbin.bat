@@ -31,7 +31,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.path"
+set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0
 
@@ -63,8 +63,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file file1
-call :Input.path --exist --file file2
+call :input_path --exist --file file1
+call :input_path --exist --file file2
 echo=
 call :diffbin offset "!file1!" "!file2!"
 echo=

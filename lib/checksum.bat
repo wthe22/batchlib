@@ -45,7 +45,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.path Input.string"
+set "%~1extra_requires=input_path input_string"
 set "%~1category=file"
 exit /b 0
 
@@ -80,8 +80,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file --optional file_path || set "file_path=%~f0"
-call :Input.string checksum_type
+call :input_path --exist --file --optional file_path || set "file_path=%~f0"
+call :input_string checksum_type
 call :checksum checksum "!file_path!" !checksum_type!
 echo=
 echo File: !file_path!

@@ -24,7 +24,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string Input.path capchar"
+set "%~1extra_requires=input_string input_path capchar"
 set "%~1category=packaging"
 exit /b 0
 
@@ -64,7 +64,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --file --exist --optional input_file || set "input_file=%~f0"
+call :input_path --file --exist --optional input_file || set "input_file=%~f0"
 echo=
 echo Input file : !input_file!
 echo=

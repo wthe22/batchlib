@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.string [-m message] [-f] <return_var>
+:input_string [-m message] [-f] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message _require_filled) do set "%%v="
 call :argparse ^
@@ -12,7 +12,7 @@ call :argparse ^
     ^ "-f,--filled:store_const  :_require_filled=true" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!: "
-call :Input.string._loop || exit /b 4
+call :input_string._loop || exit /b 4
 set "user_input=^!!user_input!"
 set "user_input=!user_input:^=^^^^!"
 set "user_input=%user_input:!=^^^!%"
@@ -25,7 +25,7 @@ for /f "delims= eol=" %%a in ("!user_input!") do (
 exit /b 0
 #+++
 
-:Input.string._loop
+:input_string._loop
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
@@ -45,10 +45,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      Input.string - read a string from standard input
+::      input_string - read a string from standard input
 ::
 ::  SYNOPSIS
-::      Input.string [-m message] [-f] <return_var>
+::      input_string [-m message] [-f] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -71,9 +71,9 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string your_text --message "Enter anything: "
+call :input_string your_text --message "Enter anything: "
 echo Your input: "!your_text!"
-call :Input.string your_text --filled --message "Enter something: "
+call :input_string your_text --filled --message "Enter something: "
 echo Your input: "!your_text!"
 exit /b 0
 
@@ -100,7 +100,7 @@ for %%a in (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!
     )
-    call :Input.string result %%d < "input" > nul
+    call :input_string result %%d < "input" > nul
     set "expected=!text_%%b!"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '%%c' and '%%d', expected '!expected!', got '!result!'"
@@ -120,7 +120,7 @@ for %%a in (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!
     )
-    call :Input.string result %%d < "input" > nul
+    call :input_string result %%d < "input" > nul
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (

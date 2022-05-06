@@ -94,11 +94,11 @@ These are the recommended ways to do this (depending on use case):
 
     rem 1. Use macro
     set batchlib="C:\absolute\path\to\batchlib-min.bat" -c %=END=%
-    call %batchlib%:Input.yesno -m "Sleep? [y/n] "
+    call %batchlib%:input_yesno -m "Sleep? [y/n] "
 
     rem 2. Add to PATH
     set "path=C:\absolute\path\to;%PATH%"
-    call batchlib-min -c :Input.yesno -m "Midnight snacks? [y/n] "
+    call batchlib-min -c :input_yesno -m "Midnight snacks? [y/n] "
 
 At method #1, the ``%=END=%`` is used to prevent accidental truncation of trailing space.
 

@@ -23,7 +23,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=wait"
-set "%~1extra_requires=Input.number difftime"
+set "%~1extra_requires=input_number difftime"
 set "%~1category=time"
 exit /b 0
 
@@ -55,7 +55,7 @@ exit /b 0
 call :wait.setup_macro
 call :wait.calibrate
 echo=
-call :Input.number time_in_milliseconds --range "0~100000000" --optional || (
+call :input_number time_in_milliseconds --range "0~100000000" --optional || (
     set /a "time_in_milliseconds=!random! %% 500 * 10 + 100"
 )
 echo=

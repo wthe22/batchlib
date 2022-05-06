@@ -36,7 +36,7 @@ exit /b 3
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.number Input.string"
+set "%~1extra_requires=input_number input_string"
 set "%~1category=number"
 exit /b 0
 
@@ -67,8 +67,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.number number --optional || set "number=!random!"
-call :Input.string range || set "range=-99~111, 123, -1, 10240~20480"
+call :input_number number --optional || set "number=!random!"
+call :input_string range || set "range=-99~111, 123, -1, 10240~20480"
 echo=
 echo Number : !number!
 echo Range  : !range!

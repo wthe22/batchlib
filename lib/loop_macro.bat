@@ -16,7 +16,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.number timeit pow"
+set "%~1extra_requires=input_number timeit pow"
 set "%~1category=devtools"
 exit /b 0
 
@@ -56,9 +56,9 @@ exit /b 0
 
 
 :doc.demo
-call :Input.number loops --range "0~1024" --optional || set "loops=256"
-call :Input.number stacks --range "0~16" --optional || set "stacks=4"
-call :Input.number quit_at_loop --range "0~2147483647" --optional || (
+call :input_number loops --range "0~1024" --optional || set "loops=256"
+call :input_number stacks --range "0~16" --optional || set "stacks=4"
+call :input_number quit_at_loop --range "0~2147483647" --optional || (
     set "quit_at_loop=300"
 )
 echo=

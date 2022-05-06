@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.yesno [-m message] [-y value] [-n value] [-d default] [return_var]
+:input_yesno [-m message] [-y value] [-n value] [-d default] [return_var]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
@@ -16,7 +16,7 @@ call :argparse ^
     ^ "-d,--default:store   :_default" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!? [y/n] "
-call :Input.yesno._loop || exit /b 4
+call :input_yesno._loop || exit /b 4
 set "_result="
 if /i "!user_input:~0,1!" == "Y" set "_result=!_yes_value!"
 if /i "!user_input:~0,1!" == "N" set "_result=!_no_value!"
@@ -35,7 +35,7 @@ for /f "delims= eol=" %%a in ("!_result!") do (
 exit /b 1
 #+++
 
-:Input.yesno._loop
+:input_yesno._loop
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
@@ -57,10 +57,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      Input.yesno - read a yes/no from standard input
+::      input_yesno - read a yes/no from standard input
 ::
 ::  SYNOPSIS
-::      Input.yesno [-m message] [-y value] [-n value] [-d default] [return_var]
+::      input_yesno [-m message] [-y value] [-n value] [-d default] [return_var]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -91,18 +91,18 @@ exit /b 0
 
 
 :doc.demo
-call :Input.yesno your_ans --message "Do you like programming? Y/N? " && (
+call :input_yesno your_ans --message "Do you like programming? Y/N? " && (
     echo Its a yes^^!
 ) || echo Its a no...
 echo Your input: !your_ans!
 echo=
-call :Input.yesno your_ans --message "Is it true? Y/N? " --yes "true" --no "false"
+call :input_yesno your_ans --message "Is it true? Y/N? " --yes "true" --no "false"
 echo Your input ('true', 'false'): '!your_ans!'
 echo=
-call :Input.yesno your_ans --message "Do you excercise? [y/N] " --default="N"
+call :input_yesno your_ans --message "Do you excercise? [y/N] " --default="N"
 echo Your input ('Y', 'N', default 'N'): '!your_ans!'
 echo=
-call :Input.yesno your_ans --message "Is this defined? Y/N? " -y="yes" -n=""
+call :input_yesno your_ans --message "Is this defined? Y/N? " -y="yes" -n=""
 echo Your input ('yes', ''): '!your_ans!'
 exit /b 0
 
@@ -143,7 +143,7 @@ for %%a in (
             ) else echo %%i
         )
     )
-    call :Input.yesno result < "input" > nul
+    call :input_yesno result < "input" > nul
     set "expected=%%b"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '%%c', expected '!expected!', got '!result!'"
@@ -166,7 +166,7 @@ for %%a in (
             ) else echo %%i
         )
     )
-    call :Input.yesno result < "input" > nul
+    call :input_yesno result < "input" > nul
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (
@@ -178,7 +178,7 @@ exit /b 0
 
 :tests.test_null_value
 for %%a in (y n) do (
-    call :Input.yesno -%%a "" result < "enter_%%a" > nul
+    call :input_yesno -%%a "" result < "enter_%%a" > nul
     set "expected="
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '%%a', expected '!expected!', got '!result!'"
@@ -192,7 +192,7 @@ for %%a in (
     "0:Y:y"
     "5:N:n"
 ) do for /f "tokens=1-3 delims=:" %%b in (%%a) do (
-    call :Input.yesno --default "%%d" value < nul > nul
+    call :input_yesno --default "%%d" value < nul > nul
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (

@@ -25,7 +25,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.number"
+set "%~1extra_requires=input_number"
 set "%~1category=number"
 exit /b 0
 
@@ -54,10 +54,10 @@ exit /b 0
 
 
 :doc.demo
-call :Input.number number --range "0~2147483647" --optional || (
+call :input_number number --range "0~2147483647" --optional || (
     set /a "number=!random! %% 1000"
 )
-call :Input.number power --range "0~2147483647"  --optional || (
+call :input_number power --range "0~2147483647"  --optional || (
     set /a "power=!random! %% 3 + 1"
 )
 echo=

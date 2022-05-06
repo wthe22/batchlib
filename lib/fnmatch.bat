@@ -49,7 +49,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=strlen"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=string"
 exit /b 0
 
@@ -80,8 +80,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string pattern || set "pattern=*.bat"
-call :Input.string string || set "string=batchlib.bat"
+call :input_string pattern || set "pattern=*.bat"
+call :input_string string || set "string=batchlib.bat"
 echo=
 echo Pattern    : '!pattern!'
 echo String     : '!string!'

@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] <return_var>
+:input_path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (
     _return_var _message _base_dir _optional _warn_overwrite
@@ -26,7 +26,7 @@ if not defined _message (
         set "_message=Input !_return_var! (optional): "
     ) else set "_message=Input !_return_var!: "
 )
-call :Input.path._loop || exit /b 4
+call :input_path._loop || exit /b 4
 set "user_input=^!!user_input!"
 set "user_input=!user_input:^=^^^^!"
 set "user_input=%user_input:!=^^^!%"
@@ -39,7 +39,7 @@ for /f "delims= eol=" %%a in ("!user_input!") do (
 exit /b 0
 #+++
 
-:Input.path._loop
+:input_path._loop
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
@@ -47,7 +47,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
         call :check_path user_input !_check_options! && (
             if not defined _warn_overwrite exit /b 0
             if not exist "!user_input!" exit /b 0
-            call :Input.yesno _ --default N ^
+            call :input_yesno _ --default N ^
                 ^ --message "File already exist. Overwrite file? [y/N] " ^
                 ^ && exit /b 0
         )
@@ -58,7 +58,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse check_path Input.yesno"
+set "%~1install_requires=argparse check_path input_yesno"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
@@ -66,10 +66,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      Input.path - read a path string from standard input
+::      input_path - read a path string from standard input
 ::
 ::  SYNOPSIS
-::      Input.path [-m message] [-b base_dir] [-e|-n] [-f|-d]
+::      input_path [-m message] [-b base_dir] [-e|-n] [-f|-d]
 ::                 [-o] [-w] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
@@ -124,17 +124,17 @@ rem   TAB autocompletion if the file name contains whitespace
 echo Current directory: !cd!
 
 echo=
-call :Input.path save_folder --directory ^
+call :input_path save_folder --directory ^
     ^ --message "Input an existing folder or a new folder name: "
 echo Result: "!save_folder!"
 
 echo=
-call :Input.path existing_file_or_folder --optional --exist
+call :input_path existing_file_or_folder --optional --exist
 echo Result: "!existing_file_or_folder!"
 
 echo=
 echo Base directory is now "!tmp!"
-call :Input.path target_file --base-dir "!tmp!" --not-exist ^
+call :input_path target_file --base-dir "!tmp!" --not-exist ^
     ^ --message "Input an non-existing file: "
 echo Result: "!target_file!"
 
@@ -194,7 +194,7 @@ for %%a in (
     )
     call :tests.make_path expected "!cd!\tree" "%%b"
     set "result="
-    call :Input.path result %%d < "input" > nul 2> nul
+    call :input_path result %%d < "input" > nul 2> nul
     if not "!result!" == "!expected!" (
         call %unittest% fail "given '%%c' and '%%d', expected errorlevel '!expected!', got '!result!'"
     )
@@ -223,7 +223,7 @@ for %%a in (
             echo=!relpath!
         )
     )
-    call :Input.path result %%d < "input" > nul 2> nul
+    call :input_path result %%d < "input" > nul 2> nul
     set "result=!errorlevel!"
     set "expected=%%b"
     if not "!result!" == "!expected!" (

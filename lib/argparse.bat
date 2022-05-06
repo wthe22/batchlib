@@ -225,7 +225,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=devtools"
 exit /b 0
 
@@ -332,7 +332,7 @@ echo    -r, --recommend
 echo        Recommend this rating. Can be used multiple times.
 echo=
 echo=
-call :Input.string parameters || (
+call :input_string parameters || (
     set parameters=5 -m "A True Masterpiece" -t Art -t "Paintings" --anonymous -r -r -r
 )
 echo=

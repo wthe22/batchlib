@@ -33,7 +33,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=string"
 exit /b 0
 
@@ -62,7 +62,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string list_with_duplicates || (
+call :input_string list_with_duplicates || (
     set list_with_duplicates= hello? hi =hello= *howdy* "hi" hello? *howdy*
 )
 set "result=!list_with_duplicates!"

@@ -31,7 +31,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=time"
 exit /b 0
 
@@ -57,7 +57,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string days_since_epoch || set "days_since_epoch=365"
+call :input_string days_since_epoch || set "days_since_epoch=365"
 call :fdate result !days_since_epoch!
 echo=
 echo Days since epoch   : !days_since_epoch!

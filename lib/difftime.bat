@@ -15,7 +15,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=time"
 exit /b 0
 
@@ -52,8 +52,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string start_time || set "start_time=!time!"
-call :Input.string end_time || set "end_time=!time!"
+call :input_string start_time || set "start_time=!time!"
+call :input_string end_time || set "end_time=!time!"
 call :difftime time_taken "!end_time!" "!start_time!"
 echo=
 echo Start time     : !start_time!

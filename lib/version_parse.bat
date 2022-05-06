@@ -146,7 +146,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=packaging"
 exit /b 0
 
@@ -251,9 +251,9 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string version1 || set "version1=2.0a"
-call :Input.string version2 || set "version2=2.0"
-call :Input.string comparison || set "comparison=LSS"
+call :input_string version1 || set "version1=2.0a"
+call :input_string version2 || set "version2=2.0"
+call :input_string comparison || set "comparison=LSS"
 echo=
 call :version_parse version1.parsed !version1!
 call :version_parse version2.parsed !version2!

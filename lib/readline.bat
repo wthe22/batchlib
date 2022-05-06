@@ -54,7 +54,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.number Input.path"
+set "%~1extra_requires=input_number input_path"
 set "%~1category=file"
 exit /b 0
 
@@ -112,9 +112,9 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path input_file --optional || set "input_file=%~f0"
-call :Input.number start_line --optional || set "start_line=1"
-call :Input.number end_line --optional || set "end_line=15"
+call :input_path input_file --optional || set "input_file=%~f0"
+call :input_number start_line --optional || set "start_line=1"
+call :input_number end_line --optional || set "end_line=15"
 echo=
 echo Reading "!input_file!" from line !start_line! to !end_line!
 call :readline "%~f0" "!start_line!:!end_line!"

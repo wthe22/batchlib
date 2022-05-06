@@ -10,7 +10,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.number"
+set "%~1extra_requires=input_number"
 set "%~1category=number"
 exit /b 0
 
@@ -39,8 +39,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.number minimum --range "0~2147483647" --optional || set "minimum=-9"
-call :Input.number maximum --range "0~2147483647" --optional || set "maximum=99"
+call :input_number minimum --range "0~2147483647" --optional || set "minimum=-9"
+call :input_number maximum --range "0~2147483647" --optional || set "maximum=99"
 echo=
 echo Random number from !minimum! to !maximum!:
 for /l %%n in (1,1,5) do (

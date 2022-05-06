@@ -51,7 +51,7 @@ exit /b
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse strlen"
-set "%~1extra_requires=Input.path"
+set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0
 
@@ -95,8 +95,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file --optional source_file || exit /b 0
-call :Input.path --not-exist destination_file || goto doc.demo
+call :input_path --exist --file --optional source_file || exit /b 0
+call :input_path --not-exist destination_file || goto doc.demo
 echo=
 echo Converting to hex...
 call :hexlify "!source_file!" > "!destination_file!"

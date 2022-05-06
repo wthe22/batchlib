@@ -42,7 +42,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=net"
 exit /b 0
 
@@ -83,7 +83,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
+call :input_string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
 call :url_split web_url. "!web_url!"
 set web_url
 exit /b 0

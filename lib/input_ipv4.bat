@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.ipv4 [-m message] [-w] [-o] <return_var>
+:input_ipv4 [-m message] [-w] [-o] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message _allow_wildcard _check_options) do set "%%v="
 call :argparse ^
@@ -20,7 +20,7 @@ if not defined _message (
         set "_message=Input !_return_var! (!_message:~0,-2!): "
     ) else set "_message=Input !_return_var!: "
 )
-call :Input.ipv4._loop || exit /b 4
+call :input_ipv4._loop || exit /b 4
 for /f "tokens=1* delims=:" %%q in ("Q:!user_input!") do (
     endlocal
     set "%_return_var%=%%r"
@@ -29,7 +29,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!user_input!") do (
 exit /b 0
 #+++
 
-:Input.ipv4._loop
+:input_ipv4._loop
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
@@ -50,10 +50,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      Input.ipv4 - read an IPv4 from standard input
+::      input_ipv4 - read an IPv4 from standard input
 ::
 ::  SYNOPSIS
-::      Input.ipv4 [-m message] [-w] [-o] <return_var>
+::      input_ipv4 [-m message] [-w] [-o] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -78,7 +78,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.ipv4 -w --optional ipv4_address
+call :input_ipv4 -w --optional ipv4_address
 echo Your input: '!ipv4_address!'
 exit /b 0
 
@@ -110,7 +110,7 @@ for %%a in (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!
     )
-    call :Input.ipv4 result %%d < "input" > nul
+    call :input_ipv4 result %%d < "input" > nul
     if not "!result!" == "!text_%%b!" (
         call %unittest% fail %%a
     )
@@ -128,7 +128,7 @@ for %%a in (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!
     )
-    call :Input.ipv4 result %%d < "input" > nul
+    call :input_ipv4 result %%d < "input" > nul
     if not "!errorlevel!" == "%%b" (
         call %unittest% fail %%a
     )

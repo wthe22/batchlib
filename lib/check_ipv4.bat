@@ -34,7 +34,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string capchar"
+set "%~1extra_requires=input_string capchar"
 set "%~1category=net"
 exit /b 0
 
@@ -58,7 +58,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string ip_address
+call :input_string ip_address
 echo=
 echo Your entered: '!ip_address!'
 call :check_ipv4 "!ip_address!" --wildcard && (

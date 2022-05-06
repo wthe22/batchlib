@@ -22,7 +22,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=time"
 exit /b 0
 
@@ -48,7 +48,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string time_in_centisecond || set "time_in_centisecond=1234567"
+call :input_string time_in_centisecond || set "time_in_centisecond=1234567"
 call :ftime time_taken !time_in_centisecond!
 echo=
 echo Centiseconds   : !time_in_centisecond!

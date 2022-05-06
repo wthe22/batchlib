@@ -752,7 +752,7 @@ exit /b 0
 setlocal EnableDelayedExpansion
 set "_template=%~1"
 set "_description=%~2"
-call :Input.path save_file --file --warn-overwrite --optional ^
+call :input_path save_file --file --warn-overwrite --optional ^
     ^ --message "Input new !_description! path (Enter nothing to cancel): " ^
     ^ || exit /b 2
 echo=
@@ -771,10 +771,10 @@ exit /b 0
 
 
 :build_menu
-call :Input.path script_file --file --exist --optional ^
+call :input_path script_file --file --exist --optional ^
     ^ --message "Input script path (Enter nothing to cancel): " ^
     ^ || exit /b 2
-call :Input.path backup_file --file --warn-overwrite --optional  ^
+call :input_path backup_file --file --warn-overwrite --optional  ^
     ^ --message "Input backup path (optional): "
 echo=
 echo Generating...
@@ -1292,7 +1292,7 @@ rem ############################################################################
 set %~1install_requires= ^
     ^ functions.range readline functions.list true unset_all ^
     ^ coderender unittest ut_fmt_basic ^
-    ^ conemu Input.path Input.yesno Input.string updater ^
+    ^ conemu input_path input_yesno input_string updater ^
     ^ difftime ftime ^
     ^ %=END=%
 exit /b 0

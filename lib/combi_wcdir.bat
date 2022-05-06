@@ -57,7 +57,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse wcdir capchar"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=file"
 exit /b 0
 
@@ -104,8 +104,8 @@ exit /b 0
 
 :doc.demo
 call :capchar LF
-call :Input.string first_parts || set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
-call :Input.string second_parts || set "second_parts=*script.exe"
+call :input_string first_parts || set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
+call :input_string second_parts || set "second_parts=*script.exe"
 call :combi_wcdir result "!first_parts!" "!second_parts!" -s LF
 echo=
 echo First parts of path:

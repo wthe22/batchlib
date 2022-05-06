@@ -26,7 +26,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=diffdate"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=time"
 exit /b 0
 
@@ -60,7 +60,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string a_date || set "a_date=!date:* =!"
+call :input_string a_date || set "a_date=!date:* =!"
 echo=
 call :what_day day "!a_date!"
 echo Date '!a_date!' is !day!

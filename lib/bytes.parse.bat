@@ -21,7 +21,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=number"
 exit /b 0
 
@@ -46,7 +46,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string readable_bytes || set "readable_bytes=2M + 512K"
+call :input_string readable_bytes || set "readable_bytes=2M + 512K"
 call :bytes.parse bytes "!readable_bytes!"
 echo=
 echo Readable bytes: !readable_bytes!

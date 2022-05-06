@@ -20,7 +20,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=string"
 exit /b 0
 
@@ -54,7 +54,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string multi_space_text || (
+call :input_string multi_space_text || (
     set "multi_space_text= hello     world,  how     are    you  ?"
 )
 set "result=!multi_space_text!"

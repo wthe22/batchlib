@@ -25,7 +25,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=strlen"
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=string"
 exit /b 0
 
@@ -44,7 +44,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string text
+call :input_string text
 echo=
 call :shuffle text
 echo Shuffled string:

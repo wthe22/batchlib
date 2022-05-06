@@ -69,7 +69,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=capchar Input.path Input.string"
+set "%~1extra_requires=capchar input_path input_string"
 set "%~1category=packaging"
 exit /b 0
 
@@ -109,8 +109,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path input_file --file --exist --optional || set "input_file=%~f0"
-call :Input.string label_name || set "label_name=doc.demo"
+call :input_path input_file --file --exist --optional || set "input_file=%~f0"
+call :input_string label_name || set "label_name=doc.demo"
 echo=
 echo Input file : !input_file!
 echo Label name : !label_name!

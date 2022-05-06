@@ -23,7 +23,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.path"
+set "%~1extra_requires=input_path"
 set "%~1category=time file"
 exit /b 0
 
@@ -48,7 +48,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path file --exist --optional || set "file=%~f0"
+call :input_path file --exist --optional || set "file=%~f0"
 set "mtime="
 for %%f in ("!file!") do set "mtime=%%~tf"
 call :mtime_to_isotime isotime "!mtime!"

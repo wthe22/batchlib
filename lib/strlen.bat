@@ -17,7 +17,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=string"
 exit /b 0
 
@@ -43,7 +43,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string string || (
+call :input_string string || (
     set "string=1"
     for /l %%i in (1,1,10) do (
         set /a "string*=9 * (!random! %% 2) + 1"

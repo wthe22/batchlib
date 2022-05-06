@@ -13,7 +13,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=ext.powershell"
-set "%~1extra_requires=Input.string Input.path"
+set "%~1extra_requires=input_string input_path"
 set "%~1category=net"
 exit /b 0
 
@@ -49,8 +49,8 @@ exit /b 0
 echo For this demo, file will be saved to "!cd!"
 echo Enter nothing to download the logo of Git (1.87 KB on Sept 2021)
 echo=
-call :Input.string download_url || set "download_url=https://git-scm.com/images/logo.png"
-call :Input.path --file --optional save_path || set "save_path=logo.png"
+call :input_string download_url || set "download_url=https://git-scm.com/images/logo.png"
+call :input_path --file --optional save_path || set "save_path=logo.png"
 echo=
 echo Download url:
 echo=!download_url!

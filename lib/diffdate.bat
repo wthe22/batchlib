@@ -26,7 +26,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=Input.string"
+set "%~1extra_requires=input_string"
 set "%~1category=time"
 exit /b 0
 
@@ -55,8 +55,8 @@ exit /b 0
 
 
 :doc.demo
-call :Input.string start_date || set "start_date=1/01/1970"
-call :Input.string end_date || set "end_date=!date:* =!"
+call :input_string start_date || set "start_date=1/01/1970"
+call :input_string end_date || set "end_date=!date:* =!"
 call :diffdate difference !end_date! !start_date!
 echo=
 echo Start date : !start_date!

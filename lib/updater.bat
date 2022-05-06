@@ -46,7 +46,7 @@ if not defined _force (
 )
 if defined _notify_only exit /b 0
 if not defined _assume_yes (
-    call :Input.yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 5
+    call :input_yesno -d "N" -m "Proceed with update? [y/N] " || exit /b 5
 )
 (
     copy /b /y /v "!_other!" "!_this!" > nul
@@ -58,8 +58,8 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse download_file version_parse Input.yesno"
-set "%~1extra_requires=ping_test coderender get_pid_by_title Input.path"
+set "%~1install_requires=argparse download_file version_parse input_yesno"
+set "%~1extra_requires=ping_test coderender get_pid_by_title input_path"
 set "%~1category=packaging"
 exit /b 0
 
@@ -121,7 +121,7 @@ exit /b 0
 
 
 :doc.demo
-call :Input.path --exist --file script_file --optional || exit /b 0
+call :input_path --exist --file script_file --optional || exit /b 0
 call :updater "!script_file!"
 exit /b 0
 

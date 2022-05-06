@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:Input.number [-m message] [-r range] [-a] [-o] <return_var>
+:input_number [-m message] [-r range] [-a] [-o] <return_var>
 setlocal EnableDelayedExpansion
 for %%v in (_return_var _message _range _as_is) do set "%%v="
 call :argparse ^
@@ -19,7 +19,7 @@ if not defined _message (
     if defined _optional set "_message=!_message! (optional)"
     set "_message=!_message!: "
 )
-call :Input.number._loop || exit /b 4
+call :input_number._loop || exit /b 4
 if not defined _as_is (
     if defined user_input set /a "user_input=!user_input!"
 )
@@ -31,7 +31,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!user_input!") do (
 exit /b 0
 #+++
 
-:Input.number._loop
+:input_number._loop
 for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set "user_input="
     set /p "user_input=!_message!"
@@ -53,10 +53,10 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      Input.number - reads a number from standard input
+::      input_number - reads a number from standard input
 ::
 ::  SYNOPSIS
-::      Input.number [-m message] [-r range] [-a] [-o] <return_var>
+::      input_number [-m message] [-r range] [-a] [-o] <return_var>
 ::
 ::  DESCRIPTION
 ::      Reads a decimal/octal/hexadecial from standard input, then converts
@@ -94,7 +94,7 @@ exit /b 0
 :doc.demo
 @setlocal EnableDelayedExpansion
 @echo off
-call :Input.number your_integer --range "-9~99, 111, 777, 888" --optional
+call :input_number your_integer --range "-9~99, 111, 777, 888" --optional
 echo Your input: !your_integer!
 exit /b 0
 
@@ -127,7 +127,7 @@ for %%a in (
     "100:   0~200   :boundaries"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     < "%%d" > nul 2>&1 (
-        call :Input.number result --range %%c
+        call :input_number result --range %%c
     )
     set "expected=%%b"
     if not "!result!" == "!expected!" (
