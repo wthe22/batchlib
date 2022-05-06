@@ -3,14 +3,14 @@ call %*
 exit /b
 
 
-:epoch.from_time <return_var> <date_time>
+:epoch_to_time <return_var> <epoch_time>
 setlocal EnableDelayedExpansion
-for /f "tokens=1-2 delims=_" %%a in ("%~2") do (
-    call :diffdate _days "%%a"
-    call :difftime _seconds "%%b"
-)
-set /a "_epoch=!_days!*86400 + !_seconds!/100"
-for /f "tokens=*" %%r in ("!_epoch!") do (
+set /a "_days=%~2 / 86400"
+set /a "_time=(%~2 %% 86400) * 100"
+call :ftime _time "!_time!"
+call :fdate _days "!_days!"
+set "_result=!_days!_!_time:~0,-3!"
+for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
 )
@@ -18,25 +18,25 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=diffdate difftime"
-set "%~1extra_requires=input_string"
+set "%~1install_requires=fdate ftime"
+set "%~1extra_requires=input_number"
 set "%~1category=time"
 exit /b 0
 
 
 :doc.man
 ::  NAME
-::      epoch.from_time - convert human readable date and time to epoch time
+::      epoch_to_time - convert epoch time to human readable date and time
 ::
 ::  SYNOPSIS
-::      epoch.from_time <return_var> <date_time>
+::      epoch_to_time <return_var> <epoch_time>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result.
 ::
-::      date_time
-::          The input date and time.
+::      epoch_time
+::          The number of seconds since epoch (January 1, 1970 00:00:00).
 ::
 ::  NOTES
 ::      - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
@@ -45,13 +45,13 @@ exit /b 0
 
 
 :doc.demo
-call :input_string date_time || set "date_time=!date:* =!_!time!"
-call :epoch.from_time result !date_time!
+call :input_number seconds_since_epoch --optional || (
+    set "seconds_since_epoch=1234567890"
+)
 echo=
-echo Date and time:
-echo=!date_time!
-echo=
-echo Epoch time : !result!
+echo Seconds since epoch    : !seconds_since_epoch!
+call :epoch_to_time result !seconds_since_epoch!
+echo Formatted time         : !result!
 exit /b 0
 
 
@@ -90,24 +90,15 @@ call :tests.check_conversion ^
 exit /b 0
 
 
-:tests.test_padding
-call :tests.check_conversion ^
-    ^ "946684800    = 1/1/2000_00:00:00" ^
-    ^ "946684800    = 01/01/2000_ 0:00:00" ^
-    ^ %=end=%
-exit /b 0
-
-
-
 :tests.check_conversion <expected=args> [...]
 for %%a in (
     %*
 ) do for /f "tokens=1* delims== " %%b in (%%a) do (
-    set "given=%%c"
-    call :epoch.from_time result "!given!" || (
+    set "given=%%b"
+    call :epoch_to_time result "!given!" || (
         call %unittest% fail "Given '!given!', got failure"
     )
-    set "expected=%%b"
+    set "expected=%%c"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
