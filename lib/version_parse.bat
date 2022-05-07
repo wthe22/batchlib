@@ -40,23 +40,21 @@ for %%p in (!_tmp!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
         set "_possible_scheme=!_possible_scheme:*%%s=!"
     ) else set "_possible_scheme=!_possible_scheme:*%%s=%%s!"
     set "_value=%%u"
+    set "_digits=na"
     for /f "tokens=1* delims=0123456789" %%a in ("#0%%u#") do (
         if "%%a,%%b" == "#,#" (
             if "%%s" == "L" set "_type=n"
             for /f "tokens=1* delims=0" %%a in ("#0%%u") do set "_value=%%b"
             if not defined _value set "_value=0"
+            for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
+            if "!_digits!" == "na" (
+                1>&2 echo%0: Digits too long: %%u & exit /b 2
+            )
+            set "_digits=00!_digits!"
+            set "_digits=!_digits:~-2,2!"
         ) else if not "%%s" == "L" (
             1>&2 echo%0: Invalid number: %%p & exit /b 2
         )
-    )
-    set "_digits=na"
-    if not "!_type!" == "l" (
-        for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
-        if "!_digits!" == "na" (
-            1>&2 echo%0: Digits too long: %%u & exit /b 2
-        )
-        set "_digits=00!_digits!"
-        set "_digits=!_digits:~-2,2!"
     )
     set "_tokens_%%s=!_tokens_%%s! %%s_!_type!_!_digits!_!_value!"
 )
