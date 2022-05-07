@@ -12,7 +12,7 @@ for /f "tokens=1-3" %%a in ("a !_version!") do (
     set "_version=%%b"
 )
 if /i "!_version:~0,1!" == "v" set "_version=!_version:~1!"
-call :version_parse._validate_syntax
+call :version_parse._validate_syntax || exit /b
 for /f "tokens=1 delims=+" %%a in ("v!_version!") do set "_public=%%a"
 set "_public=!_public:~1!"
 set "_tmp=!_version!+"
@@ -26,10 +26,11 @@ if not defined _public (
 )
 call :version_parse._transform_public
 call :version_parse._transform_local
-set "_possible_scheme=YREPDLF"
-set "_recurring_scheme=RL"
+set "_schemes=Y R E P D L F"
+set "_possible_scheme=!_schemes!"
+set "_recurring_scheme=R L"
 set "_tmp=Y_x_0 !_public! !_local!"
-set "_tokens="
+for %%s in (!_possible_scheme!) do set "_tokens_%%s="
 for %%p in (!_tmp!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
     set "_type=%%t"
     if "!_possible_scheme:%%s=!" == "!_possible_scheme!" (
@@ -48,37 +49,35 @@ for %%p in (!_tmp!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
             1>&2 echo%0: Invalid number: %%p & exit /b 2
         )
     )
-    set "_tokens=%%s_!_type!_!_value! !_tokens!"
+    set "_digits=na"
+    if not "!_type!" == "l" (
+        for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
+        if "!_digits!" == "na" (
+            1>&2 echo%0: Digits too long: %%u & exit /b 2
+        )
+        set "_digits=00!_digits!"
+        set "_digits=!_digits:~-2,2!"
+    )
+    set "_tokens_%%s=!_tokens_%%s! %%s_!_type!_!_digits!_!_value!"
 )
-set "_normalize=true"
+set "_tmp="
+for %%p in (!_tokens_R!) do set "_tmp=%%p !_tmp!"
+set "_tokens_R="
+set "_remove=true"
+for %%p in (!_tmp!) do (
+    if defined _remove (
+        if not "%%p" == "R_x_01_0" set "_remove="
+    )
+    if not defined _remove (
+        set "_tokens_R= %%p!_tokens_R!"
+    )
+)
+if not defined _tokens_R set "_tokens_R= R_x_01_0"
 set "_result="
-for %%p in (!_tokens!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
-    set "_skip="
-    if defined _normalize (
-        if "%%s" == "R" (
-            if "%%u" == "0" (
-                set "_skip=true"
-            ) else set "_normalize="
-        )
-    )
-    if not defined _skip (
-        set "_value=%%u"
-        if "%%t" == "l" (
-            set "_value=na_%%u"
-        ) else (
-            set "_digits=na"
-            for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
-            if "!_digits!" == "na" (
-                1>&2 echo%0: Digits too long: %%u
-            )
-            set "_digits=00!_digits!"
-            set "_digits=!_digits:~-2,2!"
-            set "_value=!_digits!_%%u"
-        )
-        set "_result=%%s_%%t_!_value! !_result!"
-    )
+for %%s in (!_schemes!) do (
+    set "_result=!_result!!_tokens_%%s!"
 )
-set "_result=!_result!F"
+set "_result=!_result! F"
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
@@ -107,14 +106,11 @@ exit /b 0
 
 :version_parse._transform_public
 for %%t in (
-    "E_\1: alpha"
-    "E_\2: beta"
-    "E_\3: preview pre rc"
+    "E_\3: preview pre rc c"
+    "E_\2: beta b"
+    "E_\1: alpha a"
     "P_x: post rev r"
     "D_x: dev"
-    "E_\1: a"
-    "E_\2: b"
-    "E_\3: c"
 ) do for /f "tokens=1-2 delims=:" %%r in (%%t) do (
     for %%a in (%%s) do set "_public=!_public:%%a={%%r}!"
 )
