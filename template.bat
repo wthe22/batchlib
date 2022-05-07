@@ -49,6 +49,7 @@ exit /b 0
 
 :config.default
 rem Default/common configurations
+:: set "tmp_dir=!tmp!\!SOFTWARE.name!"
 exit /b 0
 
 
@@ -65,12 +66,17 @@ rem ############################################################################
 @if ^"%1^" == "-c" @goto subcommand.call
 @if ^"%1^" == "-h" @goto doc.help
 @if ^"%1^" == "--help" @goto doc.help
-@goto main_script
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+call :metadata SOFTWARE.
+call :config
+call :main_script
+set "exit_code=!errorlevel!"
+@exit /b !exit_code!
+
 
 
 :main_script
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
 rem TODO: start scripting...
 @exit /b
 
@@ -87,15 +93,6 @@ rem TODO: start scripting...
     )
 )
 @exit /b
-
-
-:build
-setlocal EnableDelayedExpansion
-echo Adding/updating dependencies to this script...
-call "batchlib-min.bat" build "%~f0" "%~f0.bak"
-echo Build done [exit code !errorlevel!]
-pause
-exit /b 0
 
 
 rem ############################################################################
