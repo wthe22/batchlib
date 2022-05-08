@@ -1333,33 +1333,27 @@ for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
 
 call :self_extract_func "entry_point"
 
-echo rem !sep_line!
-echo rem Metadata
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "License"
+call :self_extract_func "license"
+
+call :template.minified._section_header "Documentation"
+call :self_extract_func ^
+    ^ doc.help ^
+    ^ doc.man ^
+    ^ %=END=%
+
+call :template.minified._section_header "Metadata"
 call :self_extract_func "metadata"
 call :self_extract_func "about"
 
-echo rem !sep_line!
-echo rem License
-echo rem !sep_line!
-echo=
-call :self_extract_func "license"
-
-echo rem !sep_line!
-echo rem Configurations
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "Configurations"
 call :self_extract_func ^
     ^ config ^
     ^ config.default ^
     ^ config.preference ^
     ^ %=END=%
 
-echo rem !sep_line!
-echo rem Main
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "Main"
 call :self_extract_func ^
     ^ main ^
     ^ common_setup ^
@@ -1378,19 +1372,7 @@ call :self_extract_func ^
     ^ subcommand.call ^
     ^ %=END=%
 
-echo rem !sep_line!
-echo rem Documentation
-echo rem !sep_line!
-echo=
-call :self_extract_func ^
-    ^ doc.help ^
-    ^ doc.man ^
-    ^ %=END=%
-
-echo rem !sep_line!
-echo rem Core
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "Core"
 call :self_extract_func ^
     ^ core ^
     ^ build_script ^
@@ -1444,16 +1426,10 @@ call :self_extract_func ^
 ::
 ::
 
-echo rem !sep_line!
-echo rem Tests
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "Tests"
 call :self_extract_func "tests"
 
-echo rem !sep_line!
-echo rem Library
-echo rem !sep_line!
-echo=
+call :template.minified._section_header "Library"
 call :self_extract_func ^
     ^ lib.dependencies ^
     ^ lib.call ^
@@ -1466,11 +1442,16 @@ for %%l in (!ordered_lib!) do (
     echo=
 )
 
+call :template.minified._section_header "End"
+call :self_extract_func "EOF"
+exit /b 0
+#+++
+
+:template.minified._section_header
 echo rem !sep_line!
-echo rem End
+echo rem %~1
 echo rem !sep_line!
 echo=
-call :self_extract_func "EOF"
 exit /b 0
 
 
