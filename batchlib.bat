@@ -117,7 +117,7 @@ exit /b 0
 ::          Values are accessed through %~1.
 ::
 ::      function_name <number> ...
-::              call :function_name 1 "2" "3"
+::              call :function_name 1 "2" "3" 4
 ::
 ::          Number can be specified multiple times and they must not share the
 ::          same pair of quotes. Values are accessed through %*.
