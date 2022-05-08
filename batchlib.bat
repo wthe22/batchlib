@@ -212,18 +212,16 @@ rem ############################################################################
 
 :changelog
 ::  Core
-::  - Renamed/remove all double underscore labels
-::  - Improve menu structure
-::  - Add call, build, debug, test, and template subcommand
-::  - Script needs to be build to satisfy dependencies
+::  -
 ::
 ::  Library
 ::  - New functions:
 ::      -
 ::  - parse_version():
 ::      - Replaced with version_parse()
-::      - Increase digit limitation from 3 to 12
-::      - Legacy version syntax is not supported anymore (e.g. 0+)
+::      - Increase digit limitation from 3 to 14
+::      - Only supports PEP440 compliant versions (previously also supports
+::        something known as LegacyVersion from Python packaging.version module)
 ::  - Renamed functions:
 ::      - int.* -> int_*
 ::      - Input.* -> input_*
@@ -232,8 +230,14 @@ rem ############################################################################
 ::      - bytes.* -> bytes_*
 ::      - epoch.* -> epoch_*
 ::      - ext.* -> ext_*
-::  - Removed functions:
-::      -
+::  - Category change:
+::      - Rename tag: console -> cli
+::      - argparse(): devtools -> cli
+::      - endlocal(): devtools -> algorithms
+::      - loop_macro(): devtools -> algorithms
+::      - macroify(): devtools -> algorithms
+::      - true(): devtools -> algorithms
+::      - unset_all(): devtools -> algorithms
 ::  - New features:
 ::      -
 ::  - Bug fixes:
@@ -888,12 +892,13 @@ for %%a in (
     "all: All"
     "number: Number"
     "string: String"
+    "algorithms: Algorithms"
     "time: Date and Time"
     "file: File and Folder"
     "net: Network"
     "env: Environment"
     "ui: User Interface"
-    "console: Console"
+    "cli: Command Line Interface"
     "packaging: Packaging"
     "devtools: Development Tools"
     "external: External"

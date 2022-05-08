@@ -52,7 +52,7 @@ exit /b
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1category=devtools"
+set "%~1category=algorithms"
 exit /b 0
 
 
