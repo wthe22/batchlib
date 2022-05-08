@@ -46,7 +46,7 @@ for %%p in (!_tmp!) do for /f "tokens=1-2* delims=_" %%s in ("%%p") do (
             if "%%s" == "L" set "_type=n"
             for /f "tokens=1* delims=0" %%a in ("#0%%u") do set "_value=%%b"
             if not defined _value set "_value=0"
-            for /l %%n in (12,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
+            for /l %%n in (14,-1,1) do if "!_value:~%%n!" == "" set "_digits=%%n"
             if "!_digits!" == "na" (
                 1>&2 echo%0: Digits too long: %%u & exit /b 2
             )
@@ -203,7 +203,7 @@ exit /b 0
 ::      if "%version1%" GEQ "%version2%" echo True
 ::
 ::  NOTES
-::      - Support for version numbers is only up to 12 digits of integer.
+::      - Support for version numbers is only up to 14 digits of integer.
 ::        (e.g. 987654321012 is ok, 9876543210123 is too long)
 exit /b 0
 
@@ -290,7 +290,7 @@ for %%a in (
     "segment_invalid: 1a2a3"
     "segment_invalid: 1cc"
     "segment_invalid: 1rpre"
-    "digits_too_long: 9876543210123"
+    "digits_too_long: 987654321012345"
 ) do for /f "tokens=1* delims=: " %%b in (%%a) do (
     call :tests.invalidate %%b "%%c"
 )
@@ -430,7 +430,7 @@ exit /b 0
 for %%a in (
     "2  10"
     "10  11"
-    "987654321012  987654321013"
+    "20220508134500  20220508134505"
 
     "1.2  1.10"
 
