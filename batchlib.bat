@@ -208,17 +208,15 @@ rem Changelog
 rem ############################################################################
 
 :changelog
-::  Core
-::  -
+::  TLDR
+::      Renamed several functions, improve categories and documentation.
+::      This release have little/no code change in library
+::
 ::
 ::  Library
-::  - New functions:
-::      -
-::  - parse_version():
-::      - Replaced with version_parse()
-::      - Increase digit limitation from 3 to 14
-::      - Only supports PEP440 compliant versions (previously also supports
-::        something known as LegacyVersion from Python packaging.version module)
+::  - Replaced functions
+::      - parse_version() -> version_parse()
+::
 ::  - Renamed functions:
 ::      - int.* -> int_*
 ::      - Input.* -> input_*
@@ -227,6 +225,7 @@ rem ############################################################################
 ::      - bytes.* -> bytes_*
 ::      - epoch.* -> epoch_*
 ::      - ext.* -> ext_*
+::
 ::  - Category change:
 ::      - Rename tag: console -> cli
 ::      - argparse(): devtools -> cli
@@ -235,23 +234,17 @@ rem ############################################################################
 ::      - macroify(): devtools -> algorithms
 ::      - true(): devtools -> algorithms
 ::      - unset_all(): devtools -> algorithms
-::  - New features:
-::      -
-::  - Bug fixes:
-::      -
-::  - Non-functional improvements:
-::      -
+::
 ::  - Has backward incompatible changes:
-::      -
-::
-::  Minified Script
-::  - Removed all tests
-::
-::  Tests
-::  -
+::      - version_parse():
+::          - New internal representation
+::          - Increase digit limitation from 3 to 14
+::          - Only supports PEP440 compliant versions (previously also supports
+::            something known as LegacyVersion from Python packaging.version module)
 ::
 ::  Documentation
 ::  - Fix docs of url_split()
+::  - doc.help() now only have texts without setup codes
 exit /b 0
 
 
