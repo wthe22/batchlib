@@ -10,8 +10,7 @@ rem ############################################################################
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 
-echo A good documentation to help users how to use this script
-echo=
+rem A good documentation to help users how to use this script
 echo usage:
 echo    %~nx0
 echo        The default way to run this script
