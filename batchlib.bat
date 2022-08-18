@@ -209,8 +209,9 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      Renamed several functions, improve categories and documentation.
-::      This release have little/no code change in library
+::      This is a cleanup release. This release have little to no logic change
+::      in the library (except for parse_version()). Renamed all functions with
+::      dots in its name, improve categories and documentation.
 ::
 ::
 ::  Library
