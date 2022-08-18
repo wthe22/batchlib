@@ -7,9 +7,6 @@ rem Documentation
 rem ############################################################################
 
 :doc.help
-@setlocal EnableDelayedExpansion EnableExtensions
-@echo off
-
 rem A good documentation to help users how to use this script
 echo usage:
 echo    %~nx0
@@ -63,10 +60,10 @@ rem ############################################################################
 
 :main
 @if ^"%1^" == "-c" @goto subcommand.call
-@if ^"%1^" == "-h" @goto doc.help
-@if ^"%1^" == "--help" @goto doc.help
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
+if ^"%1^" == "-h" goto doc.help
+if ^"%1^" == "--help" goto doc.help
 call :metadata SOFTWARE.
 call :config
 call :main_script
