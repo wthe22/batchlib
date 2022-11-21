@@ -171,6 +171,50 @@ exit /b 0
 exit /b 0
 
 
+:tests.test_output_stdout
+call :tests.type_script template.simple > "dummy.bat" || exit /b
+call :tests.type_content expected.output_stdout > "expected" || exit /b
+call "dummy.bat" 2> nul > "result-raw"
+> "result" (
+    for /f "usebackq tokens=* delims=" %%a in ("result-raw") do (
+        set "text=%%a"
+        if "x!text:~2,1!x!text:~5,1!x!text:~8,1!x" == "x:x:x.x" (
+            set "text=!text:~12!"
+        )
+        echo !text!
+    )
+)
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.expected.output_stdout
+::  [1] tests.test_success
+::  [2] tests.test_skip
+::  [3] tests.test_fail
+::  [4] tests.test_error
+::  ----------------------------------------------------------------------
+::  Ran 4 tests
+exit /b 0
+
+
+:tests.test_output_stderr
+call :tests.type_script template.simple > "dummy.bat" || exit /b
+call :tests.type_content expected.output_stderr > "expected" || exit /b
+call "dummy.bat" > nul 2> "result"
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.expected.output_stderr
+::  tests.test_skip: skip: Not ready
+::  tests.test_fail: fail: 1 + 1 is not 3
+::  tests.test_error: error: Something unexpected happen
+exit /b 0
+
+
 :tests.template.simple
 ::  :tests.setup
 ::  :tests.teardown
