@@ -113,7 +113,7 @@ exit /b 0
 
 
 :tests.test_detect_label
-call :tests.type template.detect_label > "dummy.bat" || exit /b
+call :tests.type_script template.detect_label > "dummy.bat" || exit /b
 call 2> outcome
 call :functions_match expected "dummy.bat" "test*.test*"
 call "dummy.bat" > nul
@@ -149,7 +149,7 @@ exit /b 0
 
 
 :tests.test_setup_skip
-call :tests.type template.setup_skip > "dummy.bat" || exit /b
+call :tests.type_script template.setup_skip > "dummy.bat" || exit /b
 call 2> outcome
 call "dummy.bat" %STDERR_REDIRECTION% > nul
 for /f "usebackq tokens=*" %%o in ("outcome") do (
@@ -172,16 +172,6 @@ exit /b 0
 
 
 :tests.template.simple
-::  @setlocal EnableDelayedExpansion EnableExtensions
-::  @echo off
-::  call :quicktest
-::  exit /b
-::
-::
-call :functions_range _range "%~f0" "quicktest" || exit /b 2
-call :readline "%~f0" !_range!
-::
-::
 ::  :tests.setup
 ::  :tests.teardown
 ::  exit /b 0
@@ -202,12 +192,17 @@ call :readline "%~f0" !_range!
 ::  exit /b 0
 exit /b 0
 
-
-:tests.type <name>
+:tests.type_script <name>
 call :functions_range _range "%~f0" quicktest || exit /b
 call :readline "%~f0" !_range!
 echo=
 echo=
+call :functions_range _range "%~f0" tests.%~1 || exit /b
+call :readline "%~f0" !_range! 1:-1 4
+exit /b
+
+
+:tests.type_content <name>
 call :functions_range _range "%~f0" tests.%~1 || exit /b
 call :readline "%~f0" !_range! 1:-1 4
 exit /b
