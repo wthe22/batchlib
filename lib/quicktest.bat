@@ -87,7 +87,7 @@ exit /b 0
 ::          Signals a test as failure/error/skip. Use case for each outcome:
 ::          - Fail: Function did not give the expected result.
 ::          - Error: Test case fails to run or unexpected error occur.
-::          - Skip: Functionality cannot be tested yet (WIP), so we skip first.
+::          - Skip: Missing tools to test the functionality.
 exit /b 0
 
 
