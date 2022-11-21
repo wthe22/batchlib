@@ -103,7 +103,7 @@ set "STDERR_REDIRECTION=2> nul"
 set "quicktest_debug="
 if "!unittest!" == ":quicktest.outcome " set "quicktest_debug=true"
 if defined quicktest_debug (
-    set "unittest=echo test outcome:"
+    set "unittest=echo%%0: outcome:"
 )
 exit /b 0
 
