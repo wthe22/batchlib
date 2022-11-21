@@ -8,7 +8,7 @@ exit /b
 @echo off
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "unittest=:quicktest.outcome "
-if ^"%1^" == "" (
+if "%~1" == "" (
     set "unittest.test_cases= "
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
     for /f "usebackq tokens=1 delims=: " %%a in (
