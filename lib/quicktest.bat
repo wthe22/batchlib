@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:quicktest <label [...]>
+:quicktest [label [...]]
 @setlocal EnableDelayedExpansion
 @echo off
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -58,7 +58,7 @@ exit /b 0
 ::      quicktest - tiny unittest framework
 ::
 ::  SYNOPSIS
-::      quicktest <label [...]>
+::      quicktest [label [...]]
 ::      call %unittest% <outcome> [message]
 ::
 ::  DESCRIPTION
