@@ -209,43 +209,18 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      This is a cleanup release. This release have little to no logic change
-::      in the library (except for parse_version()). Renamed all functions with
-::      dots in its name, improve categories and documentation.
+::      ...
 ::
 ::
 ::  Library
 ::  - Replaced functions
-::      - parse_version() -> version_parse()
-::
-::  - Renamed functions:
-::      - int.* -> int_*
-::      - Input.* -> input_*
-::      - functions.* -> functions_*
-::      - roman.* -> roman_*
-::      - bytes.* -> bytes_*
-::      - epoch.* -> epoch_*
-::      - ext.* -> ext_*
-::
-::  - Category change:
-::      - Rename tag: console -> cli
-::      - argparse(): devtools -> cli
-::      - endlocal(): devtools -> algorithms
-::      - loop_macro(): devtools -> algorithms
-::      - macroify(): devtools -> algorithms
-::      - true(): devtools -> algorithms
-::      - unset_all(): devtools -> algorithms
 ::
 ::  - Has backward incompatible changes:
-::      - version_parse():
-::          - New internal representation
-::          - Increase digit limitation from 3 to 14
-::          - Only supports PEP440 compliant versions (previously also supports
-::            something known as LegacyVersion from Python packaging.version module)
+::      - quicktest():
+::          - Empty label string now triggers auto detect label
 ::
 ::  Documentation
-::  - Fix docs of url_split()
-::  - doc.help() now only have texts without setup codes
+::  - quicktest(): Improve use case example and fix argument syntax
 exit /b 0
 
 
