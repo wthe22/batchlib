@@ -147,8 +147,10 @@ exit /b 0
 call :tests.type_script template.setup_skip > "dummy.bat" || exit /b
 call 2> outcome
 call "dummy.bat" %STDERR_REDIRECTION% > nul
-for /f "usebackq tokens=*" %%o in ("outcome") do (
-    call %unittest% %%o
+set "fail="
+set /p "fail=" < "outcome"
+if defined fail (
+    call %unittest% fail
 )
 exit /b 0
 
