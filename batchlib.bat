@@ -215,6 +215,12 @@ rem ############################################################################
 ::  Library
 ::  - Replaced functions
 ::
+::  - New features:
+::      - unittest(): Added output formatter 'unittest.fmt.basic'
+::
+::  - Removed functions:
+::      - ut_fmt_basic(): Merged into unittest()
+::
 ::  - Has backward incompatible changes:
 ::      - quicktest():
 ::          - Empty label string now triggers auto detect label

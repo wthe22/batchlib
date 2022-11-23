@@ -140,10 +140,80 @@ if defined unittest._test_label (
     %unittest.output_cmd% outcome "!unittest._test_file!","!unittest._test_label!",%1,%2
 ) else set unittest._setup_outcome=%1,%2
 exit /b 0
+#+++
+
+:unittest.fmt.basic <action> [args] ...
+setlocal EnableDelayedExpansion EnableExtensions
+2> nul (
+    for /f "usebackq tokens=* delims= eol=#" %%v in (
+        "!unittest.tmp_dir!\.unittest.fmt.basic_vars"
+    ) do set %%v
+)
+call :unittest.fmt.basic.%*
+> "!unittest.tmp_dir!\.unittest.fmt.basic_vars" (
+    for %%v in (
+        _start_time _stop_time
+        _tests_run _test_count
+        _success_count _fail_count _error_count _skip_count
+    ) do echo "%%v=!%%v!"
+)
+exit /b 0
+#+++
+
+:unittest.fmt.basic.start
+set "_start_time=!time!"
+set "_tests_run=0"
+set "_test_count="
+for /f "usebackq" %%k in ("!unittest.tmp_dir!\.unittest_test_cases") do set /a "_test_count+=1"
+for %%e in (success fail error skip) do set "_%%e_count=0"
+exit /b 0
+#+++
+
+:unittest.fmt.basic.run <test_file> <test_label>
+set /a "_tests_run+=1"
+call :difftime _elapsed_time !time! !_start_time!
+call :ftime _elapsed_time !_elapsed_time!
+echo !_elapsed_time! [!_tests_run!/!_test_count!] %~1:%~2
+exit /b 0
+#+++
+
+:unittest.fmt.basic.outcome <test_file> <test_label> <outcome> [message]
+set /a "_%~3_count+=1"
+if "%~3" == "success" exit /b 0
+if "%~4" == "" echo test '%~1:%~2' %~3
+if not "%~4" == "" echo test '%~1:%~2' %~3: %~4
+exit /b 0
+#+++
+
+:unittest.fmt.basic.stop
+set "_stop_time=!time!"
+call :difftime _time_taken !_stop_time! !_start_time!
+call :ftime _time_taken !_time_taken!
+if "!_tests_run!" == "1" (
+    set "_s="
+) else set "_s=s"
+echo=
+echo ----------------------------------------------------------------------
+echo Ran !_tests_run! test!s! in !_time_taken!
+echo=
+
+set "_status=OK"
+for %%e in (fail error) do (
+    if not "!_%%e_count!" == "0" set "_status=FAILED"
+)
+< nul set /p "=!_status! "
+set "_info= "
+if not "!_fail_count!" == "0" set "_info=!_info! failures=!_fail_count!"
+if not "!_error_count!" == "0" set "_info=!_info! errors=!_error_count!"
+if not "!_skip_count!" == "0"  set "_info=!_info! skipped=!_skip_count!"
+set "_info=!_info:~2!"
+if defined _info < nul set /p "=(!_info!)"
+echo=
+exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse functions_match"
+set "%~1install_requires=argparse functions_match difftime ftime"
 set "%~1extra_requires=functions_range readline"
 set "%~1category=devtools"
 exit /b 0
@@ -200,6 +270,7 @@ exit /b 0
 ::      -o OUTPUT_CMD, --output OUTPUT_CMD
 ::          Pass the command outputs, in the form of arguments, to OUTPUT_CMD.
 ::          Single quotes are converted to double quotes. By default it is 'echo'.
+::          For better formatting, use 'call :unittest.fmt.basic'.
 ::
 ::  UNITTEST USAGE
 ::      Test File
