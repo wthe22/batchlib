@@ -1,0 +1,1202 @@
+:entry_point
+call %*
+exit /b
+
+
+:argparse2 [-h] [-t] [-n NAME] <spec> ... -- %*
+setlocal EnableDelayedExpansion
+for %%v in (
+    _test_internal_specs _test_spec _stop_on_extra _help_syntax
+) do set "%%v="
+for /f "tokens=1 delims=:." %%n in ("%0") do set "_name=%%n"
+set "_new_name=!_name!"
+if ^"%1^" == "--test-internal-specs" set "_test_internal_specs=true"
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+call :argparse2._read_opts %* || exit /b
+if defined _test_internal_specs exit /b 0
+if defined _help_syntax (
+    echo usage: !_name! !_help_syntax! spec ... -- [arg ...]
+    exit /b 0
+)
+call :argparse2._parse_specs %* || exit /b 3
+if defined _test_spec exit /b 0
+set "_name=!_new_name!"
+call :argparse2._parse_args %* || exit /b 4
+call :argparse2._capture_args || exit /b 4
+exit /b 0
+#+++
+
+:argparse2._read_opts %*
+::  -> _position + options
+rem %debug% call :argparse2._debug_msg read_opt_spec
+setlocal EnableDelayedExpansion
+set "_stop_on_extra=true"
+if defined _test_internal_specs set "_test_spec=true"
+set "_position=0"
+call :argparse2._parse_specs ^
+    ^ "[-h,--help]:         help:_help_syntax" ^
+    ^ "[-t,--test-spec]:    set:_test_spec=true" ^
+    ^ "[-n,--name NAME]:    set:_new_name" ^
+    ^ -- || exit /b 2
+if defined _test_spec exit /b 0
+set "_position=0"
+call :argparse2._parse_args %* || exit /b 3
+set _actions=!_actions! "store_const:_position=!_position!"
+call :argparse2._capture_args || exit /b 3
+exit /b 0
+#+++
+
+:argparse2._parse_specs %*
+::  _position
+::  -> _position _spec_syntax _spec_names _spec_flags _spec_name_count _spec_required
+rem %debug% call :argparse2._debug_msg parse_spec
+set "_STOP_OPT_PARSE_SPEC=-1|--| | |stop-opt-parse| | | "
+set "_spec_names="
+set "_spec_flags=!_STOP_OPT_PARSE_SPEC!!LF!"
+set "_spec_name_count=0"
+set "_spec_required= "
+set "_known_flags= -- "
+call :argparse2._parse_spec_loop %* || (
+    set "_exit_code=!errorlevel!"
+    call :argparse2._error read_spec "!_exit_code!" >&2
+    exit /b !_exit_code!
+)
+exit /b 0
+#+++
+
+:argparse2._parse_spec_loop %*
+for /l %%n in (1,1,!_position!) do shift /1
+set _value=%%1
+for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
+    call set _value=%%1
+    rem %debug% echo !_position!:!_value!
+    if not defined _value exit /b 2
+    if "!_value!" == "--" (
+        set /a "_position+=1"
+        exit /b 0
+    )
+    call set _value=%%~1
+
+    set "_argument="
+    set "_action="
+    set "_dest="
+    for /f "tokens=1-2* delims=:" %%a in ("!_value!") do (
+        set "_argument=%%a"
+        for /f "tokens=*" %%b in ("%%b") do set "_action=%%b"
+        set "_dest=%%c"
+    )
+
+    if "!_argument:~0,1!!_argument:~-1,1!" == "[]" (
+        set "_required="
+        set "_argument=!_argument:~1,-1!"
+    ) else set "_required=true"
+
+    set "_flags="
+    set "_consume_required=true"
+    if "!_argument:~0,1!" == "-" (
+        for /f "tokens=1*" %%f in ("!_argument!") do (
+            set "_flags=%%f"
+            set "_argument=%%g"
+        )
+
+        if "!_argument:~0,1!!_argument:~-1,1!" == "[]" (
+            set "_consume_required="
+            set "_argument=!_argument:~1,-1!"
+        )
+    )
+
+    if "!_argument:~-3,3!" == "..." (
+        set "_consume_many=true"
+        set "_argument=!_argument:~0,-3!"
+        if "!_argument:~-1,1!" == " " (
+            set "_argument=!_argument:~0,-1!"
+        )
+    ) else set "_consume_many="
+
+    set "_metavar=!_argument!"
+
+    if defined _test_spec (
+        call :argparse2._validate_spec || exit /b
+    )
+
+    if defined _required set "_spec_required=!_spec_required!!_position! "
+
+    for %%v in (_flags _metavar _required _consume_many _consume_required) do (
+        if not defined %%v set "%%v= "
+    )
+
+    set "_spec=!_position!|!_flags!|!_metavar!|!_required!|!_action!|!_consume_many!|!_consume_required!|!_dest!"
+    if "!_flags!" == " " (
+        set "_spec_names=!_spec_names!!_spec!!LF!"
+        set /a "_spec_name_count+=1"
+    ) else (
+        set "_spec_flags=!_spec_flags!!_spec!!LF!"
+    )
+    set /a "_position+=1"
+    shift /1
+)
+exit /b 1
+#+++
+
+:argparse2._validate_spec
+rem %debug% call :argparse2._debug_msg validate_spec
+if not defined _flags (
+    if not defined _metavar exit /b 4
+)
+if defined _metavar (
+    for /f "tokens=1*" %%l in ("DUMMY !_metavar!") do (
+        if "%%m" == "" exit /b 10
+    )
+    if "!_metavar:~0,1!" == "[" exit /b 11
+    if "!_metavar:~-1,1!" == "]" exit /b 11
+    if "!_metavar:~0,1!" == "-" exit /b 12
+)
+for %%f in (!_flags!) do (
+    set "_flag=%%f"
+    if not "!_flag:~0,1!" == "-" exit /b 21
+    if not "!_flag:~0,2!" == "--" (
+        if not "!_flag:~3!" == "" exit /b 24
+    )
+    for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
+        if "%%a%%b" == "-" exit /b 22
+    )
+    if not "!_known_flags: %%f = !" == "!_known_flags!" exit /b 23
+    set "_known_flags=!_known_flags!%%f "
+)
+if defined _flags if not defined _metavar (
+    if defined _consume_many exit /b 31
+)
+
+set "_valid_actions="
+if defined _metavar (
+    if defined _flags (
+        if defined _consume_many (
+            rem Pattern: "--flag METAVAR ..."
+            set "_valid_actions=list"
+        ) else (
+            rem Pattern: "--flag METAVAR"
+            set "_valid_actions=set list"
+        )
+    ) else (
+        if defined _consume_many (
+            rem Pattern: "METAVAR ..."
+            set "_valid_actions=list"
+            rem append + const
+        ) else (
+            rem Pattern: "METAVAR"
+            set "_valid_actions=set"
+            rem store + const
+        )
+    )
+) else (
+    rem Pattern: "--flag"
+    set "_valid_actions=set list help"
+)
+set "_action_valid="
+for %%a in (!_valid_actions!) do (
+    if "%%a" == "!_action!" set "_action_valid=true"
+)
+if not defined _action_valid exit /b 40
+
+if not defined _dest exit /b 50
+set "_has_const="
+for /f "tokens=2 delims==" %%e in ("!_dest!.") do set "_has_const=true"
+if defined _metavar (
+    if defined _has_const exit /b 52
+) else (
+    if "!_action!" == "help" (
+        if defined _has_const exit /b 53
+    ) else (
+        if not defined _has_const exit /b 51
+    )
+)
+exit /b 0
+#+++
+
+:argparse2._parse_args %*
+::  _position _spec_syntax _spec_names _spec_flags _spec_required _stop_on_extra
+::  -> _position _actions
+::
+rem %debug% call :argparse2._debug_msg parse_args
+set "_arg_start_pos=!_position!"
+set "_actions="
+set "_parse_opt=true"
+set "_consume_action="
+set "_new_spec="
+set "_surpress_validation="
+call :argparse2._parse_arg_loop %* || (
+    set "_exit_code=!errorlevel!"
+    call :argparse2._error parse_args "!errorlevel!" >&2
+    exit /b !_exit_code!
+)
+if defined _surpress_validation (
+    exit /b 0
+)
+rem %debug% call :argparse2._debug_msg validate_args
+set "_missing_spec_id="
+for /f "tokens=1" %%i in ("!_spec_required!") do set "_missing_spec_id=%%i"
+if defined _missing_spec_id (
+    set "_exit_code=5"
+    call :argparse2._error parse_args "!_exit_code!" >&2
+    exit /b !_exit_code!
+)
+exit /b 0
+#+++
+
+:argparse2._parse_arg_loop %*
+for /l %%i in (1,1,!_position!) do shift /1
+for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
+    call set _value=%%1
+    rem %debug% echo !_position!:!_value!
+    if not defined _value (
+        if defined _consume_action (
+            if defined _consume_required exit /b 4
+        )
+        exit /b 0
+    )
+    set "_is_flag="
+    if defined _parse_opt (
+        if "!_value:~0,1!" == "-" (
+            for /f "tokens=* delims=0123456789" %%l in ("!_value:~1!.") do if not "%%l" == "." (
+                set "_is_flag=true"
+            )
+        )
+    )
+    if defined _is_flag (
+        set "_new_spec="
+        for /f "tokens=* delims=" %%s in ("!_spec_flags!") do if not defined _new_spec (
+            for /f "tokens=2 delims=|" %%b in ("%%s") do (
+                for %%f in (%%b) do (
+                    if "%%f" == "!_value!" set "_new_spec=%%s"
+                )
+            )
+        )
+        if not defined _new_spec exit /b 2
+    ) else (
+        if not defined _consume_action (
+            for /f "tokens=* delims=" %%s in ("!_spec_names!") do if not defined _new_spec (
+                set "_new_spec=%%s"
+            )
+            if not defined _new_spec (
+                if defined _stop_on_extra exit /b 0
+                exit /b 3
+            )
+        )
+    )
+    if defined _new_spec (
+        rem %debug% echo - new spec: [!_new_spec!]
+        if defined _consume_action (
+            if defined _consume_required exit /b 4
+        )
+        for /f "tokens=1-7* delims=|" %%a in ("!_new_spec!") do (
+            set "_spec_id=%%a"
+            set "_flags=%%b"
+            set "_metavar=%%c"
+            set "_required=%%d"
+            set "_action=%%e"
+            set "_consume_many=%%f"
+            set "_consume_required=%%g"
+            set "_dest=%%h"
+        )
+        for %%v in (_flags _metavar _required _consume_required _consume_many) do (
+            if "!%%v!" == " " set "%%v="
+        )
+        set "_new_spec="
+
+        set "_consume_action="
+        if "!_action!" == "set" (
+            if defined _metavar (
+                if defined _flags (
+                    set _actions=!_actions! shift
+                )
+                set _consume_action="store:!_dest!" shift
+            ) else (
+                set _actions=!_actions! "store_const:!_dest!" shift
+            )
+        )
+        if "!_action!" == "list" (
+            if defined _metavar (
+                if defined _flags (
+                    set _actions=!_actions! shift
+                )
+                set _consume_action="append:!_dest!" shift
+            ) else (
+                set _actions=!_actions! "append_const:!_dest!" shift
+            )
+        )
+        if "!_action!" == "help" (
+            call :argparse2._generate_help _syntax
+            set _actions="store_const:!_dest!=!_syntax!"
+            set "_surpress_validation=true"
+            exit /b 0
+        )
+        if "!_action!" == "stop-opt-parse" (
+            set _actions=!_actions! shift
+            set "_parse_opt="
+        )
+
+        if defined _required (
+            for %%i in (!_spec_id!) do (
+                set "_spec_required=!_spec_required: %%i = !"
+            )
+        )
+    )
+
+    if not defined _is_flag if defined _consume_action (
+        set _actions=!_actions! !_consume_action!
+        if defined _consume_many (
+            set "_consume_required="
+        ) else (
+            set "_consume_action="
+            if not defined _flags (
+                set _spec_names=!_spec_names:*^%LF%%LF%=!
+            )
+        )
+    )
+    shift /1
+    set /a "_position+=1"
+)
+exit /b 0
+#+++
+
+:argparse2._capture_args $_actions
+rem %debug% call :argparse2._debug_msg capture_args
+(
+    for /l %%i in (1,1,2) do goto 2> nul
+    for %%i in (%_actions%) do ( rem
+    ) & for /f "tokens=1* delims=:" %%c in ("%%~i") do (
+        if /i "%%c" == "append" (
+            call set %%d=^!%%d^!%%1 %=END=%
+            set "%%d=!%%d:^^=^!"
+        )
+        if /i "%%c" == "store" (
+            call set "%%d=.%%~1"
+            set "%%d=!%%d:^^=^!"
+            set "%%d=!%%d:~1!"
+        )
+        if /i "%%c" == "append_const" (
+            for /f "tokens=1* delims==" %%v in ("%%d") do set "%%v=!%%v!%%w "
+        )
+        if /i "%%c" == "store_const" set "%%d"
+        if /i "%%c" == "shift" shift /1
+    )
+    ( call )
+)
+exit /b 2
+#+++
+
+:argparse2._generate_help <return_var>
+setlocal EnableDelayedExpansion
+set "_return_var=%~1"
+set "_result="
+for /f "tokens=1-6* delims=|" %%a in ("!_spec_flags!!_spec_names!") do (
+    if %%a GEQ 0 (
+        call :argparse2._get_spec "%%a"
+        set "_result=!_result! !_syntax!"
+    )
+)
+set "_result=!_result:~1!"
+for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
+    endlocal
+    set "%_return_var%=%%r"
+)
+exit /b 0
+#+++
+
+:argparse2._error   <context> <exit_code>
+setlocal EnableDelayedExpansion
+set "_context=%~1"
+set "_exit_code=%~2"
+set _e=) else if "!_exit_code!" == "$n" (
+if "!_context!" == "read_spec" (
+    echo !_name!: spec error at argument !_position!: !_value!
+    if "!_exit_code!" == "listed" ( rem
+    %_e:$n=1% echo Unexpected error occurred
+    %_e:$n=2% echo Missing -- seperator
+    %_e:$n=3% echo There must be at least 1 spec
+    %_e:$n=4% echo Missing name or flag
+    %_e:$n=10% echo Invalid metavar '!_metavar!'
+    %_e:$n=11% echo Unmatched or invalid use of square bracket in metavar '!_metavar!'
+    %_e:$n=12% echo Metavar '!_metavar!' should not contain flag
+    %_e:$n=21% echo Flag '!_flag!' must start with '-'
+    %_e:$n=22% echo Number short flags are not supported, got '!_flag!'
+    %_e:$n=23% echo Duplicate flag '!_flag!'
+    %_e:$n=23% echo Short flags must contain only 1 character, got '!_flag!'
+    %_e:$n=31% echo Unexpected ... for a flag without arguments
+    %_e:$n=40% echo Expected action {!_valid_actions!}, got '!_action!'
+    %_e:$n=50% echo Missing destination variable
+    %_e:$n=51% echo Missing const
+    %_e:$n=52% echo Unexpected const in '!_dest!'
+    ) else echo Got error code !_exit_code!
+) else if "!_context!" == "parse_args" (
+    set /a "_arg_pos=!_position! - !_arg_start_pos!"
+    if "!_exit_code!" == "listed" ( rem
+    %_e:$n=1%
+        echo !_name!: Unexpected error occurred at argument !_arg_pos!: !_value!
+    %_e:$n=2%
+        echo !_name!: Unknown flag '!_value!'
+    %_e:$n=3%
+        echo !_name!: Too many positional arguments, expected !_spec_name_count!
+    %_e:$n=4%
+        call :argparse2._get_spec !_spec_id!
+        echo !_name!: Missing expected argument for '!_syntax!'
+    %_e:$n=5%
+        call :argparse2._get_spec !_missing_spec_id!
+        echo !_name!: Missing required argument '!_syntax!'
+    ) else echo !_name!: Error !_exit_code! at argument !_arg_pos!: !_value!
+) else (
+    echo !_name!: At '!_context!', got error code !_exit_code! at position !_position!: !_value!
+)
+exit /b 0
+#+++
+
+:argparse2._debug_msg
+if "%~1" == "validate_spec" (
+    for %%v in (
+        _position _flags _metavar _required _consume_required _action _dest
+    ) do echo %%v: [!%%v!]
+    echo=
+    exit /b 0
+)
+(
+    echo ========================================
+    if "%~1" == "read_opt_spec" (
+        echo Read Opt Spec
+    ) else if "%~1" == "parse_spec" (
+        echo Parse Spec
+        echo _position: !_position!
+    ) else if "%~1" == "parse_args" (
+        call :argparse2._generate_help _spec_syntax
+        echo Parse Args
+        echo _position: !_position!
+        echo _stop_on_extra: !_stop_on_extra!
+        echo=
+        echo !_spec_syntax!
+        echo=
+        echo Specs:
+        echo=!_spec_flags!
+        echo=!_spec_names!
+        echo=
+        echo Required: [!_spec_required!]
+        echo=
+        goto 2> nul
+        echo Receive
+        call echo=%%*
+    ) else if "%~1" == "validate_args" (
+        echo Validate Args
+        echo Required: [!_spec_required!]
+    ) else if "%~1" == "capture_args" (
+        echo Capture Arguments:
+        echo=!_actions!
+    ) else (
+        echo Unknown DEBUG MSG '%~1'
+    )
+    echo ----------------------------------------
+)
+exit /b 0
+#+++
+
+:argparse2._get_spec <spec_id>
+set "_spec_id="
+for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
+    if "%~1" == "%%a" (
+        set "_spec_id=%%a"
+        set "_flags=%%b"
+        set "_metavar=%%c"
+        set "_required=%%d"
+        set "_action=%%e"
+        set "_consume_many=%%f"
+        set "_consume_required=%%g"
+        set "_dest=%%h"
+        for %%v in (_flags _metavar _required _consume_required _consume_many) do (
+            if "!%%v!" == " " set "%%v="
+        )
+
+        set "_syntax="
+        if defined _metavar (
+            set "_syntax=!_metavar!"
+            if defined _consume_many set "_syntax=!_syntax! ..."
+        )
+        if defined _flags (
+            set "_flag_count=0"
+            set "_flag_syntax="
+            for %%f in (!_flags!) do (
+                set "_flag_syntax=!_flag_syntax!|%%f"
+                set /a "_flag_count+=1"
+            )
+            set "_flag_syntax=!_flag_syntax:~1!"
+            set "_need_parenthesis="
+            if !_flag_count! GTR 1 (
+                if defined _metavar set "_need_parenthesis==true"
+                if defined _required set "_need_parenthesis==true"
+            )
+            if defined _need_parenthesis (
+                set "_flag_syntax=(!_flag_syntax!)"
+            )
+            if defined _metavar (
+                if not defined _consume_required (
+                    set "_syntax=[!_syntax!]"
+                )
+                set "_syntax=!_flag_syntax! !_syntax!"
+            ) else set "_syntax=!_flag_syntax!"
+        )
+        if not defined _required set "_syntax=[!_syntax!]"
+    )
+)
+if not defined _spec_id exit /b 2
+exit /b 0
+
+
+:lib.dependencies [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=cli"
+exit /b 0
+
+
+:doc.man
+::  NAME
+::      argparse2 - parse options passed to script or function
+::
+::  SYNOPSIS
+::      argparse2 [-h] [-t] [-n NAME] <spec> ... -- %*
+::
+::  OPTIONS
+::      Note: They must appear before all SPECs
+::
+::      -h, --help
+::          Show syntax of command.
+::
+::      -t, --test-spec
+::          Validate spec only without parsing arguments. This option is used to
+::          make sure all specs are valid. This option must be used when creating
+::          or adjusting specs until no errors are found. Creating spec without
+::          using this might risk using invalid specs and cause unwanted behavior.
+::
+::      -n, --name
+::          Command name for use in error messages. By default it is 'argparse2'.
+::
+::  POSITIONAL ARGUMENTS
+::      spec
+::          The list of arguments that should be parsed. The complete syntax can
+::          be found in the ARGUMENT SPECIFACTIONS section.
+::
+::      %*
+::          The arguments to parse. This MUST be '%*' or else it will fail (because
+::          it consumes the caller's %1, %2, etc. argument).
+::
+::  ARGUMENT SPECIFACTIONS
+::
+::              [flags] [metavar [...]]:<action>:<dest>[=const]
+::
+::      FLAGS
+::          The flags to capture, with each flag seperated by comma. Flags can be
+::          a short flag (e.g. -s), or a long flag (e.g. --hello, --hello-world).
+::          Negative number flags are not supported. No duplicate flags allowed.
+::
+::      METAVAR
+::          The name of the argument. This indicates that it may accept value
+::          from the arguments. The name itself is only used for help messages.
+::          It may contain spaces.
+::
+::      ...
+::          Indicates that spec may consume multiple arguments.
+::
+::      ACTION
+::          The action to do. This value is case sensitive. Valid actions:
+::              set     Set the variable to a value
+::              list    Gather values into a list, each seperated by a space,
+::                      with quotes preserved
+::              help    Generate help syntax and store it in the variable
+::
+::      DEST
+::          The destination variable that is used to store the value. If the action
+::          is list, it will seperate each consumed arguments by a space, with
+::          quotes preserved.
+::
+::      CONST
+::          The value to store at the destination variable. Only allowed if the
+::          option does not accept any value.
+::
+::      REQUIRED/OPTIONAL
+::          Required arguments/options:
+::                  metavar
+::                  metavar ...
+::                  --flag metavar
+::
+::          Optional arguments/options:
+::                  [metavar]
+::                  [metavar ...]
+::                  [--flag]
+::                  [--flag metavar]
+::
+::          Optional flag, required consume:
+::                  [--flag metavar]
+::                  [--flag metavar ...]
+::
+::          Optional flag, optional consume:
+::                  [--flag [metavar]]
+::                  [--flag [metavar ...]]
+::
+::  EXIT STATUS
+::      0:  - Success
+::      2:  - Internal error
+::      3:  - Invalid specs
+::      4:  - User gives an invalid arguments
+::
+::  NOTES
+::      - The order of the positional arguments are important.
+::      - Multi-character short options are not supported.
+::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
+::      - Function SHOULD be embedded into the script.
+::      - This function should not be used multiple times within the same function
+::        because it consumes the caller's %1, %2, etc. argument. Might capture
+::        incorrect values if used multiple times.
+exit /b 0
+
+
+:tests.setup
+rem set "debug="
+set "STDERR_REDIRECTION=2> nul"
+for %%v in (
+    p_argv p_opts p_help
+    p_argv1 p_argv2 p_argv3
+    p_arg1 p_arg2 p_arg3
+    p_opt_sc p_opt_ac p_opt_s p_opt_a
+    p_opt_a p_opt_b p_opt_c p_opt_d p_opt_e p_opt_f p_opt_g
+) do set "%%v="
+rem Add test for help syntax
+exit /b 0
+
+
+:tests.teardown
+exit /b 0
+
+
+:tests.internal.test_specs
+call :argparse2 --test-internal-specs || (
+    call %unittest% fail "Got error when testing internal opt specs"
+)
+exit /b 0
+
+
+:tests.spec.test_no_parse
+call :argparse2 --test-spec ^
+    ^ "arg1:            set:p_arg1" ^
+    ^ -- aaa || (
+    call %unittest% fail "Got error when testing valid spec without arguments"
+)
+if defined p_arg1 (
+    call %unittest% fail "Arguments should not be parsed"
+)
+exit /b 0
+
+
+:tests.spec.test_valid
+call :argparse2 --test-spec ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ "[-h,--help]:         help:p_help" ^
+    ^ "[--sc]:              set:p_opt_sc=1" ^
+    ^ "[--ac]:              list:p_opt_ac=+1" ^
+    ^ "[-s TEXT]:           set:p_opt_s" ^
+    ^ "[-a,--append TEXT]:  list:p_opt_a" ^
+    ^
+    ^ %= flags =% ^
+    ^ "-f:                      set:p_opt_a=1" ^
+    ^ "-g,--g2:                 set:p_opt_a=1" ^
+    ^ "--h-1,--h-2,--h-3:       set:p_opt_a=1" ^
+    ^
+    ^ %= consume many =% ^
+    ^ "cm_arg1 ...:             list:p_arg1" ^
+    ^ "[cm_arg2 ...]:           list:p_arg2" ^
+    ^ "--cm-rr TEXT ...:        list:p_opt_a" ^
+    ^ "[--cm-or TEXT ...]:      list:p_opt_a" ^
+    ^ "--cm-ro [TEXT ...]:      list:p_opt_a" ^
+    ^ "[--cm-oo [TEXT ...]]:    list:p_opt_a" ^
+    ^
+    ^ -- || (
+    call %unittest% fail "Got error when using valid specs"
+)
+exit /b 0
+
+
+:tests.spec.test_end_marker_missing
+call :argparse2 --test-spec ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error on missing -- seperator"
+)
+exit /b 0
+
+
+:tests.spec.test_metavar_bad_syntax
+call :argparse2 --test-spec ^
+    ^ " :                   set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar is empty"
+)
+call :argparse2 --test-spec ^
+    ^ "[:                   set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar have unmatched '['"
+)
+call :argparse2 --test-spec ^
+    ^ "]:                   set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar have unmatched ']'"
+)
+call :argparse2 --test-spec ^
+    ^ "--flag [:    set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar have unmatched '[' after flag"
+)
+call :argparse2 --test-spec ^
+    ^ "--flag ]:    set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar have unmatched ']' after flag"
+)
+call :argparse2 --test-spec ^
+    ^ "--flag -metavar-:    set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar is detected as flag"
+)
+exit /b 0
+
+
+:tests.spec.test_consume_many_bad_syntax
+call :argparse2 --test-spec ^
+    ^ "[arg1] ...:      list:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[arg] ...'"
+)
+call :argparse2 --test-spec ^
+    ^ "[-a TEXT] ...:   list:p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
+)
+call :argparse2 --test-spec ^
+    ^ "-a ...:          list:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '-a ...'"
+)
+call :argparse2 --test-spec ^
+    ^ "...:                set:p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '...' only"
+)
+exit /b 0
+
+
+:tests.spec.test_consume_many_bad_action
+call :argparse2 --test-spec ^
+    ^ "arg1 ...:        set:p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[arg] ...'"
+)
+call :argparse2 --test-spec ^
+    ^ "[-a TEXT ...]:   set:p_opt_a" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
+)
+exit /b 0
+
+
+:tests.spec.test_dest_missing
+call :argparse2 --test-spec ^
+    ^ "arg1:    set:" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when destination variable is missing"
+)
+exit /b 0
+
+
+:tests.spec.test_const_invalid
+call :argparse2 --test-spec ^
+    ^ "[--sc]:      set:p_opt_sc" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when store_const has missing const"
+)
+call :argparse2 --test-spec ^
+    ^ "[--ac]:      list:p_opt_ac" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when append_const has missing const"
+)
+call :argparse2 --test-spec ^
+    ^ "arg1:        set:p_arg1=this_must_not_be_here" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when store arg has unexpected const"
+)
+call :argparse2 --test-spec ^
+    ^ "argv ...:    list:p_argv=this_must_not_be_here" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when append arg has unexpected const"
+)
+call :argparse2 --test-spec ^
+    ^ "[--s TEXT]:  set:p_opt_s=this_must_not_be_here" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when store flag has unexpected const"
+)
+call :argparse2 --test-spec ^
+    ^ "[--a TEXT]:  list:p_opt_a=this_must_not_be_here" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when append flag has unexpected const"
+)
+exit /b 0
+
+
+:tests.spec.test_flag_bad_syntax
+call :argparse2 --test-spec ^
+    ^ "[-a,alpha]:      set:p_opt_sc=1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when flag does not start with '-' or '/'"
+)
+call :argparse2 --test-spec ^
+    ^ "[-a --alpha]:    set:p_opt_sc=1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when flag is not seperated by comma"
+)
+call :argparse2 --test-spec ^
+    ^ "[-1]:            set:p_opt_sc=1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when number flag is used"
+)
+call :argparse2 --test-spec ^
+    ^ "[-long]:         set:p_opt_sc=1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when short flag contains more than 1 character"
+)
+exit /b 0
+
+
+:tests.spec.test_flag_duplicate
+call :argparse2 --test-spec ^
+    ^ "[-a]:            set:p_opt_sc=1" ^
+    ^ "[-a]:            set:p_opt_sc=2" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when duplicate flag exists"
+)
+call :argparse2 --test-spec ^
+    ^ "[-a,--alpha]:    set:p_opt_sc=1" ^
+    ^ "[-r,--alpha]:    set:p_opt_sc=2" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when duplicate flag exists at subsequent flag"
+)
+exit /b 0
+
+
+:tests.spec.test_action_invalid
+for %%a in (invalid help list) do (
+    call :argparse2 --test-spec ^
+        ^ "arg1:                %%a:p_arg1" ^
+        ^ -- %STDERR_REDIRECTION% && (
+        call %unittest% fail "Unraised error when using 'metavar' with action '%%a'"
+    )
+)
+for %%a in (invalid help set) do (
+    call :argparse2 --test-spec ^
+        ^ "arg1 ...:                %%a:p_arg1" ^
+        ^ -- %STDERR_REDIRECTION% && (
+        call %unittest% fail "Unraised error when using 'metavar ...' with action '%%a'"
+    )
+)
+for %%a in (invalid) do (
+    call :argparse2 --test-spec ^
+        ^ "[-s]:                    %%a:p_opt_s=+1" ^
+        ^ -- %STDERR_REDIRECTION% && (
+        call %unittest% fail "Unraised error when using '--flag' with action '%%a'"
+    )
+)
+for %%a in (invalid help) do (
+    call :argparse2 --test-spec ^
+        ^ "[-s TEXT]:               %%a:p_opt_sc" ^
+        ^ -- %STDERR_REDIRECTION% && (
+        call %unittest% fail "Unraised error when using '--flag metavar' with action '%%a'"
+    )
+)
+for %%a in (invalid help set) do (
+    call :argparse2 --test-spec ^
+        ^ "[-s TEXT ...]:           %%a:p_opt_s" ^
+        ^ -- %STDERR_REDIRECTION% && (
+        call %unittest% fail "Unraised error when using '--flag metavar ...' with action '%%a'"
+    )
+)
+exit /b 0
+
+
+:tests.spec.test_internal_help
+for %%f in (-h --help) do (
+    call :argparse2 %%f > "help_msg" || (
+        call %unittest% fail "Got error when help flag is given"
+    )
+    set /p "result=" < "help_msg"
+    set "expected=usage:"
+    for /f "tokens=1" %%a in ("!result!") do set "result=%%a"
+    if not "!result!" == "!expected!" (
+        call %unittest% fail "Expected '!expected!', got '!result!'"
+    )
+)
+exit /b 0
+
+
+:tests.args.test_consume_valid
+if ^"%1^" == "" (
+    call :tests.args.test_consume_valid ^
+        ^ alpha "bravo" charlie "delta" ^
+        ^ -a a_ -b b1_ --bravo b2_ ^
+        ^ -c c c_ -d "d" d_ -e e1 e1_ -e e2 e2_ ^
+        ^ -f f1 f1_ -f "f2" f2_ ^
+        ^ -g g1 "-g" g2 ^
+        ^ -- -g "yankee" -- zulu ^
+        ^ %=END=%
+    exit /b
+)
+call :argparse2 ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ "arg2:                set:p_arg2" ^
+    ^ "arg3 ...:            list:p_arg3" ^
+    ^ "-a:                  set:p_opt_a=A" ^
+    ^ "-b,--bravo:          list:p_opt_b=B" ^
+    ^ "-c TEXT:             set:p_opt_c" ^
+    ^ "-d TEXT:             set:p_opt_d" ^
+    ^ "-e TEXT:             set:p_opt_e" ^
+    ^ "-f TEXT:             list:p_opt_f" ^
+    ^ "-g TEXT ...:         list:p_opt_g" ^
+    ^ -- %* || (
+    call %unittest% fail "Got error when consuming valid arguments"
+    exit /b 0
+)
+set expected=alpha,bravo,charlie "delta" %=END=%
+set expected=!expected!a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
+set expected=!expected!-g "yankee" -- zulu %=END=%
+set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 "-g" g2 %=END=%
+set result=!p_arg1!,!p_arg2!,!p_arg3!
+set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!,!p_opt_g!
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.args.test_optional_valid
+if ^"%1^" == "" (
+    call :tests.args.test_optional_valid -d -e
+    exit /b
+)
+call :argparse2 ^
+    ^ "[arg1]:              set:p_arg1" ^
+    ^ "[arg2 ...]:          list:p_arg2" ^
+    ^ "[-a]:                set:p_opt_a=A" ^
+    ^ "[-b TEXT]:           set:p_opt_b" ^
+    ^ "[-c TEXT ...]:       list:p_opt_c" ^
+    ^ "-d [TEXT]:           set:p_opt_d" ^
+    ^ "-e [TEXT ...]:       list:p_opt_e" ^
+    ^ -- %* || (
+    call %unittest% fail "Got error when all consumes are optional"
+    exit /b 0
+)
+set expected=,,,,,,
+set result=!p_arg1!,!p_arg2!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.args.test_help
+call :argparse2 ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ "[arg2 ...]:          list:p_arg1" ^
+    ^ "[-h,--help]:         help:p_help" ^
+    ^ "-a,--alp,--alpha:    set:p_opt_a=1" ^
+    ^ "[-b,--bravo TEXT]:   set:p_opt_b" ^
+    ^ "-c [TEXT]:           set:p_opt_c" ^
+    ^ "-d TEXT ...:         list:p_opt_d" ^
+    ^ "[-e [T1 T2 ...]]:    list:p_opt_e" ^
+    ^ -- -h || (
+    call %unittest% fail "Got error when generating help for valid specs"
+)
+set "expected="
+set "expected=!expected![-h|--help] (-a|--alp|--alpha) [(-b|--bravo) TEXT]"
+set "expected=!expected! -c [TEXT] -d TEXT ... [-e [T1 T2 ...]]"
+set "expected=!expected! arg1 [arg2 ...]"
+set "result=!p_help!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.args.test_arg_too_many
+if ^"%1^" == "" (
+    call :tests.args.test_arg_too_many a b
+    exit /b
+)
+call :argparse2 ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when require 1 arg but got more"
+    exit /b 0
+)
+call :argparse2 ^
+    ^ "[-a]:                set:p_opt_a=A" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when require 0 args but got more"
+    exit /b 0
+)
+exit /b 0
+
+
+:tests.args.test_flag_unknown
+if ^"%1^" == "" (
+    call :tests.args.test_flag_unknown --alph
+    exit /b
+)
+call :argparse2 ^
+    ^ "[-a,--alp,--alpha]:  set:p_opts=a" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when unknown flag is given"
+    exit /b 0
+)
+exit /b 0
+
+
+:tests.args.test_required_missing
+call :argparse2 ^
+    ^ "arg1:                set:p_arg1" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when argument is required but nothing is given"
+    exit /b 0
+)
+call :argparse2 ^
+    ^ "-a,--alpha:          set:p_opts=a" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when flag is required but nothing is given"
+    exit /b 0
+)
+exit /b 0
+
+
+:tests.args.test_consume_required_missing
+if ^"%1^" == "" (
+    call :tests.args.test_consume_required_missing -a
+    exit /b
+)
+call :argparse2 ^
+    ^ "-a AAA:          set:p_opt_a" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using store without expected argument"
+)
+call :argparse2 ^
+    ^ "-a AAA ...:      list:p_opt_a" ^
+    ^ -- %* %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using append without expected argument"
+)
+exit /b 0
+
+
+:tests.args.test_command_name
+if ^"%1^" == "" (
+    call :tests.args.test_command_name --invalid invalid
+    exit /b
+)
+set "expected=my-command-name-here"
+call :argparse2 --name "!expected!" ^
+    ^ "-a:        set:p_argv" ^
+    ^ -- %* 2> "error_msg" && (
+    call %unittest% error "Unraised error, cannot capture error message"
+)
+set /p "result=" < "error_msg"
+for /f "tokens=1 delims=:" %%a in ("!result!") do set "result=%%a"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.capture.test_store_special_chars
+if ^"%1^" == "" (
+    call :tests.list_characters
+    set "args="
+    set "specs="
+    set "expected="
+    for %%v in (!symbols!) do (
+        set args=!args! !%%v!
+        set specs=!specs! "[%%v]: set:p_%%v"
+        if "!%%v:~0,1!!%%v:~-1,1!" == ^"^"^"^" (
+            set "expected=!expected!,!%%v:~1,-1!"
+        ) else set "expected=!expected!,!%%v!"
+    )
+    call :tests.capture.test_store_special_chars !args!
+    exit /b
+)
+call :argparse2 ^
+    ^ !specs! ^
+    ^ -- %* || (
+    call %unittest% fail "Parse failed"
+    exit /b 0
+)
+set "result="
+for %%v in (!symbols!) do (
+    set "result=!result!,!p_%%v!"
+)
+for %%v in (expected result) do set "%%v=!%%v:~1!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Got incorrect result using one of these symbols: !symbols!"
+)
+exit /b 0
+
+
+:tests.capture.test_append_special_chars
+if ^"%1^" == "" (
+    call :tests.list_characters
+    set "args="
+    set "expected="
+    for %%v in (!symbols!) do (
+        set args=!args! !%%v!
+        set "expected=!expected!!%%v! "
+    )
+    call :tests.capture.test_append_special_chars !args!
+    exit /b
+)
+call :argparse2 ^
+    ^ "[argv ...]:      list:p_argv" ^
+    ^ -- %* || (
+    call %unittest% fail "Parse failed"
+    exit /b 0
+)
+set "result=!p_argv!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Got incorrect result using one of these symbols: !symbols!"
+)
+exit /b 0
+
+
+:tests.list_characters
+set null=""
+set letters=abcdefghijklmnopqrstuvwxyz
+set digits=0123456789
+set caret="^^^^"
+set ast=*
+set qm=?
+set amp="&"
+set hm="-"
+set eq="="
+set scolon=";"
+set coma=","
+set colon=:
+set vline="|"
+set parns_l=(
+set parns_r=)
+set sqbr_l=[
+set sqbr_r=]
+set "symbols="
+set "symbols=!symbols! letters null ast qm caret coma eq scolon amp vline"
+set "symbols=!symbols! hm colon parns_l parns_r sqbr_l sqbr_r"
+set "symbols=!symbols! digits"
+exit /b 0
+
+
+:EOF
+exit /b
