@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:normalize_spaces <input_var [...]> [--not-null]
+:normalize_spaces <input_var ...> [--not-null]
 for %%l in (%~1) do (
     set "%%l= !%%l! "
     for %%s in (
@@ -30,7 +30,7 @@ exit /b 0
 ::      normalize_spaces - normalize spaces in a variable to its compact form
 ::
 ::  SYNOPSIS
-::      normalize_spaces <input_var [...]> [--not-null]
+::      normalize_spaces <input_var ...> [--not-null]
 ::
 ::  DESCRIPTION
 ::      Adds a single space to the beginning and the end of the string

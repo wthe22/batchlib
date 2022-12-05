@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:functions_range <return_var> <input_file> <label [...]>
+:functions_range <return_var> <input_file> <label ...>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_input_file=%~f2"
@@ -79,7 +79,7 @@ exit /b 0
 ::      functions_range - get the line range of functions
 ::
 ::  SYNOPSIS
-::      functions_range <return_var> <input_file> <label [...]>
+::      functions_range <return_var> <input_file> <label ...>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var

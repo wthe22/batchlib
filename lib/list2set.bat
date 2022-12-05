@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:list2set <input_var [...]> [--not-null]
+:list2set <input_var ...> [--not-null]
 for %%v in (%~1) do (
     setlocal EnableDelayedExpansion
     call :list2set._convert !%%v!
@@ -43,7 +43,7 @@ exit /b 0
 ::      list2set - remove duplicate items in a list
 ::
 ::  SYNOPSIS
-::      list2set <input_var [...]> [--not-null]
+::      list2set <input_var ...> [--not-null]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_var
