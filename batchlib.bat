@@ -1469,6 +1469,14 @@ exit /b 0
 exit /b 0
 
 
+:tests.test_version
+call :metadata
+call :version_parse _ "!version!" || (
+    call %unittest% fail "Invalid version scheme '!version!'"
+)
+exit /b 0
+
+
 :tests.Library.test_unload
 set "Library.test=hello hi"
 set "Library_hello.install_requires=hi"
