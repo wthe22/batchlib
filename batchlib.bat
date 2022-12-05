@@ -213,17 +213,25 @@ rem ############################################################################
 ::
 ::
 ::  Library
-::  - Replaced functions
+::  - New functions:
+::      - argparse2(): Reworked and more robust version of argparse()
 ::
 ::  - New features:
+::      - argparse2():
+::          - Help flag detection and auto-generated usage syntax
+::          - Required/optional spec detection
+::          - A single flag can now capture multiple arguments
 ::      - unittest(): Added output formatter 'unittest.fmt.basic'
 ::
 ::  - Removed functions:
 ::      - ut_fmt_basic(): Merged into unittest()
 ::
+::  - Non-functional improvements:
+::      - quicktest(): Use outcome message as-is to prevent errors
+::                     from unquoted string
+::
 ::  - Has backward incompatible changes:
-::      - quicktest():
-::          - Empty label string now triggers auto detect label
+::      - quicktest(): Empty label string now triggers auto detect label
 ::
 ::  Documentation
 ::  - quicktest(): Improve use case example and fix argument syntax
