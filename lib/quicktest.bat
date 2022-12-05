@@ -207,9 +207,9 @@ fc /a /lb1 result expected > nul || (
 exit /b 0
 
 :tests.expected.output_stderr
-::  tests.test_skip: skip: Not ready
-::  tests.test_fail: fail: 1 + 1 is not 3
-::  tests.test_error: error: Something unexpected happen
+::  tests.test_skip: skip: "Not ready"
+::  tests.test_fail: fail: "1 + 1 is not 3"
+::  tests.test_error: error: "Something unexpected happen"
 exit /b 0
 
 
