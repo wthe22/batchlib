@@ -1284,7 +1284,7 @@ rem ############################################################################
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ functions_range readline functions_list true unset_all ^
-    ^ coderender unittest ut_fmt_basic ^
+    ^ coderender unittest version_parse ^
     ^ conemu input_path input_yesno input_string updater ^
     ^ difftime ftime ^
     ^ %=END=%
