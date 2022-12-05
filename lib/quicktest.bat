@@ -69,8 +69,8 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      label
-::          List of labels to be tested. If this is not specified,
-::          any label that matches 'test*.test*' is used.
+::          List of labels to be tested. If this is empty, any label that matches
+::          'test*.test*' is used.
 ::
 ::  UNITTEST USAGE
 ::      tests.setup()
