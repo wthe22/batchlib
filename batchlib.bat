@@ -374,7 +374,7 @@ exit /b
 
 :subcommand.debug <library> :<label> [arguments] ...
 set "library=%~1"
-for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest"
+for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest unittest"
 call :LibBuild.build "!library!"
 endlocal & (
     cd /d "%build_dir%"
