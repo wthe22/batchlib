@@ -37,7 +37,7 @@ for %%t in (%unittest.test_cases%) do (
 exit /b 0
 #+++
 
-:quicktest.outcome
+:quicktest.outcome <outcome> [message]
 set "unittest._outcome=%~1"
 goto 2> nul & (
     1>&2 call echo%%0: %~1: %~2
