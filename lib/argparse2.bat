@@ -529,8 +529,8 @@ for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
             set "_flag_syntax=!_flag_syntax:~1!"
             set "_need_parenthesis="
             if !_flag_count! GTR 1 (
-                if defined _metavar set "_need_parenthesis==true"
-                if defined _required set "_need_parenthesis==true"
+                if defined _metavar set "_need_parenthesis=true"
+                if defined _required set "_need_parenthesis=true"
             )
             if defined _need_parenthesis (
                 set "_flag_syntax=(!_flag_syntax!)"
