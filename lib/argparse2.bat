@@ -1007,7 +1007,8 @@ exit /b 0
 :tests.args.test_help
 call :argparse2 ^
     ^ "arg1:                set:p_arg1" ^
-    ^ "[arg2 ...]:          list:p_arg1" ^
+    ^ "[arg2]:              set:p_arg2" ^
+    ^ "[arg3 ...]:          list:p_arg3" ^
     ^ "[-h,--help]:         help:p_help" ^
     ^ "-a,--alp,--alpha:    set:p_opt_a=1" ^
     ^ "[-b,--bravo TEXT]:   set:p_opt_b" ^
@@ -1020,7 +1021,7 @@ call :argparse2 ^
 set "expected="
 set "expected=!expected![-h|--help] (-a|--alp|--alpha) [(-b|--bravo) TEXT]"
 set "expected=!expected! -c [TEXT] -d TEXT ... [-e [T1 T2 ...]]"
-set "expected=!expected! arg1 [arg2 ...]"
+set "expected=!expected! arg1 [arg2] [arg3 ...]"
 set "result=!p_help!"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
