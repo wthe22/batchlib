@@ -551,7 +551,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=input_string"
+set "%~1extra_requires=input_string unset_all"
 set "%~1category=cli"
 exit /b 0
 
@@ -660,14 +660,7 @@ exit /b 0
 :tests.setup
 rem set "debug="
 set "STDERR_REDIRECTION=2> nul"
-for %%v in (
-    p_argv p_opts p_help
-    p_argv1 p_argv2 p_argv3
-    p_arg1 p_arg2 p_arg3
-    p_opt_sc p_opt_ac p_opt_s p_opt_a
-    p_opt_a p_opt_b p_opt_c p_opt_d p_opt_e p_opt_f p_opt_g
-) do set "%%v="
-rem Add test for help syntax
+call :unset_all p_
 exit /b 0
 
 
