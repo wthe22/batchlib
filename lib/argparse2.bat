@@ -657,6 +657,123 @@ exit /b 0
 exit /b 0
 
 
+:doc.demo
+echo A DEMO function to generate text for buying and selling stuffs
+echo=
+call :shop --help
+echo=
+call :input_string parameters || (
+    set parameters=-u "Alice" buy cactus 1
+)
+echo=
+echo --------------------------------------------------------------------------------
+echo Input parameters:
+echo=!parameters!
+echo=
+call :shop !parameters!
+echo=
+echo Arguments:
+set "shop_"
+exit /b !exit_code!
+echo=
+echo Exit code !exit_code!
+exit /b 0
+#+++
+
+:shop
+call :unset_all shop_
+set "shop_user=anonymous"
+call :argparse2 --name "shop" ^
+    ^ "[-h,--help]:             help:shop_help" ^
+    ^ "[--version]:             set:shop_show_version=true" ^
+    ^ "[-u,--user NAME]:        set:shop_user" ^
+    ^ "action:                  set:shop_action" ^
+    ^ "[arg ...]:               list:shop_argv" ^
+    ^ -- %* || exit /b 2
+set "available_actions=buy, sell"
+if defined shop_help (
+    echo usage: shop !arg_help!
+    echo=
+    echo    -h, --help              Show this help
+    echo    --version               Show program version
+    echo    -u,--user NAME          Specify your username
+    echo    action                  Action to do: {!available_actions!}
+    echo    [args ...]              Arguments given for the specified action.
+    exit /b 0
+)
+if defined shop_show_version (
+    echo= shop v0.1
+    exit /b 0
+)
+set "valid_action="
+for %%c in (!available_actions!) do (
+    if "!shop_action!" == "%%c" set "valid_action=true"
+)
+if not defined valid_action (
+    1>&2 echo%0: Unknown action '!shop_action!'. Use '-h' for help
+    exit /b 2
+)
+call :shop.!shop_action! !shop_argv!
+exit /b
+#+++
+
+:shop.buy
+call :argparse2 --name "shop" ^
+    ^ "[-h,--help]:                 help:shop_help" ^
+    ^ "[-v,--variant NAME]:         set:shop_item_variant" ^
+    ^ "item_name:                   set:shop_item_name" ^
+    ^ "amount:                      set:shop_item_amount" ^
+    ^ -- %* || exit /b 2
+if defined shop_help (
+    echo usage: shop [SHOP_OPTIONS] buy !shop_help!
+    echo=
+    echo    -h, --help              Show this help
+    echo    -v,--variant NAME       Select a variant to buy
+    echo    item_name               The item to buy
+    echo    amount                  The amount to buy
+    exit /b 0
+)
+set "message=!shop_user! wants to buy !shop_item_amount! !shop_item_name!"
+if defined shop_item_variant (
+    set "message=!message! (!variant!)"
+)
+echo !message!
+exit /b 0
+#+++
+
+:shop.sell
+call :argparse2 --name "shop" ^
+    ^ "[-h,--help]:                 help:shop_help" ^
+    ^ "[-v,--variant NAME ...]:     list:shop_item_variants" ^
+    ^ "item_name:                   set:shop_item_name" ^
+    ^ "amount:                      set:shop_item_amount" ^
+    ^ "[price]:                     set:shop_item_price" ^
+    ^ -- %* || exit /b 2
+if defined shop_help (
+    echo usage: shop [SHOP_OPTIONS] sell !shop_help!
+    echo=
+    echo    -h, --help              Show this help
+    echo    -v,--variant NAME       List available variants
+    echo    item_name               Item name
+    echo    price                   Price per unit
+    exit /b 0
+)
+set "message=!shop_user! wants to sell !shop_item_amount! !shop_item_name!."
+if defined shop_item_price (
+    set "message=!message:~0,-1! for $!shop_item_price!."
+)
+if defined shop_item_variants (
+    set "variant_formatted= "
+    for %%n in (!shop_item_variants!) do (
+        set "variant_formatted=!variant_formatted! %%~n,"
+    )
+    set "message=!message! Variants: {!variant_formatted:~2,-1!}."
+)
+echo !message!
+exit /b 0
+#+++
+
+
 :tests.setup
 rem set "debug="
 set "STDERR_REDIRECTION=2> nul"
