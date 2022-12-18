@@ -676,12 +676,17 @@ exit /b 0
 
 
 :tests.spec.test_no_parse
-call :argparse2 --test-spec ^
-    ^ "arg1:            set:p_arg1" ^
-    ^ -- aaa || (
-    call %unittest% fail "Got error when testing valid spec without arguments"
+call :argparse2 -t ^
+    ^ "-a:            set:p_opts=fail" ^
+    ^ -- -a || (
+    call %unittest% fail "Got error when testing valid spec using -t without arguments"
 )
-if defined p_arg1 (
+call :argparse2 --test-spec ^
+    ^ "-a:            set:p_opts=fail" ^
+    ^ -- -a || (
+    call %unittest% fail "Got error when testing valid spec using --test-spec without arguments"
+)
+if defined p_opts (
     call %unittest% fail "Arguments should not be parsed"
 )
 exit /b 0
