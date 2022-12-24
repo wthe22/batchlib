@@ -195,7 +195,7 @@ if defined _metavar (
     )
 ) else (
     rem Pattern: "--flag"
-    set "_valid_actions=set list help"
+    set "_valid_actions=set list help end"
 )
 set "_action_valid="
 for %%a in (!_valid_actions!) do (
@@ -335,6 +335,11 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         if "!_action!" == "help" (
             call :argparse2._generate_help _syntax
             set _actions="store_const:!_dest!=!_syntax!"
+            set "_surpress_validation=true"
+            exit /b 0
+        )
+        if "!_action!" == "end" (
+            set _actions="store_const:!_dest!"
             set "_surpress_validation=true"
             exit /b 0
         )
@@ -617,11 +622,12 @@ exit /b 0
 ::          Indicates that spec may consume multiple arguments.
 ::
 ::      ACTION
-::          The action to do. This value is case sensitive. Valid actions:
+::          The action to do (case sensitive). Valid actions:
 ::              set     Set the variable to a value
 ::              list    Gather values into a list, each seperated by a space,
 ::                      with quotes preserved
 ::              help    Generate help syntax and store it in the variable
+::              end     End parsing and set the variable
 ::
 ::      DEST
 ::          The destination variable that is used to store the value. If the action
@@ -701,7 +707,7 @@ call :unset_all shop_
 set "shop_user=anonymous"
 call :argparse2 --name "shop" --stop-nonopt ^
     ^ "[-h,--help]:             help shop_syntax" ^
-    ^ "[--version]:             set shop_show_version=true" ^
+    ^ "[--version]:             end shop_show_version=true" ^
     ^ "[-u,--user NAME]:        set shop_user" ^
     ^ "action:                  set shop_action" ^
     ^ "[arg ...]:               list shop_argv" ^
@@ -955,6 +961,11 @@ call :argparse2 --test-spec --dry-run ^
     call %unittest% fail "Unraised error when append_const has missing const"
 )
 call :argparse2 --test-spec --dry-run ^
+    ^ "[--version]: end p_show_version" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when action 'end' has missing const"
+)
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1:        set p_arg1=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store arg has unexpected const"
@@ -1018,14 +1029,14 @@ exit /b 0
 
 
 :tests.spec.test_action_invalid
-for %%a in (invalid help list) do (
+for %%a in (invalid help list end) do (
     call :argparse2 --test-spec --dry-run ^
         ^ "arg1:                %%a p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using 'metavar' with action '%%a'"
     )
 )
-for %%a in (invalid help set) do (
+for %%a in (invalid help set end) do (
     call :argparse2 --test-spec --dry-run ^
         ^ "arg1 ...:                %%a p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
@@ -1039,14 +1050,14 @@ for %%a in (invalid) do (
         call %unittest% fail "Unraised error when using '--flag' with action '%%a'"
     )
 )
-for %%a in (invalid help) do (
+for %%a in (invalid help end) do (
     call :argparse2 --test-spec --dry-run ^
         ^ "[-s TEXT]:               %%a p_opt_sc" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag metavar' with action '%%a'"
     )
 )
-for %%a in (invalid help set) do (
+for %%a in (invalid help set end) do (
     call :argparse2 --test-spec --dry-run ^
         ^ "[-s TEXT ...]:           %%a p_opt_s" ^
         ^ -- %STDERR_REDIRECTION% && (
@@ -1154,6 +1165,21 @@ set "expected=!expected![-h|--help] (-a|--alp|--alpha) [(-b|--bravo) TEXT]"
 set "expected=!expected! -c [TEXT] -d TEXT ... [-e [T1 T2 ...]]"
 set "expected=!expected! arg1 [arg2] [arg3 ...]"
 set "result=!p_help!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.args.test_end
+call :argparse2 --test-spec ^
+    ^ "[--version]:         end p_show_version=true" ^
+    ^ "arg1:                set p_arg1" ^
+    ^ -- --version || (
+    call %unittest% fail "Got error when using end"
+)
+set expected=true
+set result=!p_show_version!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
