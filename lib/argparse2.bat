@@ -279,6 +279,9 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         if not defined _new_spec exit /b 2
     ) else (
         if not defined _consume_action (
+            if defined _stop_nonopt (
+                if defined _parse_opt set "_parse_opt="
+            )
             for /f "tokens=* delims=" %%s in ("!_spec_names!") do if not defined _new_spec (
                 set "_new_spec=%%s"
             )
@@ -582,6 +585,10 @@ exit /b 0
 ::
 ::      -n, --name
 ::          Command name for use in error messages. By default it is 'argparse2'.
+::
+::      -s, --stop-nonopt
+::          Stop scanning for options as soon as the first non-option argument
+::          is seen. The rest are treated positional arguments.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      spec
@@ -1230,6 +1237,28 @@ call :argparse2 --name "!expected!" ^
 )
 set /p "result=" < "error_msg"
 for /f "tokens=1 delims=:" %%a in ("!result!") do set "result=%%a"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.args.test_stop_nonopt
+if ^"%1^" == "" (
+    call :tests.args.test_stop_nonopt -a alpha bravo -b charlie
+    exit /b
+)
+call :argparse2 --stop-nonopt ^
+    ^ "arg1:                set p_arg1" ^
+    ^ "[arg2 ...]:          list p_arg2" ^
+    ^ "[-a TEXT]:           set p_opt_a" ^
+    ^ "[-b]:                set p_opt_b=B" ^
+    ^ -- %* || (
+    call %unittest% fail "Got error when all consumes are optional"
+    exit /b 0
+)
+set expected=bravo,-b charlie ,alpha,
+set result=!p_arg1!,!p_arg2!,!p_opt_a!,!p_opt_b!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
