@@ -393,6 +393,18 @@ exit /b
 
 :subcommand.template <name>
 set "template_name=%~1"
+if not defined template_name (
+    call :functions_match labels "%~f0" "template.*"
+    set "_templates= "
+    for %%l in (!labels!) do (
+        for /f "tokens=2 delims=." %%a in ("%%l") do (
+            set "_templates=!_templates: %%a = !%%a "
+        )
+    )
+    set "_templates=!_templates:~1,-1!"
+    echo Available templates: !_templates!
+    exit /b 0
+)
 call :coderender "%~f0" "template.!template_name!"
 exit /b
 
