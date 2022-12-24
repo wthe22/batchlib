@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:argparse2 [-h] [-t] [-n NAME] <spec> ... -- %*
+:argparse2 [-h] [-T] [-d] [-s] [-n NAME] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 for %%v in (
     _test_internal_specs _stop_on_extra
@@ -18,7 +18,7 @@ set LF=^
 call :argparse2._read_opts %* || exit /b
 if defined _test_internal_specs exit /b 0
 if defined _help_syntax (
-    echo usage: !_name! !_help_syntax! spec ... -- [arg ...]
+    echo usage: !_name! !_help_syntax! spec ... -- %%*
     exit /b 0
 )
 call :argparse2._parse_specs %* || exit /b 3
@@ -571,7 +571,7 @@ exit /b 0
 ::      argparse2 - parse options passed to script or function
 ::
 ::  SYNOPSIS
-::      argparse2 [-h] [-t] [-n NAME] <spec> ... -- %*
+::      argparse2 [-h] [-T] [-d] [-s] [-n NAME] <spec> ... -- %*
 ::
 ::  OPTIONS
 ::      Note: They must appear before all SPECs
@@ -595,12 +595,16 @@ exit /b 0
 ::
 ::  POSITIONAL ARGUMENTS
 ::      spec
-::          The list of arguments that should be parsed. The complete syntax can
+::          Arguments specifications to parse. The complete syntax can
 ::          be found in the ARGUMENT SPECIFACTIONS section.
 ::
+::      --
+::          Mark the end of specs. This is required.
+::
 ::      %*
-::          The arguments to parse. This MUST be '%*' or else it will fail (because
-::          it consumes the caller's %1, %2, etc. argument).
+::          Arguments given by the end user to parse. This MUST be '%*' or
+::          else it might fail to capture arguments because it consumes the
+::          caller's %1, %2, etc.
 ::
 ::  ARGUMENT SPECIFACTIONS
 ::
@@ -667,9 +671,9 @@ exit /b 0
 ::      - Multi-character short options are not supported.
 ::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
 ::      - Function SHOULD be embedded into the script.
-::      - This function should not be used multiple times within the same function
-::        because it consumes the caller's %1, %2, etc. argument. Might capture
-::        incorrect values if used multiple times.
+::      - This function should not be used multiple times within the same context
+::        because it consumes the caller's %1, %2, etc. argument. Otherwise, it
+::        might capture incorrect values.
 exit /b 0
 
 
@@ -722,7 +726,7 @@ if defined shop_syntax (
     exit /b 0
 )
 if defined shop_show_version (
-    echo= shop v0.1
+    echo shop v0.1
     exit /b 0
 )
 set "valid_action="
