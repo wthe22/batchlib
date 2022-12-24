@@ -213,6 +213,7 @@ rem ############################################################################
 ::
 ::
 ::  Library
+::  - Include unittest() to library in debug mode
 ::  - New functions:
 ::      - argparse2(): Reworked and more robust version of argparse()
 ::
@@ -235,6 +236,8 @@ rem ############################################################################
 ::
 ::  Documentation
 ::  - quicktest(): Improve use case example and fix argument syntax
+::  - Minor argument syntax adjustment
+::  - Template subcommand will list available template when no name is given
 exit /b 0
 
 
