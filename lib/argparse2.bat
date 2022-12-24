@@ -36,11 +36,11 @@ setlocal EnableDelayedExpansion
 if defined _test_internal_specs set "_test_spec=true"
 set "_position=0"
 call :argparse2._parse_specs ^
-    ^ "[-h,--help]:         help:_help_syntax" ^
-    ^ "[-t,--test-spec]:    set:_test_spec=true" ^
-    ^ "[-d,--dry-run]:      set:_dry_run=true" ^
-    ^ "[-s,--stop-nonopt]:  set:_stop_nonopt=true" ^
-    ^ "[-n,--name NAME]:    set:_new_name" ^
+    ^ "[-h,--help]:         help _help_syntax" ^
+    ^ "[-t,--test-spec]:    set _test_spec=true" ^
+    ^ "[-d,--dry-run]:      set _dry_run=true" ^
+    ^ "[-s,--stop-nonopt]:  set _stop_nonopt=true" ^
+    ^ "[-n,--name NAME]:    set _new_name" ^
     ^ -- || exit /b 2
 if defined _test_spec exit /b 0
 set "_position=0"
@@ -84,10 +84,12 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     set "_argument="
     set "_action="
     set "_dest="
-    for /f "tokens=1-2* delims=:" %%a in ("!_value!") do (
+    for /f "tokens=1* delims=:" %%a in ("!_value!") do (
         set "_argument=%%a"
-        for /f "tokens=*" %%b in ("%%b") do set "_action=%%b"
-        set "_dest=%%c"
+        for /f "tokens=1*" %%b in ("%%b") do (
+            set "_action=%%b"
+            set "_dest=%%c"
+        )
     )
 
     if "!_argument:~0,1!!_argument:~-1,1!" == "[]" (
@@ -687,11 +689,11 @@ exit /b 0
 call :unset_all shop_
 set "shop_user=anonymous"
 call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:             help:shop_help" ^
-    ^ "[--version]:             set:shop_show_version=true" ^
-    ^ "[-u,--user NAME]:        set:shop_user" ^
-    ^ "action:                  set:shop_action" ^
-    ^ "[arg ...]:               list:shop_argv" ^
+    ^ "[-h,--help]:             help shop_help" ^
+    ^ "[--version]:             set shop_show_version=true" ^
+    ^ "[-u,--user NAME]:        set shop_user" ^
+    ^ "action:                  set shop_action" ^
+    ^ "[arg ...]:               list shop_argv" ^
     ^ -- %* || exit /b 2
 set "available_actions=buy, sell"
 if defined shop_help (
@@ -722,10 +724,10 @@ exit /b
 
 :shop.buy
 call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:                 help:shop_help" ^
-    ^ "[-v,--variant NAME]:         set:shop_item_variant" ^
-    ^ "item_name:                   set:shop_item_name" ^
-    ^ "amount:                      set:shop_item_amount" ^
+    ^ "[-h,--help]:                 help shop_help" ^
+    ^ "[-v,--variant NAME]:         set shop_item_variant" ^
+    ^ "item_name:                   set shop_item_name" ^
+    ^ "amount:                      set shop_item_amount" ^
     ^ -- %* || exit /b 2
 if defined shop_help (
     echo usage: shop [SHOP_OPTIONS] buy !shop_help!
@@ -746,11 +748,11 @@ exit /b 0
 
 :shop.sell
 call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:                 help:shop_help" ^
-    ^ "[-v,--variant NAME ...]:     list:shop_item_variants" ^
-    ^ "item_name:                   set:shop_item_name" ^
-    ^ "amount:                      set:shop_item_amount" ^
-    ^ "[price]:                     set:shop_item_price" ^
+    ^ "[-h,--help]:                 help shop_help" ^
+    ^ "[-v,--variant NAME ...]:     list shop_item_variants" ^
+    ^ "item_name:                   set shop_item_name" ^
+    ^ "amount:                      set shop_item_amount" ^
+    ^ "[price]:                     set shop_item_price" ^
     ^ -- %* || exit /b 2
 if defined shop_help (
     echo usage: shop [SHOP_OPTIONS] sell !shop_help!
@@ -797,12 +799,12 @@ exit /b 0
 
 :tests.spec.test_dry_run
 call :argparse2 -t -d ^
-    ^ "-a:            set:p_opts=fail" ^
+    ^ "-a:            set p_opts=fail" ^
     ^ -- -a || (
     call %unittest% fail "Got error when using valid spec with -t -d"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "-a:            set:p_opts=fail" ^
+    ^ "-a:            set p_opts=fail" ^
     ^ -- -a || (
     call %unittest% fail "Got error when using valid spec with  --test-spec --dry-run"
 )
@@ -814,25 +816,25 @@ exit /b 0
 
 :tests.spec.test_valid
 call :argparse2 --test-spec --dry-run ^
-    ^ "arg1:                set:p_arg1" ^
-    ^ "[-h,--help]:         help:p_help" ^
-    ^ "[--sc]:              set:p_opt_sc=1" ^
-    ^ "[--ac]:              list:p_opt_ac=+1" ^
-    ^ "[-s TEXT]:           set:p_opt_s" ^
-    ^ "[-a,--append TEXT]:  list:p_opt_a" ^
+    ^ "arg1:                set p_arg1" ^
+    ^ "[-h,--help]:         help p_help" ^
+    ^ "[--sc]:              set p_opt_sc=1" ^
+    ^ "[--ac]:              list p_opt_ac=+1" ^
+    ^ "[-s TEXT]:           set p_opt_s" ^
+    ^ "[-a,--append TEXT]:  list p_opt_a" ^
     ^
     ^ %= flags =% ^
-    ^ "-f:                      set:p_opt_a=1" ^
-    ^ "-g,--g2:                 set:p_opt_a=1" ^
-    ^ "--h-1,--h-2,--h-3:       set:p_opt_a=1" ^
+    ^ "-f:                      set p_opt_a=1" ^
+    ^ "-g,--g2:                 set p_opt_a=1" ^
+    ^ "--h-1,--h-2,--h-3:       set p_opt_a=1" ^
     ^
     ^ %= consume many =% ^
-    ^ "cm_arg1 ...:             list:p_arg1" ^
-    ^ "[cm_arg2 ...]:           list:p_arg2" ^
-    ^ "--cm-rr TEXT ...:        list:p_opt_a" ^
-    ^ "[--cm-or TEXT ...]:      list:p_opt_a" ^
-    ^ "--cm-ro [TEXT ...]:      list:p_opt_a" ^
-    ^ "[--cm-oo [TEXT ...]]:    list:p_opt_a" ^
+    ^ "cm_arg1 ...:             list p_arg1" ^
+    ^ "[cm_arg2 ...]:           list p_arg2" ^
+    ^ "--cm-rr TEXT ...:        list p_opt_a" ^
+    ^ "[--cm-or TEXT ...]:      list p_opt_a" ^
+    ^ "--cm-ro [TEXT ...]:      list p_opt_a" ^
+    ^ "[--cm-oo [TEXT ...]]:    list p_opt_a" ^
     ^
     ^ -- || (
     call %unittest% fail "Got error when using valid specs"
@@ -842,7 +844,7 @@ exit /b 0
 
 :tests.spec.test_end_marker_missing
 call :argparse2 --test-spec --dry-run ^
-    ^ "arg1:                set:p_arg1" ^
+    ^ "arg1:                set p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error on missing -- seperator"
 )
@@ -851,32 +853,32 @@ exit /b 0
 
 :tests.spec.test_metavar_bad_syntax
 call :argparse2 --test-spec --dry-run ^
-    ^ " :                   set:p_arg1" ^
+    ^ " :                   set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar is empty"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[:                   set:p_arg1" ^
+    ^ "[:                   set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched '['"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "]:                   set:p_arg1" ^
+    ^ "]:                   set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched ']'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "--flag [:    set:p_arg1" ^
+    ^ "--flag [:    set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched '[' after flag"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "--flag ]:    set:p_arg1" ^
+    ^ "--flag ]:    set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched ']' after flag"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "--flag -metavar-:    set:p_arg1" ^
+    ^ "--flag -metavar-:    set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar is detected as flag"
 )
@@ -885,22 +887,22 @@ exit /b 0
 
 :tests.spec.test_consume_many_bad_syntax
 call :argparse2 --test-spec --dry-run ^
-    ^ "[arg1] ...:      list:p_arg1" ^
+    ^ "[arg1] ...:      list p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[arg] ...'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a TEXT] ...:   list:p_arg1" ^
+    ^ "[-a TEXT] ...:   list p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "-a ...:          list:p_arg1" ^
+    ^ "-a ...:          list p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '-a ...'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "...:                set:p_arg1" ^
+    ^ "...:                set p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '...' only"
 )
@@ -909,12 +911,12 @@ exit /b 0
 
 :tests.spec.test_consume_many_bad_action
 call :argparse2 --test-spec --dry-run ^
-    ^ "arg1 ...:        set:p_arg1" ^
+    ^ "arg1 ...:        set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[arg] ...'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a TEXT ...]:   set:p_opt_a" ^
+    ^ "[-a TEXT ...]:   set p_opt_a" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
 )
@@ -923,7 +925,7 @@ exit /b 0
 
 :tests.spec.test_dest_missing
 call :argparse2 --test-spec --dry-run ^
-    ^ "arg1:    set:" ^
+    ^ "arg1:    set" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when destination variable is missing"
 )
@@ -932,32 +934,32 @@ exit /b 0
 
 :tests.spec.test_const_invalid
 call :argparse2 --test-spec --dry-run ^
-    ^ "[--sc]:      set:p_opt_sc" ^
+    ^ "[--sc]:      set p_opt_sc" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store_const has missing const"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[--ac]:      list:p_opt_ac" ^
+    ^ "[--ac]:      list p_opt_ac" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append_const has missing const"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "arg1:        set:p_arg1=this_must_not_be_here" ^
+    ^ "arg1:        set p_arg1=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store arg has unexpected const"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "argv ...:    list:p_argv=this_must_not_be_here" ^
+    ^ "argv ...:    list p_argv=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append arg has unexpected const"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[--s TEXT]:  set:p_opt_s=this_must_not_be_here" ^
+    ^ "[--s TEXT]:  set p_opt_s=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store flag has unexpected const"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[--a TEXT]:  list:p_opt_a=this_must_not_be_here" ^
+    ^ "[--a TEXT]:  list p_opt_a=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append flag has unexpected const"
 )
@@ -966,22 +968,22 @@ exit /b 0
 
 :tests.spec.test_flag_bad_syntax
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a,alpha]:      set:p_opt_sc=1" ^
+    ^ "[-a,alpha]:      set p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when flag does not start with '-' or '/'"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a --alpha]:    set:p_opt_sc=1" ^
+    ^ "[-a --alpha]:    set p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when flag is not seperated by comma"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-1]:            set:p_opt_sc=1" ^
+    ^ "[-1]:            set p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when number flag is used"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-long]:         set:p_opt_sc=1" ^
+    ^ "[-long]:         set p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when short flag contains more than 1 character"
 )
@@ -990,14 +992,14 @@ exit /b 0
 
 :tests.spec.test_flag_duplicate
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a]:            set:p_opt_sc=1" ^
-    ^ "[-a]:            set:p_opt_sc=2" ^
+    ^ "[-a]:            set p_opt_sc=1" ^
+    ^ "[-a]:            set p_opt_sc=2" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when duplicate flag exists"
 )
 call :argparse2 --test-spec --dry-run ^
-    ^ "[-a,--alpha]:    set:p_opt_sc=1" ^
-    ^ "[-r,--alpha]:    set:p_opt_sc=2" ^
+    ^ "[-a,--alpha]:    set p_opt_sc=1" ^
+    ^ "[-r,--alpha]:    set p_opt_sc=2" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when duplicate flag exists at subsequent flag"
 )
@@ -1007,35 +1009,35 @@ exit /b 0
 :tests.spec.test_action_invalid
 for %%a in (invalid help list) do (
     call :argparse2 --test-spec --dry-run ^
-        ^ "arg1:                %%a:p_arg1" ^
+        ^ "arg1:                %%a p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using 'metavar' with action '%%a'"
     )
 )
 for %%a in (invalid help set) do (
     call :argparse2 --test-spec --dry-run ^
-        ^ "arg1 ...:                %%a:p_arg1" ^
+        ^ "arg1 ...:                %%a p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using 'metavar ...' with action '%%a'"
     )
 )
 for %%a in (invalid) do (
     call :argparse2 --test-spec --dry-run ^
-        ^ "[-s]:                    %%a:p_opt_s=+1" ^
+        ^ "[-s]:                    %%a p_opt_s=+1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag' with action '%%a'"
     )
 )
 for %%a in (invalid help) do (
     call :argparse2 --test-spec --dry-run ^
-        ^ "[-s TEXT]:               %%a:p_opt_sc" ^
+        ^ "[-s TEXT]:               %%a p_opt_sc" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag metavar' with action '%%a'"
     )
 )
 for %%a in (invalid help set) do (
     call :argparse2 --test-spec --dry-run ^
-        ^ "[-s TEXT ...]:           %%a:p_opt_s" ^
+        ^ "[-s TEXT ...]:           %%a p_opt_s" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag metavar ...' with action '%%a'"
     )
@@ -1071,16 +1073,16 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "arg1:                set:p_arg1" ^
-    ^ "arg2:                set:p_arg2" ^
-    ^ "arg3 ...:            list:p_arg3" ^
-    ^ "-a:                  set:p_opt_a=A" ^
-    ^ "-b,--bravo:          list:p_opt_b=B" ^
-    ^ "-c TEXT:             set:p_opt_c" ^
-    ^ "-d TEXT:             set:p_opt_d" ^
-    ^ "-e TEXT:             set:p_opt_e" ^
-    ^ "-f TEXT:             list:p_opt_f" ^
-    ^ "-g TEXT ...:         list:p_opt_g" ^
+    ^ "arg1:                set p_arg1" ^
+    ^ "arg2:                set p_arg2" ^
+    ^ "arg3 ...:            list p_arg3" ^
+    ^ "-a:                  set p_opt_a=A" ^
+    ^ "-b,--bravo:          list p_opt_b=B" ^
+    ^ "-c TEXT:             set p_opt_c" ^
+    ^ "-d TEXT:             set p_opt_d" ^
+    ^ "-e TEXT:             set p_opt_e" ^
+    ^ "-f TEXT:             list p_opt_f" ^
+    ^ "-g TEXT ...:         list p_opt_g" ^
     ^ -- %* || (
     call %unittest% fail "Got error when consuming valid arguments"
     exit /b 0
@@ -1103,13 +1105,13 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "[arg1]:              set:p_arg1" ^
-    ^ "[arg2 ...]:          list:p_arg2" ^
-    ^ "[-a]:                set:p_opt_a=A" ^
-    ^ "[-b TEXT]:           set:p_opt_b" ^
-    ^ "[-c TEXT ...]:       list:p_opt_c" ^
-    ^ "-d [TEXT]:           set:p_opt_d" ^
-    ^ "-e [TEXT ...]:       list:p_opt_e" ^
+    ^ "[arg1]:              set p_arg1" ^
+    ^ "[arg2 ...]:          list p_arg2" ^
+    ^ "[-a]:                set p_opt_a=A" ^
+    ^ "[-b TEXT]:           set p_opt_b" ^
+    ^ "[-c TEXT ...]:       list p_opt_c" ^
+    ^ "-d [TEXT]:           set p_opt_d" ^
+    ^ "-e [TEXT ...]:       list p_opt_e" ^
     ^ -- %* || (
     call %unittest% fail "Got error when all consumes are optional"
     exit /b 0
@@ -1124,15 +1126,15 @@ exit /b 0
 
 :tests.args.test_help
 call :argparse2 ^
-    ^ "arg1:                set:p_arg1" ^
-    ^ "[arg2]:              set:p_arg2" ^
-    ^ "[arg3 ...]:          list:p_arg3" ^
-    ^ "[-h,--help]:         help:p_help" ^
-    ^ "-a,--alp,--alpha:    set:p_opt_a=1" ^
-    ^ "[-b,--bravo TEXT]:   set:p_opt_b" ^
-    ^ "-c [TEXT]:           set:p_opt_c" ^
-    ^ "-d TEXT ...:         list:p_opt_d" ^
-    ^ "[-e [T1 T2 ...]]:    list:p_opt_e" ^
+    ^ "arg1:                set p_arg1" ^
+    ^ "[arg2]:              set p_arg2" ^
+    ^ "[arg3 ...]:          list p_arg3" ^
+    ^ "[-h,--help]:         help p_help" ^
+    ^ "-a,--alp,--alpha:    set p_opt_a=1" ^
+    ^ "[-b,--bravo TEXT]:   set p_opt_b" ^
+    ^ "-c [TEXT]:           set p_opt_c" ^
+    ^ "-d TEXT ...:         list p_opt_d" ^
+    ^ "[-e [T1 T2 ...]]:    list p_opt_e" ^
     ^ -- -h || (
     call %unittest% fail "Got error when generating help for valid specs"
 )
@@ -1153,13 +1155,13 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "arg1:                set:p_arg1" ^
+    ^ "arg1:                set p_arg1" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when require 1 arg but got more"
     exit /b 0
 )
 call :argparse2 ^
-    ^ "[-a]:                set:p_opt_a=A" ^
+    ^ "[-a]:                set p_opt_a=A" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when require 0 args but got more"
     exit /b 0
@@ -1173,7 +1175,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "[-a,--alp,--alpha]:  set:p_opts=a" ^
+    ^ "[-a,--alp,--alpha]:  set p_opts=a" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when unknown flag is given"
     exit /b 0
@@ -1183,13 +1185,13 @@ exit /b 0
 
 :tests.args.test_required_missing
 call :argparse2 ^
-    ^ "arg1:                set:p_arg1" ^
+    ^ "arg1:                set p_arg1" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when argument is required but nothing is given"
     exit /b 0
 )
 call :argparse2 ^
-    ^ "-a,--alpha:          set:p_opts=a" ^
+    ^ "-a,--alpha:          set p_opts=a" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when flag is required but nothing is given"
     exit /b 0
@@ -1203,12 +1205,12 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "-a AAA:          set:p_opt_a" ^
+    ^ "-a AAA:          set p_opt_a" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using store without expected argument"
 )
 call :argparse2 ^
-    ^ "-a AAA ...:      list:p_opt_a" ^
+    ^ "-a AAA ...:      list p_opt_a" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using append without expected argument"
 )
@@ -1222,7 +1224,7 @@ if ^"%1^" == "" (
 )
 set "expected=my-command-name-here"
 call :argparse2 --name "!expected!" ^
-    ^ "-a:        set:p_argv" ^
+    ^ "-a:        set p_argv" ^
     ^ -- %* 2> "error_msg" && (
     call %unittest% error "Unraised error, cannot capture error message"
 )
@@ -1242,7 +1244,7 @@ if ^"%1^" == "" (
     set "expected="
     for %%v in (!symbols!) do (
         set args=!args! !%%v!
-        set specs=!specs! "[%%v]: set:p_%%v"
+        set specs=!specs! "[%%v]: set p_%%v"
         if "!%%v:~0,1!!%%v:~-1,1!" == ^"^"^"^" (
             set "expected=!expected!,!%%v:~1,-1!"
         ) else set "expected=!expected!,!%%v!"
@@ -1280,7 +1282,7 @@ if ^"%1^" == "" (
     exit /b
 )
 call :argparse2 ^
-    ^ "[argv ...]:      list:p_argv" ^
+    ^ "[argv ...]:      list p_argv" ^
     ^ -- %* || (
     call %unittest% fail "Parse failed"
     exit /b 0
