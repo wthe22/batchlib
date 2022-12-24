@@ -1274,7 +1274,7 @@ if ^"%1^" == "" (
 )
 set "expected=my-command-name-here"
 call :argparse2 --name "!expected!" ^
-    ^ "-a:        set p_argv" ^
+    ^ "-a TEXT:        set p_argv" ^
     ^ -- %* 2> "error_msg" && (
     call %unittest% error "Unraised error, cannot capture error message"
 )
