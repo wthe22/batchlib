@@ -6,10 +6,11 @@ exit /b
 :argparse2 [-h] [-t] [-n NAME] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 for %%v in (
-    _test_internal_specs _test_spec _stop_on_extra _help_syntax
+    _test_internal_specs _stop_on_extra
+    _help_syntax _test_spec _dry_run _stop_nonopt _new_name
 ) do set "%%v="
-for /f "tokens=1 delims=:." %%n in ("%0") do set "_name=%%n"
-set "_new_name=!_name!"
+set "_name=%0"
+set "_name=!_name:~1!"
 if ^"%1^" == "--test-internal-specs" set "_test_internal_specs=true"
 set LF=^
 %=REQUIRED=%
@@ -21,8 +22,8 @@ if defined _help_syntax (
     exit /b 0
 )
 call :argparse2._parse_specs %* || exit /b 3
-if defined _test_spec exit /b 0
-set "_name=!_new_name!"
+if defined _dry_run exit /b 0
+if defined _new_name set "_name=!_new_name!"
 call :argparse2._parse_args %* || exit /b 4
 call :argparse2._capture_args || exit /b 4
 exit /b 0
@@ -32,16 +33,18 @@ exit /b 0
 ::  -> _position + options
 rem %debug% call :argparse2._debug_msg read_opt_spec
 setlocal EnableDelayedExpansion
-set "_stop_on_extra=true"
 if defined _test_internal_specs set "_test_spec=true"
 set "_position=0"
 call :argparse2._parse_specs ^
     ^ "[-h,--help]:         help:_help_syntax" ^
     ^ "[-t,--test-spec]:    set:_test_spec=true" ^
+    ^ "[-d,--dry-run]:      set:_dry_run=true" ^
+    ^ "[-s,--stop-nonopt]:  set:_stop_nonopt=true" ^
     ^ "[-n,--name NAME]:    set:_new_name" ^
     ^ -- || exit /b 2
 if defined _test_spec exit /b 0
 set "_position=0"
+set "_stop_on_extra=true"
 call :argparse2._parse_args %* || exit /b 3
 set _actions=!_actions! "store_const:_position=!_position!"
 call :argparse2._capture_args || exit /b 3
@@ -50,18 +53,17 @@ exit /b 0
 
 :argparse2._parse_specs %*
 ::  _position
-::  -> _position _spec_syntax _spec_names _spec_flags _spec_name_count _spec_required
+::  -> _position _spec_syntax _spec_names _spec_flags _spec_required
 rem %debug% call :argparse2._debug_msg parse_spec
-set "_STOP_OPT_PARSE_SPEC=-1|--| | |stop-opt-parse| | | "
 set "_spec_names="
-set "_spec_flags=!_STOP_OPT_PARSE_SPEC!!LF!"
-set "_spec_name_count=0"
+set "_spec_flags="
 set "_spec_required= "
-set "_known_flags= -- "
+set "_known_flags= "
+set "_spec_flags=!_spec_flags!-1|--| | |stop-opt-parse| | | !LF!"
+set "_known_flags=!_known_flags!-- "
 call :argparse2._parse_spec_loop %* || (
-    set "_exit_code=!errorlevel!"
-    call :argparse2._error read_spec "!_exit_code!" >&2
-    exit /b !_exit_code!
+    call :argparse2._error read_spec "!errorlevel!" >&2
+    exit /b 3
 )
 exit /b 0
 #+++
@@ -130,7 +132,6 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     set "_spec=!_position!|!_flags!|!_metavar!|!_required!|!_action!|!_consume_many!|!_consume_required!|!_dest!"
     if "!_flags!" == " " (
         set "_spec_names=!_spec_names!!_spec!!LF!"
-        set /a "_spec_name_count+=1"
     ) else (
         set "_spec_flags=!_spec_flags!!_spec!!LF!"
     )
@@ -438,7 +439,7 @@ if "!_context!" == "read_spec" (
     %_e:$n=2%
         echo !_name!: Unknown flag '!_value!'
     %_e:$n=3%
-        echo !_name!: Too many positional arguments, expected !_spec_name_count!
+        echo !_name!: Too many positional arguments
     %_e:$n=4%
         call :argparse2._get_spec !_spec_id!
         echo !_name!: Missing expected argument for '!_syntax!'
@@ -570,10 +571,12 @@ exit /b 0
 ::          Show syntax of command.
 ::
 ::      -t, --test-spec
-::          Validate spec only without parsing arguments. This option is used to
-::          make sure all specs are valid. This option must be used when creating
-::          or adjusting specs until no errors are found. Creating spec without
-::          using this might risk using invalid specs and cause unwanted behavior.
+::          Validate spec to make sure all specs are valid. It is recommended to
+::          use this until spec is final. Creating spec without using this might
+::          risk using invalid specs and cause unwanted behavior.
+::
+::      -d, --dry-run
+::          Run without parsing arguments. Useful when used with --test-spec.
 ::
 ::      -n, --name
 ::          Command name for use in error messages. By default it is 'argparse2'.
@@ -792,16 +795,16 @@ call :argparse2 --test-internal-specs || (
 exit /b 0
 
 
-:tests.spec.test_no_parse
-call :argparse2 -t ^
+:tests.spec.test_dry_run
+call :argparse2 -t -d ^
     ^ "-a:            set:p_opts=fail" ^
     ^ -- -a || (
-    call %unittest% fail "Got error when testing valid spec using -t without arguments"
+    call %unittest% fail "Got error when using valid spec with -t -d"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "-a:            set:p_opts=fail" ^
     ^ -- -a || (
-    call %unittest% fail "Got error when testing valid spec using --test-spec without arguments"
+    call %unittest% fail "Got error when using valid spec with  --test-spec --dry-run"
 )
 if defined p_opts (
     call %unittest% fail "Arguments should not be parsed"
@@ -810,7 +813,7 @@ exit /b 0
 
 
 :tests.spec.test_valid
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1:                set:p_arg1" ^
     ^ "[-h,--help]:         help:p_help" ^
     ^ "[--sc]:              set:p_opt_sc=1" ^
@@ -838,7 +841,7 @@ exit /b 0
 
 
 :tests.spec.test_end_marker_missing
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1:                set:p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error on missing -- seperator"
@@ -847,32 +850,32 @@ exit /b 0
 
 
 :tests.spec.test_metavar_bad_syntax
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ " :                   set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar is empty"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[:                   set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched '['"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "]:                   set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched ']'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "--flag [:    set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched '[' after flag"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "--flag ]:    set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched ']' after flag"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "--flag -metavar-:    set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar is detected as flag"
@@ -881,22 +884,22 @@ exit /b 0
 
 
 :tests.spec.test_consume_many_bad_syntax
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[arg1] ...:      list:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[arg] ...'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a TEXT] ...:   list:p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "-a ...:          list:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '-a ...'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "...:                set:p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '...' only"
@@ -905,12 +908,12 @@ exit /b 0
 
 
 :tests.spec.test_consume_many_bad_action
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1 ...:        set:p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[arg] ...'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a TEXT ...]:   set:p_opt_a" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
@@ -919,7 +922,7 @@ exit /b 0
 
 
 :tests.spec.test_dest_missing
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1:    set:" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when destination variable is missing"
@@ -928,32 +931,32 @@ exit /b 0
 
 
 :tests.spec.test_const_invalid
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[--sc]:      set:p_opt_sc" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store_const has missing const"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[--ac]:      list:p_opt_ac" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append_const has missing const"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "arg1:        set:p_arg1=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store arg has unexpected const"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "argv ...:    list:p_argv=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append arg has unexpected const"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[--s TEXT]:  set:p_opt_s=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when store flag has unexpected const"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[--a TEXT]:  list:p_opt_a=this_must_not_be_here" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when append flag has unexpected const"
@@ -962,22 +965,22 @@ exit /b 0
 
 
 :tests.spec.test_flag_bad_syntax
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a,alpha]:      set:p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when flag does not start with '-' or '/'"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a --alpha]:    set:p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when flag is not seperated by comma"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-1]:            set:p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when number flag is used"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-long]:         set:p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when short flag contains more than 1 character"
@@ -986,13 +989,13 @@ exit /b 0
 
 
 :tests.spec.test_flag_duplicate
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a]:            set:p_opt_sc=1" ^
     ^ "[-a]:            set:p_opt_sc=2" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when duplicate flag exists"
 )
-call :argparse2 --test-spec ^
+call :argparse2 --test-spec --dry-run ^
     ^ "[-a,--alpha]:    set:p_opt_sc=1" ^
     ^ "[-r,--alpha]:    set:p_opt_sc=2" ^
     ^ -- %STDERR_REDIRECTION% && (
@@ -1003,35 +1006,35 @@ exit /b 0
 
 :tests.spec.test_action_invalid
 for %%a in (invalid help list) do (
-    call :argparse2 --test-spec ^
+    call :argparse2 --test-spec --dry-run ^
         ^ "arg1:                %%a:p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using 'metavar' with action '%%a'"
     )
 )
 for %%a in (invalid help set) do (
-    call :argparse2 --test-spec ^
+    call :argparse2 --test-spec --dry-run ^
         ^ "arg1 ...:                %%a:p_arg1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using 'metavar ...' with action '%%a'"
     )
 )
 for %%a in (invalid) do (
-    call :argparse2 --test-spec ^
+    call :argparse2 --test-spec --dry-run ^
         ^ "[-s]:                    %%a:p_opt_s=+1" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag' with action '%%a'"
     )
 )
 for %%a in (invalid help) do (
-    call :argparse2 --test-spec ^
+    call :argparse2 --test-spec --dry-run ^
         ^ "[-s TEXT]:               %%a:p_opt_sc" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag metavar' with action '%%a'"
     )
 )
 for %%a in (invalid help set) do (
-    call :argparse2 --test-spec ^
+    call :argparse2 --test-spec --dry-run ^
         ^ "[-s TEXT ...]:           %%a:p_opt_s" ^
         ^ -- %STDERR_REDIRECTION% && (
         call %unittest% fail "Unraised error when using '--flag metavar ...' with action '%%a'"
