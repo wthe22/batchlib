@@ -674,6 +674,10 @@ echo A DEMO function to generate text for buying and selling stuffs
 echo=
 call :shop --help
 echo=
+call :shop buy --help
+echo=
+call :shop sell --help
+echo=
 call :input_string parameters || (
     set parameters=-u "Alice" buy cactus 1
 )
@@ -695,16 +699,16 @@ exit /b 0
 :shop
 call :unset_all shop_
 set "shop_user=anonymous"
-call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:             help shop_help" ^
+call :argparse2 --name "shop" --stop-nonopt ^
+    ^ "[-h,--help]:             help shop_syntax" ^
     ^ "[--version]:             set shop_show_version=true" ^
     ^ "[-u,--user NAME]:        set shop_user" ^
     ^ "action:                  set shop_action" ^
     ^ "[arg ...]:               list shop_argv" ^
     ^ -- %* || exit /b 2
 set "available_actions=buy, sell"
-if defined shop_help (
-    echo usage: shop !arg_help!
+if defined shop_syntax (
+    echo usage: shop !shop_syntax!
     echo=
     echo    -h, --help              Show this help
     echo    --version               Show program version
@@ -731,13 +735,13 @@ exit /b
 
 :shop.buy
 call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:                 help shop_help" ^
+    ^ "[-h,--help]:                 help shop_syntax" ^
     ^ "[-v,--variant NAME]:         set shop_item_variant" ^
     ^ "item_name:                   set shop_item_name" ^
     ^ "amount:                      set shop_item_amount" ^
     ^ -- %* || exit /b 2
-if defined shop_help (
-    echo usage: shop [SHOP_OPTIONS] buy !shop_help!
+if defined shop_syntax (
+    echo usage: shop [SHOP_OPTIONS] buy !shop_syntax!
     echo=
     echo    -h, --help              Show this help
     echo    -v,--variant NAME       Select a variant to buy
@@ -755,14 +759,14 @@ exit /b 0
 
 :shop.sell
 call :argparse2 --name "shop" ^
-    ^ "[-h,--help]:                 help shop_help" ^
+    ^ "[-h,--help]:                 help shop_syntax" ^
     ^ "[-v,--variant NAME ...]:     list shop_item_variants" ^
     ^ "item_name:                   set shop_item_name" ^
     ^ "amount:                      set shop_item_amount" ^
     ^ "[price]:                     set shop_item_price" ^
     ^ -- %* || exit /b 2
-if defined shop_help (
-    echo usage: shop [SHOP_OPTIONS] sell !shop_help!
+if defined shop_syntax (
+    echo usage: shop [SHOP_OPTIONS] sell !shop_syntax!
     echo=
     echo    -h, --help              Show this help
     echo    -v,--variant NAME       List available variants
