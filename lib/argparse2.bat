@@ -109,13 +109,11 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
             set "_argument=!_argument:~1,-1!"
         )
     )
+    for /f "tokens=*" %%a in ("!_argument!") do set "_argument=%%a"
 
-    if "!_argument:~-3,3!" == "..." (
+    if "!_argument:~-4,4!" == " ..." (
         set "_consume_many=true"
-        set "_argument=!_argument:~0,-3!"
-        if "!_argument:~-1,1!" == " " (
-            set "_argument=!_argument:~0,-1!"
-        )
+        set "_argument=!_argument:~0,-4!"
     ) else set "_consume_many="
 
     set "_metavar=!_argument!"
@@ -148,12 +146,10 @@ if not defined _flags (
     if not defined _metavar exit /b 4
 )
 if defined _metavar (
-    for /f "tokens=1*" %%l in ("DUMMY !_metavar!") do (
-        if "%%m" == "" exit /b 10
-    )
     if "!_metavar:~0,1!" == "[" exit /b 11
     if "!_metavar:~-1,1!" == "]" exit /b 11
     if "!_metavar:~0,1!" == "-" exit /b 12
+    if "!_argument:~-3,3!" == "..." exit /b 13
 )
 for %%f in (!_flags!) do (
     set "_flag=%%f"
@@ -166,9 +162,6 @@ for %%f in (!_flags!) do (
     )
     if not "!_known_flags: %%f = !" == "!_known_flags!" exit /b 23
     set "_known_flags=!_known_flags!%%f "
-)
-if defined _flags if not defined _metavar (
-    if defined _consume_many exit /b 31
 )
 
 set "_valid_actions="
@@ -425,16 +418,15 @@ if "!_context!" == "read_spec" (
     if "!_exit_code!" == "listed" ( rem
     %_e:$n=1% echo Unexpected error occurred
     %_e:$n=2% echo Missing -- seperator
-    %_e:$n=3% echo There must be at least 1 spec
+    %_e:$n=3% echo No specs were provided
     %_e:$n=4% echo Missing name or flag
-    %_e:$n=10% echo Invalid metavar '!_metavar!'
-    %_e:$n=11% echo Unmatched or invalid use of square bracket in metavar '!_metavar!'
+    %_e:$n=11% echo Unmatched or invalid use of square bracket in metavar: '!_metavar!'
     %_e:$n=12% echo Metavar '!_metavar!' should not contain flag
+    %_e:$n=13% echo Unexpected trailing ... in metavar: '!_metavar!'
     %_e:$n=21% echo Flag '!_flag!' must start with '-'
     %_e:$n=22% echo Number short flags are not supported, got '!_flag!'
     %_e:$n=23% echo Duplicate flag '!_flag!'
     %_e:$n=23% echo Short flags must contain only 1 character, got '!_flag!'
-    %_e:$n=31% echo Unexpected ... for a flag without arguments
     %_e:$n=40% echo Expected action {!_valid_actions!}, got '!_action!'
     %_e:$n=50% echo Missing destination variable
     %_e:$n=51% echo Missing const
@@ -888,6 +880,11 @@ call :argparse2 --dry-run ^
     call %unittest% fail "Unraised error when metavar have unmatched ']'"
 )
 call :argparse2 --dry-run ^
+    ^ "[[arg1]]:            set p_arg1" ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when metavar have nested '[]'"
+)
+call :argparse2 --dry-run ^
     ^ "--flag [:    set p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when metavar have unmatched '[' after flag"
@@ -917,12 +914,27 @@ call :argparse2 --dry-run ^
     call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
 )
 call :argparse2 --dry-run ^
+    ^ "[-a [...]] :   list p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
+)
+call :argparse2 --dry-run ^
+    ^ "[-a [ ...]] :   list p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '[--flag metavar] ...'"
+)
+call :argparse2 --dry-run ^
     ^ "-a ...:          list p_arg1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '-a ...'"
 )
 call :argparse2 --dry-run ^
     ^ "...:                set p_arg1" ^
+    ^ %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when using '...' only"
+)
+call :argparse2 --dry-run ^
+    ^ " ...:                set p_arg1" ^
     ^ %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using '...' only"
 )
