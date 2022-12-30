@@ -774,9 +774,10 @@ if defined shop_syntax (
     echo usage: shop [SHOP_OPTIONS] sell !shop_syntax!
     echo=
     echo    -h, --help              Show this help
-    echo    -v,--variant NAME       List available variants
+    echo    -v,--variant NAME       List of available variants
     echo    item_name               Item name
-    echo    price                   Price per unit
+    echo    amount                  Amount of item to sell
+    echo    price                   Total price
     exit /b 0
 )
 set "message=!shop_user! wants to sell !shop_item_amount! !shop_item_name!."
