@@ -812,6 +812,9 @@ exit /b 0
 rem set "debug="
 set "STDERR_REDIRECTION=2> nul"
 call :unset_all p_
+set "internal_error=2"
+set "spec_error=3"
+set "arg_error=4"
 exit /b 0
 
 
@@ -1297,6 +1300,32 @@ call :argparse2 ^
     ^ "-a AAA ...:      list p_opt_a" ^
     ^ -- %* %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when using append without expected argument"
+)
+exit /b 0
+
+
+:tests.args.test_exit_code
+call :argparse2 --invalid ^
+    ^ -- %STDERR_REDIRECTION%
+set "result=!errorlevel!"
+set "expected=!spec_error!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected exit code '!expected!' for option spec error, got '!result!'"
+)
+call :argparse2 --dry-run ^
+    ^ -- %STDERR_REDIRECTION%
+set "result=!errorlevel!"
+set "expected=!spec_error!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected exit code '!expected!' for spec error, got '!result!'"
+)
+call :argparse2 ^
+    ^ "arg1:          set p_arg1" ^
+    ^ -- %STDERR_REDIRECTION%
+set "result=!errorlevel!"
+set "expected=!arg_error!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected exit code '!expected!' for arg error, got '!result!'"
 )
 exit /b 0
 
