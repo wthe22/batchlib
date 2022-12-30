@@ -526,26 +526,27 @@ for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
         )
         if defined _flags (
             set "_flag_count=0"
-            set "_flag_syntax="
+            set "_flags_choice="
             for %%f in (!_flags!) do (
-                set "_flag_syntax=!_flag_syntax!|%%f"
+                set "_flags_choice=!_flags_choice!|%%f"
                 set /a "_flag_count+=1"
             )
-            set "_flag_syntax=!_flag_syntax:~1!"
+            set "_flags_choice=!_flags_choice:~1!"
             set "_need_parenthesis="
             if !_flag_count! GTR 1 (
                 if defined _metavar set "_need_parenthesis=true"
                 if defined _required set "_need_parenthesis=true"
             )
+            set "_flags_syntax=!_flags_choice!"
             if defined _need_parenthesis (
-                set "_flag_syntax=(!_flag_syntax!)"
+                set "_flags_syntax=(!_flags_syntax!)"
             )
             if defined _metavar (
                 if not defined _consume_required (
                     set "_syntax=[!_syntax!]"
                 )
-                set "_syntax=!_flag_syntax! !_syntax!"
-            ) else set "_syntax=!_flag_syntax!"
+                set "_syntax=!_flags_syntax! !_syntax!"
+            ) else set "_syntax=!_flags_syntax!"
         )
         if not defined _required set "_syntax=[!_syntax!]"
     )
