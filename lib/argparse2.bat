@@ -1120,7 +1120,7 @@ if ^"%1^" == "" (
         ^ -c c c_ -d "d" d_ -e e1 e1_ -e e2 e2_ ^
         ^ -f f1 f1_ -f "f2" f2_ ^
         ^ -g g1 "-g" g2 ^
-        ^ -- -g "yankee" -- zulu ^
+        ^ -- -g "yankee" -- zulu -1 -999 ^
         ^ %=END=%
     exit /b
 )
@@ -1141,7 +1141,7 @@ call :argparse2 ^
 )
 set expected=alpha,bravo,charlie "delta" %=END=%
 set expected=!expected!a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
-set expected=!expected!-g "yankee" -- zulu %=END=%
+set expected=!expected!-g "yankee" -- zulu -1 -999 %=END=%
 set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 "-g" g2 %=END=%
 set result=!p_arg1!,!p_arg2!,!p_arg3!
 set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!,!p_opt_g!
