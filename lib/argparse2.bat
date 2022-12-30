@@ -230,9 +230,8 @@ if defined _surpress_validation (
     exit /b 0
 )
 rem %debug% call :argparse2._debug_msg validate_args
-set "_missing_spec_id="
-for /f "tokens=1" %%i in ("!_spec_required!") do set "_missing_spec_id=%%i"
-if defined _missing_spec_id (
+for /f "tokens=*" %%a in ("!_spec_required!") do set "_spec_required=%%a"
+if defined _spec_required (
     set "_exit_code=5"
     call :argparse2._error parse_args "!_exit_code!" >&2
     exit /b !_exit_code!
@@ -288,6 +287,10 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         if defined _consume_action (
             if defined _consume_required exit /b 4
         )
+        if defined _is_flag (
+            set "_flag_used=!_value!"
+        ) else set "_flag_used="
+
         for /f "tokens=1-7* delims=|" %%a in ("!_new_spec!") do (
             set "_spec_id=%%a"
             set "_flags=%%b"
@@ -415,7 +418,7 @@ set "_exit_code=%~2"
 set _e=) else if "!_exit_code!" == "$n" (
 if "!_context!" == "read_spec" (
     echo !_name!: spec error at argument !_position!: !_value!
-    if "!_exit_code!" == "listed" ( rem
+    if "!_exit_code!" == "0" ( rem No error
     %_e:$n=1% echo Unexpected error occurred
     %_e:$n=2% echo Missing -- seperator
     %_e:$n=3% echo No specs were provided
@@ -434,19 +437,19 @@ if "!_context!" == "read_spec" (
     ) else echo Got error code !_exit_code!
 ) else if "!_context!" == "parse_args" (
     set /a "_arg_pos=!_position! - !_arg_start_pos!"
-    if "!_exit_code!" == "listed" ( rem
-    %_e:$n=1%
-        echo !_name!: Unexpected error occurred at argument !_arg_pos!: !_value!
-    %_e:$n=2%
-        echo !_name!: Unknown flag '!_value!'
-    %_e:$n=3%
-        echo !_name!: Too many positional arguments
-    %_e:$n=4%
-        call :argparse2._get_spec !_spec_id!
-        echo !_name!: Missing expected argument for '!_syntax!'
+    if "!_exit_code!" == "0" ( rem No error
+    %_e:$n=1% echo !_name!: Unexpected error occurred at argument !_arg_pos!: !_value!
+    %_e:$n=2% echo !_name!: Unknown flag: !_value!
+    %_e:$n=3% echo !_name!: Unexpected positional argument: !_value!
+    %_e:$n=4% echo !_name!: Flag '!_flag_used!' requires argument '!_metavar!'
     %_e:$n=5%
-        call :argparse2._get_spec !_missing_spec_id!
-        echo !_name!: Missing required argument '!_syntax!'
+        set "_missing_specs="
+        for %%i in (!_spec_required!) do (
+            call :argparse2._get_spec %%i
+            set "_missing_specs=!_missing_specs!, !_syntax!"
+        )
+        set "_missing_specs=!_missing_specs:~2!"
+        echo !_name!: Missing required arguments: !_missing_specs!
     ) else echo !_name!: Error !_exit_code! at argument !_arg_pos!: !_value!
 ) else (
     echo !_name!: At '!_context!', got error code !_exit_code! at position !_position!: !_value!
