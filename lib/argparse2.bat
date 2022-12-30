@@ -578,7 +578,7 @@ exit /b 0
 ::      -d, --dry-run
 ::          Run without parsing arguments.
 ::
-::      -n, --name
+::      -n, --name NAME
 ::          Command name for use in error messages. By default it is 'argparse2'.
 ::
 ::      -s, --stop-nonopt
@@ -679,7 +679,7 @@ echo=
 call :shop sell --help
 echo=
 call :input_string parameters || (
-    set parameters=-u "Alice" buy cactus 1
+    set parameters=-u "Alice" buy "1 Cactus"
 )
 echo=
 echo --------------------------------------------------------------------------------
@@ -688,6 +688,7 @@ echo=!parameters!
 echo=
 call :shop !parameters!
 echo=
+echo --------------------------------------------------------------------------------
 echo Arguments:
 set "shop_"
 exit /b !exit_code!
@@ -736,24 +737,24 @@ exit /b
 :shop.buy
 call :argparse2 --name "shop" ^
     ^ "[-h,--help]:                 help shop_syntax" ^
-    ^ "[-v,--variant NAME]:         set shop_item_variant" ^
-    ^ "item_name:                   set shop_item_name" ^
-    ^ "amount:                      set shop_item_amount" ^
+    ^ "item_name ...:               list shop_item_names" ^
+    ^ "[--confirm]:                 set shop_confirm=true" ^
     ^ -- %* || exit /b 2
 if defined shop_syntax (
     echo usage: shop [SHOP_OPTIONS] buy !shop_syntax!
     echo=
     echo    -h, --help              Show this help
-    echo    -v,--variant NAME       Select a variant to buy
-    echo    item_name               The item to buy
-    echo    amount                  The amount to buy
+    echo    --confirm               Confirm the purchase
+    echo    item_name               The items to buy
     exit /b 0
 )
-set "message=!shop_user! wants to buy !shop_item_amount! !shop_item_name!"
-if defined shop_item_variant (
-    set "message=!message! (!variant!)"
+if defined shop_confirm (
+    echo echo [PREVIEW - Needs confirmation]
 )
-echo !message!
+echo !shop_user! wants to buy:
+for %%n in (!shop_item_names!) do (
+    echo - %%~n
+)
 exit /b 0
 #+++
 
@@ -776,7 +777,7 @@ if defined shop_syntax (
 )
 set "message=!shop_user! wants to sell !shop_item_amount! !shop_item_name!."
 if defined shop_item_price (
-    set "message=!message:~0,-1! for $!shop_item_price!."
+    set "message=!message:~0,-1! for !shop_item_price!."
 )
 if defined shop_item_variants (
     set "variant_formatted= "
