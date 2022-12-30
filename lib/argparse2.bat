@@ -689,11 +689,16 @@ call :shop buy --help
 echo=
 call :shop sell --help
 echo=
-call :input_string parameters || (
-    set parameters=-u "Alice" buy "1 Cactus"
-)
+echo=
+echo Example:
+echo     -u "Alice" buy "1 Cactus" "2 Snacks"
+echo=
+call :input_string parameters
 echo=
 echo --------------------------------------------------------------------------------
+echo Example:
+echo     -u "Alice" buy "1 Cactus" "2 Snacks" --confirm
+echo=
 echo Input parameters:
 echo=!parameters!
 echo=
@@ -759,8 +764,8 @@ if defined shop_syntax (
     echo    item_name               The items to buy
     exit /b 0
 )
-if defined shop_confirm (
-    echo echo [PREVIEW - Needs confirmation]
+if not defined shop_confirm (
+    echo [PREVIEW - Needs confirmation]
 )
 echo !shop_user! wants to buy:
 for %%n in (!shop_item_names!) do (
