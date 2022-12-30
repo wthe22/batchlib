@@ -364,7 +364,7 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
     shift /1
     set /a "_position+=1"
 )
-exit /b 0
+exit /b 1
 #+++
 
 :argparse2._capture_args $_actions
