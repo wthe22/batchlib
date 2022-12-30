@@ -400,7 +400,7 @@ set "_result="
 for /f "tokens=1-6* delims=|" %%a in ("!_spec_flags!!_spec_names!") do (
     if %%a GEQ 0 (
         call :argparse2._get_spec "%%a"
-        set "_result=!_result! !_syntax!"
+        set "_result=!_result! !_full_syntax!"
     )
 )
 set "_result=!_result:~1!"
@@ -446,7 +446,7 @@ if "!_context!" == "read_spec" (
         set "_missing_specs="
         for %%i in (!_spec_required!) do (
             call :argparse2._get_spec %%i
-            set "_missing_specs=!_missing_specs!, !_syntax!"
+            set "_missing_specs=!_missing_specs!, !_display!"
         )
         set "_missing_specs=!_missing_specs:~2!"
         echo !_name!: Missing required arguments: !_missing_specs!
@@ -519,10 +519,10 @@ for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
             if "!%%v!" == " " set "%%v="
         )
 
-        set "_syntax="
+        set "_full_syntax="
         if defined _metavar (
-            set "_syntax=!_metavar!"
-            if defined _consume_many set "_syntax=!_syntax! ..."
+            set "_full_syntax=!_metavar!"
+            if defined _consume_many set "_full_syntax=!_full_syntax! ..."
         )
         if defined _flags (
             set "_flag_count=0"
@@ -543,12 +543,19 @@ for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
             )
             if defined _metavar (
                 if not defined _consume_required (
-                    set "_syntax=[!_syntax!]"
+                    set "_full_syntax=[!_full_syntax!]"
                 )
-                set "_syntax=!_flags_syntax! !_syntax!"
-            ) else set "_syntax=!_flags_syntax!"
+                set "_full_syntax=!_flags_syntax! !_full_syntax!"
+            ) else set "_full_syntax=!_flags_syntax!"
         )
-        if not defined _required set "_syntax=[!_syntax!]"
+        if not defined _required set "_full_syntax=[!_full_syntax!]"
+
+        set "_display="
+        if defined _flags (
+            for %%f in (!_flags!) do (
+                if not defined _display set "_display=%%f"
+            )
+        ) else set "_display=!_metavar!"
     )
 )
 if not defined _spec_id exit /b 2
