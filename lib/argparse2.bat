@@ -149,7 +149,7 @@ if defined _metavar (
     if "!_metavar:~0,1!" == "[" exit /b 11
     if "!_metavar:~-1,1!" == "]" exit /b 11
     if "!_metavar:~0,1!" == "-" exit /b 12
-    if "!_argument:~-3,3!" == "..." exit /b 13
+    if "!_metavar:~-3,3!" == "..." exit /b 13
 )
 for %%f in (!_flags!) do (
     set "_flag=%%f"
