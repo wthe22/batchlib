@@ -1149,6 +1149,58 @@ call :argparse2 --skip-test-spec --dry-run ^
 exit /b 0
 
 
+:tests.spec.preview_error_messages
+call :argparse2 ^
+    ^ "[-f r] ...: list p_11" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-f [r] ...]: list p_11" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-d -d]: set p_12" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "...: set p_13" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-d,dddd]: set p_21" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "-1: set p_22" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-d,-d]: set p_23" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-ddddd]: set p_24" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-u,--user NAME]: help p_40" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-u,--user p_50]: set" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-d,--ddd]: set p_51" ^
+    ^ --
+echo=
+call :argparse2 ^
+    ^ "[-u,--user NAME]: set p_52=xxx" ^
+    ^ --
+echo=
+exit /b 0
+
+
 :tests.args.test_consume_valid
 if ^"%1^" == "" (
     call :tests.args.test_consume_valid ^
