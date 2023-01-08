@@ -883,6 +883,14 @@ call :argparse2 --dry-run ^
 exit /b 0
 
 
+:tests.spec.test_option_unknown
+call :argparse2 --invalid ^
+    ^ -- %STDERR_REDIRECTION% && (
+    call %unittest% fail "Unraised error when given unknown option"
+)
+exit /b 0
+
+
 :tests.spec.test_metavar_bad_syntax
 call :argparse2 --dry-run ^
     ^ " :                   set p_arg1" ^
