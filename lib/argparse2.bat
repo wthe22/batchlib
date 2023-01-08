@@ -19,6 +19,11 @@ call :argparse2._read_opts %* || exit /b
 if defined _test_internal_specs exit /b 0
 if defined _help_syntax (
     echo usage: !_name! !_help_syntax! spec ... -- %%*
+    echo=
+    echo Spec syntax:
+    echo     [flags] [name [...]]: ^<action^> ^<dest^>[=const]
+    echo=
+    echo Actions: set, list, help, end
     exit /b 0
 )
 call :argparse2._parse_specs %* || exit /b 3
@@ -416,23 +421,27 @@ set "_context=%~1"
 set "_exit_code=%~2"
 set _e=) else if "!_exit_code!" == "$n" (
 if "!_context!" == "read_spec" (
-    echo !_name!: spec error at argument !_position!: !_value!
+    echo !_name!: Invalid spec: "!_value!"
     if "!_exit_code!" == "0" ( rem No error
     %_e:$n=1% echo Unexpected error occurred
     %_e:$n=2% echo Missing -- seperator
     %_e:$n=3% echo No specs were provided
     %_e:$n=4% echo Missing name or flag
-    %_e:$n=11% echo Unmatched or invalid use of square bracket in metavar: '!_metavar!'
-    %_e:$n=12% echo Metavar '!_metavar!' should not contain flag
-    %_e:$n=13% echo Unexpected trailing ... in metavar: '!_metavar!'
-    %_e:$n=21% echo Flag '!_flag!' must start with '-'
-    %_e:$n=22% echo Number short flags are not supported, got '!_flag!'
-    %_e:$n=23% echo Duplicate flag '!_flag!'
-    %_e:$n=23% echo Short flags must contain only 1 character, got '!_flag!'
-    %_e:$n=40% echo Expected action {!_valid_actions!}, got '!_action!'
+    %_e:$n=11% echo Incorrect use of '[]' ^(e.g. usage: '[-u]', '[-u [NAME ...]]'^)
+    %_e:$n=12% echo Flags should be seperated by coma, not space ^(e.g.: -u,--user^)
+    %_e:$n=13% echo Unexpected use of '...'. It should only be used after the argument name.
+    %_e:$n=21%
+        if "!_flag:~1!" == "" (
+            echo Flag '!_flag!' must start with '-'
+        ) else echo Flag '!_flag!' must start with '--'
+    %_e:$n=22% echo Number short flags are not supported
+    %_e:$n=23% echo Duplicate flag: '!_flag!'
+    %_e:$n=24%
+        echo Short flag must contain only 1 character ^(e.g.: use '!_flag:~0,2!' or '-!_flag!'^)
+    %_e:$n=40% echo Expected action {!_valid_actions!}, got: '!_action!'
     %_e:$n=50% echo Missing destination variable
     %_e:$n=51% echo Missing const
-    %_e:$n=52% echo Unexpected const in '!_dest!'
+    %_e:$n=52% echo Unexpected const
     ) else echo Got error code !_exit_code!
 ) else if "!_context!" == "parse_args" (
     set /a "_arg_pos=!_position! - !_arg_start_pos!"
@@ -610,7 +619,7 @@ exit /b 0
 ::
 ::  ARGUMENT SPECIFACTIONS
 ::
-::              [flags] [metavar [...]]:<action>:<dest>[=const]
+::              [flags] [metavar [...]]: <action> <dest>[=const]
 ::
 ::      FLAGS
 ::          The flags to capture, with each flag seperated by comma. Flags can be
@@ -630,8 +639,9 @@ exit /b 0
 ::              set     Set the variable to a value
 ::              list    Gather values into a list, each seperated by a space,
 ::                      with quotes preserved
-::              help    Generate help syntax and store it in the variable
-::              end     End parsing and set the variable
+::              help    Generate help syntax, store it in the variable and
+::                      quit parsing
+::              end     Set the variable to a value and quit parsing
 ::
 ::      DEST
 ::          The destination variable that is used to store the value. If the action
@@ -654,11 +664,11 @@ exit /b 0
 ::                  [--flag]
 ::                  [--flag metavar]
 ::
-::          Optional flag, required consume:
+::          Optional flag, required argument:
 ::                  [--flag metavar]
 ::                  [--flag metavar ...]
 ::
-::          Optional flag, optional consume:
+::          Optional flag, optional argument:
 ::                  [--flag [metavar]]
 ::                  [--flag [metavar ...]]
 ::
