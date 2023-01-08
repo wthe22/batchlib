@@ -36,7 +36,6 @@ exit /b 0
 
 :argparse2._read_opts %*
 ::  -> _position + options
-rem %debug% call :argparse2._debug_msg read_opt_spec
 setlocal EnableDelayedExpansion
 set "_position=0"
 call :argparse2._parse_specs ^
@@ -57,8 +56,7 @@ exit /b 0
 
 :argparse2._parse_specs %*
 ::  _position
-::  -> _position _spec_syntax _spec_names _spec_flags _spec_required
-rem %debug% call :argparse2._debug_msg parse_spec
+::  -> _position _spec_names _spec_flags _spec_required
 set "_spec_names="
 set "_spec_flags="
 set "_spec_required= "
@@ -77,7 +75,6 @@ for /l %%n in (1,1,!_position!) do shift /1
 set _value=%%1
 for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
     call set _value=%%1
-    rem %debug% echo !_position!:!_value!
     if not defined _value exit /b 2
     if "!_value!" == "--" (
         set /a "_position+=1"
@@ -146,7 +143,6 @@ exit /b 1
 #+++
 
 :argparse2._validate_spec
-rem %debug% call :argparse2._debug_msg validate_spec
 if not defined _flags (
     if not defined _metavar exit /b 4
 )
@@ -216,10 +212,8 @@ exit /b 0
 #+++
 
 :argparse2._parse_args %*
-::  _position _spec_syntax _spec_names _spec_flags _spec_required _stop_on_extra
+::  _position _spec_names _spec_flags _spec_required _stop_on_extra
 ::  -> _position _actions
-::
-rem %debug% call :argparse2._debug_msg parse_args
 set "_arg_start_pos=!_position!"
 set "_actions="
 set "_parse_opt=true"
@@ -234,7 +228,6 @@ call :argparse2._parse_arg_loop %* || (
 if defined _surpress_validation (
     exit /b 0
 )
-rem %debug% call :argparse2._debug_msg validate_args
 for /f "tokens=*" %%a in ("!_spec_required!") do set "_spec_required=%%a"
 if defined _spec_required (
     set "_exit_code=5"
@@ -248,7 +241,6 @@ exit /b 0
 for /l %%i in (1,1,!_position!) do shift /1
 for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
     call set _value=%%1
-    rem %debug% echo !_position!:!_value!
     if not defined _value (
         if defined _consume_action (
             if defined _consume_required exit /b 4
@@ -289,7 +281,6 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         )
     )
     if defined _new_spec (
-        rem %debug% echo - new spec: [!_new_spec!]
         if defined _consume_action (
             if defined _consume_required exit /b 4
         )
@@ -372,7 +363,6 @@ exit /b 1
 #+++
 
 :argparse2._capture_args $_actions
-rem %debug% call :argparse2._debug_msg capture_args
 (
     for /l %%i in (1,1,2) do goto 2> nul
     for %%i in (%_actions%) do ( rem
@@ -461,52 +451,6 @@ if "!_context!" == "read_spec" (
     ) else echo !_name!: Error !_exit_code! at argument !_arg_pos!: !_value!
 ) else (
     echo !_name!: At '!_context!', got error code !_exit_code! at position !_position!: !_value!
-)
-exit /b 0
-#+++
-
-:argparse2._debug_msg
-if "%~1" == "validate_spec" (
-    for %%v in (
-        _position _flags _metavar _required _consume_required _action _dest
-    ) do echo %%v: [!%%v!]
-    echo=
-    exit /b 0
-)
-(
-    echo ========================================
-    if "%~1" == "read_opt_spec" (
-        echo Read Opt Spec
-    ) else if "%~1" == "parse_spec" (
-        echo Parse Spec
-        echo _position: !_position!
-    ) else if "%~1" == "parse_args" (
-        call :argparse2._generate_help _spec_syntax
-        echo Parse Args
-        echo _position: !_position!
-        echo _stop_on_extra: !_stop_on_extra!
-        echo=
-        echo !_spec_syntax!
-        echo=
-        echo Specs:
-        echo=!_spec_flags!
-        echo=!_spec_names!
-        echo=
-        echo Required: [!_spec_required!]
-        echo=
-        goto 2> nul
-        echo Receive
-        call echo=%%*
-    ) else if "%~1" == "validate_args" (
-        echo Validate Args
-        echo Required: [!_spec_required!]
-    ) else if "%~1" == "capture_args" (
-        echo Capture Arguments:
-        echo=!_actions!
-    ) else (
-        echo Unknown DEBUG MSG '%~1'
-    )
-    echo ----------------------------------------
 )
 exit /b 0
 #+++
@@ -1530,6 +1474,60 @@ set "symbols="
 set "symbols=!symbols! letters null ast qm caret coma eq scolon amp vline"
 set "symbols=!symbols! hm colon parns_l parns_r sqbr_l sqbr_r"
 set "symbols=!symbols! digits"
+exit /b 0
+
+
+:tests.debug_msg <context>
+rem %debug% call :argparse2._debug_msg read_opt_spec
+rem %debug% call :argparse2._debug_msg validate_spec
+rem %debug% call :argparse2._debug_msg parse_spec
+rem %debug% call :argparse2._debug_msg parse_args
+rem %debug% call :argparse2._debug_msg validate_args
+rem %debug% call :argparse2._debug_msg capture_args
+    rem %debug% echo !_position!:!_value!
+        rem %debug% echo - new spec: [!_new_spec!]
+if "%~1" == "validate_spec" (
+    for %%v in (
+        _position _flags _metavar _required _consume_required _action _dest
+    ) do echo %%v: [!%%v!]
+    echo=
+    exit /b 0
+)
+(
+    echo ========================================
+    if "%~1" == "read_opt_spec" (
+        echo Read Opt Spec
+    ) else if "%~1" == "parse_spec" (
+        echo Parse Spec
+        echo _position: !_position!
+    ) else if "%~1" == "parse_args" (
+        call :argparse2._generate_help _spec_syntax
+        echo Parse Args
+        echo _position: !_position!
+        echo _stop_on_extra: !_stop_on_extra!
+        echo=
+        echo !_spec_syntax!
+        echo=
+        echo Specs:
+        echo=!_spec_flags!
+        echo=!_spec_names!
+        echo=
+        echo Required: [!_spec_required!]
+        echo=
+        goto 2> nul
+        echo Receive
+        call echo=%%*
+    ) else if "%~1" == "validate_args" (
+        echo Validate Args
+        echo Required: [!_spec_required!]
+    ) else if "%~1" == "capture_args" (
+        echo Capture Arguments:
+        echo=!_actions!
+    ) else (
+        echo Unknown DEBUG MSG '%~1'
+    )
+    echo ----------------------------------------
+)
 exit /b 0
 
 
