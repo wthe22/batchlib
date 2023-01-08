@@ -280,6 +280,7 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
                 if defined _stop_on_extra exit /b 0
                 exit /b 3
             )
+            set _spec_names=!_spec_names:*^%LF%%LF%=!
         )
     )
     if defined _new_spec (
@@ -352,13 +353,11 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
 
     if not defined _is_flag if defined _consume_action (
         set _actions=!_actions! !_consume_action!
-        if defined _consume_many (
+        if defined _consume_required (
             set "_consume_required="
-        ) else (
+        )
+        if not defined _consume_many (
             set "_consume_action="
-            if not defined _flags (
-                set _spec_names=!_spec_names:*^%LF%%LF%=!
-            )
         )
     )
     shift /1
@@ -1139,7 +1138,7 @@ if ^"%1^" == "" (
         ^ -a a_ -b b1_ --bravo b2_ ^
         ^ -c c c_ -d "d" d_ -e e1 e1_ -e e2 e2_ ^
         ^ -f f1 f1_ -f "f2" f2_ ^
-        ^ -g g1 "-g" g2 ^
+        ^ -g g1 g2 "-g" g3 ^
         ^ -- -g "yankee" -- zulu -1 -999 ^
         ^ %=END=%
     exit /b
@@ -1149,21 +1148,31 @@ call :argparse2 ^
     ^ "arg2:                set p_arg2" ^
     ^ "arg3 ...:            list p_arg3" ^
     ^ "-a:                  set p_opt_a=A" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-b,--bravo:          list p_opt_b=B" ^
+    ^ "extra ...:           list p_extra" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-c TEXT:             set p_opt_c" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-d TEXT:             set p_opt_d" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-e TEXT:             set p_opt_e" ^
+    ^ "extra ...:           list p_extra" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-f TEXT:             list p_opt_f" ^
+    ^ "extra ...:           list p_extra" ^
+    ^ "extra ...:           list p_extra" ^
     ^ "-g TEXT ...:         list p_opt_g" ^
+    ^ "arg4 ...:            list p_arg4" ^
     ^ -- %* || (
     call %unittest% fail "Got error when consuming valid arguments"
     exit /b 0
 )
 set expected=alpha,bravo,charlie "delta" %=END=%
-set expected=!expected!a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
-set expected=!expected!-g "yankee" -- zulu -1 -999 %=END=%
-set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 "-g" g2 %=END=%
-set result=!p_arg1!,!p_arg2!,!p_arg3!
+set expected=!expected!,-g "yankee" -- zulu -1 -999 %=END=%
+set expected=!expected!,a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
+set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 g2 "-g" g3 %=END=%
+set result=!p_arg1!,!p_arg2!,!p_arg3!,!p_arg4!,!p_extra!
 set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!,!p_opt_g!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
