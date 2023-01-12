@@ -239,6 +239,9 @@ call :argparse2._parse_arg_loop %* || (
     call :argparse2._error parse_args "!errorlevel!" >&2
     exit /b !_exit_code!
 )
+if defined _no_consume_action (
+    set _actions=!_actions! !_no_consume_action!
+)
 if defined _surpress_validation (
     exit /b 0
 )
@@ -322,6 +325,7 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         set "_new_spec="
 
         set "_consume_action="
+        set "_no_consume_action="
         for %%a in (set list) do if "!_action!" == "%%a" (
             if defined _metavar (
                 if defined _has_const (
