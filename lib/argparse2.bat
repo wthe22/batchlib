@@ -14,6 +14,7 @@ set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 call :argparse2._parse_opts %* || exit /b
+if "!_new_name:~0,1!" == ":" set "_new_name=!_new_name:~1!"
 if defined _help_syntax (
     echo usage: !_name! !_help_syntax! spec ... -- %%*
     echo=
@@ -564,6 +565,8 @@ exit /b 0
 ::
 ::      -n, --name NAME
 ::          Command name for use in error messages. By default it is 'argparse2'.
+::          For ease of use, a colon in the beginning will be stripped if the
+::          name starts with colon (like a function label from %0).
 ::
 ::      -s, --stop-nonopt
 ::          Stop scanning for options as soon as the first non-option argument
@@ -1410,6 +1413,17 @@ if ^"%1^" == "" (
 )
 set "expected=my-command-name-here"
 call :argparse2 --name "!expected!" ^
+    ^ "-a TEXT:        set p_argv" ^
+    ^ -- %* 2> "error_msg" && (
+    call %unittest% error "Unraised error, cannot capture error message"
+)
+set /p "result=" < "error_msg"
+for /f "tokens=1 delims=:" %%a in ("!result!") do set "result=%%a"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+set "expected=my-command-name-here"
+call :argparse2 --name ":!expected!" ^
     ^ "-a TEXT:        set p_argv" ^
     ^ -- %* 2> "error_msg" && (
     call %unittest% error "Unraised error, cannot capture error message"
