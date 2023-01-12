@@ -13,7 +13,7 @@ set "_name=!_name:~1!"
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-call :argparse2._read_opts %* || exit /b
+call :argparse2._parse_opts %* || exit /b
 if defined _help_syntax (
     echo usage: !_name! !_help_syntax! spec ... -- %%*
     echo=
@@ -31,7 +31,7 @@ call :argparse2._capture_args || exit /b 4
 exit /b 0
 #+++
 
-:argparse2._read_opts %*
+:argparse2._parse_opts %*
 ::  -> _position + options
 setlocal EnableDelayedExpansion
 call :argparse2._read_opt_spec || exit /b 2
