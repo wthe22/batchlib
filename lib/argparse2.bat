@@ -3,10 +3,10 @@ call %*
 exit /b
 
 
-:argparse2 [-h] [-T] [-d] [-s] [-n NAME] <spec> ... -- %*
+:argparse2 [-h] [-d] [-s] [-n NAME] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 for %%v in (
-    _stop_on_extra _help_syntax _skip_test_spec _dry_run _stop_nonopt _new_name
+    _stop_on_extra _help_syntax _dry_run _stop_nonopt _new_name
 ) do set "%%v="
 set "_name=%0"
 set "_name=!_name:~1!"
@@ -47,7 +47,6 @@ exit /b 0
 set "_position=0"
 call :argparse2._parse_specs ^
     ^ "[-h,--help]:             help _help_syntax" ^
-    ^ "[-T,--skip-test-spec]:   set _skip_test_spec=true" ^
     ^ "[-d,--dry-run]:          set _dry_run=true" ^
     ^ "[-s,--stop-nonopt]:      set _stop_nonopt=true" ^
     ^ "[-n,--name NAME]:        set _new_name" ^
@@ -56,17 +55,16 @@ exit /b 0
 #+++
 
 :argparse2._read_opt_spec [return_prefix]
-set "%~1_position=6"
+set "%~1_position=5"
 set "%~1_spec_names="
 set "%~1_spec_flags="
 set "%~1_spec_flags=!%~1_spec_flags!-1|--| | |stop-opt-parse| | | | !LF!"
 set "%~1_spec_flags=!%~1_spec_flags!0|-h,--help| | |help| |true| |_help_syntax!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!1|-T,--skip-test-spec| | |set| |true|true|_skip_test_spec=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!2|-d,--dry-run| | |set| |true|true|_dry_run=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!3|-s,--stop-nonopt| | |set| |true|true|_stop_nonopt=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!4|-n,--name|NAME| |set| |true| |_new_name!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!1|-d,--dry-run| | |set| |true|true|_dry_run=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!2|-s,--stop-nonopt| | |set| |true|true|_stop_nonopt=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!3|-n,--name|NAME| |set| |true| |_new_name!LF!"
 set "%~1_spec_required= "
-set "%~1_known_flags= -- -h --help -T --skip-test-spec -d --dry-run -s --stop-nonopt -n --name "
+set "%~1_known_flags= -- -h --help -d --dry-run -s --stop-nonopt -n --name "
 exit /b 0
 #+++
 
@@ -138,9 +136,7 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
 
     set "_metavar=!_argument!"
 
-    if not defined _skip_test_spec (
-        call :argparse2._validate_spec || exit /b
-    )
+    call :argparse2._validate_spec || exit /b
 
     if defined _required set "_spec_required=!_spec_required!!_position! "
 
@@ -555,17 +551,13 @@ exit /b 0
 ::      argparse2 - parse options passed to script or function
 ::
 ::  SYNOPSIS
-::      argparse2 [-h] [-T] [-d] [-s] [-n NAME] <spec> ... -- %*
+::      argparse2 [-h] [-d] [-s] [-n NAME] <spec> ... -- %*
 ::
 ::  OPTIONS
 ::      Note: They must appear before all SPECs
 ::
 ::      -h, --help
 ::          Show syntax of command.
-::
-::      -T, --skip-test-spec
-::          Skip spec validation. Only use this when spec is already valid.
-::          Using this with invalid specs might cause unexpected behavior.
 ::
 ::      -d, --dry-run
 ::          Run without parsing arguments.
@@ -1119,20 +1111,6 @@ for %%f in (-h --help) do (
     if not "!result!" == "!expected!" (
         call %unittest% fail "Expected '!expected!', got '!result!'"
     )
-)
-exit /b 0
-
-
-:tests.spec.test_skip_test_spec
-call :argparse2 -T --dry-run ^
-    ^ "[-a]:            set p_opt_a=A" ^
-    ^ -- || (
-    call %unittest% fail "Got error when using '--skip-test-spec' with valid spec"
-)
-call :argparse2 --skip-test-spec --dry-run ^
-    ^ "[-a]:            set p_opt_a=A" ^
-    ^ -- || (
-    call %unittest% fail "Got error when using '--skip-test-spec' with valid spec"
 )
 exit /b 0
 
