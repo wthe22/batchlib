@@ -175,7 +175,7 @@ for %%f in (!_flags!) do (
     set "_flag=%%f"
     if not "!_flag:~0,1!" == "-" exit /b 21
     if not "!_flag:~0,2!" == "--" (
-        if not "!_flag:~3!" == "" exit /b 24
+        if not "!_flag:~2!" == "" exit /b 24
         for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
             if "%%a%%b" == "-" exit /b 22
         )
@@ -1045,7 +1045,7 @@ call :argparse2 --dry-run ^
     call %unittest% fail "Unraised error when number flag is used"
 )
 call :argparse2 --dry-run ^
-    ^ "[-long]:         set p_opt_sc=1" ^
+    ^ "[-ab]:           set p_opt_sc=1" ^
     ^ -- %STDERR_REDIRECTION% && (
     call %unittest% fail "Unraised error when short flag contains more than 1 character"
 )
