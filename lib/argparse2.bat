@@ -59,12 +59,12 @@ exit /b 0
 set "%~1_position=6"
 set "%~1_spec_names="
 set "%~1_spec_flags="
-set "%~1_spec_flags=!%~1_spec_flags!-1|--| | |stop-opt-parse| | | !LF!"
-set "%~1_spec_flags=!%~1_spec_flags!0|-h,--help| | |help| |true|_help_syntax!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!1|-T,--skip-test-spec| | |set| |true|_skip_test_spec=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!2|-d,--dry-run| | |set| |true|_dry_run=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!3|-s,--stop-nonopt| | |set| |true|_stop_nonopt=true!LF!"
-set "%~1_spec_flags=!%~1_spec_flags!4|-n,--name|NAME| |set| |true|_new_name!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!-1|--| | |stop-opt-parse| | | | !LF!"
+set "%~1_spec_flags=!%~1_spec_flags!0|-h,--help| | |help| |true| |_help_syntax!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!1|-T,--skip-test-spec| | |set| |true|true|_skip_test_spec=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!2|-d,--dry-run| | |set| |true|true|_dry_run=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!3|-s,--stop-nonopt| | |set| |true|true|_stop_nonopt=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!4|-n,--name|NAME| |set| |true| |_new_name!LF!"
 set "%~1_spec_required= "
 set "%~1_known_flags= -- -h --help -T --skip-test-spec -d --dry-run -s --stop-nonopt -n --name "
 exit /b 0
@@ -77,7 +77,7 @@ set "_spec_names="
 set "_spec_flags="
 set "_spec_required= "
 set "_known_flags= "
-set "_spec_flags=!_spec_flags!-1|--| | |stop-opt-parse| | | !LF!"
+set "_spec_flags=!_spec_flags!-1|--| | |stop-opt-parse| | | | !LF!"
 set "_known_flags=!_known_flags!-- "
 call :argparse2._parse_spec_loop %* || (
     call :argparse2._error read_spec "!errorlevel!" >&2
@@ -108,6 +108,8 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
             set "_dest=%%c"
         )
     )
+    set "_has_const="
+    for /f "tokens=2 delims==" %%e in ("!_dest!.") do set "_has_const=true"
 
     if "!_argument:~0,1!!_argument:~-1,1!" == "[]" (
         set "_required="
@@ -142,11 +144,12 @@ for /l %%# in (1,1,20) do for /l %%# in (1,1,20) do (
 
     if defined _required set "_spec_required=!_spec_required!!_position! "
 
-    for %%v in (_flags _metavar _required _consume_many _consume_required) do (
+    for %%v in (_flags _metavar _required _consume_many _consume_required _has_const) do (
         if not defined %%v set "%%v= "
     )
 
-    set "_spec=!_position!|!_flags!|!_metavar!|!_required!|!_action!|!_consume_many!|!_consume_required!|!_dest!"
+    set "_spec=!_position!|!_flags!|!_metavar!|!_required!|!_action!|!_consume_many!"
+    set "_spec=!_spec!|!_consume_required!|!_has_const!|!_dest!"
     if "!_flags!" == " " (
         set "_spec_names=!_spec_names!!_spec!!LF!"
     ) else (
@@ -213,8 +216,6 @@ for %%a in (!_valid_actions!) do (
 if not defined _action_valid exit /b 40
 
 if not defined _dest exit /b 50
-set "_has_const="
-for /f "tokens=2 delims==" %%e in ("!_dest!.") do set "_has_const=true"
 if defined _metavar (
     if defined _has_const exit /b 52
 ) else (
@@ -304,7 +305,7 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
             set "_flag_used=!_value!"
         ) else set "_flag_used="
 
-        for /f "tokens=1-7* delims=|" %%a in ("!_new_spec!") do (
+        for /f "tokens=1-8* delims=|" %%a in ("!_new_spec!") do (
             set "_spec_id=%%a"
             set "_flags=%%b"
             set "_metavar=%%c"
@@ -312,9 +313,10 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
             set "_action=%%e"
             set "_consume_many=%%f"
             set "_consume_required=%%g"
-            set "_dest=%%h"
+            set "_has_const=%%h"
+            set "_dest=%%i"
         )
-        for %%v in (_flags _metavar _required _consume_required _consume_many) do (
+        for %%v in (_flags _metavar _required _consume_required _consume_many _has_const) do (
             if "!%%v!" == " " set "%%v="
         )
         set "_new_spec="
