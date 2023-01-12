@@ -1516,14 +1516,14 @@ exit /b 0
 
 
 :tests.debug_msg <context>
-rem %debug% call :argparse2._debug_msg read_opt_spec
-rem %debug% call :argparse2._debug_msg validate_spec
-rem %debug% call :argparse2._debug_msg parse_spec
-rem %debug% call :argparse2._debug_msg parse_args
-rem %debug% call :argparse2._debug_msg validate_args
-rem %debug% call :argparse2._debug_msg capture_args
-    rem %debug% echo !_position!:!_value!
-        rem %debug% echo - new spec: [!_new_spec!]
+::  rem %debug% call :tests.debug_msg read_opt_spec
+::  rem %debug% call :tests.debug_msg validate_spec
+::  rem %debug% call :tests.debug_msg parse_spec
+::  rem %debug% call :tests.debug_msg parse_args
+::  rem %debug% call :tests.debug_msg validate_args
+::  rem %debug% call :tests.debug_msg capture_args
+::      rem %debug% echo !_position!:!_value!
+::          rem %debug% echo - new spec: [!_new_spec!]
 if "%~1" == "validate_spec" (
     for %%v in (
         _position _flags _metavar _required _consume_required _action _dest
