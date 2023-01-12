@@ -176,8 +176,10 @@ for %%f in (!_flags!) do (
     if not "!_flag:~0,1!" == "-" exit /b 21
     if not "!_flag:~0,2!" == "--" (
         if not "!_flag:~2!" == "" exit /b 24
-        for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
-            if "%%a%%b" == "-" exit /b 22
+        if not "!_flag:~1!" == "" (
+            for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
+                if "%%a%%b" == "-" exit /b 22
+            )
         )
     )
     if not "!_known_flags: %%f = !" == "!_known_flags!" exit /b 23
@@ -267,6 +269,7 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
     set "_is_flag="
     if defined _parse_opt (
         if "!_value:~0,1!" == "-" (
+            if "!_value!" == "-" set "_is_flag=true"
             for /f "tokens=* delims=0123456789" %%l in ("!_value:~1!.") do if not "%%l" == "." (
                 set "_is_flag=true"
             )
@@ -853,6 +856,7 @@ call :argparse2 --dry-run ^
     ^ "[--ad [TEXT]]:       list p_opt_a=default" ^
     ^
     ^ %= flags =% ^
+    ^ "-:                       set p_stdin=true" ^
     ^ "-f:                      set p_opt_a=1" ^
     ^ "-g,--g2:                 set p_opt_a=1" ^
     ^ "--h-1,--h-2,--h-3:       set p_opt_a=1" ^
@@ -1197,7 +1201,7 @@ if ^"%1^" == "" (
         ^ -f f1 f1_ -f "f2" f2_ ^
         ^ -g g1 g2 "-g" g3 ^
         ^ -h -i i -j -k k1 k2 ^
-        ^ -- -g "yankee" -- zulu -1 -999 ^
+        ^ - -- -g "yankee" -- zulu -1 -999 ^
         ^ %=END=%
     exit /b
 )
@@ -1225,6 +1229,7 @@ call :argparse2 ^
     ^ "-i [TEXT]:           set p_opt_i=I" ^
     ^ "-j [TEXT ...]:       list p_opt_j=J" ^
     ^ "-k [TEXT ...]:       list p_opt_k=K" ^
+    ^ "-:                   set p_stdin=true" ^
     ^ "arg4 ...:            list p_arg4" ^
     ^ -- %* || (
     call %unittest% fail "Got error when consuming valid arguments"
@@ -1233,10 +1238,10 @@ call :argparse2 ^
 set expected=alpha,bravo,charlie "delta" %=END=%
 set expected=!expected!,-g "yankee" -- zulu -1 -999 %=END=%
 set expected=!expected!,a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
-set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 g2 "-g" g3 ,H,i,J,k1 k2 %=END=%
+set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 g2 "-g" g3 ,H,i,J,k1 k2 ,true
 set result=!p_arg1!,!p_arg2!,!p_arg3!,!p_arg4!,!p_extra!
 set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!
-set result=!result!,!p_opt_g!,!p_opt_h!,!p_opt_i!,!p_opt_j!,!p_opt_k!
+set result=!result!,!p_opt_g!,!p_opt_h!,!p_opt_i!,!p_opt_j!,!p_opt_k!,!p_stdin!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
