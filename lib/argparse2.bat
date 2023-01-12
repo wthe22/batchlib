@@ -6,17 +6,14 @@ exit /b
 :argparse2 [-h] [-T] [-d] [-s] [-n NAME] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 for %%v in (
-    _test_internal_specs _stop_on_extra
-    _help_syntax _skip_test_spec _dry_run _stop_nonopt _new_name
+    _stop_on_extra _help_syntax _skip_test_spec _dry_run _stop_nonopt _new_name
 ) do set "%%v="
 set "_name=%0"
 set "_name=!_name:~1!"
-if ^"%1^" == "--test-internal-specs" set "_test_internal_specs=true"
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 call :argparse2._read_opts %* || exit /b
-if defined _test_internal_specs exit /b 0
 if defined _help_syntax (
     echo usage: !_name! !_help_syntax! spec ... -- %%*
     echo=
@@ -45,7 +42,6 @@ call :argparse2._parse_specs ^
     ^ "[-s,--stop-nonopt]:      set _stop_nonopt=true" ^
     ^ "[-n,--name NAME]:        set _new_name" ^
     ^ -- || exit /b 2
-if defined _test_internal_specs exit /b 0
 set "_position=0"
 set "_stop_on_extra=true"
 call :argparse2._parse_args %* || exit /b 3
