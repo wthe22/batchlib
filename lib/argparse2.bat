@@ -791,9 +791,17 @@ exit /b 0
 exit /b 0
 
 
-:tests.internal.test_specs
-call :argparse2 --test-internal-specs || (
-    call %unittest% fail "Got error when testing internal opt specs"
+:tests.spec.test_internal_specs
+call :argparse2._parse_opt_spec || (
+    call %unittest% fail "Got error when parsing internal opt specs"
+)
+call :argparse2._read_opt_spec _final || (
+    call %unittest% fail "Got error when reading internal opt specs"
+)
+for %%v in (_position _spec_names _spec_flags _spec_required _known_flags) do (
+    if not "!%%v!" == "!_final%%v!" (
+        call %unittest% fail "Opt spec '%%v': Expected '!%%v!', got '!_final%%v!'"
+    )
 )
 exit /b 0
 
