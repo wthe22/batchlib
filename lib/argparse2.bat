@@ -679,9 +679,6 @@ echo=
 call :input_string parameters
 echo=
 echo --------------------------------------------------------------------------------
-echo Example:
-echo     -u "Alice" buy "1 Cactus" "2 Snacks" --confirm
-echo=
 echo Input parameters:
 echo=!parameters!
 echo=
