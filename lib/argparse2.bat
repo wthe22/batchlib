@@ -670,7 +670,7 @@ call :shop sell --help
 echo=
 echo=
 echo Example:
-echo     -u "Alice" buy "1 Cactus" "2 Snacks"
+echo     -u "Alice" buy "1 Cactus" "2 Snacks" --print
 echo=
 call :input_string parameters
 echo=
@@ -734,6 +734,7 @@ call :argparse2 --name "shop" ^
     ^ "[-h,--help]:                 help shop_syntax" ^
     ^ "item_name ...:               list shop_item_names" ^
     ^ "[--confirm]:                 set shop_confirm=true" ^
+    ^ "[--print [AMOUNT]]:          set shop_print=1" ^
     ^ -- %* || exit /b 2
 if defined shop_syntax (
     echo usage: shop [SHOP_OPTIONS] buy !shop_syntax!
@@ -741,6 +742,7 @@ if defined shop_syntax (
     echo    -h, --help              Show this help
     echo    --confirm               Confirm the purchase
     echo    item_name               The items to buy
+    echo    --print [AMOUNT]        The amount to print ^(default: 1^)
     exit /b 0
 )
 if not defined shop_confirm (
@@ -749,6 +751,10 @@ if not defined shop_confirm (
 echo !shop_user! wants to buy:
 for %%n in (!shop_item_names!) do (
     echo - %%~n
+)
+if defined shop_print (
+    echo=
+    echo *** PRINTED ^(!shop_print!x^) ***
 )
 exit /b 0
 #+++
