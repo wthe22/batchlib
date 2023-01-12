@@ -619,8 +619,9 @@ exit /b 0
 ::          quotes preserved.
 ::
 ::      CONST
-::          The value to store at the destination variable. Only allowed if the
-::          option does not accept any value.
+::          The value to store at the destination variable. Can only be used on
+::          flags that have optional arguments or no arguments. This value will
+::          will be set only if no arguments are given.
 ::
 ::      REQUIRED/OPTIONAL
 ::          Required arguments/options:
