@@ -34,14 +34,7 @@ exit /b 0
 :argparse2._read_opts %*
 ::  -> _position + options
 setlocal EnableDelayedExpansion
-set "_position=0"
-call :argparse2._parse_specs ^
-    ^ "[-h,--help]:             help _help_syntax" ^
-    ^ "[-T,--skip-test-spec]:   set _skip_test_spec=true" ^
-    ^ "[-d,--dry-run]:          set _dry_run=true" ^
-    ^ "[-s,--stop-nonopt]:      set _stop_nonopt=true" ^
-    ^ "[-n,--name NAME]:        set _new_name" ^
-    ^ -- || exit /b 2
+call :argparse2._read_opt_spec || exit /b 2
 set "_position=0"
 set "_stop_on_extra=true"
 call :argparse2._parse_args %* || exit /b 3
@@ -50,9 +43,36 @@ call :argparse2._capture_args || exit /b 3
 exit /b 0
 #+++
 
+:argparse2._parse_opt_spec
+set "_position=0"
+call :argparse2._parse_specs ^
+    ^ "[-h,--help]:             help _help_syntax" ^
+    ^ "[-T,--skip-test-spec]:   set _skip_test_spec=true" ^
+    ^ "[-d,--dry-run]:          set _dry_run=true" ^
+    ^ "[-s,--stop-nonopt]:      set _stop_nonopt=true" ^
+    ^ "[-n,--name NAME]:        set _new_name" ^
+    ^ -- || exit /b 2
+exit /b 0
+#+++
+
+:argparse2._read_opt_spec [return_prefix]
+set "%~1_position=6"
+set "%~1_spec_names="
+set "%~1_spec_flags="
+set "%~1_spec_flags=!%~1_spec_flags!-1|--| | |stop-opt-parse| | | !LF!"
+set "%~1_spec_flags=!%~1_spec_flags!0|-h,--help| | |help| |true|_help_syntax!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!1|-T,--skip-test-spec| | |set| |true|_skip_test_spec=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!2|-d,--dry-run| | |set| |true|_dry_run=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!3|-s,--stop-nonopt| | |set| |true|_stop_nonopt=true!LF!"
+set "%~1_spec_flags=!%~1_spec_flags!4|-n,--name|NAME| |set| |true|_new_name!LF!"
+set "%~1_spec_required= "
+set "%~1_known_flags= -- -h --help -T --skip-test-spec -d --dry-run -s --stop-nonopt -n --name "
+exit /b 0
+#+++
+
 :argparse2._parse_specs %*
 ::  _position
-::  -> _position _spec_names _spec_flags _spec_required
+::  -> _position _spec_names _spec_flags _spec_required _known_flags
 set "_spec_names="
 set "_spec_flags="
 set "_spec_required= "
