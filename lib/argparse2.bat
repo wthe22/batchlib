@@ -176,9 +176,9 @@ for %%f in (!_flags!) do (
     if not "!_flag:~0,1!" == "-" exit /b 21
     if not "!_flag:~0,2!" == "--" (
         if not "!_flag:~3!" == "" exit /b 24
-    )
-    for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
-        if "%%a%%b" == "-" exit /b 22
+        for /f "tokens=1* delims=0123456789" %%a in ("!_flag!") do (
+            if "%%a%%b" == "-" exit /b 22
+        )
     )
     if not "!_known_flags: %%f = !" == "!_known_flags!" exit /b 23
     set "_known_flags=!_known_flags!%%f "
@@ -216,14 +216,11 @@ for %%a in (!_valid_actions!) do (
 if not defined _action_valid exit /b 40
 
 if not defined _dest exit /b 50
-if defined _metavar (
-    if defined _has_const exit /b 52
+if defined _has_const (
+    if defined _metavar if defined _consume_required exit /b 52
+    if "!_action!" == "help" exit /b 52
 ) else (
-    if "!_action!" == "help" (
-        if defined _has_const exit /b 53
-    ) else (
-        if not defined _has_const exit /b 51
-    )
+    if not defined _metavar if not "!_action!" == "help" exit /b 52
 )
 exit /b 0
 #+++
@@ -300,6 +297,9 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
     if defined _new_spec (
         if defined _consume_action (
             if defined _consume_required exit /b 4
+            if defined _no_consume_action (
+                set _actions=!_actions! !_no_consume_action!
+            )
         )
         if defined _is_flag (
             set "_flag_used=!_value!"
@@ -322,11 +322,21 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         set "_new_spec="
 
         set "_consume_action="
-        if "!_action!" == "set" (
+        for %%a in (set list) do if "!_action!" == "%%a" (
             if defined _metavar (
+                if defined _has_const (
+                    set _no_consume_action="store_const:!_dest!"
+                    for /f "tokens=1 delims==" %%a in ("!_dest!") do (
+                        set "_dest=%%a"
+                    )
+                )
                 if defined _flags (
                     set _actions=!_actions! shift
                 )
+            )
+        )
+        if "!_action!" == "set" (
+            if defined _metavar (
                 set _consume_action="store:!_dest!" shift
             ) else (
                 set _actions=!_actions! "store_const:!_dest!" shift
@@ -334,9 +344,6 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
         )
         if "!_action!" == "list" (
             if defined _metavar (
-                if defined _flags (
-                    set _actions=!_actions! shift
-                )
                 set _consume_action="append:!_dest!" shift
             ) else (
                 set _actions=!_actions! "append_const:!_dest!" shift
@@ -367,12 +374,9 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
 
     if not defined _is_flag if defined _consume_action (
         set _actions=!_actions! !_consume_action!
-        if defined _consume_required (
-            set "_consume_required="
-        )
-        if not defined _consume_many (
-            set "_consume_action="
-        )
+        if defined _consume_required set "_consume_required="
+        if defined _no_consume_action set "_no_consume_action="
+        if not defined _consume_many set "_consume_action="
     )
     shift /1
     set /a "_position+=1"
@@ -833,7 +837,9 @@ call :argparse2 --dry-run ^
     ^ "[--sc]:              set p_opt_sc=1" ^
     ^ "[--ac]:              list p_opt_ac=+1" ^
     ^ "[-s TEXT]:           set p_opt_s" ^
+    ^ "[--sd [TEXT]]:       set p_opt_s=default" ^
     ^ "[-a,--append TEXT]:  list p_opt_a" ^
+    ^ "[--ad [TEXT]]:       list p_opt_a=default" ^
     ^
     ^ %= flags =% ^
     ^ "-f:                      set p_opt_a=1" ^
@@ -1179,6 +1185,7 @@ if ^"%1^" == "" (
         ^ -c c c_ -d "d" d_ -e e1 e1_ -e e2 e2_ ^
         ^ -f f1 f1_ -f "f2" f2_ ^
         ^ -g g1 g2 "-g" g3 ^
+        ^ -h -i i -j -k k1 k2 ^
         ^ -- -g "yankee" -- zulu -1 -999 ^
         ^ %=END=%
     exit /b
@@ -1203,6 +1210,10 @@ call :argparse2 ^
     ^ "extra ...:           list p_extra" ^
     ^ "extra ...:           list p_extra" ^
     ^ "-g TEXT ...:         list p_opt_g" ^
+    ^ "-h [TEXT]:           set p_opt_h=H" ^
+    ^ "-i [TEXT]:           set p_opt_i=I" ^
+    ^ "-j [TEXT ...]:       list p_opt_j=J" ^
+    ^ "-k [TEXT ...]:       list p_opt_k=K" ^
     ^ "arg4 ...:            list p_arg4" ^
     ^ -- %* || (
     call %unittest% fail "Got error when consuming valid arguments"
@@ -1211,9 +1222,10 @@ call :argparse2 ^
 set expected=alpha,bravo,charlie "delta" %=END=%
 set expected=!expected!,-g "yankee" -- zulu -1 -999 %=END=%
 set expected=!expected!,a_ b1_ b2_ c_ d_ e1_ e2_ f1_ f2_ %=END=%
-set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 g2 "-g" g3 %=END=%
+set expected=!expected!,A,B B ,c,d,e2,f1 "f2" ,g1 g2 "-g" g3 ,H,i,J,k1 k2 %=END=%
 set result=!p_arg1!,!p_arg2!,!p_arg3!,!p_arg4!,!p_extra!
-set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!,!p_opt_g!
+set result=!result!,!p_opt_a!,!p_opt_b!,!p_opt_c!,!p_opt_d!,!p_opt_e!,!p_opt_f!
+set result=!result!,!p_opt_g!,!p_opt_h!,!p_opt_i!,!p_opt_j!,!p_opt_k!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
