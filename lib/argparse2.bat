@@ -1242,6 +1242,27 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.args.test_consume_optional_valid
+if ^"%1^" == "" (
+    call :tests.args.test_consume_optional_valid ^
+        ^ -a ^
+        ^ %=END=%
+    exit /b
+)
+call :argparse2 ^
+    ^ "-a [TEXT]:           set p_opt_a=A" ^
+    ^ -- %* || (
+    call %unittest% fail "Got error when consuming valid arguments"
+    exit /b 0
+)
+set expected=A
+set result=!p_opt_a!
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.args.test_optional_valid
 if ^"%1^" == "" (
     call :tests.args.test_optional_valid -d -e
