@@ -12,17 +12,17 @@ call :argparse2 --name %0 ^
     ^ "[-n,--not-exist]:    set _require_exist=false" ^
     ^ "[-f,--file]:         set _require_attrib=-" ^
     ^ "[-d,--directory]:    set _require_attrib=d" ^
-    ^ -- %* || exit /b 4
+    ^ -- %* || exit /b 2
 set "_path=!%_path_var%!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
-if not defined _path ( 1>&2 echo%0: Path not defined & exit /b 3 )
+if not defined _path ( 1>&2 echo%0: Path not defined & exit /b 4 )
 set "_temp=!_path!"
 if "!_path:~1,1!" == ":" set "_temp=!_path:~0,1!!_path:~2!"
 for /f tokens^=1-2*^ delims^=:?^"^<^>^| %%a in ("Q?_!_temp!_") do (
-    if not "%%c" == "" ( 1>&2 echo%0: Invalid path characters & exit /b 3 )
+    if not "%%c" == "" ( 1>&2 echo%0: Invalid path characters & exit /b 4 )
 )
 for /f "tokens=1-2* delims=*" %%a in ("Q*_!_temp!_") do (
-    if not "%%c" == "" ( 1>&2 echo%0: Wildcards are not allowed & exit /b 3 )
+    if not "%%c" == "" ( 1>&2 echo%0: Wildcards are not allowed & exit /b 4 )
 )
 if "!_path:~1!" == ":" set "_path=!_path!\"
 set "_file_exist=false"
@@ -40,7 +40,7 @@ if "!_attrib!" == "d" (
 if defined _require_exist if not "!_file_exist!" == "!_require_exist!" (
     if "!_require_exist!" == "true" 1>&2 echo%0: Input does not exist
     if "!_require_exist!" == "false" 1>&2 echo%0: Input already exist
-    exit /b 2
+    exit /b 3
 )
 if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
     if defined _require_exist (
@@ -50,7 +50,7 @@ if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!
         if "!_require_attrib!" == "d" 1>&2 echo%0: Input must be a new or existing folder, not a file
         if "!_require_attrib!" == "-" 1>&2 echo%0: Input must be a new or existing file, not a folder
     )
-    exit /b 2
+    exit /b 3
 )
 for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
@@ -92,8 +92,9 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - The path satisfy the requirements.
-::      2:  - The path does not satisfy the requirements.
-::      3:  - The path is invalid.
+::      2:  - Invalid argument.
+::      3:  - The path does not satisfy the requirements.
+::      4:  - The path is invalid.
 ::
 ::  ENVIRONMENT
 ::      cd
@@ -154,6 +155,10 @@ for %%a in (wc colon pipe qm lab rab dquote) do (
     call :check_path char.%%a 2> nul && (
         call %unittest% fail "Unexpected success with invalid character: %%a"
     )
+    set "result=!errorlevel!"
+    if not "!result!" == "4" (
+        call %unittest% fail "When using '%%a', expected errorlevel 4, got '!result!'"
+    )
 )
 exit /b 0
 
@@ -164,25 +169,25 @@ call :tests.check_errorlevel ^
     ^ "0: -e  :%~d0" ^
     ^ "0: -e  :hello\" ^
     ^ "0: -e  :hello" ^
-    ^ "2: -e  :world\" ^
+    ^ "3: -e  :world\" ^
     ^ "0: -e  :world" ^
-    ^ "2: -e  :none"
+    ^ "3: -e  :none"
 exit /b 0
 
 
 :tests.test_not_exist
 call :tests.check_errorlevel ^
-    ^ "2: -n  :%~d0\" ^
-    ^ "2: -n  :hello" ^
-    ^ "2: -n  :world" ^
+    ^ "3: -n  :%~d0\" ^
+    ^ "3: -n  :hello" ^
+    ^ "3: -n  :world" ^
     ^ "0: -n  :none"
 exit /b 0
 
 
 :tests.test_file
 call :tests.check_errorlevel ^
-    ^ "2: -f  :%~d0" ^
-    ^ "2: -f  :hello" ^
+    ^ "3: -f  :%~d0" ^
+    ^ "3: -f  :hello" ^
     ^ "0: -f  :world" ^
     ^ "0: -f  :none"
 exit /b 0
@@ -192,15 +197,15 @@ exit /b 0
 call :tests.check_errorlevel ^
     ^ "0: -d  :%~d0" ^
     ^ "0: -d  :hello" ^
-    ^ "2: -d  :world" ^
+    ^ "3: -d  :world" ^
     ^ "0: -d  :none"
 exit /b 0
 
 
 :tests.test_mixed
 call :tests.check_errorlevel ^
-    ^ "2: -e -f   :none" ^
-    ^ "2: -e -d   :none"
+    ^ "3: -e -f   :none" ^
+    ^ "3: -e -d   :none"
 exit /b 0
 
 
