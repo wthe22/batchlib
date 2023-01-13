@@ -6,13 +6,13 @@ exit /b
 :check_path [-e|-n] [-f|-d] <path_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_require_attrib  _require_exist) do set "%%v="
-call :argparse ^
-    ^ "#1:store                     :_path_var" ^
-    ^ "-e,--exist:store_const       :_require_exist=true" ^
-    ^ "-n,--not-exist:store_const   :_require_exist=false" ^
-    ^ "-f,--file:store_const        :_require_attrib=-" ^
-    ^ "-d,--directory:store_const   :_require_attrib=d" ^
-    ^ -- %* || exit /b 2
+call :argparse2 --name %0 ^
+    ^ "path_var:            set _path_var" ^
+    ^ "[-e,--exist]:        set _require_exist=true" ^
+    ^ "[-n,--not-exist]:    set _require_exist=false" ^
+    ^ "[-f,--file]:         set _require_attrib=-" ^
+    ^ "[-d,--directory]:    set _require_attrib=d" ^
+    ^ -- %* || exit /b 4
 set "_path=!%_path_var%!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
 if not defined _path ( 1>&2 echo%0: Path not defined & exit /b 3 )
@@ -239,7 +239,7 @@ for %%a in (
     "none\..\empty|!cd!\empty"
 ) do for /f "tokens=1* delims=|" %%b in (%%a) do (
     set "result=%%b"
-    call :check_path result %%c 2> nul
+    call :check_path result
     set "expected=%%c"
     if not "!result!" == "!expected!" (
         call %unittest% fail "Expected '!expected!', got '!result!'"
