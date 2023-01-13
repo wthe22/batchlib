@@ -7,7 +7,7 @@ exit /b
 setlocal EnableDelayedExpansion
 set "_is_macro="
 call :timeit._setup %*
-if not defined _code ( 1>&2 echo error: No command to execute & exit /b 1 )
+if not defined _code ( 1>&2 echo%0: No command to execute & exit /b 1 )
 set _code=!_code:'="!
 call :timeit._measure
 call :timeit._show_result
@@ -19,10 +19,10 @@ exit /b 0
     if not defined _is_macro goto 2> nul
     for %%v in (_code _loops) do set "%%v="
     set "_repeat=5"
-    call :argparse ^
-        ^ "#1:store                 :_code" ^
-        ^ "-n,--number:store        :_loops" ^
-        ^ "-r,--repeat:store        :_repeat" ^
+    call :argparse2 --name timeit ^
+        ^ "[code]:              set _code" ^
+        ^ "[-n,--number LOOPS]: set _loops" ^
+        ^ "[-r,--repeat N]:     set _repeat" ^
         ^ -- %* || exit /b 2
     if defined _loops (
         set "_start_repeat=1"
@@ -128,7 +128,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse difftime macroify ext_powershell"
+set "%~1install_requires=argparse2 difftime macroify ext_powershell"
 set "%~1category=time devtools"
 exit /b 0
 
