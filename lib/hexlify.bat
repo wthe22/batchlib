@@ -3,14 +3,13 @@ call %*
 exit /b
 
 
-:hexlify <input_file> <output_file> [--eol hex]
+:hexlify <input_file> [--eol hex]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_input_file _output_file) do set "%%v="
 set "_eol=0d 0a"
-call :argparse ^
-    ^ "#1:store         :_input_file" ^
-    ^ "#2:store         :_output_file" ^
-    ^ "-e,--eol:store   :_eol" ^
+call :argparse2 --name %0 ^
+    ^ "input_file:      set _input_file" ^
+    ^ "[-e,--eol HEX]:  set _eol" ^
     ^ -- %* || exit /b 2
 for %%v in (_input_file _output_file) do for %%f in ("!%%v!") do set "%%v=%%~ff"
 call :strlen _eol_len _eol
@@ -50,7 +49,7 @@ exit /b
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse strlen"
+set "%~1install_requires=argparse2 strlen"
 set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0
