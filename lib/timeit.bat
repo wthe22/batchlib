@@ -187,5 +187,45 @@ echo Measure time taken to read this file (using macro with parameters)
 exit /b 0
 
 
+:tests.setup
+exit /b 0
+
+
+:tests.teardown
+exit /b 0
+
+
+:tests.test_with_call
+call :timeit "rem" > nul || (
+    call %unittest% fail "Got error when testing valid command"
+)
+call :timeit -n 10000 -r 3 "call" > nul || (
+    call %unittest% fail "Got error when testing valid command with arguments"
+)
+exit /b 0
+
+
+:tests.test_with_macro
+set "timeit="
+call :timeit.setup_macro || (
+    call %unittest% fail "Got error when testing setting up macro"
+)
+call :tests._test_with_macro._without_arguments > nul || (
+    call %unittest% fail "Got error when testing valid command"
+)
+call :tests._test_with_macro._with_arguments > nul || (
+    call %unittest% fail "Got error when testing valid command with arguments"
+)
+exit /b 0
+
+:tests._test_with_macro._without_arguments
+%timeit% help > nul
+exit /b
+
+:tests._test_with_macro._with_arguments
+%timeit: $args = -n 30 -r 3 % help > nul
+exit /b
+
+
 :EOF
 exit /b
