@@ -140,7 +140,8 @@ exit /b 0
 ::  SYNOPSIS
 ::      timeit [-n loops] [-r repetitions] <code>
 ::      timeit.setup_macro
-::      %timeit[:$args=[-n loops] [-r repetitions]]% <code>
+::      %timeit% <code>
+::      %timeit:$args=[-n loops] [-r repetitions]% <code>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -175,14 +176,14 @@ echo=
 echo Measure time taken to run "CALL"
 call :timeit "call"
 echo=
-echo Measure time taken to read this file line by line
+echo Measure time taken to read this file (using call)
 call :timeit "for /f 'usebackq tokens=*' %%%%o in ('%~f0') do rem"
 echo=
 echo Measure time taken to read this file (using macro)
 %timeit% for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 echo=
 echo Measure time taken to read this file (using macro with parameters)
-%timeit: $args = -n 299 -r 6 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
+%timeit: $args = -n 234 -r 6 % for /f "usebackq tokens=*" %%o in ("%~f0") do rem
 exit /b 0
 
 
