@@ -219,7 +219,7 @@ if defined _has_const (
     if defined _metavar if defined _consume_required exit /b 52
     if "!_action!" == "help" exit /b 52
 ) else (
-    if not defined _metavar if not "!_action!" == "help" exit /b 52
+    if not defined _metavar if not "!_action!" == "help" exit /b 51
 )
 exit /b 0
 #+++
