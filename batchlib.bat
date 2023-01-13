@@ -237,6 +237,10 @@ rem ############################################################################
 ::      - check_path(): Adjust exit status so that invalid arguments
 ::                      can be distinguished by exit code number
 ::
+::  Tests
+::  - timeit(): Add unittest
+::  - version_parse(): Add python testing code
+::
 ::  Documentation
 ::  - quicktest(): Improve use case example and fix argument syntax
 ::  - hexlify(): Fix argument syntax
