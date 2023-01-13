@@ -459,5 +459,26 @@ for %%a in (
 exit /b 0
 
 
+:tests.python.compare_value
+from packaging import version
+
+
+cases = [
+    # Add compare values here
+]
+
+for case in cases:
+    this, other = case.split()
+    this = version.parse(this)
+    other = version.parse(other)
+
+    assert isinstance(this, version.Version)
+    assert isinstance(other, version.Version)
+
+    if not this < other:
+        print(this, '<', other, '?', this < other)
+exit /b 0
+
+
 :EOF
 exit /b
