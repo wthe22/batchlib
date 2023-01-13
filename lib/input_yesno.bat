@@ -3,17 +3,17 @@ call %*
 exit /b
 
 
-:input_yesno [-m message] [-y value] [-n value] [-d default] [return_var]
+:input_yesno [-m message] [-y value] [-n value] [-d value] [return_var]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
 set "_no_value=N"
-call :argparse ^
-    ^ "#1:store             :_return_var" ^
-    ^ "-m,--message:store   :_message" ^
-    ^ "-y,--yes:store       :_yes_value" ^
-    ^ "-n,--no:store        :_no_value" ^
-    ^ "-d,--default:store   :_default" ^
+call :argparse2 --name %0 ^
+    ^ "return_var:              set _return_var" ^
+    ^ "[-m,--message MESSAGE]:  set _message" ^
+    ^ "[-y,--yes VALUE]:        set _yes_value" ^
+    ^ "[-n,--no VALUE]:         set _no_value" ^
+    ^ "[-d,--default VALUE]:    set _default" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!? [y/n] "
 call :input_yesno._loop || exit /b 4
@@ -50,7 +50,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse"
+set "%~1install_requires=argparse2"
 set "%~1category=ui"
 exit /b 0
 
@@ -60,7 +60,7 @@ exit /b 0
 ::      input_yesno - read a yes/no from standard input
 ::
 ::  SYNOPSIS
-::      input_yesno [-m message] [-y value] [-n value] [-d default] [return_var]
+::      input_yesno [-m message] [-y value] [-n value] [-d value] [return_var]
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -114,11 +114,11 @@ exit /b 0
 > "enter_n" (
     echo n
 )
-exit /b 0z
+exit /b 0
 
 
 :tests.teardown
-exit /b 0z
+exit /b 0
 
 
 :tests.test_input

@@ -9,16 +9,16 @@ for %%v in (
     _return_var _message _base_dir _optional _warn_overwrite
     _check_options
 ) do set "%%v="
-call :argparse ^
-    ^ "#1:store                         :_return_var" ^
-    ^ "-m,--message:store               :_message" ^
-    ^ "-b,--base-dir:store              :_base_dir" ^
-    ^ "-o,--optional:store_const        :_optional=true" ^
-    ^ "-w,--warn-overwrite:store_const  :_warn_overwrite=true" ^
-    ^ "-e,--exist:append_const          :_check_options= -e" ^
-    ^ "-n,--not-exist:append_const      :_check_options= -n" ^
-    ^ "-f,--file:append_const           :_check_options= -f" ^
-    ^ "-d,--directory:append_const      :_check_options= -d" ^
+call :argparse2 --name %0 ^
+    ^ "return_var:              set _return_var" ^
+    ^ "[-m,--message MESSAGE]:  set _message" ^
+    ^ "[-o,--optional]:         set _optional=true" ^
+    ^ "[-b,--base-dir DIR]:     set _base_dir" ^
+    ^ "[-w,--warn-overwrite]:   set _warn_overwrite=true" ^
+    ^ "[-e,--exist]:            list _check_options= -e" ^
+    ^ "[-n,--not-exist]:        list _check_options= -n" ^
+    ^ "[-f,--file]:             list _check_options= -f" ^
+    ^ "[-d,--directory]:        list _check_options= -d" ^
     ^ -- %* || exit /b 2
 if defined _base_dir cd /d "!_base_dir!"
 if not defined _message (
@@ -58,7 +58,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse check_path input_yesno"
+set "%~1install_requires=argparse2 check_path input_yesno"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
@@ -69,7 +69,7 @@ exit /b 0
 ::      input_path - read a path string from standard input
 ::
 ::  SYNOPSIS
-::      input_path [-m message] [-b base_dir] [-e|-n] [-f|-d]
+::      input_path [-m message] [-b dir] [-e|-n] [-f|-d]
 ::                 [-o] [-w] <return_var>
 ::
 ::  POSITIONAL ARGUMENTS
@@ -81,7 +81,7 @@ exit /b 0
 ::          Use MESSAGE as the prompt message.
 ::          By default, the message is generated automatically.
 ::
-::      -b BASE_DIR, --base-dir BASE_DIR
+::      -b DIR, --base-dir DIR
 ::          Function will CD to this directory first before reading input.
 ::
 ::      -o, --optional

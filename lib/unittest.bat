@@ -26,13 +26,13 @@ set "unittest.pattern=test*.test*"
 set "unittest.target_args=-c"
 set "unittest.self_args=-c"
 set "unittest.output_cmd=echo"
-call :argparse ^
-    ^ "#1:store                 :unittest.target" ^
-    ^ "-f,--failfast:store_const:unittest.fail_fast=true" ^
-    ^ "-p,--pattern:store       :unittest.pattern" ^
-    ^ "-a,--target-args:store   :unittest.target_args" ^
-    ^ "-s,--self-args:store     :unittest.self_args" ^
-    ^ "-o,--output:store        :unittest.output_cmd" ^
+call :argparse2 --name %0 ^
+    ^ "[target]:                    set unittest.target" ^
+    ^ "[-f,--failfast]:             set unittest.fail_fast=true" ^
+    ^ "[-p,--pattern PATTERN]:      set unittest.pattern" ^
+    ^ "[-a,--target-args ARGS]:     set unittest.target_args" ^
+    ^ "[-s,--self-args ARGS]:       set unittest.self_args" ^
+    ^ "[-o,--output OUTPUT_CMD]:    set unittest.output_cmd" ^
     ^ -- %* || exit /b 2
 call :unittest._init || (
     1>&2 echo%0: Failed to initialize unittest
@@ -213,7 +213,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse functions_match difftime ftime"
+set "%~1install_requires=argparse2 functions_match difftime ftime"
 set "%~1extra_requires=functions_range readline"
 set "%~1category=devtools"
 exit /b 0

@@ -6,12 +6,12 @@ exit /b
 :updater [-n] [-y] [-f] [-u url] <script_path>
 setlocal EnableDelayedExpansion
 for %%v in (_assume_yes _notify_only _force _dl_url) do set "%%v="
-call :argparse ^
-    ^ "#1:store                     :_this" ^
-    ^ "-n,--notify-only:store_const :_notify_only=true" ^
-    ^ "-y,--yes:store_const         :_assume_yes=true" ^
-    ^ "-f,--force:store_const       :_force=true" ^
-    ^ "-u,--download-url:store      :_dl_url" ^
+call :argparse2 --name %0 ^
+    ^ "script_path:             set _this" ^
+    ^ "[-n,--notify-only]:      set _notify_only=true" ^
+    ^ "[-y,--yes]:              set _assume_yes=true" ^
+    ^ "[-f,--force]:            set _force=true" ^
+    ^ "[-u,--download-url URL]: set _dl_url" ^
     ^ -- %* || exit /b 2
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -58,8 +58,8 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse download_file version_parse input_yesno"
-set "%~1extra_requires=ping_test coderender get_pid_by_title input_path"
+set "%~1install_requires=argparse2 download_file version_parse input_yesno"
+set "%~1extra_requires=argparse2 ping_test coderender get_pid_by_title input_path"
 set "%~1category=packaging"
 exit /b 0
 
@@ -190,9 +190,9 @@ exit /b 0
 :tests.template.dummy [-n name] [-v version]
 set "name=dummy"
 set "version=1.0"
-call :argparse ^
-    ^ "-n,--name:store      :name" ^
-    ^ "-v,--version:store   :version" ^
+call :argparse2 ^
+    ^ "[-n,--name NAME]:        set name" ^
+    ^ "[-v,--version VERSION]:  set version" ^
     ^ -- %* || ( 1>&2 echo parse failed & exit /b 2 )
 ::  :entry_point
 ::  @goto main

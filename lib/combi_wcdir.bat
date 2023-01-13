@@ -8,13 +8,13 @@ setlocal EnableDelayedExpansion EnableExtensions
 set "_list_dir=true"
 set "_list_file=true"
 set "_seperator="
-call :argparse ^
-    ^ "#1:store                     :_return_var" ^
-    ^ "#2:store                     :_path1" ^
-    ^ "#3:store                     :_path2" ^
-    ^ "-s,--seperator:store         :_seperator_var" ^
-    ^ "-f,--file:store_const        :_list_file=" ^
-    ^ "-d,--directory:store_const   :_list_dir=" ^
+call :argparse2 --name %0 ^
+    ^ "return_var:              set _return_var" ^
+    ^ "first_parts:             set _path1" ^
+    ^ "second_parts:            set _path2" ^
+    ^ "[-s,--seperator VAR]:    set _seperator_var" ^
+    ^ "[-f,--file]:             set _list_file=" ^
+    ^ "[-d,--directory]:        set _list_dir=" ^
     ^ -- %* || exit /b 2
 call :capchar LF NL
 for %%v in (_path1 _path2) do (
@@ -56,7 +56,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse wcdir capchar"
+set "%~1install_requires=argparse2 wcdir capchar"
 set "%~1extra_requires=input_string"
 set "%~1category=file"
 exit /b 0

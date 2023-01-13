@@ -6,10 +6,10 @@ exit /b
 :input_string [-m message] [-f] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message _require_filled) do set "%%v="
-call :argparse ^
-    ^ "#1:store                 :_return_var" ^
-    ^ "-m,--message:store       :_message" ^
-    ^ "-f,--filled:store_const  :_require_filled=true" ^
+call :argparse2 --name %0 ^
+    ^ "return_var:              set _return_var" ^
+    ^ "[-m,--message MESSAGE]:  set _message" ^
+    ^ "[-f,--filled]:           set _require_filled=true" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!: "
 call :input_string._loop || exit /b 4
@@ -38,7 +38,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse"
+set "%~1install_requires=argparse2"
 set "%~1category=ui"
 exit /b 0
 

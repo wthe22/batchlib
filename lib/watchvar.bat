@@ -20,10 +20,10 @@ for %%x in (txt hex) do (
     setlocal EnableDelayedExpansion EnableExtensions
     cd /d "%cd%"
 )
-for %%v in (_init_only  _list_names) do set "%%v="
-call :argparse ^
-    ^ "-i,--initialize:store_const  :_init_only=true" ^
-    ^ "-n,--name:store_const        :_list_names=true" ^
+for %%v in (_init_only _list_names) do set "%%v="
+call :argparse2 --name %0 ^
+    ^ "[-i,--initialize]:   set _init_only=true" ^
+    ^ "[-n,--name]:         set _list_names=true" ^
     ^ -- %* || exit /b 2
 rem Convert to hex and format
 call :hexlify "latest.txt" > "latest.hex.tmp"
@@ -100,7 +100,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse hexlify"
+set "%~1install_requires=argparse2 hexlify"
 set "%~1extra_requires=strlen"
 set "%~1category=devtools"
 exit /b 0

@@ -6,12 +6,12 @@ exit /b
 :input_number [-m message] [-r range] [-a] [-o] <return_var>
 setlocal EnableDelayedExpansion
 for %%v in (_return_var _message _range _as_is) do set "%%v="
-call :argparse ^
-    ^ "#1:store                 :_return_var" ^
-    ^ "-m,--message:store       :_message" ^
-    ^ "-o,--optional:store_const:_optional=true" ^
-    ^ "-r,--range:store         :_range" ^
-    ^ "-a,--as-is:store_const   :_as_is=true" ^
+call :argparse2 --name %0 ^
+    ^ "return_var:              set _return_var" ^
+    ^ "[-m,--message MESSAGE]:  set _message" ^
+    ^ "[-o,--optional]:         set _optional=true" ^
+    ^ "[-r,--range RANGE]:      set _range" ^
+    ^ "[-a,--as-is]:            set _as_is=true" ^
     ^ -- %* || exit /b 2
 if not defined _message (
     set "_message=Input !_return_var!"
@@ -45,7 +45,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse is_number is_in_range"
+set "%~1install_requires=argparse2 is_number is_in_range"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
