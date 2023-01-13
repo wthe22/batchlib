@@ -60,7 +60,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse"
+set "%~1install_requires=argparse2"
 set "%~1extra_requires=input_string"
 set "%~1category=file"
 exit /b 0
