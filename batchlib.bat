@@ -228,14 +228,18 @@ rem ############################################################################
 ::      - ut_fmt_basic(): Merged into unittest()
 ::
 ::  - Non-functional improvements:
+::      - Replace argparse() with argparse2()
 ::      - quicktest(): Use outcome message as-is to prevent errors
 ::                     from unquoted string
 ::
 ::  - Has backward incompatible changes:
 ::      - quicktest(): Empty label string now triggers auto detect label
+::      - check_path(): Adjust exit status so that invalid arguments
+::                      can be distinguished by exit code number
 ::
 ::  Documentation
 ::  - quicktest(): Improve use case example and fix argument syntax
+::  - hexlify(): Fix argument syntax
 ::  - Minor argument syntax adjustment
 ::  - Template subcommand will list available template when no name is given
 exit /b 0
