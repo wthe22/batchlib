@@ -233,6 +233,7 @@ set "_parse_opt=true"
 set "_consume_action="
 set "_new_spec="
 set "_surpress_validation="
+set "_spec_names_remaining=!_spec_names!"
 call :argparse2._parse_arg_loop %* || (
     set "_exit_code=!errorlevel!"
     call :argparse2._error parse_args "!errorlevel!" >&2
@@ -287,14 +288,14 @@ for /l %%# in (1,1,32) do for /l %%# in (1,1,32) do (
             if defined _stop_nonopt (
                 if defined _parse_opt set "_parse_opt="
             )
-            for /f "tokens=* delims=" %%s in ("!_spec_names!") do if not defined _new_spec (
+            for /f "tokens=* delims=" %%s in ("!_spec_names_remaining!") do if not defined _new_spec (
                 set "_new_spec=%%s"
             )
             if not defined _new_spec (
                 if defined _stop_on_extra exit /b 0
                 exit /b 3
             )
-            set _spec_names=!_spec_names:*^%LF%%LF%=!
+            set _spec_names_remaining=!_spec_names_remaining:*^%LF%%LF%=!
         )
     )
     if defined _new_spec (
@@ -1273,6 +1274,11 @@ exit /b 0
 
 
 :tests.args.test_help
+if ^"%1^" == "" (
+    call :tests.args.test_help -h
+    call :tests.args.test_help A -a -h
+    exit /b
+)
 call :argparse2 ^
     ^ "arg1:                set p_arg1" ^
     ^ "[arg2]:              set p_arg2" ^
@@ -1283,7 +1289,7 @@ call :argparse2 ^
     ^ "-c [TEXT]:           set p_opt_c" ^
     ^ "-d TEXT ...:         list p_opt_d" ^
     ^ "[-e [T1 T2 ...]]:    list p_opt_e" ^
-    ^ -- -h || (
+    ^ -- %* || (
     call %unittest% fail "Got error when generating help for valid specs"
 )
 set "expected="
@@ -1292,7 +1298,7 @@ set "expected=!expected! -c [TEXT] -d TEXT ... [-e [T1 T2 ...]]"
 set "expected=!expected! arg1 [arg2] [arg3 ...]"
 set "result=!p_help!"
 if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected '!expected!', got '!result!'"
+    call %unittest% fail "Given '%*', expected '!expected!', got '!result!'"
 )
 exit /b 0
 
