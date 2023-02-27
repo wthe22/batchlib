@@ -15,10 +15,15 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      true - set exit status to 0
+::      true - set exit status / errorlevel to 0
 ::
 ::  SYNOPSIS
 ::      true
+::
+::  NOTES
+::      - Shortest way to set errorlevel:
+::          - 0: ( call )
+::          - 1: call
 exit /b 0
 
 
