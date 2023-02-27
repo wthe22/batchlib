@@ -45,12 +45,15 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      list_lf2set - remove duplicate items in a list, seperated by LF
+::      list_lf2set - remove duplicate items in a (Line Feed seperated) list
 ::
 ::  SYNOPSIS
 ::      list2set <return_var> <input_var>
 ::
 ::  POSITIONAL ARGUMENTS
+::      return_var
+::          Variable to store the results.
+::
 ::      input_var
 ::          The input variable name.
 exit /b 0
