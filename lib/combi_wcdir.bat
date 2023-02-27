@@ -19,15 +19,10 @@ call :argparse2 --name %0 ^
 call :capchar LF NL
 for %%v in (_path1 _path2) do (
     set "%%v=!%%v:/=\!"
-    set ^"%%v=!%%v:;=%NL%!^"
-    set "_temp="
-    for /f "tokens=* delims=" %%a in ("!%%v!") do (
-        set "_is_listed="
-        for /f "tokens=* delims=" %%b in ("!_temp!") do if "%%a" == "%%b" set "_is_listed=true"
-        if not defined _is_listed set "_temp=!_temp!%%a!LF!"
-    )
-    set "%%v=!_temp!"
+    set %%v=!%%v:;=%NL%!
 )
+call :list_lf2set _path1 _path1
+call :list_lf2set _path2 _path2
 set "_found="
 for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b in ("!_path2!") do (
     set "_result="
@@ -35,13 +30,8 @@ for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b i
     call :wcdir._find "%%a\%%b"
     set "_found=!_found!!_result!"
 )
-set "_result="
-for /f "tokens=* delims=" %%a in ("!_found!") do (
-    set "_is_listed="
-    for /f "tokens=* delims=" %%b in ("!_result!") do if "%%a" == "%%b" set "_is_listed=true"
-    if not defined _is_listed set "_result=!_result!%%a!LF!"
-)
-set "_result=::BEGIN::!LF!!_result!"
+set "_result=::BEGIN::!LF!!_found!"
+echo R[!_result!]
 for /f "tokens=* delims=" %%r in ("!_result!") do (
     if "%%r" == "::BEGIN::" (
         endlocal
@@ -56,7 +46,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 wcdir capchar"
+set "%~1install_requires=list_lf2set argparse2 wcdir capchar"
 set "%~1extra_requires=input_string"
 set "%~1category=file"
 exit /b 0
