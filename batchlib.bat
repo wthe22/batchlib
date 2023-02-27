@@ -281,7 +281,7 @@ echo Feel free to use, share, or modify this script for your projects :)
 echo Visit http://winscr.blogspot.com/ for more scripts^^!
 echo=
 echo=
-echo Copyright (C) 2017 by !authors!
+echo Copyright (C) 2017-2023 by !authors!
 echo Licensed under !license!
 endlocal
 exit /b 0
