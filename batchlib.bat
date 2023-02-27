@@ -216,6 +216,7 @@ rem ############################################################################
 ::  - Include unittest() to library in debug mode
 ::  - New functions:
 ::      - argparse2(): Reworked and more robust version of argparse()
+::      - list_lf2set(): Similar to list2set() but using Line Feed seperator
 ::
 ::  - New features:
 ::      - argparse2():
@@ -231,6 +232,7 @@ rem ############################################################################
 ::      - Replace argparse() with argparse2()
 ::      - quicktest(): Use outcome message as-is to prevent errors
 ::                     from unquoted string
+::      - combi_wcdir(): Simplify code by using list_lf2set()
 ::
 ::  - Has backward incompatible changes:
 ::      - quicktest(): Empty label string now triggers auto detect label
