@@ -138,10 +138,46 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_empty_lines
+set "input=!LF!!LF!"
+set "result=FAIL"
+call :list_lf2set result input
+set "expected="
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_basic
 set "input=a!LF!a!LF!b!LF!c!LF!b!LF!cc!LF!ddd!LF!dd!LF!e"
 call :list_lf2set result input
 set "expected=a!LF!b!LF!c!LF!cc!LF!ddd!LF!dd!LF!e!LF!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail
+    echo Expected "!expected!", got "!result!"
+)
+exit /b 0
+
+
+:tests.test_no_lf
+set "input=a!LF!a!LF!b!LF!c!LF!b"
+set "LF="
+call :list_lf2set result input
+call :capchar LF
+set "expected=a!LF!b!LF!c!LF!"
+if not "!result!" == "!expected!" (
+    call %unittest% fail
+    echo Expected "!expected!", got "!result!"
+)
+exit /b 0
+
+
+:tests.test_same_var
+set "result=a!LF!a!LF!b!LF!c!LF!b"
+call :list_lf2set result result
+call :capchar LF
+set "expected=a!LF!b!LF!c!LF!"
 if not "!result!" == "!expected!" (
     call %unittest% fail
     echo Expected "!expected!", got "!result!"
