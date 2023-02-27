@@ -10,6 +10,47 @@ set "_input_var=%~2"
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
+(
+    ( call )
+    for /f "tokens=* delims=" %%a in ("q!LF!!%_input_var%!") do (
+        if "!errorlevel!" == "0" (
+            endlocal
+            set "%_return_var%="
+        ) else (
+            ( call )
+            for /f "tokens=* delims=" %%b in ("!%_return_var%!") do (
+                if "!errorlevel!" == "0" (
+                    if "%%a" == "%%b" call
+                )
+            )
+            if "!errorlevel!" == "0" (
+                set %_return_var%=!%_return_var%!%%a^
+%=REQUIRED=%
+%=REQUIRED=%
+            )
+        )
+        call
+    )
+    if "!errorlevel!" == "0" (
+        set "%_return_var%="
+    )
+)
+exit /b 0
+
+
+::  ( call )    -> Set errorlevel to 0
+::  call        -> Set errorlevel to 1
+
+
+:alt.list_lf2set <return_var> <input_var>
+::  This is about 50% slower
+setlocal EnableDelayedExpansion
+set "_return_var=%~1"
+set "_input_var=%~2"
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+set "NL=^^!LF!!LF!^^"
 set "_result="
 for /f "tokens=* delims=" %%a in ("!%_input_var%!") do (
     set "_is_listed="
@@ -27,7 +68,9 @@ if defined _result (
             endlocal
             set "%_return_var%="
         )
-        set "%_return_var%=!%_return_var%!%%r!LF!"
+        set %_return_var%=!%_return_var%!%%r^
+%=REQUIRED=%
+%=REQUIRED=%
     )
 ) else (
     endlocal
