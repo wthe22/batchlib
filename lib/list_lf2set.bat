@@ -7,7 +7,9 @@ exit /b
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_input_var=%~2"
-call :capchar LF
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 set "_result="
 for /f "tokens=* delims=" %%a in ("!%_input_var%!") do (
     set "_is_listed="
@@ -35,8 +37,8 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=capchar"
-set "%~1extra_requires=input_string"
+set "%~1install_requires="
+set "%~1extra_requires=capchar input_string"
 set "%~1category=string"
 exit /b 0
 
