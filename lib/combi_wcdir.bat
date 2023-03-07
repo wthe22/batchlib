@@ -31,7 +31,6 @@ for /f "tokens=* delims=" %%a in ("!_path1!") do for /f "tokens=* delims=" %%b i
     set "_found=!_found!!_result!"
 )
 set "_result=::BEGIN::!LF!!_found!"
-echo R[!_result!]
 for /f "tokens=* delims=" %%r in ("!_result!") do (
     if "%%r" == "::BEGIN::" (
         endlocal
