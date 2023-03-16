@@ -830,11 +830,19 @@ set "_input_file=%~f1"
 set "_backup_file=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if defined flags.is_minified set "lib="
-call "!_input_file!" -c :lib.dependencies || exit /b 3
+call %lib%:functions_range _range "!_input_file!" "lib.dependencies" || exit /b 3
+call %lib%:readline "!_input_file!" !_range! > "_lib_dependencies.bat" || exit /b 3
+call "_lib_dependencies.bat" || exit /b 3
 call :Library.depends _dep "!install_requires!" || exit /b 3
 call :Library.unload_info
 call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
-for /f "tokens=1,3 delims=:" %%a in ("!_range!") do set "_range=%%a:%%b"
+for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
+    set "_range=%%a:%%b"
+    if %%a GTR 1 (
+        1>&2 echo%0: Expected ':entry_point' label at line 1, found at line %%a
+        exit /b 3
+    )
+)
 > "_build_script.tmp" (
     call %lib%:readline "!_input_file!" !_range! || exit /b 3
     echo=
