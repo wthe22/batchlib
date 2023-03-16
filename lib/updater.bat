@@ -16,7 +16,7 @@ call :argparse2 --name %0 ^
 for %%f in ("!_this!") do set "_this=%%~ff"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "_other=!cd!\.updater.downloaded.bat"
-call "!_this!" -c :metadata _this. || (
+call :updater.read_metadata "!_this!" _this. || (
     1>&2 echo%0: Fail to read metadata & exit /b 3
 )
 if not defined _dl_url set "_dl_url=!_this.download_url!"
@@ -26,8 +26,8 @@ if not defined _dl_url (
 call :download_file "!_dl_url!" "!_other!" || (
     1>&2 echo%0: Download failed & exit /b 3
 )
-call "!_other!" -c :metadata _other. || (
-    1>&2 echo%0: Fail to read downloaded metadata & exit /b 4
+call :updater.read_metadata "!_other!" _other. || (
+    1>&2 echo%0: Fail to read metadata & exit /b 3
 )
 if not "!_other.name!" == "!_this.name!" (
     1>&2 echo%0: warning: Script name is different: '!_this.name!' and '!_other.name!'
@@ -55,10 +55,21 @@ if not defined _assume_yes (
     exit /b 0
 ) || exit /b 6
 exit /b 1
+#+++
+
+:updater.read_metadata <script_path> [return_prefix]
+call :functions_range _range %1 "metadata" || exit /b 3
+call :readline %1 !_range! > ".updater.metadata.bat" || exit /b 3
+call ".updater.metadata.bat" %2 || exit /b 3
+exit /b 0
+
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 download_file version_parse input_yesno"
+set %~1install_requires= ^
+    ^ argparse2 download_file functions_range readline ^
+    ^ version_parse input_yesno ^
+    ^ %=END=%
 set "%~1extra_requires=argparse2 ping_test coderender get_pid_by_title input_path"
 set "%~1category=packaging"
 exit /b 0
@@ -193,7 +204,7 @@ set "version=1.0"
 call :argparse2 ^
     ^ "[-n,--name NAME]:        set name" ^
     ^ "[-v,--version VERSION]:  set version" ^
-    ^ -- %* || ( 1>&2 echo parse failed & exit /b 2 )
+    ^ -- %* || ( 1>&2 echo%0: Parse failed & exit /b 2 )
 ::  :entry_point
 ::  @goto main
 ::
@@ -211,28 +222,9 @@ echo set "%%~1version=!version!"
 ::
 ::
 ::  :main
-::  @if ^"%1^" == "-c" @goto scripts.call
-::  @goto scripts.main
-::
-::
-::  :scripts.main
 ::  @setlocal EnableDelayedExpansion EnableExtensions
 ::  @echo off
-::  1>&2 echo warning: wrong entry point
-::  @exit /b
-::
-::
-::  :scripts.call <label> [arguments]
-::  @(
-::      setlocal DisableDelayedExpansion
-::      call set command=%%*
-::      setlocal EnableDelayedExpansion
-::      for /f "tokens=1* delims== " %%a in ("!command!") do @(
-::          endlocal
-::          endlocal
-::          call %%b
-::      )
-::  )
+::  1>&2 echo warning: script main got executed
 ::  @exit /b
 exit /b 0
 
