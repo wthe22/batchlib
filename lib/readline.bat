@@ -17,7 +17,9 @@ if !_start! GTR 1 (
     set /a "_skip=!_start! - 1"
     set "_skip=skip=!_skip!"
 ) else set "_skip="
-findstr /n "^^" "!_input_file!" > ".readline._numbered"
+findstr /n "^^" "!_input_file!" > ".readline._numbered" || (
+    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
+)
 setlocal DisableDelayedExpansion
 for /f "usebackq %_skip% tokens=*" %%o in (".readline._numbered") do (
     set "_line=%%o"
@@ -89,6 +91,7 @@ exit /b 0
 ::  EXIT STATUS
 ::      0:  - Successful.
 ::      2:  - Invalid arguments.
+::          - Cannot open file.
 ::
 ::  ENVIRONMENT
 ::      cd
