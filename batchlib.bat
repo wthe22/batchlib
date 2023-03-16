@@ -209,11 +209,13 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      ...
+::      This release focuses on simplifying usage.
 ::
 ::
 ::  Library
 ::  - Include unittest() to library in debug mode
+::  - Remove '-c' subcommand requirement to build script
+::  - Add ':entry_point' at line 1 requirement to build script
 ::  - New functions:
 ::      - argparse2(): Reworked and more robust version of argparse()
 ::      - list_lf2set(): Similar to list2set() but using Line Feed seperator
@@ -224,6 +226,7 @@ rem ############################################################################
 ::          - Required/optional spec detection
 ::          - A single flag can now capture multiple arguments
 ::      - unittest(): Added output formatter 'unittest.fmt.basic'
+::      - updater(): Remove '-c' subcommand requirement
 ::
 ::  - Removed functions:
 ::      - ut_fmt_basic(): Merged into unittest()
