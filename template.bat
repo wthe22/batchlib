@@ -9,13 +9,11 @@ rem ############################################################################
 :doc.help
 rem A good documentation to help users how to use this script
 echo usage:
-echo    %~nx0
-echo        The default way to run this script
+echo    %~nx0 [-h^|--help]
 echo=
-echo    %~nx0 -c :^<label^> [arguments] ...
-echo        Call the specified label with arguments
+echo    -h^|--help
+echo        Show this help message
 exit /b 0
-
 
 rem ############################################################################
 rem Metadata
@@ -31,7 +29,6 @@ set "%~1release_date=08/22/2021"   :: mm/dd/YYYY
 set "%~1url="
 set "%~1download_url="
 exit /b 0
-
 
 rem ############################################################################
 rem Configurations
@@ -53,13 +50,11 @@ exit /b 0
 rem Configurations to change/override
 exit /b 0
 
-
 rem ############################################################################
 rem Main
 rem ############################################################################
 
 :main
-@if ^"%1^" == "-c" @goto subcommand.call
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 if ^"%1^" == "-h" goto doc.help
@@ -71,25 +66,9 @@ set "exit_code=!errorlevel!"
 @exit /b !exit_code!
 
 
-
 :main_script
 rem TODO: start scripting...
 @exit /b
-
-
-:subcommand.call -c :<label> [arguments] ...
-@(
-    setlocal DisableDelayedExpansion
-    call set command=%%*
-    setlocal EnableDelayedExpansion
-    for /f "tokens=1* delims== " %%a in ("!command!") do @(
-        endlocal
-        endlocal
-        call %%b
-    )
-)
-@exit /b
-
 
 rem ############################################################################
 rem Library
@@ -102,7 +81,6 @@ set "%~1install_requires="
 rem Add dependencies to this file by running:
 :: cmd /c batchlib.bat build Script-Name-Here.bat
 exit /b 0
-
 
 rem ############################################################################
 rem Tests
@@ -126,7 +104,6 @@ rem And if something goes wrong:
 :: call %unittest% error "The unexpected happened"
 :: call %unittest% skip "No internet detected..."
 exit /b 0
-
 
 rem ############################################################################
 rem End of File
