@@ -842,8 +842,7 @@ call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
 for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
     set "_range=%%a:%%b"
     if %%a GTR 1 (
-        1>&2 echo%0: Expected ':entry_point' label at line 1, found at line %%a
-        exit /b 3
+        1>&2 echo%0: warning: Expected ':entry_point' label at line 1, found at line %%a
     )
 )
 > "_build_script.tmp" (
