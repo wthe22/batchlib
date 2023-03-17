@@ -1,37 +1,20 @@
 :entry_point
-if ^"%1^" == "-c" goto subcommand.call
 call %*
 exit /b
 
 
-:subcommand.call -c <label> [arguments]
-@(
-    setlocal DisableDelayedExpansion
-    call set command=%%*
-    setlocal EnableDelayedExpansion
-    for /f "tokens=1* delims== " %%a in ("!command!") do @(
-        endlocal
-        endlocal
-        call %%b
-    )
-)
-@exit /b
-
-
-:unittest [-f] [-p pattern] [-a target_args] [-s self_args] [-o output_cmd] [target]
+:unittest [-f] [-p pattern] [-a target_args] [-o output_cmd] [target]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (target fail_fast pattern argument output_macro) do set "unittest.%%v="
 set "unittest.target=%~f0"
 set "unittest.pattern=test*.test*"
 set "unittest.target_args=-c"
-set "unittest.self_args=-c"
 set "unittest.output_cmd=echo"
 call :argparse2 --name %0 ^
     ^ "[target]:                    set unittest.target" ^
     ^ "[-f,--failfast]:             set unittest.fail_fast=true" ^
     ^ "[-p,--pattern PATTERN]:      set unittest.pattern" ^
     ^ "[-a,--target-args ARGS]:     set unittest.target_args" ^
-    ^ "[-s,--self-args ARGS]:       set unittest.self_args" ^
     ^ "[-o,--output OUTPUT_CMD]:    set unittest.output_cmd" ^
     ^ -- %* || exit /b 2
 call :unittest._init || (
@@ -55,8 +38,21 @@ set "unittest.start_dir=!cd!"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 for %%f in ("unittest") do set "unittest.tmp_dir=%%~ff"
 md "!unittest.tmp_dir!"
-cd /d "!unittest.tmp_dir!" || exit /b 1
+cd /d "!unittest.tmp_dir!" || exit /b 2
 set "tmp_dir=!unittest.tmp_dir!"
+rem Make sure unittest is callable from external scripts
+call :functions_range _range "%~f0" "unittest" || exit /b 2
+> "unittest.bat" (
+    echo :entry_point
+    echo call %%*
+    echo exit /b
+    echo=
+    echo=
+    call :readline "%~f0" !_range!
+) || exit /b 3
+for %%f in ("unittest.bat") do (
+    set unittest="%%~ff" :unittest.outcome %=REQUIRED=%
+)
 set unittest.output_cmd=!unittest.output_cmd:'="!
 exit /b 0
 #+++
@@ -84,7 +80,6 @@ exit /b 0
 #+++
 
 :unittest._run
-set unittest="%~f0" !unittest.self_args! :unittest.outcome %=REQUIRED=%
 set "unittest._failed="
 set "unittest._test_file="
 setlocal EnableDelayedExpansion
@@ -213,7 +208,10 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 functions_match difftime ftime"
+set %~1install_requires= ^
+    ^ argparse2 functions_match functions_range readline ^
+    ^ difftime ftime ^
+    ^ %=END=%
 set "%~1extra_requires=functions_range readline"
 set "%~1category=devtools"
 exit /b 0
@@ -224,8 +222,7 @@ exit /b 0
 ::      unittest - unit testing framework
 ::
 ::  SYNOPSIS
-::      unittest [-f] [-p pattern] [-a target_args] [-s self_args]
-::               [-o output_cmd] [target]
+::      unittest [-f] [-p pattern] [-a target_args] [-o output_cmd] [target]
 ::      call %unittest% <outcome> [message]
 ::
 ::  DESCRIPTION
@@ -261,11 +258,6 @@ exit /b 0
 ::          Arguments to add to call the test file. For example, you use
 ::          'target_script.bat --call :tests.test_me' to call 'tests.test_me',
 ::          so the TARGET_ARGS is '--call'. By default, it is '-c'.
-::
-::      -s SELF_ARGS, --self-args SELF_ARGS
-::          Arguments to add to call the unittest functions. For example, if you
-::          use 'unittest.bat --call :unittest.outcome' to report outcome in your
-::          unittests, so the SELF_ARGS is '--call'. By default it is '-c'.
 ::
 ::      -o OUTPUT_CMD, --output OUTPUT_CMD
 ::          Pass the command outputs, in the form of arguments, to OUTPUT_CMD.
