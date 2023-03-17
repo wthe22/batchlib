@@ -342,6 +342,7 @@ set "flags.is_minified="
 call :flags.is_minified 2> nul && set "flags.is_minified=true"
 
 set "lib="
+call :true 2> nul || set "lib=:lib.call "
 set "no_cleanup="
 if defined flags.is_minified (
     set "lib_dir="
@@ -383,7 +384,6 @@ exit /b
 
 
 :subcommand.build <file>
-call :true 2> nul || set "lib=:lib.call "
 call :build_script %*
 exit /b
 
