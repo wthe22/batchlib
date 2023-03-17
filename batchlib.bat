@@ -1492,7 +1492,7 @@ if defined _library (
     set "target=!build_dir!\*.bat"
 )
 call :Library.unload_info
-cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "call :ut_fmt_basic""
+cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "call :unittest.fmt.basic""
 exit /b
 
 
