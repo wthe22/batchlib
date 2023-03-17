@@ -3,19 +3,20 @@ call %*
 exit /b
 
 
-:unittest [-f] [-p pattern] [-a target_args] [-o output_cmd] [target]
+:unittest [-f] [-p pattern] [-a target_args] [-o format] [target]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (target fail_fast pattern argument output_macro) do set "unittest.%%v="
+for %%v in (
+    target fail_fast pattern argument output_format output_cmd
+) do set "unittest.%%v="
 set "unittest.target=%~f0"
 set "unittest.pattern=test*.test*"
 set "unittest.target_args=-c"
-set "unittest.output_cmd=echo"
 call :argparse2 --name %0 ^
     ^ "[target]:                    set unittest.target" ^
     ^ "[-f,--failfast]:             set unittest.fail_fast=true" ^
     ^ "[-p,--pattern PATTERN]:      set unittest.pattern" ^
     ^ "[-a,--target-args ARGS]:     set unittest.target_args" ^
-    ^ "[-o,--output OUTPUT_CMD]:    set unittest.output_cmd" ^
+    ^ "[-o,--output FORMAT]:        set unittest.output_format" ^
     ^ -- %* || exit /b 2
 call :unittest._init || (
     1>&2 echo%0: Failed to initialize unittest
@@ -53,7 +54,19 @@ call :functions_range _range "%~f0" "unittest" || exit /b 2
 for %%f in ("unittest.bat") do (
     set unittest="%%~ff" :unittest.outcome %=REQUIRED=%
 )
-set unittest.output_cmd=!unittest.output_cmd:'="!
+if not defined unittest.output_format (
+    set "unittest.output_cmd=echo"
+) else if "!unittest.output_format!" == "raw" (
+    set "unittest.output_cmd=echo"
+) else if "!unittest.output_format!" == "human" (
+    set "unittest.output_cmd=call :unittest.fmt.basic"
+) else if "!unittest.output_format:~0,7!" == "custom:" (
+    set "unittest.output_cmd=!%unittest.output_format:~7%!"
+)
+if not defined unittest.output_cmd (
+    1>&2 echo%0: Invalid output format '!unittest.output_format!'. Using default.
+    set "unittest.output_cmd=echo"
+)
 exit /b 0
 #+++
 
@@ -245,7 +258,7 @@ exit /b 0
 ::          Outcome of the test. Valid values are: fail, error, skip
 ::
 ::      message
-::          Message of the outcome (fail/error/skip)
+::          Additional message to include at the outcome
 ::
 ::  OPTIONS
 ::      -f, --failfast
@@ -259,10 +272,9 @@ exit /b 0
 ::          'target_script.bat --call :tests.test_me' to call 'tests.test_me',
 ::          so the TARGET_ARGS is '--call'. By default, it is '-c'.
 ::
-::      -o OUTPUT_CMD, --output OUTPUT_CMD
-::          Pass the command outputs, in the form of arguments, to OUTPUT_CMD.
-::          Single quotes are converted to double quotes. By default it is 'echo'.
-::          For better formatting, use 'call :unittest.fmt.basic'.
+::      -o FORMAT, --output FORMAT
+::          The output format. By default it is 'raw'.
+::          Available formats: raw, human, custom:<MACRO_VAR>
 ::
 ::  UNITTEST USAGE
 ::      Test File
@@ -717,15 +729,16 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_output_cmd
-call :tests.type expected.output_cmd > expected || exit /b
-call :unittest "success.bat" -o "echo '#'" > result
+:tests.test_output_format
+call :tests.type expected.output_format > expected || exit /b
+set add_hashtag=echo "#"
+call :unittest "success.bat" --output "custom:add_hashtag" > result
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
 exit /b 0
 
-:tests.expected.output_cmd
+:tests.expected.output_format
 ::  "#" start
 ::  "#" run "success","tests.test_success_only"
 ::  "#" outcome "success","tests.test_success_only",success,

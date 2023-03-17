@@ -1477,7 +1477,7 @@ rem ############################################################################
 :tests
 @setlocal EnableDelayedExpansion
 @echo off
-call :unittest --output "call :ut_fmt_basic"
+call :unittest --output "human"
 exit /b 0
 
 
@@ -1492,7 +1492,7 @@ if defined _library (
     set "target=!build_dir!\*.bat"
 )
 call :Library.unload_info
-cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "call :unittest.fmt.basic""
+cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "human""
 exit /b
 
 
