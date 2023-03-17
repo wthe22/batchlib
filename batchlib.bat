@@ -215,13 +215,16 @@ rem ############################################################################
 ::  Library
 ::  - Include unittest() to library in debug mode
 ::  - Remove '-c' subcommand requirement to build script
-::  - Add ':entry_point' at line 1 requirement to build script
+::  - Add build script warning when ':entry_point' is not at line 1
+::
 ::  - New functions:
-::      - argparse2(): Reworked and more robust version of argparse()
-::      - list_lf2set(): Similar to list2set() but using Line Feed seperator
+::      - list_lf2set(): Similar to list2set() but with Line Feed seperator
+::
+::  - Replaced functions:
+::      - argparse() -> argparse2()
 ::
 ::  - New features:
-::      - argparse2():
+::      - argparse()/argparse2():
 ::          - Help flag detection and auto-generated usage syntax
 ::          - Required/optional spec detection
 ::          - A single flag can now capture multiple arguments
@@ -239,6 +242,7 @@ rem ############################################################################
 ::
 ::  - Has backward incompatible changes:
 ::      - quicktest(): Empty label string now triggers auto detect label
+::      - unittest(): Remove '-s' flag and simplify usage of '-o' flag
 ::      - check_path(): Adjust exit status so that invalid arguments
 ::                      can be distinguished by exit code number
 ::
