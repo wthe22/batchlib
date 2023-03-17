@@ -1479,7 +1479,7 @@ rem Tests
 rem ############################################################################
 
 :tests
-@setlocal EnableDelayedExpansion
+@setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 call :unittest --output "human"
 exit /b 0
