@@ -3,6 +3,36 @@ call %*
 exit /b
 
 
+:lib_template [--options] <args>
+rem Library name should start with an alphablet. Library name should only
+rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
+
+rem File name should be the same as the function name and use '.bat' extension.
+rem i.e. "<library name here>.bat".
+
+rem Use this to run command only in debug mode:
+rem %debug% echo Debug mode is ON
+
+echo This is a template for new library
+
+rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
+exit /b 0
+
+
+:lib.dependencies [return_prefix]
+rem Put your libaray dependencies here. If there isn't any dependencies,
+rem just put a space inside. Undefined is considered an error.
+set "%~1install_requires= "
+
+rem Extra libraries needed to run demo, tests, etc.
+set "%~1extra_requires="
+
+rem Category of the library. Choose ones that fit.
+rem Multiple values are supported (each seperated by space)
+set "%~1category="
+exit /b 0
+
+
 rem ############################################################################
 rem Documentation
 rem ############################################################################
@@ -40,39 +70,6 @@ echo A demo to help users understand how to use it
 call :lib_template && (
     echo Success
 ) || echo Failed...
-exit /b 0
-
-
-rem ############################################################################
-rem Library
-rem ############################################################################
-
-:lib_template [--options] <args>
-rem Library name should start with an alphablet. Library name should only
-rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
-rem The file name should be the same as the function name and use '.bat'
-rem extension, i.e. "<library name here>.bat".
-
-rem Use this to run command only in debug mode:
-rem %debug% echo Debug mode is ON
-
-echo This is a template for new library
-
-rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-rem If your libaray have dependencies, write it here. If there isn't any
-rem dependencies, just put a space inside.
-set "%~1install_requires= "
-
-rem Libraries needed to run demo, tests, etc. If there isn't any, just empty it.
-set "%~1extra_requires="
-
-rem Category of the library. Choose ones that fit.
-rem Multiple values are supported (each seperated by space)
-set "%~1category="
 exit /b 0
 
 
