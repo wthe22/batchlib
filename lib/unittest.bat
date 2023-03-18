@@ -222,6 +222,56 @@ echo=
 exit /b 0
 
 
+rem TAP output formatter
+rem Made for experimental purposes only. Probably not TAP compliant...
+:experimental.fmt.tap <action> [args] ...
+setlocal EnableDelayedExpansion EnableExtensions
+2> nul (
+    for /f "usebackq tokens=* delims= eol=#" %%v in (
+        "!unittest.tmp_dir!\.experimental.fmt.tap_vars"
+    ) do set %%v
+)
+call :experimental.fmt.tap.%*
+> "!unittest.tmp_dir!\.experimental.fmt.tap_vars" (
+    for %%v in (
+        _test_number
+        _reported
+    ) do echo "%%v=!%%v!"
+)
+exit /b 0
+#+++
+
+:experimental.fmt.tap.start
+set "_test_number=0"
+set "_test_total=0"
+for /f "usebackq" %%k in ("!unittest.tmp_dir!\.unittest_test_cases") do set /a "_test_total+=1"
+echo 1..!_test_total!
+exit /b 0
+#+++
+
+:experimental.fmt.tap.run <test_file> <test_label>
+set /a "_test_number+=1"
+set "_reported="
+exit /b 0
+#+++
+
+:experimental.fmt.tap.outcome <test_file> <test_label> <outcome> [message]
+if defined _reported exit /b 0
+if "%~3" == "success" (
+    echo ok !_test_number! - %~2
+) else if "%~3" == "skip" (
+    echo ok !_test_number! - # SKIP %~4
+) else (
+    echo not ok !_test_number! - %~4
+)
+set "_reported=true"
+exit /b 0
+#+++
+
+:experimental.fmt.tap.stop
+exit /b 0
+
+
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ argparse2 functions_match functions_range readline ^
