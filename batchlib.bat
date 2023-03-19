@@ -395,7 +395,7 @@ exit /b
 :subcommand.debug <library> :<label> [arguments] ...
 set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest unittest"
-call :LibBuild.build "!library!"
+call :LibBuild.build "!library!" || exit /b 3
 endlocal & (
     cd /d "%build_dir%"
     set "tmp_dir=%tmp_dir%"
@@ -1012,10 +1012,14 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 
 
-:LibBuild.build <library ...>
+:LibBuild.build <library>
 setlocal EnableDelayedExpansion
 set "_library=%~1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
+if not exist "!lib_dir!\!_library!.bat" (
+    1>&2 echo%0: file not found: "!lib_dir!\!_library!.bat"
+    exit /b 2
+)
 if not exist "!build_dir!" mkdir "!build_dir!"
 for %%l in (!_library!) do (
     call :LibBuild.check_extraction "!lib_dir!\%%l.bat" "%%l" || (
@@ -1028,6 +1032,7 @@ for %%l in (!_library!) do (
     ) || (
         1>&2 echo%0: Could not build %%l^(^)
         del /f /q "%%l.bat.tmp"
+        exit /b 3
     )
 )
 exit /b 0
@@ -1062,7 +1067,7 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 echo :: Generated on !date! !time!
 echo=
 echo=
-type "!_source!"
+type "!_source!" || exit /b 3
 echo=
 echo=
 echo :: Automatically Added
