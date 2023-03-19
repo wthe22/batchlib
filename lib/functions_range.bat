@@ -22,10 +22,10 @@ set _search=^
 	^ /c:"^^[!TAB! @]*exit  */b.*!CR!*!LF!!CR!*!LF!" ^
 	^ /c:"^^[!TAB! @]*goto  *.*!CR!*!LF!!CR!*!LF!" ^
     ^ /c:"^^[!TAB! @]*:[^^: ]"
-findstr /n /r !_search! "!_input_file!" > "_tokens" 2> nul || (
+findstr /n /r !_search! "!_input_file!" > ".functions_range._tokens" 2> nul || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
 )
-for /f "usebackq tokens=*" %%o in ("_tokens") do ( rem
+for /f "usebackq tokens=*" %%o in (".functions_range._tokens") do ( rem
 ) & for /f "tokens=1 delims=:" %%n in ("%%o") do (
     set "_line=%%o"
     set "_line=!_line:*:=!"
