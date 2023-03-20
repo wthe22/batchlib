@@ -200,6 +200,28 @@ for %%v in (!persist!) do (
 exit /b 0
 
 
+:tests.test_expanded_chars
+set expected==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
+for %%a in (Enable Disable) do (
+    for %%b in (Enable Disable) do (
+        setlocal %%aDelayedExpansion
+        setlocal %%bDelayedExpansion
+        setlocal EnableDelayedExpansion
+        echo E[%%a][%%b] [!expected!]
+        endlocal
+        call :endlocal expected:result
+        setlocal EnableDelayedExpansion
+        echo E[%%a][%%b] [!result!]
+        endlocal
+        setlocal EnableDelayedExpansion
+        if not "!result!" == "!expected!" (
+            call %unittest% fail "%%aDE to %%bDE"
+        )
+    )
+)
+exit /b 0
+
+
 :tests.assets.set_special_chars   prefix
 set %~1dquotes="
 set %~1dquotes2=""
