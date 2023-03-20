@@ -136,12 +136,12 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
-:tests.test_get_special
-call :coderender "%~f0" tests.template.mcsp "get_special" > "special"
+:tests.test__get_expanded_chars
+call :coderender "%~f0" tests.template.mcsp "get_expanded" > "special"
 call :conf_edit get "special" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set expected==This is ^^^^%% ^| %%%% "tricky^!"
+set expected==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
 if not "!result!" == "!expected!" (
     call %unittest% fail
 )
@@ -195,8 +195,8 @@ if "!action!" == "delete" (
     rem Nothing
 ) else if "!action!" == "set" (
 ::  motd=Hello
-) else if "!action!" == "get_special" (
-::  motd==This is ^% | %% "tricky!"
+) else if "!action!" == "get_expanded" (
+::  motd==^ ^^ %0 %%a !e! "^ ^^ %0 %%a !e!"
 ) else (
 ::  motd=Default
 )
