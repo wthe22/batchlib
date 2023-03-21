@@ -35,11 +35,9 @@ if "!_action!" == "get" (
         for /f "tokens=1* delims==" %%a in ("!_line!") do (
             if "%%a" == "!_target_key!" (
                 if "!_action!" == "get" (
-                    call :endlocal _line:_line
-                    call :endlocal _line:_line
                     set "_value=!_line:*%%a=!"
                     set "_value=!_value:~1!"
-                    call :endlocal _value:!_value_var!
+                    call :endlocal 3 _value:!_value_var!
                     exit /b 0
                 ) else if "!_action!" == "set" (
                     echo !_target_key!=!%_value_var%!
