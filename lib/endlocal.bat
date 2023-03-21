@@ -3,51 +3,60 @@ call %*
 exit /b
 
 
-:endlocal <old[:new]> ...
+:endlocal <depth> <old[:new]> ...
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-for %%v in (_content _value) do (
-    if defined endlocal.%%v (
-        ( 1>&2 echo%0: Interal variable 'endlocal.%%v' is used & exit /b 2 )
-    )
-)
+set "_depth="
+set "_content=endlocal!LF!"
 for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (
-    set "endlocal._value=^!!%%a!"
-    call :endlocal._to_ede
-    set "endlocal._content=!endlocal._content!%%b=!endlocal._value!!LF!"
-)
-for /f "delims= eol=" %%a in ("!endlocal._content!") do ( rem
-) & for /f "tokens=1 delims==" %%b in ("%%a") do (
-    if defined endlocal._content (
-        goto 2> nul
-        endlocal
+    if not defined _depth (
+        set "_depth=%%~v"
+    ) else (
+        set "_value=#!%%a!"
+        set "_value=!_value:\=\\!"
+        set "_value=!_value:+=++!"
+        set _value=!_value:"=\+22!
+        set "_value=!_value:^=\+5E!"
+        call set "_value=%%_value:^!=\+21%%"
+        set "_content=!_content!%%b=!_value!!LF!"
     )
+)
+for /f "tokens=* delims= eol=" %%a in ("!_content!") do ^
+for /f "tokens=1 delims==" %%r in ("%%a") do ^
+if "%%a" == "endlocal" (
+    goto 2> nul
+    for /l %%i in (1,1,%_depth%) do endlocal
+) else (
     set "%%a"
-    if not "!!" == "" (
+    if "!!" == "" (
         setlocal EnableDelayedExpansion
-        set "endlocal._value=!%%b!"
-        call :endlocal._to_dde
-        for /f "tokens=* delims=" %%c in ("=!endlocal._value!") do (
+        set "_de=Enable"
+    ) else (
+        setlocal EnableDelayedExpansion
+        set "_de=Disable"
+    )
+    for %%e in (!_de!) do (
+        if "%%e" == "Enable" (
             endlocal
-            set "%%b%%c"
+        )
+        set "%%r=!%%r!"
+        call set "%%r=%%%%r:\+21=^!%%"
+        set "%%r=!%%r:\+5E=^!"
+        set %%r=!%%r:\+22="!
+        set "%%r=!%%r:\\=\!"
+        set "%%r=!%%r:++=+!"
+        set "%%r=!%%r:~1!"
+        if "%%e" == "Disable" (
+            for /f "tokens=* delims= eol=" %%v in ("!%%r!") do (
+                endlocal
+                set "%%r=%%v"
+            )
         )
     )
-    call set "%%b=%%%%b:~1%%"
 )
 exit /b 0
-#+++
-
-:endlocal._to_ede
-set "endlocal._value=!endlocal._value:^=^^^^!"
-set "endlocal._value=%endlocal._value:!=^^^!%"
-exit /b
-#+++
-
-:endlocal._to_dde
-set "endlocal._value=%endlocal._value%"
-exit /b
 
 
 :lib.dependencies [return_prefix]
@@ -61,9 +70,12 @@ exit /b 0
 ::      endlocal - make variables survive ENDLOCAL
 ::
 ::  SYNOPSIS
-::      endlocal <old[:new]> ...
+::      endlocal <depth> <old[:new]> ...
 ::
 ::  POSITIONAL ARGUMENTS
+::      depth
+::          Number of times to endlocal.
+::
 ::      old
 ::          Variable name to keep (before endlocal).
 ::
@@ -74,8 +86,6 @@ exit /b 0
 ::  NOTES
 ::      - Variables that contains Line Feed character are not supported and it
 ::        could cause unexpected errors.
-::      - In the code, adding exclamation mark at beginning of string is required
-::        to trigger caret escaping behavior on quoted strings.
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
@@ -97,7 +107,7 @@ set "var_hello=I am a new variable^! ^^^^"
 set "var_"
 echo=
 echo [endlocal]
-call :endlocal var_del var_hello:var_new_name
+call :endlocal 1 var_del var_hello:var_new_name
 echo=
 set "var_"
 exit /b 0
@@ -110,12 +120,16 @@ exit /b 0
 
 :tests.test_basic
 if ^"%1^" == "" (
-    for %%s in (
-        Enable Disable
-    ) do call :tests.test_basic "%%s"
+    for %%o in (Enable Disable) do (
+        for %%i in (Enable Disable) do (
+            call :tests.test_basic %%o %%i
+        )
+    )
     exit /b 0
 )
 setlocal EnableDelayedExpansion
+set "outer_de=%~1"
+set "inner_de=%~2"
 set "initial.null=a b c"
 set "initial.old=d e f g h"
 set "local.changed=b c e g"
@@ -133,68 +147,46 @@ for %%v in (!local.persist!) do (
     set "local.persist_vars=!local.persist_vars! var.%%v"
 )
 
-setlocal %~1DelayedExpansion
-setlocal EnableDelayedExpansion
+setlocal %outer_de%DelayedExpansion
+setlocal %inner_de%DelayedExpansion
 for %%v in (%local.changed%) do set "var.%%v=changed"
 for %%v in (%local.deleted%) do set "var.%%v="
-call :endlocal %local.persist_vars%
+call :endlocal 1 %local.persist_vars%
 
 setlocal EnableDelayedExpansion
 for %%v in (!expected.null!) do (
     if defined var.%%v (
-        call %unittest% fail "%~1DE '%%v'"
+        call %unittest% fail "Expected null '%%v' on %~1DE"
     )
 )
 for %%v in (!expected.old!) do (
     if not "!var.%%v!" == "old" (
-        call %unittest% fail "%~1DE '%%v'"
+        call %unittest% fail "Expected old '%%v' on %~1DE"
     )
 )
 for %%v in (!expected.changed!) do (
     if not "!var.%%v!" == "changed" (
-        call %unittest% fail "%~1DE '%%v'"
+        call %unittest% fail "Expected changed '%%v' on outer:!outer_de!, inner:!inner_de!"
     )
 )
 exit /b 0
 
 
 :tests.test_special_chars
-if ^"%1^" == "" (
-    for %%s in (
-        Enable Disable
-    ) do call :tests.test_special_chars "%%s"
-    exit /b 0
-)
-setlocal EnableDelayedExpansion
-set persist= ^
-    ^ dquotes dquotes2 ^
-    ^ qmark ^
-    ^ asterisk ^
-    ^ colon ^
-    ^ semicolon ^
-    ^ caret caret2 ^
-    ^ ampersand ^
-    ^ equal ^
-    ^ bang ^
-    ^ pipe ^
-    ^ percent ^
-    ^ lab rab
-set "persist_vars="
-for %%v in (!persist!) do (
-    set "var.%%v="
-    set "persist_vars=!persist_vars! var.%%v"
-)
-
-setlocal %~1DelayedExpansion
-setlocal EnableDelayedExpansion
-call :tests.assets.set_special_chars var.
-call :endlocal %persist_vars%
-
-setlocal EnableDelayedExpansion
-call :tests.assets.set_special_chars expected.
-for %%v in (!persist!) do (
-    if not "[!var.%%v!]" == "[!expected.%%v!]" (
-        call %unittest% fail "%~1DE '%%v'"
+set expected=; ^& type ? ^> nul ^< nul ^| dir ? "; & type ? > nul < nul | dir *"
+for %%a in (Enable Disable) do (
+    for %%b in (Enable Disable) do (
+        setlocal %%aDelayedExpansion
+        setlocal %%bDelayedExpansion
+        setlocal EnableDelayedExpansion
+        endlocal
+        call :endlocal 1 expected:result
+        setlocal EnableDelayedExpansion
+        endlocal
+        setlocal EnableDelayedExpansion
+        if not "!result!" == "!expected!" (
+            call %unittest% fail "%%aDE to %%bDE"
+        )
     )
 )
 exit /b 0
@@ -207,11 +199,9 @@ for %%a in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
         setlocal EnableDelayedExpansion
-        echo E[%%a][%%b] [!expected!]
         endlocal
-        call :endlocal expected:result
+        call :endlocal 1 expected:result
         setlocal EnableDelayedExpansion
-        echo E[%%a][%%b] [!result!]
         endlocal
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
@@ -222,25 +212,23 @@ for %%a in (Enable Disable) do (
 exit /b 0
 
 
-:tests.assets.set_special_chars   prefix
-set %~1dquotes="
-set %~1dquotes2=""
-set "%~1qmark=?"
-set "%~1asterisk=*"
-set "%~1colon=:"
-set "%~1semicolon=;"
-set "%~1caret=^"
-set "%~1caret2=^^"
-set "%~1ampersand=&"
-set "%~1pipe=|"
-set "%~1lab=<"
-set "%~1rab=>"
-set "%~1percent=%%"
-set "%~1equal=="
-if "!!" == "" (
-    set "%~1bang=^!"
-) else set "%~1bang=!"
-set "%~1empty="
+:tests.test_internal_chars
+set expected=\\++\+\\++\+ \\+22\++22\+22 \"++"\
+for %%a in (Enable) do (
+    for %%b in (Enable) do (
+        setlocal %%aDelayedExpansion
+        setlocal %%bDelayedExpansion
+        setlocal EnableDelayedExpansion
+        endlocal
+        call :endlocal 1 expected:result
+        setlocal EnableDelayedExpansion
+        endlocal
+        setlocal EnableDelayedExpansion
+        if not "!result!" == "!expected!" (
+            call %unittest% fail "%%aDE to %%bDE"
+        )
+    )
+)
 exit /b 0
 
 
