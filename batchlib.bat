@@ -219,6 +219,7 @@ rem ############################################################################
 ::
 ::  - New functions:
 ::      - list_lf2set(): Similar to list2set() but with Line Feed seperator
+::      - conf_edit(): Simple configuration file editor
 ::
 ::  - Replaced functions:
 ::      - argparse() -> argparse2()
@@ -230,9 +231,13 @@ rem ############################################################################
 ::          - A single flag can now capture multiple arguments
 ::      - unittest(): Added output formatter 'unittest.fmt.basic'
 ::      - updater(): Remove '-c' subcommand requirement
+::      - endlocal(): Add ability to quit multiple stacks of setlocal
 ::
 ::  - Removed functions:
 ::      - ut_fmt_basic(): Merged into unittest()
+::
+::  - Bug fixes:
+::      - endlocal(): Fix string gets executed when it contains ampersand
 ::
 ::  - Non-functional improvements:
 ::      - Replace argparse() with argparse2()
@@ -245,6 +250,7 @@ rem ############################################################################
 ::      - unittest(): Remove '-s' flag and simplify usage of '-o' flag
 ::      - check_path(): Adjust exit status so that invalid arguments
 ::                      can be distinguished by exit code number
+::      - endlocal(): Function signature change
 ::
 ::  Tests
 ::  - timeit(): Add unittest
