@@ -22,6 +22,7 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 findstr /n "^^" "!_input_file!" > ".conf_edit._numbered" || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
 )
+if exist ".conf_edit._found" del /f /q ".conf_edit._found"
 set _write=^> ".conf_edit._edited"
 if "!_action!" == "get" (
     set "_write="
@@ -32,20 +33,29 @@ if "!_action!" == "get" (
         set "_line=%%o"
         setlocal EnableDelayedExpansion
         set "_line=!_line:*:=!"
-        for /f "tokens=1* delims==" %%a in ("!_line!") do (
-            if "%%a" == "!_target_key!" (
-                if "!_action!" == "get" (
-                    set "_value=!_line:*%%a=!"
-                    set "_value=!_value:~1!"
-                    call :endlocal 3 _value:!_value_var!
-                    exit /b 0
-                ) else if "!_action!" == "set" (
-                    echo !_target_key!=!%_value_var%!
+        set "_key="
+        for /f "tokens=*" %%a in ("!_line!") do (
+            for /f "tokens=1* delims==" %%k in ("%%a") do set "_key=%%k"
+        )
+        set "_match="
+        if not "!_key:~0,1!" == "#" if not "!_key:~0,1!" == ";" (
+            if "!_key!" == "!_target_key!" set "_match=true"
+        )
+        if defined _match (
+            if "!_action!" == "get" (
+                for /f "tokens=* delims=" %%k in ("!_target_key!") do (
+                    set "_value=!_line:*%%k=!"
                 )
-            ) else (
-                if defined _write (
-                    echo(!_line!
-                )
+                set "_value=!_value:~1!"
+                call :endlocal 3 _value:!_value_var!
+                exit /b 0
+            ) else if "!_action!" == "set" (
+                echo !_target_key!=!%_value_var%!
+                echo true > ".conf_edit._found"
+            )
+        ) else (
+            if defined _write (
+                echo(!_line!
             )
         )
         endlocal
@@ -54,7 +64,15 @@ if "!_action!" == "get" (
 )
 if "!_action!" == "get" (
     exit /b 3
-) else if defined _write (
+)
+if "!_action!" == "set" (
+    if exist ".conf_edit._found" (
+        del /f /q ".conf_edit._found"
+    ) else (
+        echo !_target_key!=!%_value_var%!
+    ) >%_write%
+)
+if defined _write (
     move /y ".conf_edit._edited" "!_input_file!" > nul || exit /b 3
 )
 exit /b 0
@@ -80,6 +98,7 @@ rem ############################################################################
 ::
 ::  DESCRIPTION
 ::      A simple config file / ini file editor. Does not support section (yet?).
+::      Lines that starts with '#' or ';' are treated as comments.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
@@ -116,6 +135,7 @@ rem ############################################################################
 
 :tests.setup
 call :coderender "%~f0" tests.template.mcsp > "dummy.conf"
+set "result="
 exit /b 0
 
 
@@ -134,7 +154,7 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
-:tests.test__get_expanded_chars
+:tests.test_get_expanded_chars
 call :coderender "%~f0" tests.template.mcsp "get_expanded" > "special"
 call :conf_edit get "special" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
@@ -161,8 +181,8 @@ exit /b 0
 
 :tests.test_set_new
 copy /b /v /y "dummy.conf" "result" > nul || exit /b 3
-set "new_value_var=Hello"
-call :conf_edit set "result" gamemode survival || (
+set "new_value_var=survival"
+call :conf_edit set "result" gamemode new_value_var || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 call :coderender "%~f0" tests.template.mcsp "set_new" > "expected"
@@ -184,10 +204,22 @@ fc /a /lb1 result expected > nul || (
 exit /b 0
 
 
+:tests.test_ignore
+call :conf_edit get "dummy.conf" #generator-settings result && (
+    call %unittest% fail
+)
+set "expected="
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected empty, got '!result!'"
+)
+exit /b 0
+
+
 :tests.template.mcsp <action>
 setlocal EnableDelayedExpansion
 set "action=%~1"
-::  generator-settings={}
+::  # Minecraft Server Settings
+::  #generator-settings={}
 ::  level-name=world
 if "!action!" == "delete" (
     rem Nothing
