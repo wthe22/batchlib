@@ -210,8 +210,19 @@ fc /a /lb1 result expected > nul || (
 exit /b 0
 
 
-:tests.test_ignore
+:tests.test_ignore_comments
 call :conf_edit get "dummy.conf" #generator-settings result && (
+    call %unittest% fail
+)
+set "expected="
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected empty, got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_ignore_unknown
+call :conf_edit get "dummy.conf" no-value result && (
     call %unittest% fail
 )
 set "expected="
@@ -225,7 +236,7 @@ exit /b 0
 setlocal EnableDelayedExpansion
 set "action=%~1"
 ::  # Minecraft Server Settings
-::  #generator-settings={}
+::  ;generator-settings={}
 ::  level-name=world
 if "!action!" == "delete" (
     rem Nothing
@@ -240,6 +251,7 @@ if "!action!" == "delete" (
 ::  max-players=10
 ::  online-mode=false
 ::  level-type=minecraft\:normal
+::  no-value
 if "!action!" == "set_new" (
 ::  gamemode=survival
 )
