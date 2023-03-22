@@ -157,17 +157,28 @@ exit /b 0
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :coderender "%~f0" tests.template.demo > "dummy.conf"
-echo Configuration file
+echo Original configuration file
 echo=
 type "dummy.conf"
 echo=---------------------------------------------------------------------------------
-echo Read content
-echo=
 for %%v in (food message name pi) do (
     call :conf_edit get "dummy.conf" %%v result
     echo GET %%v: !result!
 )
+set "new_value=raspberries are red & blueberries are blue^!"
+echo SET message: !new_value!
+call :conf_edit set "dummy.conf" message new_value
 
+set "new_value=Minecraft"
+echo SET game: !new_value!
+call :conf_edit set "dummy.conf" game new_value
+
+echo DELETE name
+call :conf_edit delete "dummy.conf" name
+echo=---------------------------------------------------------------------------------
+echo Edited configuration file
+echo=
+type "dummy.conf"
 exit /b 0
 
 
