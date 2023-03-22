@@ -155,10 +155,19 @@ exit /b 0
 
 
 :doc.demo
-echo A demo to help users understand how to use it
-call :conf_edit && (
-    echo Success
-) || echo Failed...
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
+call :coderender "%~f0" tests.template.demo > "dummy.conf"
+echo Configuration file
+echo=
+type "dummy.conf"
+echo=---------------------------------------------------------------------------------
+echo Read content
+echo=
+for %%v in (food message name pi) do (
+    call :conf_edit get "dummy.conf" %%v result
+    echo GET %%v: !result!
+)
+
 exit /b 0
 
 
@@ -284,6 +293,16 @@ if "!action!" == "set_new" (
 )
 exit /b 0
 
+
+:tests.template.demo
+::  # This is a comment
+::  ; This is also a comment
+::  food=Banana
+::  message="roses are red, violets are blue"
+::  name=Jane
+::  name=John
+::  pi=3.14159
+exit /b 0
 
 rem ############################################################################
 rem End of File
