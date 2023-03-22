@@ -97,14 +97,31 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      conf_edit - simple config editor
+::      conf_edit - simple config file editor
 ::
 ::  SYNOPSIS
 ::      conf_edit <action> <config_file> <key> [var]
 ::
 ::  DESCRIPTION
 ::      A simple config file / ini file editor. Does not support section (yet?).
-::      Lines that starts with '#' or ';' are treated as comments.
+::      This config editor is non-destructive. (i.e. it will not remove comments
+::      and unknown entries when editing files)
+::
+::      This is an example to show how config files are parsed:
+::
+::          # This is a comment
+::          ; This is also a comment
+::          key=value
+::          quoted="quotes are preserved"
+::          ws = the key name is 'ws ' and value contains leading whitespace
+::              indents=ignored. the key name is 'indents'.
+::          key=duplicate key. it will get 1st, set all, remove all
+::
+::          escape_chars=not supported. \n will remain as \n
+::          inline_comment=not supported. # this is not a comment
+::
+::          [section_is_still_unsupported_so_this_will_be_ignored]
+::          lines_without_equal_sign_will_be_ignored
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
@@ -117,7 +134,10 @@ rem ############################################################################
 ::          Key / variable to modify
 ::
 ::      var
-::          Variable name used as return variable for get, input variable for set.
+::          Usage for each action:
+::          - get: Variable to store the result
+::          - set: The input variable name
+::          - delete: No effect
 ::
 ::  EXIT STATUS
 ::      0:  - Success
