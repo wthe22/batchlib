@@ -147,7 +147,8 @@ rem ############################################################################
 ::
 ::  EXIT STATUS
 ::      0:  - Success
-::      2:  - Cannot open file
+::      2:  - Invalid parameters
+::          - Cannot open file
 ::      3:  - get: Key not found
 ::          - set/delete: Update file failed
 exit /b 0
