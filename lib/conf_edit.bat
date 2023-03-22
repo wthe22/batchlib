@@ -18,6 +18,9 @@ for %%a in (get set delete) do (
 if not defined _action_valid (
     1>&2 echo%0: Invalid action '!_action!'
 )
+if not defined _target_key (
+    1>&2 echo%0: Key name cannot be empty
+)
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 findstr /n "^^" "!_input_file!" > ".conf_edit._numbered" || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
