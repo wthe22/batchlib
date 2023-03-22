@@ -38,12 +38,15 @@ if "!_action!" == "get" (
         set "_line=!_line:*:=!"
         set "_key="
         for /f "tokens=*" %%a in ("!_line!") do (
-            for /f "tokens=1* delims==" %%k in ("%%a") do set "_key=%%k"
+            for /f "tokens=1* delims==" %%k in ("%%a+") do (
+                if not "%%l" == "" set "_key=%%k"
+            )
+        )
+        for /f "tokens=* delims=#;[" %%a in ("!_key:~0,1!") do (
+            if "%%a" == "" set "_key="
         )
         set "_match="
-        if not "!_key:~0,1!" == "#" if not "!_key:~0,1!" == ";" (
-            if "!_key!" == "!_target_key!" set "_match=true"
-        )
+        if "!_key!" == "!_target_key!" set "_match=true"
         if defined _match (
             if "!_action!" == "get" (
                 for /f "tokens=* delims=" %%k in ("!_target_key!") do (
