@@ -109,9 +109,9 @@ rem ############################################################################
 ::      conf_edit <action> <config_file> <key> [var]
 ::
 ::  DESCRIPTION
-::      A simple config file / ini file editor. Does not support section (yet?).
-::      This config editor is non-destructive. (i.e. it will not remove comments
-::      and unknown entries when editing files)
+::      A simple, non-destructive config file editor. It will not remove comments
+::      and unknown entries when editing files. It can handle special characters.
+::      However, it does not support sections (yet?).
 ::
 ::      This is an example to show how config files are parsed:
 ::
