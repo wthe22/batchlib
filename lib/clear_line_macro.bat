@@ -49,6 +49,8 @@ exit /b 0
 ::
 ::  NOTES
 ::      - The macro will fail if the text/cursor reached the end of the line.
+::      - In Windows 10, the recommended way to clear a line is by using
+::        ANSI escape sequence: '\u001b[2K\r'
 exit /b 0
 
 
