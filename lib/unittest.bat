@@ -58,7 +58,7 @@ if not defined unittest.output_format (
     set "unittest.output_cmd=echo"
 ) else if "!unittest.output_format!" == "raw" (
     set "unittest.output_cmd=echo"
-) else if "!unittest.output_format!" == "human" (
+) else if "!unittest.output_format!" == "basic" (
     set "unittest.output_cmd=call :unittest.fmt.basic"
 ) else if "!unittest.output_format:~0,7!" == "custom:" (
     set "unittest.output_cmd=!%unittest.output_format:~7%!"
@@ -324,7 +324,7 @@ exit /b 0
 ::
 ::      -o FORMAT, --output FORMAT
 ::          The output format. By default it is 'raw'.
-::          Available formats: raw, human, custom:<MACRO_VAR>
+::          Available formats: raw, basic, custom:<MACRO_VAR>
 ::
 ::  UNITTEST USAGE
 ::      Test File
