@@ -211,49 +211,43 @@ rem ############################################################################
 ::  TLDR
 ::      This release focuses on simplifying usage.
 ::
+::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater
+::  - Bug fixes: endlocal, quicktest
+::  - Behavior changes: quicktest, check_path
+::  - Incompatible changes: unittest, endlocal
+::  - Deprecated / removed: ut_fmt_basic, argparse
 ::
 ::  Library
 ::  - Include unittest() to library in debug mode
 ::  - Remove '-c' subcommand requirement to build script
 ::  - Add build script warning when ':entry_point' is not at line 1
 ::
-::  - New functions:
-::      - list_lf2set(): Similar to list2set() but with Line Feed seperator
-::      - conf_edit(): Simple configuration file editor
+::  - list_lf2set(): New. Similar to list2set() but with Line Feed seperator
+::  - conf_edit(): New. Simple configuration file editor
 ::
-::  - Replaced functions:
-::      - argparse() -> argparse2()
-::
-::  - New features:
-::      - argparse()/argparse2():
-::          - Help flag detection and auto-generated usage syntax
-::          - Required/optional spec detection
-::          - A single flag can now capture multiple arguments
-::      - unittest(): Added output formatter 'unittest.fmt.basic'
-::      - updater(): Remove '-c' subcommand requirement
-::      - endlocal(): Add ability to quit multiple stacks of setlocal
-::
-::  - Removed functions:
-::      - ut_fmt_basic(): Merged into unittest()
-::
-::  - Bug fixes:
-::      - endlocal(): Fix string gets executed when it contains ampersand
-::
-::  - Non-functional improvements:
-::      - Replace argparse() with argparse2()
-::      - quicktest(): Use outcome message as-is to prevent errors
-::                     from unquoted string
-::      - combi_wcdir(): Simplify code by using list_lf2set()
-::
-::  - Has backward incompatible changes:
-::      - quicktest(): Empty label string now triggers auto detect label
-::      - unittest(): Remove '-s' flag and simplify usage of '-o' flag
-::      - check_path(): Adjust exit status so that invalid arguments
-::                      can be distinguished by exit code number
-::      - endlocal(): Function signature change
-::
-::  Tests
+::  - argparse(): Deprecated. Please use argparse2() instead.
+::  - argparse2():
+::      - Successor of argparse()
+::      - Help flag detection and auto-generated usage syntax
+::      - Required/optional spec detection
+::      - A single flag can now capture multiple arguments
+::  - check_path(): Adjust exit status so invalid argument
+::                  errors are distinguishable
+::  - combi_wcdir(): Simplify code by using list_lf2set()
+::  - endlocal():
+::      - Fix string gets executed when it contains ampersand
+::      - Add ability to quit multiple stacks of setlocal
+::      - Function signature change
+::  - quicktest():
+::      - Empty label string now triggers auto detect label
+::      - Use outcome message as-is to prevent errors from unquoted string
 ::  - timeit(): Add unittest
+::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
+::  - unittest():
+::      - Remove '-s' flag
+::      - Rework and simplify usage of '-o' flag
+::      - Added 'basic' output format (from ut_fmt_basic())
+::  - updater(): Remove '-c' subcommand requirement
 ::  - version_parse(): Add python testing code
 ::
 ::  Documentation
