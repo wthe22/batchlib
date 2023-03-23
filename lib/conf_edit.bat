@@ -165,7 +165,7 @@ for %%v in (food message name pi) do (
     call :conf_edit get "dummy.conf" %%v result
     echo GET %%v: !result!
 )
-set "new_value=raspberries are red & blueberries are blue^!"
+set new_value="roses are red, violets are blue"
 echo SET message: !new_value!
 call :conf_edit set "dummy.conf" message new_value
 
@@ -309,7 +309,7 @@ exit /b 0
 ::  # This is a comment
 ::  ; This is also a comment
 ::  food=Banana
-::  message="roses are red, violets are blue"
+::  message=raspberries are red & blueberries are blue!
 ::  name=Jane
 ::  name=John
 ::  pi=3.14159
