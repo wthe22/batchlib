@@ -9,7 +9,7 @@ rem ############################################################################
 :license
 echo MIT License
 echo=
-echo Copyright 2017 wthe22
+echo Copyright 2017-2023 wthe22
 echo=
 echo Permission is hereby granted, free of charge, to any person obtaining a
 echo copy of this software and associated documentation files (the "Software"),
