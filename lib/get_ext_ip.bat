@@ -18,7 +18,7 @@ exit /b 1
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=ext_powershell"
-set "%~1category=net env"
+set "%~1category=net"
 exit /b 0
 
 
