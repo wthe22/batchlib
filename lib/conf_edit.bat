@@ -73,6 +73,9 @@ if "!_action!" == "get" (
         endlocal
     )
     endlocal
+) || (
+    1>&2 echo%0: Error when reading from / writting to file
+    exit /b 3
 )
 if "!_action!" == "get" (
     exit /b 3
