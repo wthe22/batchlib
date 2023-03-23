@@ -1486,7 +1486,7 @@ rem ############################################################################
 :tests
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
-call :unittest --output "human"
+call :unittest --output "basic"
 exit /b 0
 
 
@@ -1501,7 +1501,7 @@ if defined _library (
     set "target=!build_dir!\*.bat"
 )
 call :Library.unload_info
-cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "human""
+cmd /q /e:on /v:on /c ""%~f0" -c :unittest "!target!" --target-args "" --output "basic""
 exit /b
 
 
