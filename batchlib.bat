@@ -454,7 +454,7 @@ exit /b 0
 :main_menu
 set "user_input="
 cls
-echo !SOFTWARE.description! !SOFTWARE.version!
+echo !SOFTWARE.DESCRIPTION! !SOFTWARE.VERSION!
 echo=
 echo 1. Browse documentation
 echo 2. Use command line
@@ -853,7 +853,7 @@ for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
     call %lib%:readline "!_input_file!" !_range! || exit /b 3
     echo=
     echo=
-    echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.version! on !date! !time!
+    echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.VERSION! on !date! !time!
     echo=
     if defined flags.is_minified (
         call :functions_range _ranges "%~f0" "!_dep!" || exit /b 3
@@ -1384,7 +1384,7 @@ call :self_extract_func ^
     ^ common_cleanup ^
     ^ %=END=%
 ::  :main_script
-::  echo !SOFTWARE.description! !SOFTWARE.version!
+::  echo !SOFTWARE.DESCRIPTION! !SOFTWARE.VERSION!
 ::  echo=
 ::  call :conemu
 ::  exit /b 0
