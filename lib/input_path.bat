@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:input_path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] <return_var>
+:input_path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] [-w] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (
     _return_var _message _base_dir _optional _warn_overwrite
