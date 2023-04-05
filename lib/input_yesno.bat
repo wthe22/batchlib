@@ -20,15 +20,9 @@ call :input_yesno._loop || exit /b 4
 set "_result="
 if /i "!user_input:~0,1!" == "Y" set "_result=!_yes_value!"
 if /i "!user_input:~0,1!" == "N" set "_result=!_no_value!"
-set "_result=^!!_result!"
-set "_result=!_result:^=^^^^!"
-set "_result=%_result:!=^^^!%"
-for /f "delims= eol=" %%a in ("!_result!") do (
+for /f "tokens=* delims=" %%r in ("!_result!") do (
     endlocal
-    if not "%_return_var%" == "" (
-        set "%_return_var%=%%a"
-        set "%_return_var%=!%_return_var%:~1!"
-    )
+    set "%_return_var%=%%r"
     if /i "%user_input:~0,1%" == "Y" exit /b 0
     if /i "%user_input:~0,1%" == "N" exit /b 5
 )

@@ -27,15 +27,12 @@ if not defined _message (
     ) else set "_message=Input !_return_var!: "
 )
 call :input_path._loop || exit /b 4
-set "user_input=^!!user_input!"
-set "user_input=!user_input:^=^^^^!"
-set "user_input=%user_input:!=^^^!%"
-for /f "delims= eol=" %%a in ("!user_input!") do (
+if not defined user_input (
     endlocal
-    set "%_return_var%=%%a"
-    set "%_return_var%=!%_return_var%:~1!"
-    if not defined %_return_var% exit /b 3
+    set "%_return_var%="
+    exit /b 3
 )
+call :endlocal 1 user_input:!_return_var!
 exit /b 0
 #+++
 
@@ -58,7 +55,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 check_path input_yesno"
+set "%~1install_requires=argparse2 check_path input_yesno endlocal"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
