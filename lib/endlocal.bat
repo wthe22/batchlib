@@ -231,5 +231,42 @@ for %%a in (Enable) do (
 exit /b 0
 
 
+:tests.test_depth
+if ^"%1^" == "" (
+    call :tests.test_depth 1
+    call :tests.test_depth 2
+    exit /b
+)
+set "expected=1"
+set "depth=%~1"
+set /a "initial=!expected! + !depth!"
+set "result=0"
+for /l %%n in (1,1,!initial!) do (
+    setlocal EnableDelayedExpansion
+    set /a "result+=1"
+)
+call :endlocal !depth!
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Given initial depth !initial! and argument !depth!, expected depth !expected!, got !result!"
+)
+exit /b 0
+
+
+:tests.test_errorlevel
+setlocal EnableDelayedExpansion
+call :endlocal || (
+    call %unittest% fail "Got error when no parameter is given"
+)
+setlocal EnableDelayedExpansion
+call :endlocal 1 || (
+    call %unittest% fail "Got error when using no variables"
+)
+setlocal EnableDelayedExpansion
+call :endlocal 1 old:new || (
+    call %unittest% fail "Got error when using a variable"
+)
+exit /b 0
+
+
 :EOF
 exit /b
