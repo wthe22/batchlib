@@ -89,7 +89,6 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
-::      2:  - Interal variable 'endlocal.*' is used.
 exit /b 0
 
 
