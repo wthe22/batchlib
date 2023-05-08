@@ -209,9 +209,10 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      This release focuses on simplifying usage.
+::      This release focuses on simplifying usage with some extra new features
 ::
-::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater
+::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater,
+::                  get_net_iface
 ::  - Bug fixes: endlocal, quicktest
 ::  - Behavior changes: quicktest, check_path
 ::  - Incompatible changes: unittest, endlocal
@@ -234,10 +235,12 @@ rem ############################################################################
 ::  - check_path(): Adjust exit status so invalid argument
 ::                  errors are distinguishable
 ::  - combi_wcdir(): Simplify code by using list_lf2set()
+::  - conf_edit(): NEW! A simple config file editor
 ::  - endlocal():
 ::      - Fix string gets executed when it contains ampersand
 ::      - Add ability to quit multiple stacks of setlocal
 ::      - Function signature change
+::  - get_net_iface(): NEW! Get network interface data
 ::  - quicktest():
 ::      - Empty label string now triggers auto detect label
 ::      - Use outcome message as-is to prevent errors from unquoted string
