@@ -10,7 +10,7 @@ set "_input_file=%~f2"
 set "_target_key=%~3"
 set "_value_var=%~4"
 set "_action_valid="
-for %%a in (get set delete) do (
+for %%a in (get set pop) do (
     if "!_action!" == "%%a" (
         set "_action_valid=true"
     )
@@ -23,7 +23,7 @@ if not defined _target_key (
     1>&2 echo%0: Key name cannot be empty
     exit /b 2
 )
-if not "!_action!" == "delete" if not defined _value_var (
+if not "!_action!" == "pop" if not defined _value_var (
     1>&2 echo%0: No variable name given
     exit /b 2
 )
@@ -31,10 +31,16 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 findstr /n "^^" "!_input_file!" > ".conf_edit._numbered" || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
 )
-if exist ".conf_edit._found" del /f /q ".conf_edit._found"
+for %%v in (_found _value) do (
+    if exist ".conf_edit.%%v" del /f /q ".conf_edit.%%v"
+)
 set _write=^> ".conf_edit._edited"
 if "!_action!" == "get" (
     set "_write="
+)
+set "_read=true"
+if "!_action!" == "set" (
+    set "_read="
 )
 %_write% (
     setlocal DisableDelayedExpansion
@@ -54,13 +60,17 @@ if "!_action!" == "get" (
         set "_match="
         if "!_key!" == "!_target_key!" set "_match=true"
         if defined _match (
-            if "!_action!" == "get" (
+            if defined _read (
                 for /f "tokens=* delims=" %%k in ("!_target_key!") do (
                     set "_value=!_line:*%%k=!"
                 )
                 set "_value=!_value:~1!"
+            )
+            if "!_action!" == "get" (
                 call :endlocal 3 _value:!_value_var!
                 exit /b 0
+            ) else if "!_action!" == "pop" (
+                > ".conf_edit._value" echo(!_value!
             ) else if "!_action!" == "set" (
                 echo !_target_key!=!%_value_var%!
                 echo true > ".conf_edit._found"
@@ -89,6 +99,15 @@ if "!_action!" == "set" (
 )
 if defined _write (
     move /y ".conf_edit._edited" "!_input_file!" > nul || exit /b 3
+)
+if "!_action!" == "pop" (
+    if exist ".conf_edit._value" (
+        set /p "_value=" < ".conf_edit._value"
+        del /f /q ".conf_edit._value"
+    )
+    if defined _value_var (
+        call :endlocal 1 _value:!_value_var!
+    )
 )
 exit /b 0
 
@@ -134,7 +153,10 @@ rem ############################################################################
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
-::          Action to do. Possible values are: get, set, delete.
+::          Action to do. Possible values:
+::              - get: Get value of a key
+::              - set: Edit value of a key
+::              - pop: Remove a key and get the value
 ::
 ::      config_file
 ::          Path to the configuration file
@@ -144,16 +166,16 @@ rem ############################################################################
 ::
 ::      var
 ::          Usage for each action:
-::          - get: Variable to store the result
+::          - get: Variable to store the value
 ::          - set: The input variable name
-::          - delete: No effect
+::          - pop: Variable to store the value (optional)
 ::
 ::  EXIT STATUS
 ::      0:  - Success
 ::      2:  - Invalid parameters
 ::          - Cannot open file
 ::      3:  - get: Key not found
-::          - set/delete: Update file failed
+::          - set/pop: Update file failed
 exit /b 0
 
 
@@ -176,8 +198,8 @@ set "new_value=Minecraft"
 echo SET game: !new_value!
 call :conf_edit set "dummy.conf" game new_value
 
-echo DELETE name
-call :conf_edit delete "dummy.conf" name
+echo POP name
+call :conf_edit pop "dummy.conf" name
 echo=---------------------------------------------------------------------------------
 echo Edited configuration file
 echo=
@@ -248,14 +270,18 @@ fc /a /lb1 result expected > nul || (
 exit /b 0
 
 
-:tests.test_delete
+:tests.test_pop
 copy /b /v /y "dummy.conf" "result" > nul || exit /b 3
-call :conf_edit delete "result" motd result || (
+call :conf_edit pop "result" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-call :coderender "%~f0" tests.template.mcsp "delete" > "expected"
+call :coderender "%~f0" tests.template.mcsp "pop" > "expected"
 fc /a /lb1 result expected > nul || (
-    call %unittest% fail
+    call %unittest% fail "Remove key failed"
+)
+set "expected=Default"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
@@ -288,8 +314,8 @@ set "action=%~1"
 ::  # Minecraft Server Settings
 ::  ;generator-settings={}
 ::  level-name=world
-if "!action!" == "delete" (
-    rem Nothing
+if "!action!" == "pop" (
+    rem Deleted - Nothing
 ) else if "!action!" == "set" (
 ::  motd=Hello
 ) else if "!action!" == "get_expanded" (
