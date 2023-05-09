@@ -98,7 +98,7 @@ exit /b 0
 
 :timeit._macro %:$args=[-n loops] [-r repetitions]% <code>
 for /l %%# in (1,1,4) do ^
-  if "%%#" == "1" (
+if "%%#" == "1" (
     setlocal EnableDelayedExpansion EnableExtensions
     set "_abort="
     set "_is_macro=true"
@@ -108,22 +108,22 @@ for /l %%# in (1,1,4) do ^
 ) else if "%%#" == "4" (
     endlocal
 ) else if "%%#" == "2" if not defined _abort ^
-  for /l %%r in (!_start_repeat!,1,!_repeat!) do (
+for /l %%r in (!_start_repeat!,1,!_repeat!) do (
     set "_measure=true"
     if %%r LEQ 0 if !_result! GEQ !_min_time! set "_measure="
-) & if defined _measure ^
-  for /l %%# in (1,1,2) do ^
-  if "%%#" == "2" (
-    call :difftime _result "!time!" "!_start_time!"
-    if %%r LEQ 0 (
-        if !_result! LSS !_min_time! (
-            set /a "_loops=!_loops! * !_min_time!1 / !_result!1"
-            set /a "_loops=1!_loops! - 9!_loops:~1!"
-        )
-    ) else if !_result! LSS !_best_time! set "_best_time=!_result!"
-) else if "%%#" == "1" (
-    set "_start_time=!time!"
-) & for /l %%l in (1,1,!_loops!) do
+    ) & if defined _measure ^
+    for /l %%# in (1,1,2) do ^
+        if "%%#" == "2" (
+            call :difftime _result "!time!" "!_start_time!"
+            if %%r LEQ 0 (
+                if !_result! LSS !_min_time! (
+                    set /a "_loops=!_loops! * !_min_time!1 / !_result!1"
+                    set /a "_loops=1!_loops! - 9!_loops:~1!"
+                )
+            ) else if !_result! LSS !_best_time! set "_best_time=!_result!"
+        ) else if "%%#" == "1" (
+            set "_start_time=!time!"
+            ) & for /l %%l in (1,1,!_loops!) do
 exit /b 0
 
 
