@@ -96,7 +96,7 @@ set "timeit=!timeit:~0,-1!"
 exit /b 0
 #+++
 
-:timeit._macro
+:timeit._macro %:$args=[-n loops] [-r repetitions]% <code>
 for /l %%# in (1,1,4) do ^
   if "%%#" == "1" (
     setlocal EnableDelayedExpansion EnableExtensions
