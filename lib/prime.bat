@@ -5,37 +5,32 @@ exit /b
 
 :prime <return_var> <integer>
 setlocal EnableDelayedExpansion
+set "_return_var=%~1"
+set "_integer=%~2"
 set "_factor=0"
-if %~2 GEQ 0 if %~2 GEQ 2 (
+if !_integer! GEQ 2 (
     set /a "_remainder=%~2 %% 2"
-    if "!_remainder!" == "1" (
-        set "_max=0"
-        for /l %%b in (15,-1,0) do (
-            set "_guess=1"
-            set "_limit=0x7FFFFFFF"
-            for /l %%p in (1,1,2) do (
-                set /a "_guess*=!_max! + (1<<%%b)"
-                set /a "_limit/=!_max! + (1<<%%b)"
-            )
-            if not "!_limit!" == "0" if !_guess! LEQ %~2 set /a "_max+=(1<<%%b)"
-        )
+    if "!_remainder!" == "0" (
+        set "_factor=2"
+        ) else (
+        call :nroot _max !_integer! 2
         set "_factor="
         for /l %%f in (3,2,!_max!) do if not defined _factor (
-            set /a "_remainder=%~2 %% %%f"
+            set /a "_remainder=!_integer! %% %%f"
             if "!_remainder!" == "0" set "_factor=%%f"
         )
-        if not defined _factor set "_factor=%~2"
-    ) else set "_factor=2"
+        if not defined _factor set "_factor=!_integer!"
+    )
 )
 for /f "tokens=*" %%r in ("!_factor!") do (
     endlocal
-    set "%~1=%%r"
+    set "%_return_var%=%%r"
 )
 exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires= "
+set "%~1install_requires=nroot"
 set "%~1extra_requires=input_number"
 set "%~1category=number"
 exit /b 0
@@ -60,9 +55,6 @@ exit /b 0
 ::        the smallest factor of a prime number is itself.
 ::      - If it is a composite number, the smallest factor is returned.
 ::      - If it is neither a prime nor a composite number, 0 is returned.
-::
-::  NOTES
-::      - Based on: yroot()
 exit /b 0
 
 
