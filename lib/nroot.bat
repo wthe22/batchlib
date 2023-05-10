@@ -4,17 +4,19 @@ exit /b
 
 
 :nroot <return_var> <integer> <n>
-set "%~1="
 setlocal EnableDelayedExpansion
+set "_return_var=%~1"
+set "_integer=%~2"
+set "_n=%~3"
 set "_result=0"
 for /l %%b in (31,-1,0) do (
     set "_guess=1"
     set "_limit=0x7FFFFFFF"
-    for /l %%p in (1,1,%~3) do if not "!_limit!" == "0" (
+    for /l %%p in (1,1,!_n!) do if not "!_limit!" == "0" (
         set /a "_guess*=!_result! + (1<<%%b)"
         set /a "_limit/=!_result! + (1<<%%b)"
     )
-    if not "!_limit!" == "0" if !_guess! LEQ %~2 set /a "_result+=(1<<%%b)"
+    if not "!_limit!" == "0" if !_guess! LEQ !_integer! set /a "_result+=(1<<%%b)"
 )
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
