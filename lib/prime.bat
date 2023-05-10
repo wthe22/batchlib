@@ -31,7 +31,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=nroot"
-set "%~1extra_requires=input_number"
+set "%~1extra_requires=input_number clear_line_macro"
 set "%~1category=number"
 exit /b 0
 
@@ -95,6 +95,48 @@ for %%a in (
         call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
     )
 )
+exit /b 0
+
+
+:tests.find_prime_numbers
+setlocal EnableDelayedExpansion
+call :clear_line_macro CL
+set "max=8192"
+set "prime_numbers=2"
+set "largest_prime=2"
+set "prime_count=1"
+set "max_factor=1"
+for /l %%a in (3,2,!max!) do (
+    < nul set /p "=!CL![!time!] Calculating... [%%a/!max!] Found !prime_count!
+    set /a "result=!max_factor! * !max_factor!"
+    if !result! LSS %%a (
+        set /a "max_factor+=1"
+    )
+    set "factor="
+    for %%b in (!prime_numbers!) do if not defined factor (
+        set /a "remainder=%%a %% %%b"
+        if "!remainder!" == "0" (
+            set "factor=%%b"
+        )
+    )
+    for /l %%b in (!largest_prime!,1,!max_factor!) do if not defined factor (
+        set /a "remainder=%%a %% %%b"
+        if "!remainder!" == "0" (
+            set "factor=%%b"
+        )
+    )
+    if not defined factor (
+        set "prime_numbers=!prime_numbers! %%a"
+        set "largest_prime=%%a"
+        set /a "prime_count+=1"
+    )
+)
+echo !CL![!time!] Done
+echo=
+echo Prime Numbers:
+echo !prime_numbers!
+echo=
+echo Found !prime_count! prime numbers
 exit /b 0
 
 
