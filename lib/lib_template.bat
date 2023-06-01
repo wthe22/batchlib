@@ -112,4 +112,4 @@ rem ############################################################################
 :EOF
 @rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
 @rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
-exit /b
+@exit /b
