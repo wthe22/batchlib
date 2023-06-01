@@ -212,7 +212,7 @@ rem ############################################################################
 ::      This release focuses on simplifying usage with some extra new features
 ::
 ::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater,
-::                  get_net_iface
+::                  get_net_iface, timeleft
 ::  - Bug fixes: endlocal, quicktest
 ::  - Behavior changes: quicktest, check_path
 ::  - Incompatible changes: unittest, endlocal
@@ -241,10 +241,13 @@ rem ############################################################################
 ::      - Add ability to quit multiple stacks of setlocal
 ::      - Function signature change
 ::  - get_net_iface(): NEW! Get network interface data
+::  - nroot(): Improve readabilty
+::  - prime(): Add nroot dependency and improve readabilty
 ::  - quicktest():
 ::      - Empty label string now triggers auto detect label
 ::      - Use outcome message as-is to prevent errors from unquoted string
-::  - timeit(): Add unittest
+::  - timeit(): Add unittest, reformat macro code
+::  - timeleft(): Add macro
 ::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
 ::  - unittest():
 ::      - Remove '-s' flag
