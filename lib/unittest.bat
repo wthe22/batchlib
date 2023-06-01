@@ -764,8 +764,8 @@ exit /b 0
 ::  echo mark success
 ::  exit /b 0
 ::
-::  :tests.test_success2
-::  echo mark success2
+::  :tests.test_skip
+::  call %unittest% skip "Not ready"
 ::  exit /b 0
 exit /b 0
 
@@ -773,8 +773,8 @@ exit /b 0
 ::  start
 ::  run "dummy","tests.test_success"
 ::  outcome "dummy","tests.test_success",error,"Test setup did not exit correctly [exit code 1]."
-::  run "dummy","tests.test_success2"
-::  outcome "dummy","tests.test_success2",error,"Test setup did not exit correctly [exit code 1]."
+::  run "dummy","tests.test_skip"
+::  outcome "dummy","tests.test_skip",error,"Test setup did not exit correctly [exit code 1]."
 ::  stop
 exit /b 0
 

@@ -16,7 +16,10 @@ if "%~1" == "" (
     ) do set "unittest.test_cases=!unittest.test_cases!%%a "
 ) else set "unittest.test_cases=%~1"
 set "unittest._outcome="
-call :tests.setup
+call :tests.setup || (
+    call :quicktest.outcome error ^
+        ^ "Test setup did not exit correctly [exit code !errorlevel!]."
+)
 set "unittest.test_count=0"
 if not defined unittest._outcome call :quicktest._run
 call :tests.teardown
@@ -213,6 +216,34 @@ exit /b 0
 exit /b 0
 
 
+:tests.test_setup_error
+call :tests.type_script template.setup_error > "dummy.bat" || exit /b
+call :tests.type_content expected.setup_error > "expected" || exit /b
+call "dummy.bat" 2> "result"
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.setup_error
+::  :tests.teardown
+::  exit /b 0
+::
+::  :tests.test_success
+::  echo mark success
+::  exit /b 0
+::
+::  :tests.test_skip
+::  call %unittest% skip "Not ready"
+::  exit /b 0
+exit /b 0
+
+:tests.expected.setup_error
+::  The system cannot find the batch label specified - tests.setup
+::  quicktest: error: "Test setup did not exit correctly [exit code 1]."
+exit /b 0
+
+
 :tests.template.simple
 ::  :tests.setup
 ::  :tests.teardown
@@ -235,6 +266,9 @@ exit /b 0
 exit /b 0
 
 :tests.type_script <name>
+echo call :quicktest %%*
+echo exit /b
+echo=
 call :functions_range _range "%~f0" quicktest || exit /b
 call :readline "%~f0" !_range!
 echo=
