@@ -77,9 +77,9 @@ exit /b 0
 ::
 ::  UNITTEST USAGE
 ::      tests.setup()
-::          A function called before tests in a file is run. Unittest will be
-::          aborted if this function is not callable or a skip/fail/error signal
-::          is received from this function.
+::          A function called before tests in a file is run. Use skip/fail/error
+::          here to mark all tests at once. If function is not callable, this
+::          will be considered an error.
 ::
 ::      tests.teardown()
 ::          A function called after tests in a file is run. This is called even
