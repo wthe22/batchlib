@@ -1,4 +1,5 @@
 :entry_point
+@rem Required by batchlib
 @goto main
 
 
@@ -7,6 +8,7 @@ rem Documentation
 rem ############################################################################
 
 :doc.help
+rem Optional
 rem A good documentation to help users how to use this script
 echo usage:
 echo    %~nx0 [-h^|--help]
@@ -20,6 +22,7 @@ rem Metadata
 rem ############################################################################
 
 :metadata [return_prefix]
+rem Required by updater
 set "%~1name=template"
 set "%~1version=0"
 set "%~1authors="
@@ -35,6 +38,7 @@ rem Configurations
 rem ############################################################################
 
 :config
+rem Optional
 call :config.default
 call :config.preference
 exit /b 0
@@ -75,6 +79,7 @@ rem Library
 rem ############################################################################
 
 :lib.dependencies  [return_prefix]
+rem Required for batchlib
 rem List libraries you use in this file here:
 set "%~1install_requires="
 
@@ -87,6 +92,7 @@ rem Tests
 rem ############################################################################
 
 :tests.setup
+rem Required by unittest/quicktest
 rem Called before running any tests here
 rem A fail/error/skip here will abort unittest for this file
 exit /b 0
@@ -110,6 +116,7 @@ rem End of File
 rem ############################################################################
 
 :EOF
+@rem Required by batchlib
 @rem DO NOT WRITE ANYTHING YOU NEED TO KEEP BELOW THIS FUNCTION.
 @rem ANYTHING BEYOND THIS FUNCTION WILL BE REMOVED WHEN ADDING DEPENDENCIES.
 exit /b
