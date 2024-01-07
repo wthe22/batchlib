@@ -7,27 +7,22 @@ rem License
 rem ############################################################################
 
 :license
-echo MIT License
+echo MIT No Attribution
 echo=
-echo Copyright 2017-2023 wthe22
+echo Copyright 2017-2024 wthe22
 echo=
-echo Permission is hereby granted, free of charge, to any person obtaining a
-echo copy of this software and associated documentation files (the "Software"),
-echo to deal in the Software without restriction, including without limitation
-echo the rights to use, copy, modify, merge, publish, distribute, sublicense,
-echo and/or sell copies of the Software, and to permit persons to whom the
-echo Software is furnished to do so, subject to the following conditions:
+echo Permission is hereby granted, free of charge, to any person obtaining a copy of this
+echo software and associated documentation files (the "Software"), to deal in the Software
+echo without restriction, including without limitation the rights to use, copy, modify,
+echo merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+echo permit persons to whom the Software is furnished to do so.
 echo=
-echo The above copyright notice and this permission notice shall be included in
-echo all copies or substantial portions of the Software.
-echo=
-echo THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
-echo OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-echo FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-echo AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-echo LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-echo FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
-echo DEALINGS IN THE SOFTWARE.
+echo THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+echo INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+echo PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+echo HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
+echo OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
+echo SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 exit /b 0
 
 
@@ -209,7 +204,7 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      This release focuses on simplifying usage with some extra new features
+::      Simplifying usage with some new features, and license change
 ::
 ::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater,
 ::                  get_net_iface, timeleft
@@ -217,6 +212,7 @@ rem ############################################################################
 ::  - Behavior changes: quicktest, check_path
 ::  - Incompatible changes: unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
+::  - License: Remove attribution requirement (MIT No Attribution)
 ::
 ::  Library
 ::  - Include unittest() to library in debug mode
@@ -272,7 +268,7 @@ rem ############################################################################
 set "%~1name=batchlib"
 set "%~1version=3.2dev5"
 set "%~1authors=wthe22"
-set "%~1license=The MIT License"
+set "%~1license=MIT No Attribution"
 set "%~1description=Batch Script Library"
 set "%~1release_date=06/01/2021"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
