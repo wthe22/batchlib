@@ -60,6 +60,8 @@ if not defined unittest.output_format (
     set "unittest.output_cmd=echo"
 ) else if "!unittest.output_format!" == "basic" (
     set "unittest.output_cmd=call :unittest.fmt.basic"
+) else if "!unittest.output_format!" == "experimental-tap" (
+    set "unittest.output_cmd=call :unittest.fmt.etap"
 ) else if "!unittest.output_format:~0,7!" == "custom:" (
     set "unittest.output_cmd=!%unittest.output_format:~7%!"
 )
@@ -218,18 +220,18 @@ set "_info=!_info:~2!"
 if defined _info < nul set /p "=(!_info!)"
 echo=
 exit /b 0
+#+++
 
-
+:unittest.fmt.etap <action> [args] ...
 rem TAP output formatter
 rem Made for experimental purposes only. Probably not TAP compliant...
-:experimental.fmt.tap <action> [args] ...
 setlocal EnableDelayedExpansion EnableExtensions
 2> nul (
     for /f "usebackq tokens=* delims= eol=#" %%v in (
         "!unittest.tmp_dir!\.experimental.fmt.tap_vars"
     ) do set %%v
 )
-call :experimental.fmt.tap.%*
+call :unittest.fmt.etap.%*
 > "!unittest.tmp_dir!\.experimental.fmt.tap_vars" (
     for %%v in (
         _test_number
@@ -239,7 +241,7 @@ call :experimental.fmt.tap.%*
 exit /b 0
 #+++
 
-:experimental.fmt.tap.start
+:unittest.fmt.etap.start
 set "_test_number=0"
 set "_test_total=0"
 for /f "usebackq" %%k in ("!unittest.tmp_dir!\.unittest_test_cases") do set /a "_test_total+=1"
@@ -247,13 +249,13 @@ echo 1..!_test_total!
 exit /b 0
 #+++
 
-:experimental.fmt.tap.run <test_file> <test_label>
+:unittest.fmt.etap.run <test_file> <test_label>
 set /a "_test_number+=1"
 set "_reported="
 exit /b 0
 #+++
 
-:experimental.fmt.tap.outcome <test_file> <test_label> <outcome> [message]
+:unittest.fmt.etap.outcome <test_file> <test_label> <outcome> [message]
 if defined _reported exit /b 0
 if "%~3" == "success" (
     echo ok !_test_number! - %~2
@@ -266,7 +268,7 @@ set "_reported=true"
 exit /b 0
 #+++
 
-:experimental.fmt.tap.stop
+:unittest.fmt.etap.stop
 exit /b 0
 
 
@@ -324,7 +326,7 @@ exit /b 0
 ::
 ::      -o FORMAT, --output FORMAT
 ::          The output format. By default it is 'raw'.
-::          Available formats: raw, basic, custom:<MACRO_VAR>
+::          Available formats: raw, basic, experimental-tap, custom:<MACRO_VAR>
 ::
 ::  UNITTEST USAGE
 ::      Test File
