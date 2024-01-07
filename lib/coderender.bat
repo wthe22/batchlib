@@ -91,7 +91,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      coderender - a renderer for batch script
+::      coderender - simple template engine
 ::
 ::  SYNOPSIS
 ::      coderender <file> <label> [arg]
