@@ -219,7 +219,7 @@ exit /b 0
 :tests.test_setup_error
 call :tests.type_script template.setup_error > "dummy.bat" || exit /b
 call :tests.type_content expected.setup_error > "expected" || exit /b
-call "dummy.bat" 2> "result"
+call "dummy.bat" > nul 2> "result"
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
