@@ -115,14 +115,10 @@ correctly with Batchlib. There are documentations inside to help you.
 
 Unit Testing Your Script
 ------------------------
-There are 2 unit testing frameworks: unittest() and quicktest(). Unittest() is
-the powerful one (supports test suite), and quicktest() is the expressive one.
-Both have the same syntax so compatibility is not a problem.
+There are 2 unit testing frameworks: unittest() and quicktest().
 
-For more information, you can read the documentation of unittest().
+- Use unittest() when more features are needed (supports test suite,
+  experimental `TAP <http://testanything.org/>`_ output).
+- Use quicktest() when testing a small script.
 
-TAP Compliance
-^^^^^^^^^^^^^^
-Neither unittest() or quicktest() are `TAP <http://testanything.org/>`_
-compliant. However, after skimming through the specs, I think the output of
-unittest() can be easily formatted to TAP.
+Both frameworks have the same syntax so compatibility is not a problem.
