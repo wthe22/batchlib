@@ -29,7 +29,7 @@ Another way to test it is by running these commands:
     cmd /c batchlib.bat test
 
 A good way to get stated with batchlib is to explore the features and libraries
-first. After you are somehow familiar with them, generate a `Template For New
+first. After you are somehow familiar with them, use a `Template For New
 Scripts`_, read the documentations inside, and try to make something out of it.
 
 Template For New Scripts
