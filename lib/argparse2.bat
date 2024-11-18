@@ -671,6 +671,8 @@ echo=
 echo=
 echo Example:
 echo     -u "Alice" buy "1 Cactus" "2 Snacks" --print
+echo     sell flower 2 7 -v Red Green Blue
+echo     -u He sell -v Black "Dark Gray" "Light Gray" White -- "T-Shirt" 1 $25
 echo=
 call :input_string parameters
 echo=
