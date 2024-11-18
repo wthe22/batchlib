@@ -774,7 +774,7 @@ if defined shop_syntax (
     echo    price                   Total price
     exit /b 0
 )
-set "message=!shop_user! wants to sell !shop_item_amount! !shop_item_name!."
+set "message=!shop_user! want to sell !shop_item_amount! !shop_item_name!."
 if defined shop_item_price (
     set "message=!message:~0,-1! for !shop_item_price!."
 )
