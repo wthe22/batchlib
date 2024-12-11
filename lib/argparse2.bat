@@ -562,7 +562,7 @@ exit /b 0
 ::          Show syntax of command.
 ::
 ::      -d, --dry-run
-::          Run without parsing arguments.
+::          Validate SPECs only, without parsing additional arguments.
 ::
 ::      -n, --name NAME
 ::          Command name for use in error messages. By default it is 'argparse2'.
@@ -653,7 +653,7 @@ exit /b 0
 ::      - Multi-character short options are not supported.
 ::        (e.g: you must use 'ls -a -l' instead of 'ls -al')
 ::      - Function SHOULD be embedded into the script.
-::      - This function should not be used multiple times within the same context
+::      - This function should not be called multiple times within the same context
 ::        because it consumes the caller's %1, %2, etc. argument. Otherwise, it
 ::        might capture incorrect values.
 exit /b 0
