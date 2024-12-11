@@ -69,7 +69,7 @@ rem ############################################################################
 ::
 ::      Debug the library and call :LABEL with the ARGUMENTS.
 ::      The debugging features are:
-::      - The quicktest() library is included.
+::      - The quicktest() and unittest() libraries are included.
 ::      - Debug commands are executed and output is redirected to STDERR
 ::        if 'debug' variable is not defined.
 ::      - Library is always rebuilt before running.
