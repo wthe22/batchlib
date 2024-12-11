@@ -113,6 +113,20 @@ Copying the library template and rename it:
 This template contains all the structures you need for your function to work
 correctly with Batchlib. There are documentations inside to help you.
 
+To debug your library, you can use:
+::
+    rem Run a test case
+    cmd /c batchlib.bat debug your_library_name :quicktest your_test_case_label
+
+    rem Run all test cases
+    cmd /c batchlib.bat debug your_library_name :quicktest
+
+    rem Do a full test
+    cmd /c batchlib.bat test your_library_name
+
+The 'debug' command will temporarily add unittest() and quicktest() into your
+library to make testing more convenient
+
 Unit Testing Your Script
 ------------------------
 There are 2 unit testing frameworks: unittest() and quicktest().
