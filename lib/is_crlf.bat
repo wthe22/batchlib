@@ -31,9 +31,9 @@ exit /b 0
 ::      is_crlf - check EOL type of current script
 ::
 ::  SYNOPSIS
-::      is_crlf [--check-exist]
-::      is_crlf.alt1 [--check-exist]
-::      is_crlf.alt2 [--check-exist]
+::      is_crlf [-c]
+::      is_crlf.alt1 [-c]
+::      is_crlf.alt2 [-c]
 ::
 ::  OPTIONS
 ::      -c, --check-exist
