@@ -320,9 +320,9 @@ exit /b 0
 ::          Pattern to match in tests labels ('test*.test*' default).
 ::
 ::      -a TARGET_ARGS, --target-args TARGET_ARGS
-::          Arguments to add to call the test file. For example, you use
-::          'target_script.bat --call :tests.test_me' to call 'tests.test_me',
-::          so the TARGET_ARGS is '--call'. By default, it is '-c'.
+::          Arguments to add to call functions in the target script. For example,
+::          if you use `myscript.bat run :tests.test_me` to call ':tests.test_me',
+::          then the TARGET_ARGS is 'run'. By default, it is '-c'.
 ::
 ::      -o FORMAT, --output FORMAT
 ::          The output format. By default it is 'raw'.
