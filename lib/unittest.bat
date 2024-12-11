@@ -404,7 +404,13 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :tests.type template.simple > "simple.bat"
+> "simple.bat" (
+    call :tests.type template.normal_entry_point || exit /b
+    call :tests.type template.simple || exit /b
+)
+echo=
+echo Using 'raw' output
+echo=
 call :unittest "simple.bat"
 exit /b 0
 
