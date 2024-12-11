@@ -412,6 +412,16 @@ echo=
 echo Using 'raw' output
 echo=
 call :unittest "simple.bat"
+echo=
+echo=
+echo Using 'basic' output
+echo=
+call :unittest "simple.bat" -o basic
+echo=
+echo=
+echo Using 'experimental-tap' output
+echo=
+call :unittest "simple.bat" -o experimental-tap
 exit /b 0
 
 
