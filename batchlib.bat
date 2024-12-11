@@ -242,21 +242,24 @@ rem ############################################################################
 ::  - quicktest():
 ::      - Empty label string now triggers auto detect label
 ::      - Use outcome message as-is to prevent errors from unquoted string
+::      - Error in tests.setup() will abort the test,
+::        making behavior consistent with unittest
 ::  - timeit(): Add unittest, reformat macro code
 ::  - timeleft(): Add macro
 ::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
 ::  - unittest():
 ::      - Remove '-s' flag
 ::      - Rework and simplify usage of '-o' flag
-::      - Added 'basic' output format (from ut_fmt_basic())
+::      - Added an experimental TAP output
 ::  - updater(): Remove '-c' subcommand requirement
 ::  - version_parse(): Add python testing code
 ::
 ::  Documentation
-::  - quicktest(): Improve use case example and fix argument syntax
-::  - hexlify(): Fix argument syntax
-::  - Minor argument syntax adjustment
+::  - Fix argument syntax of: quicktest, hexlify, argparse2
+::  - Fix demo of: unittest
+::  - Improve some documentations
 ::  - Template subcommand will list available template when no name is given
+::  - Mark functions as required or optional in template.bat
 exit /b 0
 
 
