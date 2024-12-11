@@ -232,7 +232,7 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      argparse - parse options passed to script or function
+::      argparse - parse options passed to script or function (deprecated)
 ::
 ::  SYNOPSIS
 ::      argparse [-i] [-s] <spec> ... -- %*
