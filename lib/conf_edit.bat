@@ -129,6 +129,9 @@ rem ############################################################################
 ::
 ::  SYNOPSIS
 ::      conf_edit <action> <config_file> <key> [var]
+::      conf_edit get <config_file> <key> <return_var>
+::      conf_edit set <config_file> <key> <value_var>
+::      conf_edit pop <config_file> <key> [return_var]
 ::
 ::  DESCRIPTION
 ::      A simple, non-destructive config file editor. It will not remove comments
