@@ -160,7 +160,7 @@ rem ############################################################################
 ::          ; This is also a comment
 ::          key=value
 ::          quoted="quotes are preserved"
-::          ws = the key name is 'ws ' and value contains leading whitespace
+::          ws    = the key name is 'ws' and value contains leading whitespace
 ::              indents=ignored. the key name is 'indents'.
 ::          key=duplicate key. it will get 1st, set all, remove all
 ::
