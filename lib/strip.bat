@@ -21,17 +21,12 @@ endlocal & (
 exit /b 0
 
 
-:_strip_trailing_whitespaces <input_var>
+:_strip_trailing_whitespaces
 rem A small snippet to strip up to 127 trailing spaces and tabs
-set "_var=%~1"
-set "%_var%=_!%_var%!"
 for %%n in (64 32 16 8 4 2 1) do (
-    set "_tmp=!%_var%:~-%%n,%%n!"
+    set "_tmp=!_var:~-%%n,%%n!"
     for /f "tokens=*" %%v in ("!_tmp!_") do (
-        if "%%v" == "_" (
-            set "%_var%=!%_var%:~0,-%%n!"
-            echo %%n "!%_var%!"
-        )
+        if "%%v" == "_" set "_var=!_var:~0,-%%n!"
     )
 )
 exit /b 0
