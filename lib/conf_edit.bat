@@ -160,8 +160,9 @@ rem ############################################################################
 ::          ; This is also a comment
 ::          key=value
 ::          quoted="quotes are preserved"
-::          ws    = the key name is 'ws' and value contains leading whitespace
 ::              indents=ignored. the key name is 'indents'.
+::          food    =the key name is 'food'
+::          drinks=   <- value contains leading whitespaces
 ::          key=duplicate key. it will get 1st, set all, remove all
 ::
 ::          escape_chars=not supported. \n will remain as \n
