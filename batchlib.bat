@@ -76,6 +76,14 @@ rem ############################################################################
 ::
 ::      This subcommand is not available in the minified version.
 ::
+::  MAN SUBCOMMAND
+::          batchlib man [library]
+::
+::      Shows documentation of a library. If no library name is specified,
+::      it will show documentation of batchlib.
+::
+::      This subcommand is not available in the minified version.
+::
 ::  TEST SUBCOMMAND
 ::          batchlib test [library]
 ::
@@ -189,6 +197,10 @@ echo        Add/update dependency of a file
 echo=
 echo    batchlib debug ^<library^> :^<label^> [arguments] ...
 echo        Debug a library (Not available in minified version)
+echo=
+echo    batchlib man [library]
+echo        Shows documentation of a library or the batchlib itself
+echo        (Not available in minified version)
 echo=
 echo    batchlib test [library]
 echo        Run unittest to a library (Not available in minified version)
@@ -410,6 +422,20 @@ if not defined debug set "debug=/? > nul & 1>&2"
 call %*
 set "no_cleanup=true"
 exit /b
+
+
+:subcommand.man <library>
+if ^"%1^" == "" (
+    call :functions_range _range "%~f0"  doc.man
+    call :readline "%~f0" !_range! 1:-1 4
+) else (
+    set "_library=%~1"
+    set "_library_source=!lib_dir!\!_library!.bat"
+    call :functions_range _range "!_library_source!" "doc.man" && (
+        call :readline "!_library_source!" !_range! 1:-1 4
+    )
+)
+exit /b 0
 
 
 :subcommand.test <library>
