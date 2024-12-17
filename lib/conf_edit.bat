@@ -57,12 +57,28 @@ if "!_action!" == "set" (
         for /f "tokens=* delims=#;[" %%a in ("!_key:~0,1!") do (
             if "%%a" == "" set "_key="
         )
+        if defined _key (
+            set "_key=_!_key!"
+            for %%n in (512 256 128 64 32 16 8 4 2 1) do (
+                set "_tmp=!_key:~-%%n,%%n!"
+                for /f "tokens=*" %%v in ("!_tmp!_") do (
+                    if "%%v" == "_" set "_key=!_key:~0,-%%n!"
+                )
+            )
+            set "_key=!_key:~1!"
+        )
         set "_match="
         if "!_key!" == "!_target_key!" set "_match=true"
         if defined _match (
             if defined _read (
                 for /f "tokens=* delims=" %%k in ("!_target_key!") do (
                     set "_value=!_line:*%%k=!"
+                )
+                for %%n in (512 256 128 64 32 16 8 4 2 1) do (
+                    set "_tmp=!_value:~0,%%n!"
+                    for /f "tokens=*" %%v in ("!_tmp!_") do (
+                        if "%%v" == "_" set "_value=!_value:~%%n!"
+                    )
                 )
                 set "_value=!_value:~1!"
             )
@@ -289,6 +305,17 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_ignore_key_spaces
+call :conf_edit get "dummy.conf" allow-flight result || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=false"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_ignore_comments
 call :conf_edit get "dummy.conf" #generator-settings result && (
     call %unittest% fail
@@ -331,6 +358,7 @@ if "!action!" == "pop" (
 ::  online-mode=false
 ::  level-type=minecraft\:normal
 ::  no-value
+::     allow-flight  =false
 if "!action!" == "set_new" (
 ::  gamemode=survival
 )
