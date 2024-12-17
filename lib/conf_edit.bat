@@ -207,10 +207,10 @@ type "dummy.conf"
 echo=---------------------------------------------------------------------------------
 for %%v in (food message name pi) do (
     call :conf_edit get "dummy.conf" %%v result
-    echo GET %%v: !result!
+    echo GET %%v: "!result!"
 )
-set new_value="roses are red, violets are blue"
-echo SET message: !new_value!
+set new_value=lets use "roses are red, violets are blue"
+echo SET message: "!new_value!"
 call :conf_edit set "dummy.conf" message new_value
 
 set "new_value=Minecraft"
@@ -372,7 +372,7 @@ exit /b 0
 ::  message=raspberries are red & blueberries are blue!
 ::  name=Jane
 ::  name=John
-::  pi=3.14159
+::  pi  = 3.14159
 exit /b 0
 
 rem ############################################################################
