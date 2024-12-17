@@ -32,7 +32,7 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      batchlib - batch script library/utility
+::      batchlib - batch script library
 ::
 ::  SYNOPSIS
 ::      batchlib
