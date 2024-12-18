@@ -220,8 +220,8 @@ rem ############################################################################
 ::
 ::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater,
 ::                  get_net_iface, timeleft
-::  - Bug fixes: endlocal, quicktest
-::  - Behavior changes: quicktest, check_path
+::  - Bug fixes: endlocal, quicktest, strip
+::  - Behavior changes: quicktest, check_path, strip
 ::  - Incompatible changes: unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
 ::  - License: Remove attribution requirement (MIT No Attribution)
@@ -256,6 +256,9 @@ rem ############################################################################
 ::      - Use outcome message as-is to prevent errors from unquoted string
 ::      - Error in tests.setup() will abort the test,
 ::        making behavior consistent with unittest
+::  - strip():
+::      - Function can now safely process special characters in variable
+::        and strip double quotes
 ::  - timeit(): Add unittest, reformat macro code
 ::  - timeleft(): Add macro
 ::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
@@ -272,6 +275,7 @@ rem ############################################################################
 ::  - Improve some documentations
 ::  - Template subcommand will list available template when no name is given
 ::  - Mark functions as required or optional in template.bat
+::  - Add new subcommand to view documentation of a script
 exit /b 0
 
 
