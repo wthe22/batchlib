@@ -89,7 +89,7 @@ set "_section="
                 for /f "tokens=* delims=" %%k in ("!_target_key!") do (
                     set "_value=!_line:*%%k=!"
                 )
-                for %%n in (512 256 128 64 32 16 8 4 2 1) do (
+                for %%n in (64 32 16 8 4 2 1) do (
                     set "_tmp=!_value:~0,%%n!"
                     for /f "tokens=*" %%v in ("!_tmp!_") do (
                         if "%%v" == "_" set "_value=!_value:~%%n!"
