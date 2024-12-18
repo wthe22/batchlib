@@ -33,6 +33,7 @@ exit /b 0
 
 :_strip_trailing_whitespaces
 rem A small snippet to strip up to 127 trailing spaces and tabs
+rem But cannot handle special characters (caret, exclamation mark)
 for %%n in (64 32 16 8 4 2 1) do (
     set "_tmp=!_var:~-%%n,%%n!"
     for /f "tokens=*" %%v in ("!_tmp!_") do (
