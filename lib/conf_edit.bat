@@ -42,30 +42,45 @@ set "_read=true"
 if "!_action!" == "set" (
     set "_read="
 )
+set "_section="
 %_write% (
     setlocal DisableDelayedExpansion
     for /f "usebackq tokens=*" %%o in (".conf_edit._numbered") do (
         set "_line=%%o"
         setlocal EnableDelayedExpansion
         set "_line=!_line:*:=!"
+        set "_line_stripped=!_line!"
+        for %%n in (64 32 16 8 4 2 1) do (
+            set "_tmp=!_line_stripped:~0,%%n!"
+            for /f "tokens=*" %%v in ("!_tmp!_") do (
+                if "%%v" == "_" set "_line_stripped=!_line_stripped:~%%n!"
+            )
+            set "_tmp=!_line_stripped:~-%%n,%%n!"
+            for /f "tokens=*" %%v in ("!_tmp!_") do (
+                if "%%v" == "_" set "_line_stripped=!_line_stripped:~0,-%%n!"
+            )
+        )
+        set "_skip="
+        for /f "tokens=* delims=#;" %%a in ("!_line_stripped:~0,1!") do (
+            if "%%a" == "" set "_skip=true"
+        )
+        if "!_line_stripped:~0,1!!_line_stripped:~-1,1!" == "[]" (
+            set "_section=!_line_stripped:~1,-1!"
+            set "_skip=true"
+        )
         set "_key="
-        for /f "tokens=*" %%a in ("!_line!") do (
-            for /f "tokens=1* delims==" %%k in ("%%a+") do (
+        if not defined _skip (
+            for /f "tokens=1* delims==" %%k in ("!_line_stripped!") do (
                 if not "%%l" == "" set "_key=%%k"
             )
         )
-        for /f "tokens=* delims=#;[" %%a in ("!_key:~0,1!") do (
-            if "%%a" == "" set "_key="
-        )
         if defined _key (
-            set "_key=_!_key!"
-            for %%n in (512 256 128 64 32 16 8 4 2 1) do (
+            for %%n in (64 32 16 8 4 2 1) do (
                 set "_tmp=!_key:~-%%n,%%n!"
                 for /f "tokens=*" %%v in ("!_tmp!_") do (
                     if "%%v" == "_" set "_key=!_key:~0,-%%n!"
                 )
             )
-            set "_key=!_key:~1!"
         )
         set "_match="
         if "!_key!" == "!_target_key!" set "_match=true"
