@@ -62,7 +62,7 @@ exit /b 0
 ::          The input variable name.
 ::
 ::      character
-::          The character to strip. Double quotes are not supported.
+::          The character to strip.
 exit /b 0
 
 
