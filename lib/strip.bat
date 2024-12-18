@@ -8,15 +8,25 @@ setlocal EnableDelayedExpansion
 set "_var=%~1"
 set "_char=%~2"
 if not defined _char set "_char= "
-endlocal & (
-    for /f "tokens=* delims=%_char%" %%a in ("!%_var%!_") do set "%_var%=%%a"
-    set "%_var%=_!%_var%:~0,-1!"
-    for /l %%n in (1,1,8192) do if "!%_var%:~-1,1!" == "%_char%" (
-        if not "!%_var%:~-%%n,1!" == "%_char%" (
-            set "%_var%=!%_var%:~0,-%%n!!%_var%:~-%%n,1!"
-        )
+set "_ltrim=0"
+set "_rtrim=0"
+set "_chars=!_char!"
+set "_value=!%_var%!"
+for /l %%n in (1,1,12) do set "_chars=!_chars!!_chars!"
+for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
+    if "!_value:~0,%%n!" == "!_chars:~0,%%n!" (
+        set /a "_ltrim+=%%n"
+        set "_value=!_value:~%%n!"
     )
-    set "%_var%=!%_var%:~1!"
+    if "!_value:~-%%n,%%n!" == "!_chars:~-%%n,%%n!" (
+        set /a "_rtrim+=%%n"
+        set "_value=!_value:~0,-%%n!"
+    )
+)
+for /f "tokens=1-2" %%a in ("!_ltrim! !_rtrim!") do (
+    endlocal
+    if not "%%b" == "0" set "%_var%=!%_var%:~0,-%%b!"
+    if not "%%a" == "0" set "%_var%=!%_var%:~%%a!"
 )
 exit /b 0
 
@@ -106,6 +116,22 @@ for %%a in (
     if not "!result!" == "!expected!" (
         call %unittest% fail "Given '!given!' and '%%c', expected '!expected!', got '!result!'"
     )
+)
+exit /b 0
+
+
+:tests.test_expanded_characters
+set result==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
+set "expected=!result!"
+call :strip result
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expanded characters are not preserved"
+)
+set "result=   ^^                                 ^!e^!   "
+set "expected=!result:~3,-3!"
+call :strip result
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Failed when characters to strip are in the middle"
 )
 exit /b 0
 
