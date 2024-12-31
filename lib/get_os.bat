@@ -44,13 +44,15 @@ exit /b 0
 ::  OPTIONS
 ::      --name
 ::          Returns the OS name instead of the OS version number.
+::          Returns os version if OS name is unknown.
+::          Possible Windows names: 2000, XP, XP 64-Bit, Vista, 7, 8, 8.1, 10, 11
 exit /b 0
 
 
 :doc.demo
 call :get_os os_name --name
 call :get_os os_ver
-echo Your OS is !os_name!
+echo Your OS name is !os_name!
 echo Your OS version is !os_ver!
 exit /b 0
 
