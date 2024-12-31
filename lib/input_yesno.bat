@@ -9,7 +9,7 @@ for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
 set "_no_value=N"
 call :argparse2 --name %0 ^
-    ^ "return_var:              set _return_var" ^
+    ^ "[return_var]:            set _return_var" ^
     ^ "[-m,--message MESSAGE]:  set _message" ^
     ^ "[-y,--yes VALUE]:        set _yes_value" ^
     ^ "[-n,--no VALUE]:         set _no_value" ^
@@ -22,7 +22,9 @@ if /i "!user_input:~0,1!" == "Y" set "_result=!_yes_value!"
 if /i "!user_input:~0,1!" == "N" set "_result=!_no_value!"
 for /f "tokens=* delims=" %%r in ("!_result!") do (
     endlocal
-    set "%_return_var%=%%r"
+    if not "%_return_var%" == "" (
+        set "%_return_var%=%%r"
+    )
     if /i "%user_input:~0,1%" == "Y" exit /b 0
     if /i "%user_input:~0,1%" == "N" exit /b 5
 )
