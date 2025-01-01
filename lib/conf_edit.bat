@@ -178,6 +178,7 @@ rem ############################################################################
 ::              indents=ignored. the key name is 'indents'.
 ::          food    =the key name is 'food'
 ::          drinks=   <- value contains leading whitespaces
+::          snacks=trailing whitespaces will be stripped ->
 ::          key=duplicate key. it will get 1st, set all, remove all
 ::
 ::          escape_chars=not supported. \n will remain as \n
