@@ -390,6 +390,11 @@ exit /b 0
 ::  name=Jane
 ::  name=John
 ::  pi  = 3.14159
+::  [customer1]
+::  name=Bill
+::  message=Food is important
+::  [customer2]
+::  name=Wally
 exit /b 0
 
 rem ############################################################################
