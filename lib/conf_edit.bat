@@ -248,7 +248,7 @@ rem Tests
 rem ############################################################################
 
 :tests.setup
-call :coderender "%~f0" tests.template.mcsp > "dummy.conf"
+call :coderender "%~f0" tests.template.mcsp > "mcsp.conf"
 set "result="
 exit /b 0
 
@@ -258,7 +258,7 @@ exit /b 0
 
 
 :tests.test_get
-call :conf_edit get "dummy.conf" motd result || (
+call :conf_edit get "mcsp.conf" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Default"
@@ -281,7 +281,7 @@ exit /b 0
 
 
 :tests.test_set
-copy /b /v /y "dummy.conf" "result" > nul || exit /b 3
+copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 set "new_value_var=Hello"
 call :conf_edit set "result" motd new_value_var || (
     call %unittest% fail "got exit code '!errorlevel!'"
@@ -294,7 +294,7 @@ exit /b 0
 
 
 :tests.test_set_new
-copy /b /v /y "dummy.conf" "result" > nul || exit /b 3
+copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 set "new_value_var=survival"
 call :conf_edit set "result" gamemode new_value_var || (
     call %unittest% fail "got exit code '!errorlevel!'"
@@ -307,7 +307,7 @@ exit /b 0
 
 
 :tests.test_pop
-copy /b /v /y "dummy.conf" "result" > nul || exit /b 3
+copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 call :conf_edit pop "result" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
@@ -323,7 +323,7 @@ exit /b 0
 
 
 :tests.test_ignore_key_spaces
-call :conf_edit get "dummy.conf" allow-flight result || (
+call :conf_edit get "mcsp.conf" allow-flight result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=false"
@@ -334,7 +334,7 @@ exit /b 0
 
 
 :tests.test_ignore_comments
-call :conf_edit get "dummy.conf" #generator-settings result && (
+call :conf_edit get "mcsp.conf" #generator-settings result && (
     call %unittest% fail
 )
 set "expected="
@@ -345,7 +345,7 @@ exit /b 0
 
 
 :tests.test_ignore_unknown
-call :conf_edit get "dummy.conf" no-value result && (
+call :conf_edit get "mcsp.conf" no-value result && (
     call %unittest% fail
 )
 set "expected="
