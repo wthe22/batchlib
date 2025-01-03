@@ -5,10 +5,16 @@ exit /b
 
 :conf_edit <action> <config_file> <key> [var]
 setlocal EnableDelayedExpansion
-set "_action=%~1"
-set "_input_file=%~f2"
-set "_target_key=%~3"
-set "_value_var=%~4"
+call :argparse2 --name "conf_edit" ^
+    ^ "[-s,--section SECTION]:  set _target_section" ^
+    ^ "action:                  set _action" ^
+    ^ "config_file:             set _input_file" ^
+    ^ "key:                     set _target_key" ^
+    ^ "[var]:                   set _value_var" ^
+    ^ -- %* || exit /b 2
+for %%f in ("!_input_file!") do (
+    set "_input_file=%%~ff"
+)
 set "_action_valid="
 for %%a in (get set pop) do (
     if "!_action!" == "%%a" (
@@ -50,53 +56,42 @@ set "_section="
         setlocal EnableDelayedExpansion
         set "_line=!_line:*:=!"
         set "_line_stripped=!_line!"
-        for %%n in (64 32 16 8 4 2 1) do (
-            set "_tmp=!_line_stripped:~0,%%n!"
-            for /f "tokens=*" %%v in ("!_tmp!_") do (
-                if "%%v" == "_" set "_line_stripped=!_line_stripped:~%%n!"
-            )
-            set "_tmp=!_line_stripped:~-%%n,%%n!"
-            for /f "tokens=*" %%v in ("!_tmp!_") do (
-                if "%%v" == "_" set "_line_stripped=!_line_stripped:~0,-%%n!"
-            )
-        )
-        set "_skip="
-        for /f "tokens=* delims=#;" %%a in ("!_line_stripped:~0,1!") do (
-            if "%%a" == "" set "_skip=true"
-        )
-        if "!_line_stripped:~0,1!!_line_stripped:~-1,1!" == "[]" (
-            set "_section=!_line_stripped:~1,-1!"
-            set "_skip=true"
-        )
+        call :strip _line_stripped
+
+        set "_struct="
         set "_key="
-        if not defined _skip (
-            for /f "tokens=1* delims==" %%k in ("!_line_stripped!") do (
-                if not "%%l" == "" set "_key=%%k"
+
+        if "!_line_stripped:~0,1!" == "#" (
+            set "_struct=comment"
+        ) else if "!_line_stripped:~0,1!" == ";" (
+            set "_struct=comment"
+        ) else if "!_line_stripped:~0,1!!_line_stripped:~-1,1!" == "[]" (
+            set "_struct=section"
+        ) else (
+            for /f "tokens=1* delims==" %%a in ("!_line_stripped!_") do (
+                if not "%%b" == "" set "_struct=key-value"
             )
         )
-        if defined _key (
-            for %%n in (64 32 16 8 4 2 1) do (
-                set "_tmp=!_key:~-%%n,%%n!"
-                for /f "tokens=*" %%v in ("!_tmp!_") do (
-                    if "%%v" == "_" set "_key=!_key:~0,-%%n!"
-                )
-            )
+        if "!_struct!" == "section" (
+            set "_section=!_line_stripped:~1,-1!"
+            call :strip _section
         )
-        set "_match="
-        if "!_key!" == "!_target_key!" set "_match=true"
-        if defined _match (
-            if defined _read (
-                for /f "tokens=* delims=" %%k in ("!_target_key!") do (
-                    set "_value=!_line:*%%k=!"
-                )
-                for %%n in (64 32 16 8 4 2 1) do (
-                    set "_tmp=!_value:~0,%%n!"
-                    for /f "tokens=*" %%v in ("!_tmp!_") do (
-                        if "%%v" == "_" set "_value=!_value:~%%n!"
-                    )
-                )
+        if "!_struct!" == "key-value" (
+            for /f "tokens=1 delims==" %%k in ("!_line_stripped!") do (
+                set "_key=%%k"
+                call :strip _key
+                set "_value=!_line_stripped:*%%k=!"
                 set "_value=!_value:~1!"
             )
+        )
+
+        set "_match="
+        if "!_section!" == "!_target_section!" (
+            if "!_key!" == "!_target_key!" (
+                set "_match=true"
+            )
+        )
+        if defined _match (
             if "!_action!" == "get" (
                 call :endlocal 3 _value:!_value_var!
                 exit /b 0
@@ -111,7 +106,10 @@ set "_section="
                 echo(!_line!
             )
         )
-        endlocal
+        for /f "tokens=1* delims=|" %%a in ("Q|!_section!") do (
+            endlocal
+            set "_section=%%b"
+        )
     )
     endlocal
 ) || (
@@ -144,7 +142,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=endlocal"
+set "%~1install_requires=argparse2 strip endlocal"
 set "%~1extra_requires=coderender"
 set "%~1category=file"
 exit /b 0
@@ -167,7 +165,6 @@ rem ############################################################################
 ::  DESCRIPTION
 ::      A simple, non-destructive config file editor. It will not remove comments
 ::      and unknown entries when editing files. It can handle special characters.
-::      However, it does not support sections (yet?).
 ::
 ::      This is an example to show how config files are parsed:
 ::
@@ -183,9 +180,16 @@ rem ############################################################################
 ::
 ::          escape_chars=not supported. \n will remain as \n
 ::          inline_comment=not supported. # this is not a comment
+::          "quoted=keys"=not supported. function will think that
+::          #             the key name is '"quoted'
 ::
-::          [section_is_still_unsupported_so_this_will_be_ignored]
+::          [section is supported]
+::          [but section with "^special characters!" arent supported]
 ::          lines_without_equal_sign_will_be_ignored
+::
+::  OPTIONS
+::      -s, --section
+::          Section of the key. LIMIATIONS: See NOTES.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
@@ -212,6 +216,11 @@ rem ############################################################################
 ::          - Cannot open file
 ::      3:  - get: Key not found
 ::          - set/pop: Update file failed
+::
+::  NOTES
+::      - Section name cannot contain special characters
+::      - Currently function cannot add a new key to a specific section, it will
+::        always add a new key to the last line of the file.
 exit /b 0
 
 
@@ -222,9 +231,13 @@ echo Original configuration file
 echo=
 type "dummy.conf"
 echo=---------------------------------------------------------------------------------
-for %%v in (food message name pi) do (
+for %%v in (food message pi) do (
     call :conf_edit get "dummy.conf" %%v result
     echo GET %%v: "!result!"
+)
+for %%s in ("" "customer1" "customer2") do (
+    call :conf_edit get "dummy.conf" --section %%s name result
+    echo GET %%s name: "!result!"
 )
 set new_value=lets use "roses are red, violets are blue"
 echo SET message: "!new_value!"
@@ -249,6 +262,7 @@ rem ############################################################################
 
 :tests.setup
 call :coderender "%~f0" tests.template.mcsp > "mcsp.conf"
+call :coderender "%~f0" tests.template.demo > "demo.conf"
 set "result="
 exit /b 0
 
@@ -351,6 +365,25 @@ call :conf_edit get "mcsp.conf" no-value result && (
 set "expected="
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected empty, got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_section
+call :conf_edit get "demo.conf" -s customer1 name result || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=Bill"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+
+call :conf_edit get "demo.conf" --section customer2 name result || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=Wally"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
