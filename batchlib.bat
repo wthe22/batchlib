@@ -414,6 +414,17 @@ call :build_script %*
 exit /b
 
 
+:subcommand.run <library> :<label> [arguments] ...
+set "library=%~1"
+call :LibBuild.update "!library!" || exit /b 3
+endlocal & (
+    cd /d "%build_dir%"
+    set "tmp_dir=%tmp_dir%"
+)
+call %*
+exit /b
+
+
 :subcommand.debug <library> :<label> [arguments] ...
 set "library=%~1"
 for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest unittest"
