@@ -5,13 +5,21 @@ exit /b
 
 :strip <input_var> [character]
 setlocal EnableDelayedExpansion
-set "_var=%~1"
-set "_char=%~2"
+set "_args=$args"
+if "!_args!" == "$!!args" (
+    set "_var=%~1"
+    set "_char=%~2"
+) else (
+    for /f "tokens=1*" %%a in ("!_args!") do (
+        set "_var=%%a"
+        set "_char=%%b"
+    )
+)
 if not defined _char set "_char= "
 set "_ltrim=0"
 set "_rtrim=0"
 set "_chars=!_char!"
-set "_value=!%_var%!"
+for /f "delims=" %%v in ("!_var!") do set "_value=!%%v!"
 for /l %%n in (1,1,12) do set "_chars=!_chars!!_chars!"
 for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
     if "!_value:~0,%%n!" == "!_chars:~0,%%n!" (
@@ -23,11 +31,12 @@ for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
         set "_value=!_value:~0,-%%n!"
     )
 )
+for /f "delims=" %%v in ("!_var!") do (
 for /f "tokens=1-2" %%a in ("!_ltrim! !_rtrim!") do (
     endlocal
-    if not "%%b" == "0" set "%_var%=!%_var%:~0,-%%b!"
-    if not "%%a" == "0" set "%_var%=!%_var%:~%%a!"
-)
+    if not "%%b" == "0" set "%%v=!%%v:~0,-%%b!"
+    if not "%%a" == "0" set "%%v=!%%v:~%%a!"
+))
 exit /b 0
 
 
@@ -45,7 +54,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=input_string"
+set "%~1extra_requires=input_string capchar macroify"
 set "%~1category=string"
 exit /b 0
 
@@ -56,6 +65,7 @@ exit /b 0
 ::
 ::  SYNOPSIS
 ::      strip <input_var> [character]
+::      ( %strip:$args=<input_var> [character]% )
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_var
@@ -63,6 +73,9 @@ exit /b 0
 ::
 ::      character
 ::          The character to strip.
+::
+::  NOTES
+::      - Function can be converted to macro using macroify()
 exit /b 0
 
 
@@ -79,6 +92,11 @@ exit /b 0
 
 
 :tests.setup
+call :capchar LF
+call :macroify strip "%~f0" "strip"
+exit /b 0
+
+
 :tests.teardown
 exit /b 0
 
@@ -133,6 +151,26 @@ set "expected=!result:~3,-3!"
 call :strip result
 if not "!result!" == "!expected!" (
     call %unittest% fail "Failed when characters to strip are in the middle"
+)
+exit /b 0
+
+
+:tests.test_macro
+for %%a in (
+    "first:   first   "
+    "second:   second"
+    "third:third   "
+    ":"
+    ":        "
+) do for /f "tokens=1* delims=:" %%b in (".%%~a") do (
+    set "given=%%c"
+    set "result=%%c"
+    ( %strip:$args=result% )
+    set "expected=%%b"
+    set "expected=!expected:~1!"
+    if not "!result!" == "!expected!" (
+        call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
+    )
 )
 exit /b 0
 
