@@ -9,7 +9,7 @@ rem ############################################################################
 :license
 echo MIT No Attribution
 echo=
-echo Copyright 2017-2024 wthe22
+echo Copyright 2017-2025 wthe22
 echo=
 echo Permission is hereby granted, free of charge, to any person obtaining a copy of this
 echo software and associated documentation files (the "Software"), to deal in the Software
@@ -306,11 +306,11 @@ rem ############################################################################
 
 :metadata [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=3.2a1"
+set "%~1version=3.2a2"
 set "%~1authors=wthe22"
 set "%~1license=MIT No Attribution"
 set "%~1description=Batch Script Library"
-set "%~1release_date=12/31/2024"   :: mm/dd/YYYY
+set "%~1release_date=01/04/2025"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
 exit /b 0
@@ -331,7 +331,7 @@ echo Visit http://winscr.blogspot.com/ or https://github.com/wthe22/batch-script
 echo for more scripts^^!
 echo=
 echo=
-echo Copyright (C) 2017-2024 by !authors!
+echo Copyright (C) 2017-2025 by !authors!
 echo Licensed under !license!
 endlocal
 exit /b 0
