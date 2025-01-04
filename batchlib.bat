@@ -228,9 +228,10 @@ rem ############################################################################
 ::  TLDR
 ::      Simplifying usage with some new features, and license change
 ::
-::  - New features: list_lf2set, conf_edit, argparse2, endlocal, updater,
-::                  get_net_iface, timeleft
-::  - Bug fixes: endlocal, quicktest, strip
+::  - New subcommand: run
+::  - New functions: list_lf2set, conf_edit, argparse2, endlocal, updater,
+::    get_net_iface, timeleft
+::  - Bug fixes: endlocal, quicktest, strip, input_yesno
 ::  - Behavior changes: quicktest, check_path, strip
 ::  - Incompatible changes: unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
@@ -241,8 +242,9 @@ rem ############################################################################
 ::  - Remove '-c' subcommand requirement to build script
 ::  - Add build script warning when ':entry_point' is not at line 1
 ::
-::  - list_lf2set(): New. Similar to list2set() but with Line Feed seperator
-::  - conf_edit(): New. Simple configuration file editor
+::  - list_lf2set(): New! Similar to list2set() but with Line Feed seperator
+::  - ini_edit(): New! INI configuration file editor
+::  - get_net_iface(): NEW! Get network interface data
 ::
 ::  - argparse(): Deprecated. Please use argparse2() instead.
 ::  - argparse2():
@@ -253,12 +255,12 @@ rem ############################################################################
 ::  - check_path(): Adjust exit status so invalid argument
 ::                  errors are distinguishable
 ::  - combi_wcdir(): Simplify code by using list_lf2set()
-::  - conf_edit(): NEW! A simple config file editor
 ::  - endlocal():
 ::      - Fix string gets executed when it contains ampersand
 ::      - Add ability to quit multiple stacks of setlocal
 ::      - Function signature change
-::  - get_net_iface(): NEW! Get network interface data
+::  - get_os(): Function can now detect Windows 11
+::  - input_yesno(): Fix value not returned if the value is null
 ::  - nroot(): Improve readabilty
 ::  - prime(): Add nroot dependency and improve readabilty
 ::  - quicktest():
@@ -288,6 +290,15 @@ rem ############################################################################
 ::  - Add new subcommand to view documentation of a script
 exit /b 0
 
+
+:changelog.dev
+::  - input_yesno():
+::      - Fix regressioin where return var becomes required
+::      - Fix null value not returned
+::  - ini_edit():
+::      - Renamed from conf_edit()
+::      - Add limited section support
+exit /b 0
 
 rem ############################################################################
 rem Metadata
