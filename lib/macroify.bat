@@ -68,16 +68,33 @@ exit /b 0
 ::          - Label not found
 ::          - Read line failed
 ::
-::  NOTES
-::      - Macro must use parentheses (e.g. '( %macro% )') except if all commands
-::        can be read at once (advanced). For example:
-::          - All commands are read at once:
-::              ::  echo first & (
-::              ::      echo second
-::              ::  )
-::          - Commands are read seperately:
-::              ::  echo first
-::              ::  echo second
+::  DEVELOPMENT AND USAGE
+::      There are few things to know when making a macro.
+::
+::      A function that can be converted to macro in most cases:
+::          - Cannot use %...%, it must use !...! instead
+::
+::      Additionally, although it haven't been proven yet, but these things might
+::      behave differently than normal when using the function as a macro:
+::          - Escape characters such as ^ or %%
+::
+::      When using a macro, in most cases you have to put the macro inside a
+::      code block (parentheses) so that it can work normally.
+::
+::          rem ERROR:
+::          %strip:$args=text1%
+::
+::          rem OK:
+::          ( %strip:$args=text1% )
+::
+::          rem Also OK:
+::          if "!strip_text!" == "true" (
+::              rem It works because it is inside a parentheses
+::              %strip:$args=text1%
+::          )
+::
+::      The key is to make cmd think that your function is a single block of
+::      command or inside one.
 exit /b 0
 
 
