@@ -80,7 +80,7 @@ set "_section="
             for /f "tokens=1 delims==" %%k in ("!_line_stripped!") do (
                 set "_key=%%k"
                 call :strip _key
-                set "_value=!_line_stripped:*%%k=!"
+                set "_value=!_line:*%%k=!"
                 set "_value=!_value:~1!"
             )
         )
@@ -176,7 +176,7 @@ rem ############################################################################
 ::              indents=ignored. the key name is 'indents'.
 ::          food    =the key name is 'food'
 ::          drinks=   <- value contains leading whitespaces
-::          snacks=trailing whitespaces will be stripped ->
+::          snacks=trailing whitespaces will not be trimmed ->
 ::          key=duplicate key. it will get 1st, set all, remove all
 ::
 ::          escape_chars=not supported. \n will remain as \n
@@ -294,6 +294,18 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
+:tests.test_get_whitespace
+call :coderender "%~f0" tests.template.mcsp "get_whitespace" > "special"
+call :ini_edit get "special" motd result || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected= Default "
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
 :tests.test_set
 copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 set "new_value_var=Hello"
@@ -400,6 +412,8 @@ if "!action!" == "pop" (
 ::  motd=Hello
 ) else if "!action!" == "get_expanded" (
 ::  motd==^ ^^ %0 %%a !e! "^ ^^ %0 %%a !e!"
+) else if "!action!" == "get_whitespace" (
+    echo motd= Default %=REQUIRED=%
 ) else (
 ::  motd=Default
 )
