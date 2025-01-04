@@ -269,8 +269,9 @@ rem ############################################################################
 ::      - Error in tests.setup() will abort the test,
 ::        making behavior consistent with unittest
 ::  - strip():
-::      - Function can now safely process special characters in variable
-::        and strip double quotes
+::      - Special characters in variable can now be safely processed
+::      - Double quotes can now be stripped
+::      - Function can now be converted to macro by using macroify()
 ::  - timeit(): Add unittest, reformat macro code
 ::  - timeleft(): Add macro
 ::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
@@ -285,6 +286,7 @@ rem ############################################################################
 ::  - Fix argument syntax of: quicktest, hexlify, argparse2
 ::  - Fix demo of: unittest
 ::  - Improve some documentations
+::  - macroify(): Add details on creating and using macros
 ::  - Template subcommand will list available template when no name is given
 ::  - Mark functions as required or optional in template.bat
 ::  - Add new subcommand to view documentation of a script
@@ -292,12 +294,7 @@ exit /b 0
 
 
 :changelog.dev
-::  - input_yesno():
-::      - Fix regressioin where return var becomes required
-::      - Fix null value not returned
-::  - ini_edit():
-::      - Renamed from conf_edit()
-::      - Add limited section support
+::  - ini_edit(): Leave value as-is
 exit /b 0
 
 rem ############################################################################
