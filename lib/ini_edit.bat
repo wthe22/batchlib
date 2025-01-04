@@ -165,7 +165,7 @@ rem ############################################################################
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
 ::      and unknown entries when editing files. It can handle values with special
-::      characters, but cannot handle keys and section with special characters.
+::      characters, but cannot handle keys and sections with special characters.
 ::
 ::      This is an example to show how config files are parsed:
 ::
@@ -196,7 +196,7 @@ rem ############################################################################
 ::      action
 ::          Action to do. Possible values:
 ::              - get: Get value of a key
-::              - set: Edit value of a key
+::              - set: Add a new key or edit value of an existing key
 ::              - pop: Remove a key and get the value
 ::
 ::      config_file
