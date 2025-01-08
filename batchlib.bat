@@ -233,7 +233,7 @@ rem ############################################################################
 ::    get_net_iface, timeleft
 ::  - Bug fixes: endlocal, quicktest, strip, input_yesno
 ::  - Behavior changes: quicktest, check_path, strip
-::  - Incompatible changes: unittest, endlocal
+::  - Incompatible changes: coderender, unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
 ::  - License: Remove attribution requirement (MIT No Attribution)
 ::
@@ -254,6 +254,9 @@ rem ############################################################################
 ::      - A single flag can now capture multiple arguments
 ::  - check_path(): Adjust exit status so invalid argument
 ::                  errors are distinguishable
+::  - coderender():
+::      - Add option to generate codes to render
+::      - Changed the way arguments are passed to template
 ::  - combi_wcdir(): Simplify code by using list_lf2set()
 ::  - endlocal():
 ::      - Fix string gets executed when it contains ampersand
@@ -295,6 +298,9 @@ exit /b 0
 
 :changelog.dev
 ::  - ini_edit(): Leave value as-is
+::  - coderender():
+::      - Add option to generate codes to render
+::      - Changed the way arguments are passed to template
 exit /b 0
 
 rem ############################################################################
