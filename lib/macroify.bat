@@ -71,12 +71,9 @@ exit /b 0
 ::  DEVELOPMENT AND USAGE
 ::      There are few things to know when making a macro.
 ::
-::      A function that can be converted to macro in most cases:
-::          - Cannot use %...%, it must use !...! instead
-::
-::      Additionally, although it haven't been proven yet, but these things might
-::      behave differently than normal when using the function as a macro:
-::          - Escape characters such as ^ or %%
+::      When function becomes a macro, there are some behavior changes:
+::          - %...% variables does not work, must use !...! instead
+::          - But %%a %~1 %%~b etc. works normally
 ::
 ::      When using a macro, in most cases you have to put the macro inside a
 ::      code block (parentheses) so that it can work normally.
