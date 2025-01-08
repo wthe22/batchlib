@@ -3,18 +3,25 @@ call %*
 exit /b
 
 
-:coderender <file> <label> [arg]
+:coderender <file> <label> [--compile-only]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
 set "_label=%~2"
-set "_args=%~3"
+set "_render=true"
+if "%~3" == "--compile-only" (
+    set "_render="
+)
+
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 call :functions_range _range "!_source_file!" "!_label!"
 call :readline "!_source_file!" !_range! 1 > ".coderender._template" || exit /b 2
 for %%f in (code literal) do call 2> ".coderender._%%f"
 findstr /n "^" ".coderender._template" > ".coderender._numbered"
 call :coderender._group_lines
-> ".coderender._render.bat" (
+if defined _render (
+    set _write=^> ".coderender._render.bat"
+)
+%_write% (
     echo goto coderender._render
     echo=
     echo=
@@ -28,7 +35,9 @@ call :coderender._group_lines
     echo=
     type "%~f0"
 )
-call ".coderender._render.bat" !_args! || exit /b 3
+if defined _render (
+    call ".coderender._render.bat" !_args! || exit /b 3
+)
 exit /b 0
 #+++
 
@@ -84,7 +93,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=functions_range readline"
-set "%~1extra_requires=functions_range readline"
+set "%~1extra_requires=functions_range readline get_os true"
 set "%~1category=packaging"
 exit /b 0
 
@@ -94,7 +103,13 @@ exit /b 0
 ::      coderender - simple template engine
 ::
 ::  SYNOPSIS
-::      coderender <file> <label> [arg]
+::      coderender <file> <label> --compile-only
+::
+::  DESCRIPTION
+::      This function extracts the template codes into a file. That file will be
+::      executed in order to render the output.
+::
+::      function -> render_template.bat -> output
 ::
 ::  POSITIONAL ARGUMENTS
 ::      file
@@ -104,10 +119,10 @@ exit /b 0
 ::          The function label that contains the template. Function/template
 ::          line range is determined by functions_range().
 ::
-::      arg
-::          Argument to pass to template function with surrounding quotes removed.
-::          i.e. if ARG is "-v -a", function sees it as 2 arguments because the
-::          surrounding quotes are removed.
+::  OPTIONS
+::      --compile-only
+::          Generate codes to render the output instead of directly rendering
+::          the output.
 ::
 ::  TEMPLATE SYNTAX
 ::      Each line of literal blocks starts with '::  ' or '::' (for empty lines),
@@ -142,6 +157,7 @@ exit /b 0
 
 
 :doc.demo
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 echo Codes
 echo =====
 call :functions_range _range "%~f0" "doc.demo.template" || exit /b 2
@@ -150,6 +166,12 @@ echo=
 echo Result
 echo ======
 call :coderender "%~f0" "doc.demo.template"
+echo=
+echo=
+echo Result when using arguments:
+echo ======================
+call :coderender "%~f0" "doc.demo.template" --compile-only > "render.bat"
+call "render.bat" add_extra
 exit /b 0
 
 
@@ -174,6 +196,9 @@ rem Functions within this file can be called too
 call :get_os os_name --name
 echo Windows Version: !os_name!
 echo=
+if "%~1" == "add_extra" (
+::  The quick brown fox jumps over the lazy dog
+)
 exit /b 0
 
 
@@ -335,9 +360,27 @@ if "a" == "a" (
 exit /b 0
 
 
+:tests.test_call
+call :tests.type output.function > "expected"
+call :coderender "%~f0" "tests.template.function" > "result"
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+:tests.template.function
+call :true && (
+::  PASS
+) || (
+::  FAIL
+)
+exit /b 0
+
+
 :tests.test_args
 call :tests.type output.hello > "expected"
-call :coderender "%~f0" "tests.template.args" Howdy > "result"
+call :coderender "%~f0" "tests.template.args" --compile-only > "template.bat"
+call "template.bat" Howdy > "result"
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -369,6 +412,11 @@ exit /b 0
 ::  Hello
 ::
 ::  Hi
+exit /b 0
+
+
+:tests.output.function
+::  PASS
 exit /b 0
 
 
