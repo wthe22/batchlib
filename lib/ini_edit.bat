@@ -157,35 +157,38 @@ rem ############################################################################
 ::      ini_edit - INI file editor
 ::
 ::  SYNOPSIS
-::      ini_edit <action> <config_file> <key> [var]
-::      ini_edit get <config_file> <key> <return_var>
-::      ini_edit set <config_file> <key> <value_var>
-::      ini_edit pop <config_file> <key> [return_var]
+::      ini_edit <action> <config_file> [-s SECTION] <key> [var]
+::      ini_edit get <config_file> [-s SECTION] <key> <return_var>
+::      ini_edit set <config_file> [-s SECTION] <key> <value_var>
+::      ini_edit pop <config_file> [-s SECTION] <key> [return_var]
 ::
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
 ::      and unknown entries when editing files. It can handle values with special
 ::      characters, but cannot handle keys and sections with special characters.
 ::
-::      This is an example to show how config files are parsed:
+::      An explanation about how config files are parsed:
 ::
 ::          # This is a comment
 ::          ; This is also a comment
 ::          key=value
 ::          quoted="quotes are preserved"
-::              indents=ignored. the key name is 'indents'.
-::          food    =the key name is 'food'
-::          drinks=   <- value contains leading whitespaces
-::          snacks=trailing whitespaces will not be trimmed ->
-::          key=duplicate key. it will get 1st, set all, remove all
+::          value=  <- leading and trailing whitespaces will not be trimmed ->
 ::
-::          escape_chars=not supported. \n will remain as \n
-::          inline_comment=not supported. # this is not a comment
-::          "quoted=keys"=not supported. function will think that
-::          #             the key name is '"quoted'
+::              indents=IGNORED.            Key name: 'indents'.
+::            spaces_around_keys  =IGNORED. Key name: 'spaces_around_keys'
+::
+::          escape_chars   = NOT SUPPORTED. \n will remain as \n
+::          inline_comment = NOT SUPPORTED. # THIS IS NOT A COMMENT
+::          "quoted=keys"  = NOT SUPPORTED. Function will think that
+::          #                the key name is '"quoted'
+::
+::          duplicate_key = Behavior: currently it will get 1st,
+::          duplicate_key = set all, remove all
 ::
 ::          [section is supported]
 ::          [but section with "^special characters!" arent supported]
+::
 ::          lines_without_equal_sign_will_be_ignored
 ::
 ::  OPTIONS
