@@ -100,10 +100,10 @@ exit /b 0
 
 :doc.demo
 call :capchar LF
-call :macroify codes "%~f0" "tests.template.multiline"
+call :macroify codes "%~f0" "tests.template.demo"
 echo RAW CODE
 echo ========
-call :functions_range _range "%~f0" "tests.template.multiline" || exit /b 3
+call :functions_range _range "%~f0" "tests.template.demo" || exit /b 3
 call :readline "%~f0" !_range! 1:-1 || exit /b 3
 echo=
 echo MACRO CODE
@@ -182,6 +182,18 @@ exit /b 0
 
 :tests.template.for_loop
 for /l %%n in (1,1,4) do echo #%%n
+exit /b 0
+
+
+:tests.template.demo
+set "variable=correct"
+echo Hello^^!
+echo This will not be expanded: %variable%
+echo This will be expanded: !variable!
+echo Caret ^^ works normally
+echo Multiline ^
+text
+for /l %%n in (1,1,3) do echo #%%n
 exit /b 0
 
 
