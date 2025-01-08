@@ -112,7 +112,20 @@ exit /b 0
 ::  TEMPLATE SYNTAX
 ::      Each line of literal blocks starts with '::  ' or '::' (for empty lines),
 ::      and the rest are codes. Codes will run normally while literal blocks are
-::      printed out literally.
+::      printed out literally. Template can access other parts of the file too
+::      (e.g call functions).
+::
+::          rem This is a comment
+::          :: This is also a comment
+::          ::  This is a literal block!
+::          rem The line below is a literal empty line
+::          ::
+::          if !score! GEQ 6 (
+::          ::  You passed.
+::              echo You score: !score!
+::          ) else (
+::          ::  You failed!
+::          )
 ::
 ::  ENVIRONMENT
 ::      tmp_dir
