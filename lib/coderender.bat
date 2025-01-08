@@ -143,22 +143,24 @@ exit /b 0
 :doc.demo.template
 set "favorite=French fries"
 ::  Hello! I am a literal block
-::  What You See Is What You Get
-::  <|> ^()^
+::  <What You See Is What You Get> ^(|)^
 ::
 ::  Marked by '::  ' at front, or '::' only for empty lines
 :: I'm a comment
 rem I'm also a comment
-echo [!random!] > nul
+echo This wont appear > nul
 if !random! LEQ 16384 (
-::  Just another line...
+::  The quick brown fox
 ) else (
-::  It's another line!
+::  The lazy dog
 )
 for /l %%i in (1,1,3) do (
-    set /p "=%%i: " < nul
 ::  Repeat
 )
+rem Functions within this file can be called too
+call :get_os os_name --name
+echo Windows Version: !os_name!
+echo=
 exit /b 0
 
 
