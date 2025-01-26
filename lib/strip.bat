@@ -3,23 +3,30 @@ call %*
 exit /b
 
 
-:strip <input_var> [character]
+:strip <input_var> [characters]
 setlocal EnableDelayedExpansion
 set _args=$args
 if "!_args!" == "$!!args" (
     set "_var=%~1"
-    set "_char=%~2"
+    set "_chars=%~2"
 ) else (
     for /f "tokens=1*" %%a in ("!_args!") do (
         set "_var=%%a"
-        set "_char=%%b"
+        set "_chars=%%b"
     )
 )
-if not defined _char set "_char= "
-for /f "delims=" %%v in ("!_var!") do set "_value=!%%v!"
+if not defined _chars set "_chars= !TAB!"
+for /f "delims=" %%v in ("!_var!") do set "_value=_!%%v!"
+for /f "delims=" %%a in ("!_chars:~0,1!") do (
+    for /l %%n in (1,1,3) do (
+    for /f "delims=" %%b in ("!_chars:~%%n,1!") do (
+        set "_value=!_value:%%b=%%a!"
+    ))
+)
+set "_value=!_value:~1!"
 set "_ltrim=0"
 set "_rtrim=0"
-set "_to_trim=!_char!"
+set "_to_trim=!_chars:~0,1!"
 for /l %%n in (1,1,12) do set "_to_trim=!_to_trim!!_to_trim!"
 for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
     if "!_value:~0,%%n!" == "!_to_trim:~0,%%n!" (
@@ -53,8 +60,8 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string capchar macroify"
+set "%~1install_requires=capchar"
+set "%~1extra_requires=input_string macroify"
 set "%~1category=string"
 exit /b 0
 
@@ -64,15 +71,25 @@ exit /b 0
 ::      strip - remove character from beginning and end of string
 ::
 ::  SYNOPSIS
-::      strip <input_var> [character]
-::      ( %strip:$args=<input_var> [character]% )
+::      strip <input_var> [characters]
+::      ( %strip:$args=<input_var> [characters]% )
 ::
 ::  POSITIONAL ARGUMENTS
 ::      input_var
 ::          The input variable name.
 ::
-::      character
-::          A single character to strip. By default, it is space (0x20)
+::      characters
+::          Characters to strip at the same time. Max 4 characters.
+::          Cannot strip multiple characters at the same time if it
+::          contains special characters (askterisk '*' and equal sign '=')
+::          By default, it is space (0x20) and tab (0x09)
+::
+::  ENVIRONMENT
+::      TAB
+::          A variable that contains TAB character (0x09). This is required for
+::          function to strip TAB characters by default. Can be initialized by
+::          capchar().
+::
 ::
 ::  NOTES
 ::      - Function can be converted to macro using macroify()
@@ -80,6 +97,8 @@ exit /b 0
 
 
 :doc.demo
+call :capchar TAB
+
 call :input_string string || set "string=  hello world.   "
 call :input_string character || set "character= "
 set "stripped=!string!"
@@ -92,7 +111,7 @@ exit /b 0
 
 
 :tests.setup
-call :capchar LF
+call :capchar LF TAB
 call :macroify strip "%~f0" "strip"
 exit /b 0
 
@@ -121,19 +140,43 @@ for %%a in (
 exit /b 0
 
 
-:tests.test_character
-for %%a in (
-    " equal :=:=== equal ========"
-    " hastag :#:### hastag ###"
-    " ### spaced :#: ### spaced ###"
-) do for /f "tokens=1-2* delims=:" %%b in (".%%~a") do (
-    set "given=%%d"
-    set "result=!given!"
-    call :strip result "%%c"
-    set "expected=%%b"
-    set "expected=!expected:~1!"
+:tests.test_single_character
+set "space=    space     "
+set "askterisk=****askterisk*"
+set "equal==equal============"
+set "colon=:::colon::::"
+for %%v in (space askterisk equal colon) do (
+    set "char=!%%v:~0,1!"
+    set "expected=%%v"
+    set "result=!%%v!"
+    call :strip result "!char!"
     if not "!result!" == "!expected!" (
-        call %unittest% fail "Given '!given!' and '%%c', expected '!expected!', got '!result!'"
+        call %unittest% fail "Fail at character '%%v'"
+    )
+)
+exit /b 0
+
+
+:tests.test_multiple_characters
+set "whitespaces=!TAB!!TAB! whitespaces   "
+set "title1=#####  title1  #####"
+set "title2=-~-~ title2 ~-~-"
+set "section=[section]"
+set "variable=${variable}"
+for %%a in (
+    "whitespaces:"
+    "title1:# "
+    "title2:~- "
+    "section:[]"
+    "variable:${}"
+) do for /f "tokens=1* delims=:" %%b in (%%a) do (
+    set "chars=%%c"
+    set "given=!%%b!"
+    set "expected=%%b"
+    set "result=!given!"
+    call :strip result "!chars!"
+    if not "!result!" == "!expected!" (
+        call %unittest% fail "Given '!given!' and '!char!', expected '!expected!', got '!result!'"
     )
 )
 exit /b 0
