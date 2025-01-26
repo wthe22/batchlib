@@ -3,9 +3,9 @@ call %*
 exit /b
 
 
-:ini_edit <action> <config_file> <key> [var]
+:ini_parse <action> <config_file> <key> [var]
 setlocal EnableDelayedExpansion
-call :argparse2 --name "ini_edit" ^
+call :argparse2 --name "ini_parse" ^
     ^ "[-s,--section SECTION]:  set _target_section" ^
     ^ "action:                  set _action" ^
     ^ "config_file:             set _input_file" ^
@@ -34,13 +34,13 @@ if not "!_action!" == "pop" if not defined _value_var (
     exit /b 2
 )
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-findstr /n "^^" "!_input_file!" > ".ini_edit._numbered" || (
+findstr /n "^^" "!_input_file!" > ".ini_parse._numbered" || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
 )
 for %%v in (_found _value) do (
-    if exist ".ini_edit.%%v" del /f /q ".ini_edit.%%v"
+    if exist ".ini_parse.%%v" del /f /q ".ini_parse.%%v"
 )
-set _write=^> ".ini_edit._edited"
+set _write=^> ".ini_parse._edited"
 if "!_action!" == "get" (
     set "_write="
 )
@@ -51,7 +51,7 @@ if "!_action!" == "set" (
 set "_section="
 %_write% (
     setlocal DisableDelayedExpansion
-    for /f "usebackq tokens=*" %%o in (".ini_edit._numbered") do (
+    for /f "usebackq tokens=*" %%o in (".ini_parse._numbered") do (
         set "_line=%%o"
         setlocal EnableDelayedExpansion
         set "_line=!_line:*:=!"
@@ -96,10 +96,10 @@ set "_section="
                 call :endlocal 3 _value:!_value_var!
                 exit /b 0
             ) else if "!_action!" == "pop" (
-                > ".ini_edit._value" echo(!_value!
+                > ".ini_parse._value" echo(!_value!
             ) else if "!_action!" == "set" (
                 echo !_target_key!=!%_value_var%!
-                echo true > ".ini_edit._found"
+                echo true > ".ini_parse._found"
             )
         ) else (
             if defined _write (
@@ -120,19 +120,19 @@ if "!_action!" == "get" (
     exit /b 3
 )
 if "!_action!" == "set" (
-    if exist ".ini_edit._found" (
-        del /f /q ".ini_edit._found"
+    if exist ".ini_parse._found" (
+        del /f /q ".ini_parse._found"
     ) else (
         echo !_target_key!=!%_value_var%!
     ) >%_write%
 )
 if defined _write (
-    move /y ".ini_edit._edited" "!_input_file!" > nul || exit /b 3
+    move /y ".ini_parse._edited" "!_input_file!" > nul || exit /b 3
 )
 if "!_action!" == "pop" (
-    if exist ".ini_edit._value" (
-        set /p "_value=" < ".ini_edit._value"
-        del /f /q ".ini_edit._value"
+    if exist ".ini_parse._value" (
+        set /p "_value=" < ".ini_parse._value"
+        del /f /q ".ini_parse._value"
     )
     if defined _value_var (
         call :endlocal 1 _value:!_value_var!
@@ -154,13 +154,13 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      ini_edit - INI file editor
+::      ini_parse - INI file editor
 ::
 ::  SYNOPSIS
-::      ini_edit <action> <config_file> [-s SECTION] <key> [var]
-::      ini_edit get <config_file> [-s SECTION] <key> <return_var>
-::      ini_edit set <config_file> [-s SECTION] <key> <value_var>
-::      ini_edit pop <config_file> [-s SECTION] <key> [return_var]
+::      ini_parse <action> <config_file> [-s SECTION] <key> [var]
+::      ini_parse get <config_file> [-s SECTION] <key> <return_var>
+::      ini_parse set <config_file> [-s SECTION] <key> <value_var>
+::      ini_parse pop <config_file> [-s SECTION] <key> [return_var]
 ::
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
@@ -235,23 +235,23 @@ echo=
 type "dummy.conf"
 echo=---------------------------------------------------------------------------------
 for %%v in (food message pi) do (
-    call :ini_edit get "dummy.conf" %%v result
+    call :ini_parse get "dummy.conf" %%v result
     echo GET %%v: "!result!"
 )
 for %%s in ("" "customer1" "customer2") do (
-    call :ini_edit get "dummy.conf" --section %%s name result
+    call :ini_parse get "dummy.conf" --section %%s name result
     echo GET %%s name: "!result!"
 )
 set new_value=lets use "roses are red, violets are blue"
 echo SET message: "!new_value!"
-call :ini_edit set "dummy.conf" message new_value
+call :ini_parse set "dummy.conf" message new_value
 
 set "new_value=Minecraft"
 echo SET game: !new_value!
-call :ini_edit set "dummy.conf" game new_value
+call :ini_parse set "dummy.conf" game new_value
 
 echo POP name
-call :ini_edit pop "dummy.conf" name
+call :ini_parse pop "dummy.conf" name
 echo=---------------------------------------------------------------------------------
 echo Edited configuration file
 echo=
@@ -275,7 +275,7 @@ exit /b 0
 
 
 :tests.test_get
-call :ini_edit get "mcsp.conf" motd result || (
+call :ini_parse get "mcsp.conf" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Default"
@@ -287,7 +287,7 @@ exit /b 0
 
 :tests.test_get_expanded_chars
 call :coderender "%~f0" tests.template.mcsp "get_expanded" > "special"
-call :ini_edit get "special" motd result || (
+call :ini_parse get "special" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set expected==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
@@ -299,7 +299,7 @@ exit /b 0
 
 :tests.test_get_whitespace
 call :coderender "%~f0" tests.template.mcsp "get_whitespace" > "special"
-call :ini_edit get "special" motd result || (
+call :ini_parse get "special" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected= Default "
@@ -312,7 +312,7 @@ exit /b 0
 :tests.test_set
 copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 set "new_value_var=Hello"
-call :ini_edit set "result" motd new_value_var || (
+call :ini_parse set "result" motd new_value_var || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 call :coderender "%~f0" tests.template.mcsp "set" > "expected"
@@ -325,7 +325,7 @@ exit /b 0
 :tests.test_set_new
 copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
 set "new_value_var=survival"
-call :ini_edit set "result" gamemode new_value_var || (
+call :ini_parse set "result" gamemode new_value_var || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 call :coderender "%~f0" tests.template.mcsp "set_new" > "expected"
@@ -337,7 +337,7 @@ exit /b 0
 
 :tests.test_pop
 copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
-call :ini_edit pop "result" motd result || (
+call :ini_parse pop "result" motd result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 call :coderender "%~f0" tests.template.mcsp "pop" > "expected"
@@ -352,7 +352,7 @@ exit /b 0
 
 
 :tests.test_ignore_key_spaces
-call :ini_edit get "mcsp.conf" allow-flight result || (
+call :ini_parse get "mcsp.conf" allow-flight result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=false"
@@ -363,7 +363,7 @@ exit /b 0
 
 
 :tests.test_ignore_comments
-call :ini_edit get "mcsp.conf" #generator-settings result && (
+call :ini_parse get "mcsp.conf" #generator-settings result && (
     call %unittest% fail
 )
 set "expected="
@@ -374,7 +374,7 @@ exit /b 0
 
 
 :tests.test_ignore_unknown
-call :ini_edit get "mcsp.conf" no-value result && (
+call :ini_parse get "mcsp.conf" no-value result && (
     call %unittest% fail
 )
 set "expected="
@@ -385,7 +385,7 @@ exit /b 0
 
 
 :tests.test_section
-call :ini_edit get "demo.conf" -s customer1 name result || (
+call :ini_parse get "demo.conf" -s customer1 name result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Bill"
@@ -393,7 +393,7 @@ if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 
-call :ini_edit get "demo.conf" --section customer2 name result || (
+call :ini_parse get "demo.conf" --section customer2 name result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Wally"
