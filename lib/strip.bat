@@ -72,7 +72,7 @@ exit /b 0
 ::          The input variable name.
 ::
 ::      character
-::          The character to strip.
+::          A single character to strip. By default, it is space (0x20)
 ::
 ::  NOTES
 ::      - Function can be converted to macro using macroify()
