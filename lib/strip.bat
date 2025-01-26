@@ -16,17 +16,17 @@ if "!_args!" == "$!!args" (
     )
 )
 if not defined _char set "_char= "
+for /f "delims=" %%v in ("!_var!") do set "_value=!%%v!"
 set "_ltrim=0"
 set "_rtrim=0"
-set "_chars=!_char!"
-for /f "delims=" %%v in ("!_var!") do set "_value=!%%v!"
-for /l %%n in (1,1,12) do set "_chars=!_chars!!_chars!"
+set "_to_trim=!_char!"
+for /l %%n in (1,1,12) do set "_to_trim=!_to_trim!!_to_trim!"
 for %%n in (4096 2048 1024 512 256 128 64 32 16 8 4 2 1) do (
-    if "!_value:~0,%%n!" == "!_chars:~0,%%n!" (
+    if "!_value:~0,%%n!" == "!_to_trim:~0,%%n!" (
         set /a "_ltrim+=%%n"
         set "_value=!_value:~%%n!"
     )
-    if "!_value:~-%%n,%%n!" == "!_chars:~-%%n,%%n!" (
+    if "!_value:~-%%n,%%n!" == "!_to_trim:~-%%n,%%n!" (
         set /a "_rtrim+=%%n"
         set "_value=!_value:~0,-%%n!"
     )
