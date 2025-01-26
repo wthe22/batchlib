@@ -5,7 +5,7 @@ exit /b
 
 :strip <input_var> [character]
 setlocal EnableDelayedExpansion
-set "_args=$args"
+set _args=$args
 if "!_args!" == "$!!args" (
     set "_var=%~1"
     set "_char=%~2"
