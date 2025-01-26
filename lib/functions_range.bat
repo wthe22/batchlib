@@ -19,8 +19,8 @@ set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 set _search=^
-	^ /c:"^^[!TAB! @]*exit  */b.*!CR!*!LF!!CR!*!LF!" ^
-	^ /c:"^^[!TAB! @]*goto  *.*!CR!*!LF!!CR!*!LF!" ^
+    ^ /c:"^^[!TAB! @]*exit  */b.*!CR!*!LF!!CR!*!LF!" ^
+    ^ /c:"^^[!TAB! @]*goto  *.*!CR!*!LF!!CR!*!LF!" ^
     ^ /c:"^^[!TAB! @]*:[^^: ]"
 findstr /n /r !_search! "!_input_file!" > ".functions_range._tokens" 2> nul || (
     1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
