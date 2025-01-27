@@ -154,7 +154,7 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      ini_parse - INI file editor
+::      ini_parse - INI configuration file parser and editor
 ::
 ::  SYNOPSIS
 ::      ini_parse <action> <config_file> [-s SECTION] <key> [var]
@@ -166,6 +166,7 @@ rem ############################################################################
 ::      A non-destructive INI-style config file editor. It will not remove comments
 ::      and unknown entries when editing files. It can handle values with special
 ::      characters, but cannot handle keys and sections with special characters.
+::      Multiline values are not supported.
 ::
 ::      An explanation about how config files are parsed:
 ::
@@ -178,10 +179,10 @@ rem ############################################################################
 ::              indents=IGNORED.            Key name: 'indents'.
 ::            spaces_around_keys  =IGNORED. Key name: 'spaces_around_keys'
 ::
-::          escape_chars   = NOT SUPPORTED. \n will remain as \n
+::          escape_chars   = NOT EXPANDED. \n will remain as \n
 ::          inline_comment = NOT SUPPORTED. # THIS IS NOT A COMMENT
 ::          "quoted=keys"  = NOT SUPPORTED. Function will think that
-::          #                the key name is '"quoted'
+::          #                the key name is '"quoted', not 'quoted=keys'
 ::
 ::          duplicate_key = Behavior: currently it will get 1st,
 ::          duplicate_key = set all, remove all
@@ -229,33 +230,33 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :coderender "%~f0" tests.template.demo > "dummy.conf"
+call :coderender "%~f0" tests.template.demo > "dummy.ini"
 echo Original configuration file
 echo=
-type "dummy.conf"
+type "dummy.ini"
 echo=---------------------------------------------------------------------------------
 for %%v in (food message pi) do (
-    call :ini_parse get "dummy.conf" %%v result
+    call :ini_parse get "dummy.ini" %%v result
     echo GET %%v: "!result!"
 )
-for %%s in ("" "customer1" "customer2") do (
-    call :ini_parse get "dummy.conf" --section %%s name result
+for %%s in ("" "mom" "dad") do (
+    call :ini_parse get "dummy.ini" --section %%s name result
     echo GET %%s name: "!result!"
 )
 set new_value=lets use "roses are red, violets are blue"
 echo SET message: "!new_value!"
-call :ini_parse set "dummy.conf" message new_value
+call :ini_parse set "dummy.ini" message new_value
 
 set "new_value=Minecraft"
 echo SET game: !new_value!
-call :ini_parse set "dummy.conf" game new_value
+call :ini_parse set "dummy.ini" game new_value
 
 echo POP name
-call :ini_parse pop "dummy.conf" name
+call :ini_parse pop "dummy.ini" name
 echo=---------------------------------------------------------------------------------
 echo Edited configuration file
 echo=
-type "dummy.conf"
+type "dummy.ini"
 exit /b 0
 
 
@@ -385,18 +386,18 @@ exit /b 0
 
 
 :tests.test_section
-call :ini_parse get "demo.conf" -s customer1 name result || (
+call :ini_parse get "demo.ini" --section mom name result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected=Bill"
+set "expected=Alice"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 
-call :ini_parse get "demo.conf" --section customer2 name result || (
+call :ini_parse get "demo.ini" --section dad name result || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected=Wally"
+set "expected=Bob"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
@@ -435,16 +436,19 @@ exit /b 0
 :tests.template.demo
 ::  # This is a comment
 ::  ; This is also a comment
-::  food=Banana
+::  name=Charlie
+::  name=Carol
 ::  message=raspberries are red & blueberries are blue!
-::  name=Jane
-::  name=John
+::  food=Banana
 ::  pi  = 3.14159
-::  [customer1]
-::  name=Bill
-::  message=Food is important
-::  [customer2]
-::  name=Wally
+::
+::  [dad]
+::  name=Bob
+::  message=Security is important
+::
+::  [mom]
+::  name=Alice
+exit /b 0
 exit /b 0
 
 rem ############################################################################
