@@ -157,10 +157,12 @@ rem ############################################################################
 ::      ini_parse - INI configuration file parser and editor
 ::
 ::  SYNOPSIS
-::      ini_parse <action> <config_file> [-s SECTION] <key> [var]
-::      ini_parse get <config_file> [-s SECTION] <key> <return_var>
-::      ini_parse set <config_file> [-s SECTION] <key> <value_var>
-::      ini_parse pop <config_file> [-s SECTION] <key> [return_var]
+::      ini_parse <action> ...
+::      ini_parse sections <return_var_prefix> <config_file>
+::      ini_parse keys <return_var> <config_file> <section>
+::      ini_parse get <return_var> <config_file> <section> <key>
+::      ini_parse set <value_var> <config_file> <section> <key>
+::      ini_parse pop <return_var> <config_file> <section> <key>
 ::
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
@@ -188,17 +190,19 @@ rem ############################################################################
 ::          duplicate_key = set all, remove all
 ::
 ::          [section is supported]
-::          [but section with "^special characters!" arent supported]
 ::
 ::          lines_without_equal_sign_will_be_ignored
 ::
-::  OPTIONS
-::      -s, --section
-::          Section of the key. LIMIATIONS: See NOTES.
+::      Assumptions:
+::      - Only section can starts with '['
+::      - Keys that starts with '[' must be quoted
+::        so it starts with '"' or "'" instead
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
 ::          Action to do. Possible values:
+::              - sections: Get section names
+::              - keys: Get keys in a section
 ::              - get: Get value of a key
 ::              - set: Add a new key or edit value of an existing key
 ::              - pop: Remove a key and get the value
@@ -217,10 +221,12 @@ rem ############################################################################
 ::
 ::  EXIT STATUS
 ::      0:  - Success
+::      1:  - Unexpected error
 ::      2:  - Invalid parameters
-::          - Cannot open file
-::      3:  - get: Key not found
-::          - set/pop: Update file failed
+::          - File not found
+::      3:  - Fail to save intermediate parsing data
+::      4:  - get/pop: Key not found
+::      5:  - set/pop: Fail to apply changes to file
 ::
 ::  NOTES
 ::      - Currently function cannot add a new key to a specific section, it will
@@ -230,33 +236,34 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-call :coderender "%~f0" tests.template.demo > "dummy.ini"
+call :coderender "%~f0" tests.template.demo > "demo.ini"
 echo Original configuration file
 echo=
-type "dummy.ini"
+type "demo.ini"
 echo=---------------------------------------------------------------------------------
-for %%v in (food message pi) do (
-    call :ini_parse get "dummy.ini" %%v result
+for %%v in (food message pi tricky) do (
+    call :ini_parse get "demo.ini" %%v result
     echo GET %%v: "!result!"
 )
 for %%s in ("" "mom" "dad") do (
-    call :ini_parse get "dummy.ini" --section %%s name result
+    call :ini_parse get result "demo.ini" %%s name
     echo GET %%s name: "!result!"
 )
-set new_value=lets use "roses are red, violets are blue"
+
+set new_value="raspberries are red ^& blueberries are blue^!"
 echo SET message: "!new_value!"
-call :ini_parse set "dummy.ini" message new_value
+call :ini_parse set "demo.ini" message new_value
 
 set "new_value=Minecraft"
 echo SET game: !new_value!
-call :ini_parse set "dummy.ini" game new_value
+call :ini_parse set new_value "demo.ini" dad game
 
 echo POP name
-call :ini_parse pop "dummy.ini" name
+call :ini_parse pop _ "demo.ini" "" name
 echo=---------------------------------------------------------------------------------
 echo Edited configuration file
 echo=
-type "dummy.ini"
+type "demo.ini"
 exit /b 0
 
 
@@ -265,8 +272,10 @@ rem Tests
 rem ############################################################################
 
 :tests.setup
-call :coderender "%~f0" tests.template.mcsp > "mcsp.conf"
-call :coderender "%~f0" tests.template.demo > "demo.conf"
+call :capchar TAB
+call :coderender "%~f0" tests.template.mcsp --compile-only > "mcsp-render.bat" || exit /b 3
+call "mcsp-render.bat" > "mcsp.ini" || exit /b 3
+call :coderender "%~f0" tests.template.demo > "demo.ini" || exit /b 3
 set "result="
 exit /b 0
 
@@ -275,11 +284,52 @@ exit /b 0
 exit /b 0
 
 
-:tests.test_get
-call :ini_parse get "mcsp.conf" motd result || (
+:tests.test_sections
+call :ini_parse sections result "demo.ini" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected=Default"
+set "expected= dad mom"
+if not "!result!" == "!expected!" (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_keys
+call :ini_parse keys result "demo.ini" "" || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected= name name message food pi"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Fail to get keys without section"
+)
+call :ini_parse keys result "demo.ini" "dad" || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected= name message"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Fail to get keys with section"
+)
+exit /b 0
+
+
+:tests.test_get
+call :ini_parse get result "demo.ini" "" food || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=Banana"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_get_none
+set "result=asd"
+call :ini_parse get result "demo.ini" "" nonexisting && (
+    call %unittest% fail "unexpected success"
+)
+set "expected="
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
@@ -287,8 +337,7 @@ exit /b 0
 
 
 :tests.test_get_expanded_chars
-call :coderender "%~f0" tests.template.mcsp "get_expanded" > "special"
-call :ini_parse get "special" motd result || (
+call :ini_parse get result "demo.ini" "" tricky || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set expected==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
@@ -299,11 +348,11 @@ exit /b 0
 
 
 :tests.test_get_whitespace
-call :coderender "%~f0" tests.template.mcsp "get_whitespace" > "special"
-call :ini_parse get "special" motd result || (
+call "mcsp-render.bat" motd_whitespace > "mcsp.ini" || exit /b 3
+call :ini_parse get result "mcsp.ini" "" motd || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected= Default "
+set "expected=!TAB!Default "
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
@@ -311,12 +360,12 @@ exit /b 0
 
 
 :tests.test_set
-copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
-set "new_value_var=Hello"
-call :ini_parse set "result" motd new_value_var || (
+copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
+set "new_message=Hello"
+call :ini_parse set new_message "result" "" motd || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-call :coderender "%~f0" tests.template.mcsp "set" > "expected"
+call "mcsp-render.bat" motd_hello > "expected"
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -324,12 +373,12 @@ exit /b 0
 
 
 :tests.test_set_new
-copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
-set "new_value_var=survival"
-call :ini_parse set "result" gamemode new_value_var || (
+copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
+set "new_gamemode=survival"
+call :ini_parse set new_gamemode "result" "" gamemode || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-call :coderender "%~f0" tests.template.mcsp "set_new" > "expected"
+call "mcsp-render.bat" gamemode_survival > "expected" || exit /b 3
 fc /a /lb1 result expected > nul || (
     call %unittest% fail
 )
@@ -337,11 +386,11 @@ exit /b 0
 
 
 :tests.test_pop
-copy /b /v /y "mcsp.conf" "result" > nul || exit /b 3
-call :ini_parse pop "result" motd result || (
+copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
+call :ini_parse pop result "result" "" motd || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-call :coderender "%~f0" tests.template.mcsp "pop" > "expected"
+call "mcsp-render.bat" > "motd_removed" || exit /b 3
 fc /a /lb1 result expected > nul || (
     call %unittest% fail "Remove key failed"
 )
@@ -353,7 +402,7 @@ exit /b 0
 
 
 :tests.test_ignore_key_spaces
-call :ini_parse get "mcsp.conf" allow-flight result || (
+call :ini_parse get result "mcsp.ini" "" allow-flight || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=false"
@@ -364,7 +413,7 @@ exit /b 0
 
 
 :tests.test_ignore_comments
-call :ini_parse get "mcsp.conf" #generator-settings result && (
+call :ini_parse get result "mcsp.ini" "" "level-name" && (
     call %unittest% fail
 )
 set "expected="
@@ -375,7 +424,7 @@ exit /b 0
 
 
 :tests.test_ignore_unknown
-call :ini_parse get "mcsp.conf" no-value result && (
+call :ini_parse get result "mcsp.ini" "" no-value && (
     call %unittest% fail
 )
 set "expected="
@@ -386,7 +435,7 @@ exit /b 0
 
 
 :tests.test_section
-call :ini_parse get "demo.ini" --section mom name result || (
+call :ini_parse get result "demo.ini" mom name || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Alice"
@@ -394,7 +443,7 @@ if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 
-call :ini_parse get "demo.ini" --section dad name result || (
+call :ini_parse get result "demo.ini" dad name || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=Bob"
@@ -408,26 +457,21 @@ exit /b 0
 setlocal EnableDelayedExpansion
 set "action=%~1"
 ::  # Minecraft Server Settings
-::  ;generator-settings={}
-::  level-name=world
-if "!action!" == "pop" (
+::  ;level-name=world
+::  #pvp=true
+if "!action!" == "motd_removed" (
     rem Deleted - Nothing
-) else if "!action!" == "set" (
+) else if "!action!" == "motd_hello" (
 ::  motd=Hello
-) else if "!action!" == "get_expanded" (
-::  motd==^ ^^ %0 %%a !e! "^ ^^ %0 %%a !e!"
-) else if "!action!" == "get_whitespace" (
-    echo motd= Default %=REQUIRED=%
+) else if "!action!" == "motd_whitespace" (
+    echo motd=!TAB!Default %=REQUIRED=%
 ) else (
 ::  motd=Default
 )
-::  pvp=true
 ::  max-players=10
-::  online-mode=false
-::  level-type=minecraft\:normal
 ::  no-value
-::     allow-flight  =false
-if "!action!" == "set_new" (
+echo !TAB!  allow-flight!TAB!!TAB! =false
+if "!action!" == "gamemode_survival" (
 ::  gamemode=survival
 )
 exit /b 0
@@ -438,9 +482,10 @@ exit /b 0
 ::  ; This is also a comment
 ::  name=Charlie
 ::  name=Carol
-::  message=raspberries are red & blueberries are blue!
+::  message="roses are red, violets are blue"
 ::  food=Banana
-::  pi  = 3.14159
+::    pi   = 3.14159
+::  tricky==^ ^^ %0 %%a !e! "^ ^^ %0 %%a !e!"
 ::
 ::  [dad]
 ::  name=Bob
