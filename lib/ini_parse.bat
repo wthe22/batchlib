@@ -3,147 +3,263 @@ call %*
 exit /b
 
 
-:ini_parse <action> <config_file> <key> [var]
+:ini_parse <action> <var> <config_file> [section] [key]
 setlocal EnableDelayedExpansion
-call :argparse2 --name "ini_parse" ^
-    ^ "[-s,--section SECTION]:  set _target_section" ^
-    ^ "action:                  set _action" ^
-    ^ "config_file:             set _input_file" ^
-    ^ "key:                     set _target_key" ^
-    ^ "[var]:                   set _value_var" ^
-    ^ -- %* || exit /b 2
-for %%f in ("!_input_file!") do (
-    set "_input_file=%%~ff"
-)
-set "_action_valid="
-for %%a in (get set pop) do (
-    if "!_action!" == "%%a" (
-        set "_action_valid=true"
-    )
-)
-if not defined _action_valid (
+set "_action=%~1"
+set "_return_var=%~2"
+set "_input_file=%~f3"
+set "_target_section=%~4"
+set "_target_key=%~5"
+cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
+if "!_action!" == "sections" (
+    set "_include=section"
+) else if "!_action!" == "keys" (
+    set "_include=section key"
+) else if "!_action!" == "get" (
+    set "_include=section matching_key"
+) else if "!_action!" == "set" (
+    set "_include=section key"
+    set "_value_var=!_return_var!"
+    set "_write=true"
+) else if "!_action!" == "pop" (
+    set "_include=section matching_key"
+    set "_write=true"
+) else (
     1>&2 echo%0: Invalid action '!_action!'
     exit /b 2
 )
-if not defined _target_key (
-    1>&2 echo%0: Key name cannot be empty
-    exit /b 2
+if not defined _return_var (
+    if not "!_action!" == "pop" (
+        1>&2 echo%0: Return / value variable is missing & exit /b 2
+    )
 )
-if not "!_action!" == "pop" if not defined _value_var (
-    1>&2 echo%0: No variable name given
-    exit /b 2
+if not exist "!_input_file!" (
+    1>&2 echo%0: File not found: "!_input_file!" & exit /b 2
 )
-cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-findstr /n "^^" "!_input_file!" > ".ini_parse._numbered" || (
-    1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2
+for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
+call :ini_parse._filter_file !_include! || (
+    1>&2 echo%0: Fail to save parsing preparation to file & exit /b 3
 )
-for %%v in (_found _value) do (
-    if exist ".ini_parse.%%v" del /f /q ".ini_parse.%%v"
+call :ini_parse._parse > ".ini_parse._data" || (
+    1>&2 echo%0: Fail to save parse data to file & exit /b 3
 )
-set _write=^> ".ini_parse._edited"
-if "!_action!" == "get" (
-    set "_write="
+if not defined _write (
+    call :ini_parse._return_value
+    exit /b
 )
-set "_read=true"
-if "!_action!" == "set" (
-    set "_read="
+call :ini_parse._edit_file > ".ini_parse._result" || (
+    1>&2 echo%0: Fail to save result to file & exit /b 3
 )
-set "_section="
-%_write% (
-    setlocal DisableDelayedExpansion
-    for /f "usebackq tokens=*" %%o in (".ini_parse._numbered") do (
-        set "_line=%%o"
-        setlocal EnableDelayedExpansion
-        set "_line=!_line:*:=!"
-        set "_line_stripped=!_line!"
-        call :strip _line_stripped
+move /y ".ini_parse._result" "!_input_file!" > nul || exit /b 5
+if "!_action!" == "pop" (
+    call :ini_parse._return_value
+)
+exit /b 0
+#+++
 
-        set "_struct="
-        set "_key="
+:ini_parse._filter_file [components] ...
+setlocal EnableDelayedExpansion
+set _include=%*
+set "_components=comment section key matching_key"
+for %%v in (!_components!) do (
+    set "_include_%%v="
+)
+for %%v in (!_include!) do (
+    set "_include_%%v=true"
+)
+set "_search="
+if defined _include_comment (
+    set _search=!_search! /c:"^^[!TAB! ]*[#;]"
+)
+if defined _include_section (
+    set _search=!_search! /c:"^^[!TAB! ]*\[.*\][!TAB! ]*$"
+)
+if defined _include_key (
+    set _search=!_search! /c:"^^[!TAB! ]*[^^#;\[]]*.*="
+)
+if defined _include_matching_key (
+    set "_escaped_key=!_target_key!"
+    for %%c in (\ . $ ^^ [ ]) do (
+        set "_escaped_key=!_escaped_key:%%c=\%%c!"
+    )
+    set _search=!_search! /c:"^^[!TAB! ]*!_escaped_key![!TAB! ]*="
+)
+findstr /n /r !_search! "!_input_file!" > ".ini_parse._tokens"
+exit /b 0
+#+++
 
-        if "!_line_stripped:~0,1!" == "#" (
-            set "_struct=comment"
-        ) else if "!_line_stripped:~0,1!" == ";" (
-            set "_struct=comment"
-        ) else if "!_line_stripped:~0,1!!_line_stripped:~-1,1!" == "[]" (
-            set "_struct=section"
-        ) else (
-            for /f "tokens=1* delims==" %%a in ("!_line_stripped!_") do (
-                if not "%%b" == "" set "_struct=key-value"
-            )
-        )
-        if "!_struct!" == "section" (
-            set "_section=!_line_stripped:~1,-1!"
-            call :strip _section
-        )
-        if "!_struct!" == "key-value" (
-            for /f "tokens=1 delims==" %%k in ("!_line_stripped!") do (
-                set "_key=%%k"
-                call :strip _key
-                set "_value=!_line:*%%k=!"
-                set "_value=!_value:~1!"
-            )
-        )
+:ini_parse._parse
+setlocal EnableDelayedExpansion
+if "!_target_section!" == "" (
+    set "_match_section=true"
+) else set "_match_section="
+set "_insert_line_no="
+setlocal DisableDelayedExpansion
+for /f "usebackq tokens=*" %%o in (".ini_parse._tokens") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1 delims=:" %%n in ("%%o") do (
+        set "_line_no=%%n"
+    )
+    set "_line=!_line:*:=!"
+    set "_line_stripped=!_line!"
+    call :strip _line_stripped
 
-        set "_match="
+    set "_struct="
+    set "_key="
+
+    if not defined _line_stripped (
+        set "_struct=blank_line"
+    ) else if "!_line_stripped:~0,1!" == "#" (
+        set "_struct=comment"
+    ) else if "!_line_stripped:~0,1!" == ";" (
+        set "_struct=comment"
+    ) else if "!_line_stripped:~0,1!!_line_stripped:~-1,1!" == "[]" (
+        set "_struct=section"
+    ) else (
+        for /f "tokens=1* delims==" %%a in ("!_line_stripped!_") do (
+            if not "%%b" == "" set "_struct=key-value"
+        )
+    )
+    if "!_struct!" == "section" (
+        set "_section=!_line_stripped:~1,-1!"
+        call :strip _section
         if "!_section!" == "!_target_section!" (
-            if "!_key!" == "!_target_key!" (
-                set "_match=true"
+            set "_match_section=true"
+        ) else set "_match_section="
+    )
+    if "!_struct!,!_match_section!" == "key-value,true" (
+        for /f "tokens=1 delims==" %%k in ("!_line_stripped!") do (
+            set "_key=%%k"
+            call :strip _key
+            set "_value=!_line:*%%k=!"
+            set "_value=!_value:~1!"
+        )
+        if "!_key!" == "!_target_key!" (
+            set "_match_key=true"
+        ) else set "_match_key="
+    )
+
+    if "!_action!,!_struct!" == "sections,section" (
+        echo(!_section!
+    )
+    if "!_action!,!_match_section!,!_struct!" == "keys,true,key-value" (
+        echo(!_key!
+    )
+    if "!_action!,!_match_section!,!_match_key!" == "get,true,true" (
+        echo(!_value!
+    )
+    if "!_action!,!_match_section!" == "set,true" (
+        if "!_struct!" == "key-value" (
+            set "_insert_line_no=!_line_no!"
+        )
+        if "!_match_key!" == "true" (
+            echo(!_line_no!
+        )
+    )
+    if "!_action!,!_match_section!,!_match_key!" == "pop,true,true" (
+        echo(!_line_no!:!_value!
+    )
+    set "_serialize="
+    for %%v in (_match_section _insert_line_no) do (
+        set _serialize=!_serialize! "%%v=!%%v!"
+    )
+    for /f "tokens=* delims=" %%a in ("!_serialize!") do (
+        endlocal
+        for %%v in (%%a) do set %%v
+    )
+)
+setlocal EnableDelayedExpansion
+if "!_action!" == "set" (
+    echo end:!_insert_line_no!
+)
+exit /b 0
+#+++
+
+:ini_parse._return_value
+rem TODO: Handle special characters
+for %%r in ("!_return_var!") do (
+    goto 2> nul
+    endlocal
+    for %%f in (".ini_parse._data") do (
+        if "%%~zf" == "0" (
+            if "%_action%" == "get" (
+                exit /b 4
+            )
+            if "%_action%" == "pop" (
+                exit /b 4
             )
         )
-        if defined _match (
-            if "!_action!" == "get" (
-                call :endlocal 3 _value:!_value_var!
-                exit /b 0
-            ) else if "!_action!" == "pop" (
-                > ".ini_parse._value" echo(!_value!
-            ) else if "!_action!" == "set" (
-                echo !_target_key!=!%_value_var%!
-                echo true > ".ini_parse._found"
-            )
-        ) else (
-            if defined _write (
-                echo(!_line!
-            )
+    )
+    set "%%~r="
+    for /f "usebackq tokens=* delims=" %%o in (".ini_parse._data") do (
+        if "%_action%" == "sections" (
+            set "%%~r=!%%~r!%%o!LF!"
         )
-        for /f "tokens=1* delims=|" %%a in ("Q|!_section!") do (
-            endlocal
-            set "_section=%%b"
+        if "%_action%" == "keys" (
+            set "%%~r=!%%~r!%%o!LF!"
         )
+        if "%_action%" == "get" (
+            set "%%~r=%%o"
+        )
+        if "%_action%" == "pop" (
+            set "%%~r=%%o"
+            set "%%~r=!%%~r:*:=!"
+        )
+    )
+)
+exit /b 0
+#+++
+
+:ini_parse._edit_file
+findstr /n "^^" "!_input_file!" > ".ini_parse._numbered" || (
+    1>&2 echo%0: Fail to save editing preparations to file & exit /b 3
+)
+set "_target_line="
+set "_append="
+for /f "usebackq tokens=1* delims=:" %%a in (".ini_parse._data") do (
+    if "%%a" == "end" (
+        if not defined _target_line (
+            set "_append=true"
+            set "_target_line=%%b"
+        )
+    ) else set "_target_line=%%a"
+)
+if not defined _target_line (
+    type "!_input_file!"
+    if defined _target_section (
+        echo=
+        echo([!_target_section!]
+    )
+    echo(!_target_key!=!%_value_var%!
+    exit /b 0
+)
+setlocal DisableDelayedExpansion
+for /f "usebackq tokens=*" %%o in (".ini_parse._numbered") do (
+    set "_line=%%o"
+    setlocal EnableDelayedExpansion
+    for /f "tokens=1 delims=:" %%n in ("%%o") do (
+        set "_line_no=%%n"
+    )
+    set "_line=!_line:*:=!"
+    if "!_line_no!" == "!_target_line!" (
+        if defined _append (
+            echo(!_line!
+        )
+        if "!_action!" == "set" (
+            echo(!_target_key!=!%_value_var%!
+        )
+    ) else (
+        echo(!_line!
     )
     endlocal
-) || (
-    1>&2 echo%0: Error when reading from / writting to file
-    exit /b 3
-)
-if "!_action!" == "get" (
-    exit /b 3
-)
-if "!_action!" == "set" (
-    if exist ".ini_parse._found" (
-        del /f /q ".ini_parse._found"
-    ) else (
-        echo !_target_key!=!%_value_var%!
-    ) >%_write%
-)
-if defined _write (
-    move /y ".ini_parse._edited" "!_input_file!" > nul || exit /b 3
-)
-if "!_action!" == "pop" (
-    if exist ".ini_parse._value" (
-        set /p "_value=" < ".ini_parse._value"
-        del /f /q ".ini_parse._value"
-    )
-    if defined _value_var (
-        call :endlocal 1 _value:!_value_var!
-    )
 )
 exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 strip endlocal"
-set "%~1extra_requires=coderender"
+set "%~1install_requires=capchar strip endlocal"
+set "%~1extra_requires=coderender list_lf2set"
 set "%~1category=file"
 exit /b 0
 
@@ -166,8 +282,8 @@ rem ############################################################################
 ::
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
-::      and unknown entries when editing files. It can handle values with special
-::      characters, but cannot handle keys and sections with special characters.
+::      and unknown entries when editing files. It cannot handle special
+::      characters yet.
 ::      Multiline values are not supported.
 ::
 ::      An explanation about how config files are parsed:
@@ -186,8 +302,8 @@ rem ############################################################################
 ::          "quoted=keys"  = NOT SUPPORTED. Function will think that
 ::          #                the key name is '"quoted', not 'quoted=keys'
 ::
-::          duplicate_key = Behavior: currently it will get 1st,
-::          duplicate_key = set all, remove all
+::          duplicate_key = get last,
+::          duplicate_key = set last, pop last
 ::
 ::          [section is supported]
 ::
@@ -236,31 +352,49 @@ exit /b 0
 
 :doc.demo
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
+call :capchar TAB LF
 call :coderender "%~f0" tests.template.demo > "demo.ini"
 echo Original configuration file
 echo=
 type "demo.ini"
-echo=---------------------------------------------------------------------------------
-for %%v in (food message pi tricky) do (
-    call :ini_parse get "demo.ini" %%v result
-    echo GET %%v: "!result!"
+echo =================================================================================
+echo =================================================================================
+call :ini_parse sections section_names "demo.ini"
+call :list_lf2set section_names section_names
+for /f "tokens=* delims=" %%s in ("""!LF!!section_names!") do (
+    echo SECTION: "%%~s"
+    call :ini_parse keys key_names "demo.ini" "%%~s"
+    call :list_lf2set key_names key_names
+    for /f "tokens=* delims=" %%k in ("!key_names!") do (
+        call :ini_parse get result "demo.ini" "%%~s" %%k
+        echo     GET %%k: "!result!"
+    )
 )
-for %%s in ("" "mom" "dad") do (
-    call :ini_parse get result "demo.ini" %%s name
-    echo GET %%s name: "!result!"
-)
-
-set new_value="raspberries are red ^& blueberries are blue^!"
+echo =================================================================================
+echo =================================================================================
+set new_value="^^^^^^ raspberries are red ^& blueberries are blue^!"
 echo SET message: "!new_value!"
-call :ini_parse set "demo.ini" message new_value
+call :ini_parse set new_value "demo.ini" "" message
+
+set new_value=Darwin
+echo SET name: "!new_value!"
+call :ini_parse set new_value "demo.ini" "" name
 
 set "new_value=Minecraft"
-echo SET game: !new_value!
-call :ini_parse set new_value "demo.ini" dad game
-
+echo SET dad games: !new_value!
+call :ini_parse set new_value "demo.ini" dad games
+echo ---------------------------------------------------------------------------------
+echo Edited configuration file
+echo=
+type "demo.ini"
+echo=
+echo =================================================================================
+echo =================================================================================
 echo POP name
 call :ini_parse pop _ "demo.ini" "" name
-echo=---------------------------------------------------------------------------------
+echo POP gpa
+call :ini_parse pop _ "demo.ini" "" gpa
+echo ---------------------------------------------------------------------------------
 echo Edited configuration file
 echo=
 type "demo.ini"
@@ -272,10 +406,9 @@ rem Tests
 rem ############################################################################
 
 :tests.setup
-call :capchar TAB
-call :coderender "%~f0" tests.template.mcsp --compile-only > "mcsp-render.bat" || exit /b 3
-call "mcsp-render.bat" > "mcsp.ini" || exit /b 3
-call :coderender "%~f0" tests.template.demo > "demo.ini" || exit /b 3
+call :capchar TAB LF
+call :coderender "%~f0" tests.template.demo --compile-only > "demo-render.bat" || exit /b 3
+call "demo-render.bat" > "demo.ini" || exit /b 3
 set "result="
 exit /b 0
 
@@ -288,7 +421,7 @@ exit /b 0
 call :ini_parse sections result "demo.ini" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected= dad mom"
+set "expected=dad!LF!mom!LF!"
 if not "!result!" == "!expected!" (
     call %unittest% fail
 )
@@ -299,14 +432,15 @@ exit /b 0
 call :ini_parse keys result "demo.ini" "" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected= name name message food pi"
+set "expected=name!LF!name!LF!message!LF!GPA!LF!gpa!LF!email!LF!"
+set "expected=!expected!whitespace_value!LF!whitespace key!LF!tricky!LF!"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Fail to get keys without section"
 )
 call :ini_parse keys result "demo.ini" "dad" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected= name message"
+set "expected=name!LF!message!LF!"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Fail to get keys with section"
 )
@@ -314,98 +448,83 @@ exit /b 0
 
 
 :tests.test_get
-call :ini_parse get result "demo.ini" "" food || (
+call :ini_parse get result "demo.ini" "" email || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected=Banana"
+set "expected=dummy@somewhere.com"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.test_get_none
-set "result=asd"
+:tests.test_get_case_sensitive
+call :ini_parse get result "demo.ini" "" GPA || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=3.14159"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+call :ini_parse get result "demo.ini" "" gpa || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=1.618"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_get_dupe
+call :ini_parse get result "demo.ini" "" name || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+set "expected=Charlie"
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_get_nonexisting
+set "expected=!random!"
+set "result=!expected!"
 call :ini_parse get result "demo.ini" "" nonexisting && (
     call %unittest% fail "unexpected success"
 )
-set "expected="
 if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected '!expected!', got '!result!'"
+    call %unittest% fail "Expected unmodified '!expected!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.test_get_expanded_chars
+:tests.test_get_special_chars
 call :ini_parse get result "demo.ini" "" tricky || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set expected==^^^^ ^^^^^^^^ %%0 %%%%^^a ^^!e^^! "^^ ^^^^ %%0 %%%%^a ^!e^!"
 if not "!result!" == "!expected!" (
     call %unittest% fail
+    echo E:!expected!
+    echo R:!result!
 )
 exit /b 0
 
 
 :tests.test_get_whitespace
-call "mcsp-render.bat" motd_whitespace > "mcsp.ini" || exit /b 3
-call :ini_parse get result "mcsp.ini" "" motd || (
+call :ini_parse get result "result" "" whitespace_value || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-set "expected=!TAB!Default "
+set "expected=!TAB!TAB+Space "
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
-exit /b 0
 
-
-:tests.test_set
-copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
-set "new_message=Hello"
-call :ini_parse set new_message "result" "" motd || (
+call :ini_parse get result "result" "" "whitespace key" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
-call "mcsp-render.bat" motd_hello > "expected"
-fc /a /lb1 result expected > nul || (
-    call %unittest% fail
-)
-exit /b 0
-
-
-:tests.test_set_new
-copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
-set "new_gamemode=survival"
-call :ini_parse set new_gamemode "result" "" gamemode || (
-    call %unittest% fail "got exit code '!errorlevel!'"
-)
-call "mcsp-render.bat" gamemode_survival > "expected" || exit /b 3
-fc /a /lb1 result expected > nul || (
-    call %unittest% fail
-)
-exit /b 0
-
-
-:tests.test_pop
-copy /b /v /y "mcsp.ini" "result" > nul || exit /b 3
-call :ini_parse pop result "result" "" motd || (
-    call %unittest% fail "got exit code '!errorlevel!'"
-)
-call "mcsp-render.bat" > "motd_removed" || exit /b 3
-fc /a /lb1 result expected > nul || (
-    call %unittest% fail "Remove key failed"
-)
-set "expected=Default"
-if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected '!expected!', got '!result!'"
-)
-exit /b 0
-
-
-:tests.test_ignore_key_spaces
-call :ini_parse get result "mcsp.ini" "" allow-flight || (
-    call %unittest% fail "got exit code '!errorlevel!'"
-)
-set "expected=false"
+set "expected=yes"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
@@ -413,28 +532,80 @@ exit /b 0
 
 
 :tests.test_ignore_comments
-call :ini_parse get result "mcsp.ini" "" "level-name" && (
-    call %unittest% fail
+set "expected=!random!"
+set "result=!expected!"
+call :ini_parse get result "demo.ini" "" "# address" && (
+    call %unittest% fail "Unexpected success"
 )
-set "expected="
 if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected empty, got '!result!'"
+    call %unittest% fail "Expected unmodified '!expected!', got '!result!'"
+)
+set "expected=!random!"
+set "result=!expected!"
+call :ini_parse get result "demo.ini" "" "nothing-here" && (
+    call %unittest% fail "Unexpected success"
+)
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected unmodified '!expected!', got '!result!'"
 )
 exit /b 0
 
 
 :tests.test_ignore_unknown
-call :ini_parse get result "mcsp.ini" "" no-value && (
-    call %unittest% fail
+set "expected=!random!"
+set "result=!expected!"
+call :ini_parse get result "demo.ini" "" nothing-here && (
+    call %unittest% fail "Unexpected success"
 )
-set "expected="
 if not "!result!" == "!expected!" (
-    call %unittest% fail "Expected empty, got '!result!'"
+    call %unittest% fail "Expected unmodified '!expected!', got '!result!'"
 )
 exit /b 0
 
 
-:tests.test_section
+:tests.test_set_existing
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+set my_message="^^^^^^ raspberries are red ^& blueberries are blue^!"
+call :ini_parse set my_message "result" "" message || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+call "demo-render.bat" change_msg > "expected" || exit /b 3
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_set_nonexisting
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+set "my_number=1223334444"
+call :ini_parse set my_number "result" "" phone || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+call "demo-render.bat" add_phone > "expected" || exit /b 3
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_pop
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+call :ini_parse pop result "result" "" email || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+call "demo-render.bat" delete_email > "expected" || exit /b 3
+set "expected=dummy@somewhere.com"
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail "Remove key failed"
+)
+if not "!result!" == "!expected!" (
+    call %unittest% fail "Expected '!expected!', got '!result!'"
+)
+exit /b 0
+
+
+:tests.test_section_get
 call :ini_parse get result "demo.ini" mom name || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
@@ -453,47 +624,106 @@ if not "!result!" == "!expected!" (
 exit /b 0
 
 
-:tests.template.mcsp <action>
-setlocal EnableDelayedExpansion
-set "action=%~1"
-::  # Minecraft Server Settings
-::  ;level-name=world
-::  #pvp=true
-if "!action!" == "motd_removed" (
-    rem Deleted - Nothing
-) else if "!action!" == "motd_hello" (
-::  motd=Hello
-) else if "!action!" == "motd_whitespace" (
-    echo motd=!TAB!Default %=REQUIRED=%
-) else (
-::  motd=Default
+:tests.test_section_set_existing
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+set "my_message=Testing..."
+call :ini_parse set my_message "result" dad message || (
+    call %unittest% fail "got exit code '!errorlevel!'"
 )
-::  max-players=10
-::  no-value
-echo !TAB!  allow-flight!TAB!!TAB! =false
-if "!action!" == "gamemode_survival" (
-::  gamemode=survival
+call "demo-render.bat" change_dad_msg > "expected" || exit /b 3
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_section_set_nonexisting
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+set "dad_phone=133355555"
+call :ini_parse set dad_phone "result" dad phone || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+call "demo-render.bat" add_dad_phone > "expected" || exit /b 3
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
+)
+exit /b 0
+
+
+:tests.test_section_set_nonexisting_section
+copy /b /v /y "demo.ini" "result" > nul || exit /b 3
+set "cast_name=Eve"
+call :ini_parse set cast_name "result" eavesdropper name || (
+    call %unittest% fail "got exit code '!errorlevel!'"
+)
+call "demo-render.bat" add_eve > "expected" || exit /b 3
+fc /a /lb1 result expected > nul || (
+    call %unittest% fail
 )
 exit /b 0
 
 
 :tests.template.demo
-::  # This is a comment
-::  ; This is also a comment
-::  name=Charlie
+setlocal EnableDelayedExpansion
+set "action=%~1"
 ::  name=Carol
+::  name=Charlie
+if "!action!" == "change_msg" (
+::  message="^^^ raspberries are red & blueberries are blue!"
+) else (
 ::  message="roses are red, violets are blue"
-::  food=Banana
-::    pi   = 3.14159
+)
+::  GPA=3.14159
+::  gpa=1.618
+if "!action!" == "delete_email" (
+    rem No-op
+) else (
+::  email=dummy@somewhere.com
+)
+echo whitespace_value=!TAB!TAB+Space %=REQUIRED=%
+echo !TAB!  whitespace key!TAB!!TAB! =yes
 ::  tricky==^ ^^ %0 %%a !e! "^ ^^ %0 %%a !e!"
+if "!action!" == "add_phone" (
+::  phone=1223334444
+)
+::  # address=North Pole
+::  ; birthday=2025-02-29
+::  nothing-here
 ::
 ::  [dad]
 ::  name=Bob
+if "!action!" == "change_dad_msg" (
+::  message=Testing...
+) else (
 ::  message=Security is important
+)
+if "!action!" == "add_dad_phone" (
+::  phone=133355555
+)
 ::
 ::  [mom]
 ::  name=Alice
+if "!action!" == "add_eve" (
+::
+::  [eavesdropper]
+::  name=Eve
+)
 exit /b 0
+
+
+:tests.template.dangerous
+::  [section1] # comment
+::  [section2] # comment []
+::  ["section=yes"]
+::  ["section#yes"]
+::  ["section] #yes"]
+::  ["section=yes#ofc"]
+::  [key=value]
+::  [key="value"  # comment []
+::  [key="value"  # comment] # comment []
+::  [key="value\"  # comment [] " # comment []
+
+::  [key# comment [] " # comment []
 exit /b 0
 
 rem ############################################################################
