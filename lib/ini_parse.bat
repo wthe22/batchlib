@@ -177,20 +177,43 @@ exit /b 0
 #+++
 
 :ini_parse._return_value
-rem TODO: Handle special characters
+for %%f in (".ini_parse._data") do (
+    if "%%~zf" == "0" (
+        if "!_action!" == "get" (
+            exit /b 4
+        )
+        if "!_action!" == "pop" (
+            exit /b 4
+        )
+    )
+)
+set "_multi_line="
+for %%a in (sections keys) do (
+    if "!_action!" == "%%a" (
+        set "_multi_line=true"
+    )
+)
+if not defined _multi_line (
+    setlocal DisableDelayedExpansion
+
+    for /f "usebackq tokens=* delims=" %%o in (".ini_parse._data") do (
+        echo(%%o
+    ) > ".ini_parse._result"
+
+    for /f "usebackq tokens=* delims=" %%o in (".ini_parse._result") do (
+        set "_line=%%o"
+        setlocal EnableDelayedExpansion
+        if "!_action!" == "pop" (
+            set "_line=!_line:*:=!"
+        )
+        call :endlocal 1 1 _line:!_return_var!
+        exit /b 0
+    )
+)
+rem TODO: Handle special characters in section names
 for %%r in ("!_return_var!") do (
     goto 2> nul
     endlocal
-    for %%f in (".ini_parse._data") do (
-        if "%%~zf" == "0" (
-            if "%_action%" == "get" (
-                exit /b 4
-            )
-            if "%_action%" == "pop" (
-                exit /b 4
-            )
-        )
-    )
     set "%%~r="
     for /f "usebackq tokens=* delims=" %%o in (".ini_parse._data") do (
         if "%_action%" == "sections" (
@@ -198,13 +221,6 @@ for %%r in ("!_return_var!") do (
         )
         if "%_action%" == "keys" (
             set "%%~r=!%%~r!%%o!LF!"
-        )
-        if "%_action%" == "get" (
-            set "%%~r=%%o"
-        )
-        if "%_action%" == "pop" (
-            set "%%~r=%%o"
-            set "%%~r=!%%~r:*:=!"
         )
     )
 )
@@ -282,8 +298,8 @@ rem ############################################################################
 ::
 ::  DESCRIPTION
 ::      A non-destructive INI-style config file editor. It will not remove comments
-::      and unknown entries when editing files. It cannot handle special
-::      characters yet.
+::      and unknown entries when editing files. It can handle values with special
+::      characters, but cannot handle keys and sections with special characters.
 ::      Multiline values are not supported.
 ::
 ::      An explanation about how config files are parsed:
