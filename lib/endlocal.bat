@@ -3,16 +3,19 @@ call %*
 exit /b
 
 
-:endlocal <depth> <old[:new]> ...
+:endlocal <exit_count> <endlocal_count> <old[:new]> ...
 setlocal EnableDelayedExpansion
 set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
-set "_depth="
+set "_exit_count="
+set "_endlocal_count="
 set "_content=endlocal!LF!"
 for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (
-    if not defined _depth (
-        set "_depth=%%~v"
+    if not defined _exit_count (
+        set "_exit_count=%%~v"
+    ) else if not defined _endlocal_count (
+        set "_endlocal_count=%%~v"
     ) else (
         set "_value=#!%%a!"
         set "_value=!_value:\=\\!"
@@ -29,8 +32,8 @@ for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (
 for /f "tokens=* delims= eol=" %%a in ("!_content!") do ^
 for /f "tokens=1 delims==" %%r in ("%%a") do ^
 if "%%a" == "endlocal" (
-    goto 2> nul
-    for /l %%i in (1,1,%_depth%) do endlocal
+    for /l %%i in (0,1,%_exit_count%) do goto 2> nul
+    for /l %%i in (1,1,%_endlocal_count%) do endlocal
 ) else (
     set "%%a"
     if "!!" == "" (
@@ -76,10 +79,15 @@ exit /b 0
 ::      endlocal - make variables survive ENDLOCAL
 ::
 ::  SYNOPSIS
-::      endlocal <depth> <old[:new]> ...
+::      endlocal <exit_count> <endlocal_count> <old[:new]> ...
 ::
 ::  POSITIONAL ARGUMENTS
-::      depth
+::      exit_count
+::          Number of times to exit function to access parent context. If you're
+::          not sure or not trying to exit and return values from a function,
+::          just use '0'. This number must be greater than or equal to 0.
+::
+::      endlocal_count
 ::          Number of times to endlocal.
 ::
 ::      old
@@ -93,6 +101,10 @@ exit /b 0
 ::      - Returning variables that contain Line Feed character to
 ::        DisableDelayedExpansion are not supported. Only the last
 ::        non-empty line will be returned
+::      - Exiting to parent function will quit all setlocals in current function
+::      - If the exit function is used, and endlocal is run within a code block,
+::        the remaining codes inside the code block will still run before exiting
+::        the function.
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
@@ -113,7 +125,7 @@ set "var_hello=I am a new variable^! ^^^^"
 set "var_"
 echo=
 echo [endlocal]
-call :endlocal 1 var_del var_hello:var_new_name
+call :endlocal 0 1 var_del var_hello:var_new_name
 echo=
 set "var_"
 exit /b 0
@@ -157,7 +169,7 @@ setlocal %outer_de%DelayedExpansion
 setlocal %inner_de%DelayedExpansion
 for %%v in (%local.changed%) do set "var.%%v=changed"
 for %%v in (%local.deleted%) do set "var.%%v="
-call :endlocal 1 %local.persist_vars%
+call :endlocal 0 1 %local.persist_vars%
 
 setlocal EnableDelayedExpansion
 for %%v in (!expected.null!) do (
@@ -184,7 +196,7 @@ for %%a in (Enable Disable) do (
     for %%b in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        call :endlocal 1 expected:result
+        call :endlocal 0 1 expected:result
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
@@ -200,7 +212,7 @@ for %%a in (Enable Disable) do (
     for %%b in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        call :endlocal 1 expected:result
+        call :endlocal 0 1 expected:result
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
@@ -215,11 +227,11 @@ set LF=^
 %=REQUIRED=%
 %=REQUIRED=%
 set "expected=!LF!a!LF!bb!LF!!LF!ccc!LF!"
-for %%a in (Enable Disable) do (
+for %%a in (Enable) do (
     for %%b in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        call :endlocal 1 expected:result
+        call :endlocal 0 1 expected:result
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
@@ -236,7 +248,7 @@ for %%a in (Enable) do (
     for %%b in (Enable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        call :endlocal 1 expected:result
+        call :endlocal 0 1 expected:result
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
@@ -246,10 +258,10 @@ for %%a in (Enable) do (
 exit /b 0
 
 
-:tests.test_depth
+:tests.test_endlocal_count
 if ^"%1^" == "" (
-    call :tests.test_depth 1
-    call :tests.test_depth 2
+    call :tests.test_endlocal_count 1
+    call :tests.test_endlocal_count 2
     exit /b
 )
 set "expected=1"
@@ -260,7 +272,7 @@ for /l %%n in (1,1,!initial!) do (
     setlocal EnableDelayedExpansion
     set /a "result+=1"
 )
-call :endlocal !depth!
+call :endlocal 0 !depth!
 if not "!result!" == "!expected!" (
     call %unittest% fail "Given initial depth !initial! and argument !depth!, expected depth !expected!, got !result!"
 )
@@ -269,15 +281,15 @@ exit /b 0
 
 :tests.test_errorlevel
 setlocal EnableDelayedExpansion
-call :endlocal || (
+call :endlocal 0 || (
     call %unittest% fail "Got error when no parameter is given"
 )
 setlocal EnableDelayedExpansion
-call :endlocal 1 || (
+call :endlocal 0 1 || (
     call %unittest% fail "Got error when using no variables"
 )
 setlocal EnableDelayedExpansion
-call :endlocal 1 old:new || (
+call :endlocal 0 1 old:new || (
     call %unittest% fail "Got error when using a variable"
 )
 exit /b 0
