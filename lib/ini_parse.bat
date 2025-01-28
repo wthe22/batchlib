@@ -513,7 +513,7 @@ exit /b 0
 
 
 :tests.test_get_whitespace
-call :ini_parse get result "result" "" whitespace_value || (
+call :ini_parse get result "demo.ini" "" whitespace_value || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=!TAB!TAB+Space "
@@ -521,7 +521,7 @@ if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
 )
 
-call :ini_parse get result "result" "" "whitespace key" || (
+call :ini_parse get result "demo.ini" "" "whitespace key" || (
     call %unittest% fail "got exit code '!errorlevel!'"
 )
 set "expected=yes"
