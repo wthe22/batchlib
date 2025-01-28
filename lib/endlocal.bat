@@ -19,6 +19,9 @@ for %%v in (%*) do for /f "tokens=1-2 delims=:" %%a in ("%%~v:%%~v") do (
         set "_value=!_value:+=++!"
         set _value=!_value:"=\+22!
         set "_value=!_value:^=\+5E!"
+        set _value=!_value:^
+%=REQUIRED=%
+=\+0A!
         call set "_value=%%_value:^!=\+21%%"
         set "_content=!_content!%%b=!_value!!LF!"
     )
@@ -43,6 +46,9 @@ if "%%a" == "endlocal" (
         )
         set "%%r=!%%r!"
         call set "%%r=%%%%r:\+21=^!%%"
+        set %%r=!%%r:\+0A=^
+%=REQUIRED=%
+!
         set "%%r=!%%r:\+5E=^!"
         set %%r=!%%r:\+22="!
         set "%%r=!%%r:\\=\!"
@@ -84,8 +90,9 @@ exit /b 0
 ::          new variable name is the same as the old variable name.
 ::
 ::  NOTES
-::      - Variables that contains Line Feed character are not supported and it
-::        could cause unexpected errors.
+::      - Returning variables that contain Line Feed character to
+::        DisableDelayedExpansion are not supported. Only the last
+::        non-empty line will be returned
 ::
 ::  EXIT STATUS
 ::      0:  - Success.
@@ -177,11 +184,7 @@ for %%a in (Enable Disable) do (
     for %%b in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        setlocal EnableDelayedExpansion
-        endlocal
         call :endlocal 1 expected:result
-        setlocal EnableDelayedExpansion
-        endlocal
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
@@ -197,14 +200,30 @@ for %%a in (Enable Disable) do (
     for %%b in (Enable Disable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        setlocal EnableDelayedExpansion
-        endlocal
         call :endlocal 1 expected:result
-        setlocal EnableDelayedExpansion
-        endlocal
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
+        )
+    )
+)
+exit /b 0
+
+
+:tests.test_line_feed
+set LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+set "expected=!LF!a!LF!bb!LF!!LF!ccc!LF!"
+for %%a in (Enable Disable) do (
+    for %%b in (Enable Disable) do (
+        setlocal %%aDelayedExpansion
+        setlocal %%bDelayedExpansion
+        call :endlocal 1 expected:result
+        setlocal EnableDelayedExpansion
+        if not "!result!" == "!expected!" (
+            call %unittest% fail "%%aDE to %%bDE"
+            echo R[!result!]
         )
     )
 )
@@ -217,11 +236,7 @@ for %%a in (Enable) do (
     for %%b in (Enable) do (
         setlocal %%aDelayedExpansion
         setlocal %%bDelayedExpansion
-        setlocal EnableDelayedExpansion
-        endlocal
         call :endlocal 1 expected:result
-        setlocal EnableDelayedExpansion
-        endlocal
         setlocal EnableDelayedExpansion
         if not "!result!" == "!expected!" (
             call %unittest% fail "%%aDE to %%bDE"
