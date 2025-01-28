@@ -98,7 +98,7 @@ exit /b 0
 ::          Variable to store the results.
 ::
 ::      input_var
-::          The input variable name.
+::          The input variable name. Can be the same as return_var
 exit /b 0
 
 
