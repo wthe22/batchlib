@@ -18,7 +18,7 @@ if not defined user_input (
     set "%_return_var%="
     exit /b 3
 )
-call :endlocal 1 user_input:!_return_var!
+call :endlocal 0 1 user_input:!_return_var!
 exit /b 0
 #+++
 
