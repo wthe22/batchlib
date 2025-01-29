@@ -18,15 +18,15 @@ for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
     endlocal
     set "%_return_var%="
     for /l %%n in (1,1,%_lines%) do (
-        set "macroify._line="
-        set /p "macroify._line="
-        if "!macroify._line:~-1,1!" == "^" (
-            set "%_return_var%=!%_return_var%!!macroify._line:~0,-1!"
-        ) else set "%_return_var%=!%_return_var%!!macroify._line!!LF!"
+        set ".macroify._line="
+        set /p ".macroify._line="
+        if "!.macroify._line:~-1,1!" == "^" (
+            set "%_return_var%=!%_return_var%!!.macroify._line:~0,-1!"
+        ) else set "%_return_var%=!%_return_var%!!.macroify._line!!LF!"
     )
     set "%_return_var%=!%_return_var%:%%%%=%%!"
 )
-set "macroify._line="
+set ".macroify._line="
 exit /b 0
 
 
@@ -55,8 +55,8 @@ exit /b 0
 ::          The function name.
 ::
 ::  ENVIRONMENT
-::      macroify._line
-::          A temporary variable. Might be overwritten if used.
+::      This function creates and uses the following global variables:
+::          - .macroify._line: A temporary variable
 ::
 ::      LF
 ::          A Line Feed character. Needs to be defined (by capchar) before
