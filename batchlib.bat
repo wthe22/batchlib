@@ -333,11 +333,11 @@ rem ############################################################################
 
 :metadata [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=3.2a2"
+set "%~1version=3.2b"
 set "%~1authors=wthe22"
 set "%~1license=MIT No Attribution"
 set "%~1description=Batch Script Library"
-set "%~1release_date=01/04/2025"   :: mm/dd/YYYY
+set "%~1release_date=01/29/2025"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
 exit /b 0
