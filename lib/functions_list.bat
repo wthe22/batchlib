@@ -4,10 +4,13 @@ exit /b
 
 
 :functions_list <input_file>
+if not defined ._shared.TAB (
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
+)
 setlocal EnableDelayedExpansion EnableExtensions
 set "_input_file=%~f1"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
+set "TAB=!._shared.TAB!"
 findstr /n /r /c:"^^[!TAB! @]*:[^^: ]" "!_input_file!" ^
     ^ > ".functions_list._tokens" 2> nul ^
     ^ || ( 1>&2 echo%0: Cannot open file '!_input_file!' & exit /b 2 )

@@ -4,6 +4,17 @@ exit /b
 
 
 :functions_range <return_var> <input_file> <label ...>
+if not defined ._shared.TAB (
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
+)
+if not defined ._shared.CR (
+    for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
+)
+if not defined ._shared.LF (
+    set ._shared.LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+)
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_input_file=%~f2"
@@ -13,11 +24,9 @@ for %%l in (!_!) do set "_labels=!_labels!%%l "
 for %%v in (_missing _ranges) do set "%%v=!_labels!"
 for %%v in (_included _current _start _end) do set "%%v="
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
-for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
-set LF=^
-%=REQUIRED=%
-%=REQUIRED=%
+set "TAB=!._shared.TAB!"
+set "CR=!._shared.CR!"
+set "LF=!._shared.LF!"
 set _search=^
     ^ /c:"^^[!TAB! @]*exit  */b.*!CR!*!LF!!CR!*!LF!" ^
     ^ /c:"^^[!TAB! @]*goto  *.*!CR!*!LF!!CR!*!LF!" ^

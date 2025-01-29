@@ -4,6 +4,9 @@ exit /b
 
 
 :strip <input_var> [characters]
+if not defined ._shared.TAB (
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
+)
 setlocal EnableDelayedExpansion
 set _args=$args
 if "!_args!" == "$!!args" (
@@ -15,6 +18,7 @@ if "!_args!" == "$!!args" (
         set "_chars=%%b"
     )
 )
+set "TAB=!._shared.TAB!"
 if not defined _chars set "_chars= !TAB!"
 for /f "delims=" %%v in ("!_var!") do set "_value=_!%%v!"
 for /f "delims=" %%a in ("!_chars:~0,1!") do (
@@ -60,7 +64,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=capchar"
+set "%~1install_requires="
 set "%~1extra_requires=input_string macroify"
 set "%~1category=string"
 exit /b 0

@@ -4,6 +4,11 @@ exit /b
 
 
 :macroify <return_var> <input_file> <label>
+if not defined ._shared.LF (
+    set ._shared.LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+)
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_input_file=%~f2"
@@ -22,7 +27,7 @@ for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
         set /p ".macroify._line="
         if "!.macroify._line:~-1,1!" == "^" (
             set "%_return_var%=!%_return_var%!!.macroify._line:~0,-1!"
-        ) else set "%_return_var%=!%_return_var%!!.macroify._line!!LF!"
+        ) else set "%_return_var%=!%_return_var%!!.macroify._line!!._shared.LF!"
     )
     set "%_return_var%=!%_return_var%:%%%%=%%!"
 )

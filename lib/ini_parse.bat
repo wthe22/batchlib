@@ -4,7 +4,19 @@ exit /b
 
 
 :ini_parse <action> <var> <config_file> [section] [key]
-call :ini_parse._setup
+if not defined ._shared.strip (
+    call :macroify ._shared.strip "%~f0" "strip" || (
+        set "._shared.strip=call :strip $args"
+    )
+)
+if not defined ._shared.TAB (
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
+)
+if not defined ._shared.LF (
+    set ._shared.LF=^
+%=REQUIRED=%
+%=REQUIRED=%
+)
 setlocal EnableDelayedExpansion
 set "_action=%~1"
 set "_return_var=%~2"
@@ -38,9 +50,9 @@ if not exist "!_input_file!" (
     1>&2 echo%0: File not found: "!_input_file!" & exit /b 2
 )
 
-set "TAB=!.ini_parse.TAB!"
-set "strip=!.ini_parse.strip!"
-set "LF=!.ini_parse.LF!"
+set "TAB=!._shared.TAB!"
+set "strip=!._shared.strip!"
+set "LF=!._shared.LF!"
 call :ini_parse._filter_file !_include! || (
     1>&2 echo%0: Fail to save parsing preparation to file & exit /b 3
 )
@@ -57,23 +69,6 @@ call :ini_parse._edit_file > ".ini_parse._result" || (
 move /y ".ini_parse._result" "!_input_file!" > nul || exit /b 5
 if "!_action!" == "pop" (
     call :ini_parse._return_value
-)
-exit /b 0
-#+++
-
-:ini_parse._setup
-if not defined .ini_parse.strip (
-    call :macroify .ini_parse.strip "%~f0" "strip" || (
-        set ".ini_parse.strip=call :strip $args"
-    )
-)
-if not defined .ini_parse.TAB (
-    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set ".ini_parse.TAB=%%t"
-)
-if not defined .ini_parse.LF (
-    set .ini_parse.LF=^
-%=REQUIRED=%
-%=REQUIRED=%
 )
 exit /b 0
 #+++
