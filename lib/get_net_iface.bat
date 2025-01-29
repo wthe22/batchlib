@@ -63,7 +63,7 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      get_net_iface - get network interface data
+::      get_net_iface - get network interface data (experimental)
 ::
 ::  SYNOPSIS
 ::      get_net_iface <return_var>
