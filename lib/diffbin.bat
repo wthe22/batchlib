@@ -51,14 +51,12 @@ exit /b 0
 ::          Path of the input file.
 ::
 ::  ENVIRONMENT
-::      cd
-::          Affects the base path of input_file if relative path is given.
+::      This function uses:
+::      - Temporary files
 ::
-::      tmp_dir
-::          Path to store the temporary output.
-::
-::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 exit /b 0
 
 

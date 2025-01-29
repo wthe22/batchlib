@@ -47,8 +47,12 @@ exit /b 0
 ::      7 = White       F = Bright White
 ::
 ::  ENVIRONMENT
-::      tmp_dir
-::          Path to store the temporary text file.
+::      This function uses:
+::      - Temporary files
+::
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  NOTES
 ::      - Printing special characters (the invalid path characters: '"<>|?*:\/')

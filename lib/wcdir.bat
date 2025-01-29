@@ -74,10 +74,6 @@ exit /b 0
 ::      -d, --directory
 ::          Search for directories only.
 ::
-::  ENVIRONMENT
-::      cd
-::          Affects the base path of wildcard_path if relative path is given.
-::
 ::  NOTES
 ::      - Variables in path will not be expanded (e.g.: %appdata%).
 ::      - Does not list hidden files and folders.

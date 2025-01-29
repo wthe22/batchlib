@@ -69,10 +69,6 @@ exit /b 0
 ::              MD2, MD4, MD5, SHA1, SHA256, SHA384, SHA512
 ::          This option is case-insensitive. By default, it is 'SHA1'.
 ::
-::  ENVIRONMENT
-::      cd
-::          Affects the base path of input_file if relative path is given.
-::
 ::  EXIT STATUS
 ::      0:  - Success.
 ::      2:  - No known methods to perform the specified hash.

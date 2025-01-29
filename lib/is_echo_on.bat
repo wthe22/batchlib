@@ -25,8 +25,11 @@ exit /b 0
 ::      is_echo_on
 ::
 ::  ENVIRONMENT
-::      tmp
-::          Path to store the temporary results.
+::      This function uses:
+::      - Temporary files
+::
+::      Global variables that affects this function:
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  NOTES
 ::      - Temporary file is used in this function.

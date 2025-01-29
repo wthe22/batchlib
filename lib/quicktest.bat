@@ -92,6 +92,14 @@ exit /b 0
 ::          - Fail: Function did not give the expected results.
 ::          - Error: Cannot run test due to errors or unexpected problems.
 ::          - Skip: Cannot run test due to missing tools.
+::
+::  ENVIRONMENT
+::      This function itself does not use temporary files,
+::      but test cases may use temporary files.
+::
+::      Global variables that affects this function:
+::      - tmp_dir: Default working directory of the tests
+::      - tmp: Fallback path of tmp_dir
 exit /b 0
 
 

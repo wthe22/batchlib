@@ -48,15 +48,9 @@ exit /b 0
 ::          The folder path to extract to.
 ::
 ::  ENVIRONMENT
-::      cd
-::          Affects the base path of zip_file and destination_dir
-::          if relative path is given.
-::
-::      tmp_dir
-::          Path to store the temporary VBScript file.
-::
-::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist.
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  EXIT STATUS
 ::      0:  - Successful

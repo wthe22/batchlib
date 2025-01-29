@@ -121,11 +121,12 @@ exit /b 0
 ::         Display variable names.
 ::
 ::  ENVIRONMENT
-::      tmp_dir
-::          Path to store the variable data.
+::      This function uses:
+::      - Temporary files
 ::
-::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  NOTES
 ::      - Variables that are longer than 2725 characters (variable name + content)

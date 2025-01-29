@@ -76,15 +76,13 @@ exit /b 0
 ::          line is created at the output file. By default, '0d 0a' is used.
 ::
 ::  ENVIRONMENT
-::      cd
-::          Affects the base path of input_file and output_file
-::          if relative path is given.
+::      This function uses:
+::      - Temporary files
 ::
-::      tmp_dir
-::          Path to store the temporary conversion result.
-::
-::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::      Global variables that affects this function:
+::      - cd: Base path of files if relative path is given
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  EXIT STATUS
 ::      0:  - Input is successful.

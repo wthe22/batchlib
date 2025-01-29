@@ -96,10 +96,6 @@ exit /b 0
 ::      3:  - The path does not satisfy the requirements.
 ::      4:  - The path is invalid.
 ::
-::  ENVIRONMENT
-::      cd
-::          Affects the base path of the path in path_var if relative path is given.
-::
 ::  NOTES
 ::      - Variables in path will not be expanded (e.g.: %appdata%).
 ::      - Path in variable is converted to absolte path on success.

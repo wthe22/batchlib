@@ -92,8 +92,13 @@ exit /b 0
 ::          The function names to find, each seperated by space.
 ::
 ::  ENVIRONMENT
-::      cd
-::          Affects the base path of input_file if relative path is given.
+::      This function uses:
+::      - Temporary files
+::      - Shared global variables (TAB, CR, LF)
+::
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  EXIT STATUS
 ::      0:  - Label is found.

@@ -55,12 +55,14 @@ exit /b 0
 ::          The function name.
 ::
 ::  ENVIRONMENT
-::      This function creates and uses the following global variables:
-::          - .macroify._line: A temporary variable
+::      This function uses:
+::      - Temporary files
+::      - Global variables
+::      - Shared global variables (LF)
 ::
-::      LF
-::          A Line Feed character. Needs to be defined (by capchar) before
-::          using this function.
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  DEVELOPMENT AND USAGE
 ::      There are few things to know when making a macro.

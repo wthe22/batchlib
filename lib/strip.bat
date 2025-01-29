@@ -85,11 +85,8 @@ exit /b 0
 ::          By default, it is space (0x20) and tab (0x09)
 ::
 ::  ENVIRONMENT
-::      TAB
-::          A variable that contains TAB character (0x09). This is required for
-::          function to strip TAB characters by default. Can be initialized by
-::          capchar().
-::
+::      This function uses:
+::      - Shared global variables (TAB)
 ::
 ::  NOTES
 ::      - Function can be converted to macro using macroify()

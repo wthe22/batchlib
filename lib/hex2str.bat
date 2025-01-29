@@ -52,6 +52,14 @@ exit /b 0
 ::      input_var
 ::          The input variable name that contains hexadecimal string. Hexadecimal
 ::          must not start with '0x' and can contain spaces as seperator.
+::
+::  ENVIRONMENT
+::      This function uses:
+::      - Temporary files
+::
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 exit /b 0
 
 

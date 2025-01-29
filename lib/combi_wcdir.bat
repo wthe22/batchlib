@@ -81,11 +81,6 @@ exit /b 0
 ::      -s CHAR_VAR, --seperator CHAR_VAR
 ::          Use value stored in CHAR_VAR instead of semicolon to seperate results.
 ::
-::  ENVIRONMENT
-::      cd
-::          Affects the base path of the search if the combination of
-::          search path and wildcard path is a relative path.
-::
 ::  NOTES
 ::      - Variables in path will not be expanded (e.g.: %appdata%).
 exit /b 0

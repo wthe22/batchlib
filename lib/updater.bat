@@ -109,11 +109,12 @@ exit /b 0
 ::          Use this URL to download instead of the one defined in metadata()
 ::
 ::  ENVIRONMENT
-::      tmp_dir
-::          Path to store the update file.
+::      This function uses:
+::      - Temporary files
 ::
-::      temp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  EXIT STATUS
 ::      0:  - Update successful

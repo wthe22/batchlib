@@ -382,11 +382,12 @@ exit /b 0
 ::          Unittest have stopped gracefully
 ::
 ::  ENVIRONMENT
-::      tmp_dir
-::          Path to store the temporary test results.
+::      This function uses:
+::      - Temporary files
 ::
-::      tmp
-::          Fallback path for tmp_dir if tmp_dir does not exist
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  EXIT STATUS
 ::      0:  - Unittest passed
