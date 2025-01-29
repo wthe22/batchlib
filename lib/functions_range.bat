@@ -8,7 +8,7 @@ if not defined ._shared.TAB (
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
 )
 if not defined ._shared.CR (
-    for /f %%a in ('copy /z "%ComSpec%" nul') do set "CR=%%a"
+    for /f %%a in ('copy /z "%ComSpec%" nul') do set "._shared.CR=%%a"
 )
 if not defined ._shared.LF (
     set ._shared.LF=^
