@@ -4,6 +4,7 @@ exit /b
 
 
 :ini_parse <action> <var> <config_file> [section] [key]
+call :ini_parse._setup
 setlocal EnableDelayedExpansion
 set "_action=%~1"
 set "_return_var=%~2"
@@ -36,7 +37,10 @@ if not defined _return_var (
 if not exist "!_input_file!" (
     1>&2 echo%0: File not found: "!_input_file!" & exit /b 2
 )
-for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "TAB=%%t"
+
+set "TAB=!.ini_parse.TAB!"
+set "strip=!.ini_parse.strip!"
+set "LF=!.ini_parse.LF!"
 call :ini_parse._filter_file !_include! || (
     1>&2 echo%0: Fail to save parsing preparation to file & exit /b 3
 )
@@ -53,6 +57,23 @@ call :ini_parse._edit_file > ".ini_parse._result" || (
 move /y ".ini_parse._result" "!_input_file!" > nul || exit /b 5
 if "!_action!" == "pop" (
     call :ini_parse._return_value
+)
+exit /b 0
+#+++
+
+:ini_parse._setup
+if not defined .ini_parse.strip (
+    call :macroify .ini_parse.strip "%~f0" "strip" || (
+        set ".ini_parse.strip=call :strip $args"
+    )
+)
+if not defined .ini_parse.TAB (
+    for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set ".ini_parse.TAB=%%t"
+)
+if not defined .ini_parse.LF (
+    set .ini_parse.LF=^
+%=REQUIRED=%
+%=REQUIRED=%
 )
 exit /b 0
 #+++
@@ -103,7 +124,7 @@ for /f "usebackq tokens=*" %%o in (".ini_parse._tokens") do (
     )
     set "_line=!_line:*:=!"
     set "_line_stripped=!_line!"
-    call :strip _line_stripped
+    %strip:$args=_line_stripped%
 
     set "_struct="
     set "_key="
@@ -123,7 +144,7 @@ for /f "usebackq tokens=*" %%o in (".ini_parse._tokens") do (
     )
     if "!_struct!" == "section" (
         set "_section=!_line_stripped:~1,-1!"
-        call :strip _section
+        %strip:$args=_section%
         if "!_section!" == "!_target_section!" (
             set "_match_section=true"
         ) else set "_match_section="
@@ -131,7 +152,7 @@ for /f "usebackq tokens=*" %%o in (".ini_parse._tokens") do (
     if "!_struct!,!_match_section!" == "key-value,true" (
         for /f "tokens=1 delims==" %%k in ("!_line_stripped!") do (
             set "_key=%%k"
-            call :strip _key
+            %strip:$args=_key%
             set "_value=!_line:*%%k=!"
             set "_value=!_value:~1!"
         )
@@ -274,8 +295,8 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=capchar strip endlocal"
-set "%~1extra_requires=coderender list_lf2set"
+set "%~1install_requires=macroify strip endlocal"
+set "%~1extra_requires=capchar coderender list_lf2set"
 set "%~1category=file"
 exit /b 0
 
@@ -329,6 +350,12 @@ rem ############################################################################
 ::      - Only section can starts with '['
 ::      - Keys that starts with '[' must be quoted
 ::        so it starts with '"' or "'" instead
+::
+::  ENVIRONMENT
+::      This function creates and uses the following global variables:
+::          - .ini_parse.strip: Macro of strip()
+::          - .ini_parse.TAB: Tab character (0x09)
+::          - .ini_parse.LF: Line feed character (0x0A)
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
@@ -681,6 +708,7 @@ exit /b 0
 
 :tests.template.demo
 setlocal EnableDelayedExpansion
+call :capchar TAB LF
 set "action=%~1"
 ::  name=Carol
 ::  name=Charlie
