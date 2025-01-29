@@ -79,7 +79,6 @@ rem ############################################################################
 ::
 ::  EXIT STATUS
 ::      0:  - Success
-::      1:  - An unexpected error occured
 exit /b 0
 
 
