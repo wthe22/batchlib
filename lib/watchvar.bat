@@ -21,7 +21,7 @@ for %%x in (txt hex) do (
     cd /d "%cd%"
 )
 for %%v in (_init_only _list_names) do set "%%v="
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "[-i,--initialize]:   set _init_only=true" ^
     ^ "[-n,--name]:         set _list_names=true" ^
     ^ -- %* || exit /b 2
@@ -100,7 +100,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 hexlify"
+set "%~1install_requires=argparse hexlify"
 set "%~1extra_requires=strlen"
 set "%~1category=devtools"
 exit /b 0

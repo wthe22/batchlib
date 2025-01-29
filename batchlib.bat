@@ -229,12 +229,12 @@ rem ############################################################################
 ::      Simplifying usage with some new features, and license change
 ::
 ::  - New subcommand: run
-::  - New functions: list_lf2set, ini_edit, argparse2, get_net_iface
+::  - New functions: list_lf2set, ini_edit, get_net_iface
 ::  - Bug fixes: color_print, endlocal, quicktest, strip, input_yesno
 ::  - Behavior changes: quicktest, check_path, strip
 ::  - Global variable usage changes: functions_list, functions_range, macroify,
 ::    strip
-::  - Breaking changes: coderender, unittest, endlocal
+::  - Breaking changes: argparse, coderender, unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
 ::  - License: Remove attribution requirement (MIT No Attribution)
 ::
@@ -249,10 +249,8 @@ rem ############################################################################
 ::  - ini_edit(): New! INI configuration file editor
 ::  - get_net_iface(): NEW! Get network interface data
 ::
-::  - argparse(): Deprecated. Please use argparse2() instead.
-::  - argparse2():
-::      - Successor of argparse()
-::      - Use new spec syntax
+::  - argparse():
+::      - Reworked spec syntax
 ::      - Help flag detection and auto-generated usage syntax
 ::      - Required/optional spec detection
 ::      - A single flag can now capture multiple arguments
@@ -293,7 +291,7 @@ rem ############################################################################
 ::  - version_parse(): Add python testing code
 ::
 ::  Documentation
-::  - Fix argument syntax of: quicktest, hexlify, argparse2
+::  - Fix argument syntax of: quicktest, hexlify, argparse
 ::  - Fix demo of: unittest
 ::  - Improve some documentations
 ::  - macroify(): Add details on creating and using macros

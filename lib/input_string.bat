@@ -6,7 +6,7 @@ exit /b
 :input_string [-m message] [-f] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message _require_filled) do set "%%v="
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "return_var:              set _return_var" ^
     ^ "[-m,--message MESSAGE]:  set _message" ^
     ^ "[-f,--filled]:           set _require_filled=true" ^
@@ -35,7 +35,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 endlocal"
+set "%~1install_requires=argparse endlocal"
 set "%~1category=ui"
 exit /b 0
 

@@ -6,7 +6,7 @@ exit /b
 :updater [-n] [-y] [-f] [-u url] <script_path>
 setlocal EnableDelayedExpansion
 for %%v in (_assume_yes _notify_only _force _dl_url) do set "%%v="
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "script_path:             set _this" ^
     ^ "[-n,--notify-only]:      set _notify_only=true" ^
     ^ "[-y,--yes]:              set _assume_yes=true" ^
@@ -67,10 +67,10 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
-    ^ argparse2 download_file functions_range readline ^
+    ^ argparse download_file functions_range readline ^
     ^ version_parse input_yesno ^
     ^ %=END=%
-set "%~1extra_requires=argparse2 ping_test coderender get_pid_by_title input_path"
+set "%~1extra_requires=argparse ping_test coderender get_pid_by_title input_path"
 set "%~1category=packaging"
 exit /b 0
 
@@ -202,7 +202,7 @@ exit /b 0
 :tests.template.dummy [-n name] [-v version]
 set "name=dummy"
 set "version=1.0"
-call :argparse2 ^
+call :argparse ^
     ^ "[-n,--name NAME]:        set name" ^
     ^ "[-v,--version VERSION]:  set version" ^
     ^ -- %* || ( 1>&2 echo%0: Parse failed & exit /b 2 )

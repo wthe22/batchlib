@@ -11,7 +11,7 @@ for %%v in (
 set "unittest.target=%~f0"
 set "unittest.pattern=test*.test*"
 set "unittest.target_args=-c"
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "[target]:                    set unittest.target" ^
     ^ "[-f,--failfast]:             set unittest.fail_fast=true" ^
     ^ "[-p,--pattern PATTERN]:      set unittest.pattern" ^
@@ -274,7 +274,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
-    ^ argparse2 functions_match functions_range readline ^
+    ^ argparse functions_match functions_range readline ^
     ^ difftime ftime ^
     ^ %=END=%
 set "%~1extra_requires=functions_range readline"

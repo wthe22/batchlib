@@ -8,7 +8,7 @@ setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message) do set "%%v="
 set "_yes_value=Y"
 set "_no_value=N"
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "[return_var]:            set _return_var" ^
     ^ "[-m,--message MESSAGE]:  set _message" ^
     ^ "[-y,--yes VALUE]:        set _yes_value" ^
@@ -47,7 +47,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2"
+set "%~1install_requires=argparse"
 set "%~1category=ui"
 exit /b 0
 

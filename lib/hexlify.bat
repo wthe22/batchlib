@@ -7,7 +7,7 @@ exit /b
 setlocal EnableDelayedExpansion EnableExtensions
 set "_input_file="
 set "_eol=0d 0a"
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "input_file:      set _input_file" ^
     ^ "[-e,--eol HEX]:  set _eol" ^
     ^ -- %* || exit /b 2
@@ -49,7 +49,7 @@ exit /b
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 strlen"
+set "%~1install_requires=argparse strlen"
 set "%~1extra_requires=input_path"
 set "%~1category=file"
 exit /b 0

@@ -19,7 +19,7 @@ exit /b 0
     if not defined _is_macro goto 2> nul
     for %%v in (_code _loops) do set "%%v="
     set "_repeat=5"
-    call :argparse2 --name timeit ^
+    call :argparse --name timeit ^
         ^ "[code]:              set _code" ^
         ^ "[-n,--number LOOPS]: set _loops" ^
         ^ "[-r,--repeat N]:     set _repeat" ^
@@ -128,7 +128,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 difftime macroify ext_powershell"
+set "%~1install_requires=argparse difftime macroify ext_powershell"
 set "%~1category=time devtools"
 exit /b 0
 

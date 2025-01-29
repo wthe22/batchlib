@@ -9,7 +9,7 @@ for %%v in (
     _return_var _message _base_dir _optional _warn_overwrite
     _check_options
 ) do set "%%v="
-call :argparse2 --name %0 ^
+call :argparse --name %0 ^
     ^ "return_var:              set _return_var" ^
     ^ "[-m,--message MESSAGE]:  set _message" ^
     ^ "[-o,--optional]:         set _optional=true" ^
@@ -55,7 +55,7 @@ exit /b 1
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires=argparse2 check_path input_yesno endlocal"
+set "%~1install_requires=argparse check_path input_yesno endlocal"
 set "%~1extra_requires="
 set "%~1category=ui"
 exit /b 0
