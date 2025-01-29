@@ -100,7 +100,7 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      conemu is a interactive console interface in a batch script. It allows
-::      interactive editing, running, and debugging of your script.
+::      interactive debugging of your script.
 ::
 ::      The interface is not bulletproof; you could crash the script by entering
 ::      a command with invalid syntax, but it behaves well if the syntax entered
@@ -111,7 +111,7 @@ exit /b 0
 ::      - Invalid syntax could cause script to stop unexpectedly
 ::      - Percent signs are not expanded:
 ::          - Displaying variables that uses percent will not work,
-::            use exclamation mark or the CALL command instead.
+::            please use exclamation mark or the CALL command instead.
 ::          - Use single percent sign on codes that normally use double percent sign
 ::      - Errorlevel behaves similarly to command prompt
 exit /b 0
