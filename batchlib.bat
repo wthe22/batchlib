@@ -244,10 +244,12 @@ rem ############################################################################
 ::  - Add build script warning when ':entry_point' is not at line 1
 ::
 ::  Library
-::  - Use shared global variables for constants and macros
+::  - Functions now initialize required constants and macros, then saving them as
+::    shared global variables
+::  - Recategorize functions
 ::  - list_lf2set(): New! Similar to list2set() but with Line Feed seperator
 ::  - ini_edit(): New! INI configuration file editor
-::  - get_net_iface(): NEW! Get network interface data
+::  - get_net_iface(): NEW! Get network interface data (experimental)
 ::
 ::  - argparse():
 ::      - Reworked spec syntax
