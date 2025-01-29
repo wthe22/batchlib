@@ -113,6 +113,7 @@ exit /b 0
 
 :tests.setup
 call :capchar TAB
+call :macroify strip "%~f0" "strip"
 exit /b 0
 
 
