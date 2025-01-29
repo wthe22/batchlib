@@ -347,19 +347,22 @@ rem ############################################################################
 ::        so it starts with '"' or "'" instead
 ::
 ::  ENVIRONMENT
-::      This function creates and uses the following global variables:
-::          - .ini_parse.strip: Macro of strip()
-::          - .ini_parse.TAB: Tab character (0x09)
-::          - .ini_parse.LF: Line feed character (0x0A)
+::      This function uses:
+::      - Temporary files
+::      - Shared global variables (strip, TAB, LF)
+::
+::      Global variables that affects this function:
+::      - tmp_dir: Path to store the temporary files
+::      - tmp: Fallback path of tmp_dir
 ::
 ::  POSITIONAL ARGUMENTS
 ::      action
 ::          Action to do. Possible values:
-::              - sections: Get section names
-::              - keys: Get keys in a section
-::              - get: Get value of a key
-::              - set: Add a new key or edit value of an existing key
-::              - pop: Remove a key and get the value
+::          - sections: Get section names
+::          - keys: Get keys in a section
+::          - get: Get value of a key
+::          - set: Add a new key or edit value of an existing key
+::          - pop: Remove a key and get the value
 ::
 ::      config_file
 ::          Path to the configuration file
