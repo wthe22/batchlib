@@ -84,8 +84,8 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Check for updates, download them, notify user, and update the script.
-::      The script must accept the argument '-c :metadata <prefix>' to get
-::      metadata of the script (name, version, download_url).
+::      The script must have a metadata function to get name, version,
+::      release_date, etc.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_prefix
