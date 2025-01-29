@@ -10,8 +10,8 @@ set "_file1=%~f2"
 set "_file2=%~f3"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 set "_result="
-fc /b "!_file1!" "!_file2!" > "fc_diff"
-for /f "usebackq skip=1 tokens=1* delims=:" %%a in ("fc_diff") do (
+fc /b "!_file1!" "!_file2!" > ".diffbin._fc_diff"
+for /f "usebackq skip=1 tokens=1* delims=:" %%a in (".diffbin._fc_diff") do (
     if not defined _result (
         set "_result=%%a: %%b"
         if /i "%%a" == "FC" (
@@ -21,7 +21,7 @@ for /f "usebackq skip=1 tokens=1* delims=:" %%a in ("fc_diff") do (
         ) else set /a "_result=0x%%a"
     )
 )
-del /f /q "fc_diff"
+del /f /q ".diffbin._fc_diff"
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%_return_var%=%%r"
