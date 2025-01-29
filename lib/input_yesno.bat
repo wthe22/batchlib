@@ -48,7 +48,7 @@ exit /b 1
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse"
-set "%~1category=ui"
+set "%~1category=console"
 exit /b 0
 
 

@@ -141,7 +141,7 @@ exit /b 0
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=input_string"
-set "%~1category=packaging"
+set "%~1category=algorithms"
 exit /b 0
 
 

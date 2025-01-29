@@ -21,7 +21,7 @@ exit /b 0
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=capchar input_string"
-set "%~1category=cli"
+set "%~1category=console"
 exit /b 0
 
 

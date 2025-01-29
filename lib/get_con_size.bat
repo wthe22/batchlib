@@ -22,7 +22,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1category=env"
+set "%~1category=console"
 exit /b 0
 
 

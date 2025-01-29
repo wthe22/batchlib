@@ -94,7 +94,7 @@ exit /b 0
 :lib.dependencies [return_prefix]
 set "%~1install_requires=functions_range readline"
 set "%~1extra_requires=functions_range readline get_os true"
-set "%~1category=packaging"
+set "%~1category=algorithms"
 exit /b 0
 
 

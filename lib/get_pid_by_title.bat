@@ -24,7 +24,7 @@ exit /b 0
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=input_string"
-set "%~1category=time"
+set "%~1category=env"
 exit /b 0
 
 

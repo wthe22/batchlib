@@ -71,7 +71,7 @@ set %~1install_requires= ^
     ^ version_parse input_yesno ^
     ^ %=END=%
 set "%~1extra_requires=argparse ping_test coderender get_pid_by_title input_path"
-set "%~1category=packaging"
+set "%~1category=net"
 exit /b 0
 
 

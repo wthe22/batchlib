@@ -129,7 +129,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse difftime macroify ext_powershell"
-set "%~1category=time devtools"
+set "%~1category=debug"
 exit /b 0
 
 

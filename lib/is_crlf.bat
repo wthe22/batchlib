@@ -22,7 +22,7 @@ rem  8  shorter than the rest               DO NOT MODIFY -> #
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1category=packaging"
+set "%~1category=file"
 exit /b 0
 
 

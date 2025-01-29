@@ -278,7 +278,7 @@ set %~1install_requires= ^
     ^ difftime ftime ^
     ^ %=END=%
 set "%~1extra_requires=functions_range readline"
-set "%~1category=devtools"
+set "%~1category=debug"
 exit /b 0
 
 

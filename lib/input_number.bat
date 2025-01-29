@@ -47,7 +47,7 @@ exit /b 1
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse is_number is_in_range"
 set "%~1extra_requires="
-set "%~1category=ui"
+set "%~1category=console"
 exit /b 0
 
 

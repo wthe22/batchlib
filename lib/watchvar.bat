@@ -102,7 +102,7 @@ exit /b 0
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse hexlify"
 set "%~1extra_requires=strlen"
-set "%~1category=devtools"
+set "%~1category=debug"
 exit /b 0
 
 

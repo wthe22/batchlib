@@ -53,7 +53,7 @@ exit /b 1
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=coderender functions_range readline functions_match"
-set "%~1category=devtools"
+set "%~1category=debug"
 exit /b 0
 
 
