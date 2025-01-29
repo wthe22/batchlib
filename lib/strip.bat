@@ -158,7 +158,7 @@ exit /b 0
 
 
 :tests.test_multiple_characters
-set "whitespaces=!TAB!!TAB! whitespaces   "
+set "whitespaces=!TAB!!TAB! whitespaces!TAB!  "
 set "title1=#####  title1  #####"
 set "title2=-~-~ title2 ~-~-"
 set "section=[section]"
