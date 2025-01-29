@@ -33,7 +33,7 @@ exit /b 0
 ::
 ::  EXIT STATUS
 ::      0:  - EOL conversion is successful.
-::      3:  - File not found.
+::      2:  - File not found.
 ::      3:  - EOL conversion failed.
 ::
 ::  NOTES
