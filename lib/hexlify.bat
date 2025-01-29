@@ -5,22 +5,22 @@ exit /b
 
 :hexlify <input_file> [--eol hex]
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_input_file _output_file) do set "%%v="
+set "_input_file="
 set "_eol=0d 0a"
 call :argparse2 --name %0 ^
     ^ "input_file:      set _input_file" ^
     ^ "[-e,--eol HEX]:  set _eol" ^
     ^ -- %* || exit /b 2
-for %%v in (_input_file _output_file) do for %%f in ("!%%v!") do set "%%v=%%~ff"
+for %%f in ("!input_file!") do set "%%v=%%~ff"
 call :strlen _eol_len _eol
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-if exist "raw_hex" del /f /q "raw_hex"
-certutil -encodehex "!_input_file!" "raw_hex" > nul || (
+if exist ".hexlify._raw_hex" del /f /q ".hexlify._raw_hex"
+certutil -encodehex "!_input_file!" ".hexlify._raw_hex" > nul || (
     1>&2 echo%0: encode failed exit /b 3
 )
 rem Group hex according to EOL
 set "_hex="
-for /f "usebackq tokens=1*" %%a in ("raw_hex") do (
+for /f "usebackq tokens=1*" %%a in (".hexlify._raw_hex") do (
     set "_input=%%b"
     set "_hex=!_hex! !_input:~0,48!"
     if not "!_hex:~7680!" == "" call :hexlify._format
