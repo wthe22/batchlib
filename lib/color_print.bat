@@ -5,7 +5,11 @@ exit /b
 
 :color_print <color> <text>
 2> nul (
-    pushd "!tmp_dir!" || exit /b 1
+    pushd "!tmp_dir!" || pushd "!tmp!" || exit /b 3
+    for %%d in (".color_print") do (
+        if not exist "%%~d" md "%%~d"
+        cd /d "%%~d" || exit /b 3
+    )
      < nul set /p "=!BACK!!BACK!" > "%~2_"
     findstr /l /v /a:%~1 "." "%~2_" nul
     del /f /q "%~2_" > nul
@@ -57,6 +61,10 @@ exit /b 0
 ::  NOTES
 ::      - Printing special characters (the invalid path characters: '"<>|?*:\/')
 ::        are not supported.
+::
+::  EXIT STATUS
+::      0:  - Success
+::      3:  - Fail to change working directory to temporary directory
 exit /b 0
 
 
