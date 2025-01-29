@@ -65,7 +65,7 @@ exit /b 0
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires= "
-set "%~1extra_requires=input_string macroify"
+set "%~1extra_requires=capchar input_string macroify"
 set "%~1category=string"
 exit /b 0
 
@@ -112,8 +112,7 @@ exit /b 0
 
 
 :tests.setup
-call :capchar LF TAB
-call :macroify strip "%~f0" "strip"
+call :capchar TAB
 exit /b 0
 
 
