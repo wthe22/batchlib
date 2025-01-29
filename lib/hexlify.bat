@@ -11,7 +11,7 @@ call :argparse2 --name %0 ^
     ^ "input_file:      set _input_file" ^
     ^ "[-e,--eol HEX]:  set _eol" ^
     ^ -- %* || exit /b 2
-for %%f in ("!input_file!") do set "%%v=%%~ff"
+for %%f in ("!_input_file!") do set "_input_file=%%~ff"
 call :strlen _eol_len _eol
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if exist ".hexlify._raw_hex" del /f /q ".hexlify._raw_hex"
@@ -113,7 +113,6 @@ certutil -decodehex "hexlify.hex" "hexlify.rebuild" > nul
 fc /a /lb1 "%~f0" "hexlify.rebuild" > nul || (
     call %unittest% fail "difference detected"
 )
-for %%v in (hex rebuild) do del /f /q "hexlify.%%v"
 exit /b 0
 
 
