@@ -229,19 +229,19 @@ rem ############################################################################
 ::      Simplifying usage with some new features, and license change
 ::
 ::  - New subcommand: run
-::  - New functions: list_lf2set, conf_edit, argparse2, endlocal, updater,
-::    get_net_iface, timeleft
+::  - New functions: list_lf2set, ini_edit, argparse2, get_net_iface
 ::  - Bug fixes: endlocal, quicktest, strip, input_yesno
 ::  - Behavior changes: quicktest, check_path, strip
-::  - Incompatible changes: coderender, unittest, endlocal
+::  - Breaking changes: coderender, unittest, endlocal
 ::  - Deprecated / removed: ut_fmt_basic, argparse
 ::  - License: Remove attribution requirement (MIT No Attribution)
 ::
-::  Library
+::  Core
 ::  - Include unittest() to library in debug mode
 ::  - Remove '-c' subcommand requirement to build script
 ::  - Add build script warning when ':entry_point' is not at line 1
 ::
+::  Library
 ::  - list_lf2set(): New! Similar to list2set() but with Line Feed seperator
 ::  - ini_edit(): New! INI configuration file editor
 ::  - get_net_iface(): NEW! Get network interface data
@@ -249,6 +249,7 @@ rem ############################################################################
 ::  - argparse(): Deprecated. Please use argparse2() instead.
 ::  - argparse2():
 ::      - Successor of argparse()
+::      - Use new spec syntax
 ::      - Help flag detection and auto-generated usage syntax
 ::      - Required/optional spec detection
 ::      - A single flag can now capture multiple arguments
@@ -261,7 +262,9 @@ rem ############################################################################
 ::  - endlocal():
 ::      - Fix string gets executed when it contains ampersand
 ::      - Add ability to quit multiple stacks of setlocal
+::      - Add ability to exit to access parent context
 ::      - Function signature change
+::      - Add support for returning LF characters in EnableDelayedExpansion
 ::  - get_os(): Function can now detect Windows 11
 ::  - input_yesno(): Fix value not returned if the value is null
 ::  - nroot(): Improve readabilty
@@ -274,6 +277,7 @@ rem ############################################################################
 ::  - strip():
 ::      - Special characters in variable can now be safely processed
 ::      - Double quotes can now be stripped
+::      - Support stripping multiple characters at the same time
 ::      - Function can now be converted to macro by using macroify()
 ::  - timeit(): Add unittest, reformat macro code
 ::  - timeleft(): Add macro
@@ -297,10 +301,19 @@ exit /b 0
 
 
 :changelog.dev
-::  - ini_edit(): Leave value as-is
+::  - ini_parse():
+::      - Rename from ini_parse()
+::      - Leave value as-is
+::      - Add command to get sections and keys
 ::  - coderender():
 ::      - Add option to generate codes to render
 ::      - Changed the way arguments are passed to template
+::  - endlocal():
+::      - Add ability to exit to access parent context
+::      - Add support for returning LF characters in EnableDelayedExpansion
+::  - strip():
+::      - Support stripping multiple characters at the same time
+::  - input_string(), input_path(): Use new syntax of endlocal()
 exit /b 0
 
 rem ############################################################################
