@@ -62,12 +62,6 @@ exit /b 0
 ::          A Line Feed character. Needs to be defined (by capchar) before
 ::          using this function.
 ::
-::  EXIT STATUS
-::      0:  - Success
-::      3:  - Cannot open input file
-::          - Label not found
-::          - Read line failed
-::
 ::  DEVELOPMENT AND USAGE
 ::      There are few things to know when making a macro.
 ::
@@ -92,6 +86,12 @@ exit /b 0
 ::
 ::      The key is to make cmd think that your function is a single block of
 ::      command or inside one.
+::
+::  EXIT STATUS
+::      0:  - Success
+::      3:  - Cannot open input file
+::          - Label not found
+::          - Read line failed
 exit /b 0
 
 
