@@ -35,6 +35,7 @@ exit /b 0
 ::
 ::  NOTES
 ::      - PowerShell is used to download the information file.
+::      - 3rd party websites are used to get the ip information
 exit /b 0
 
 
