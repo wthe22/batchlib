@@ -64,7 +64,7 @@ exit /b 0
 
 
 :lib.dependencies [return_prefix]
-set "%~1install_requires="
+set "%~1install_requires= "
 set "%~1extra_requires=input_string macroify"
 set "%~1category=string"
 exit /b 0
