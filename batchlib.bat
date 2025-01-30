@@ -1011,7 +1011,7 @@ for %%a in (
     "file: File and Folder"
     "net: Network"
     "env: Environment"
-    "console: Console Interface"
+    "cli: Command Line Interface"
     "debug: Debugging Tools"
     "external: External"
     "experimental: Experimental"

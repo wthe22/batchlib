@@ -36,7 +36,7 @@ exit /b 1
 
 :lib.dependencies [return_prefix]
 set "%~1install_requires=argparse endlocal"
-set "%~1category=console"
+set "%~1category=cli"
 exit /b 0
 
 
