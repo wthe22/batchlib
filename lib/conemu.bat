@@ -93,14 +93,14 @@ exit /b 0
 
 :doc.man
 ::  NAME
-::      conemu - batch script interactive console interface
+::      conemu - interactive command line interface emulator
 ::
 ::  SYNOPSIS
 ::      conemu
 ::
 ::  DESCRIPTION
-::      conemu is a interactive console interface in a batch script. It allows
-::      interactive debugging of your script.
+::      conemu is a interactive command line interface in a batch script.
+::      It allows users to type in command and do interactive debugging.
 ::
 ::      The interface is not bulletproof; you could crash the script by entering
 ::      a command with invalid syntax, but it behaves well if the syntax entered
