@@ -7,7 +7,7 @@ exit /b
 rem Library name should start with an alphablet. Library name should only
 rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
 
-rem File name should be the same as the function name and use '.bat' extension.
+rem File name MUST be the same as the function name and use '.bat' extension.
 rem i.e. "<library name here>.bat".
 
 rem Use this to run command only in debug mode:
