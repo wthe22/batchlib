@@ -28,7 +28,7 @@ set "%~1version=0"
 set "%~1authors="
 set "%~1license="
 set "%~1description=New Script Template"
-set "%~1release_date=08/22/2021"   :: mm/dd/YYYY
+set "%~1release_date=01/07/2024"   :: mm/dd/YYYY
 set "%~1url="
 set "%~1download_url="
 exit /b 0
