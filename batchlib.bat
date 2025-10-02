@@ -1422,7 +1422,7 @@ rem ############################################################################
 set %~1install_requires= ^
     ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest version_parse ^
-    ^ conemu input_path input_yesno input_string updater ^
+    ^ conemu input_path input_yesno updater ^
     ^ difftime ftime ^
     ^ %=END=%
 exit /b 0
