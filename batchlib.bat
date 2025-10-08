@@ -229,7 +229,7 @@ rem ############################################################################
 ::      Simplifying usage with some new features, and license change
 ::
 ::  - New subcommand: run
-::  - New functions: list_lf2set, ini_edit, get_net_iface
+::  - New functions: list_lf2set, ini_edit, get_net_iface, reg_get
 ::  - Bug fixes: color_print, endlocal, quicktest, strip, input_yesno
 ::  - Behavior changes: quicktest, check_path, strip
 ::  - Global variable usage changes: functions_list, functions_range, macroify,
@@ -250,6 +250,7 @@ rem ############################################################################
 ::  - list_lf2set(): New! Similar to list2set() but with Line Feed seperator
 ::  - ini_edit(): New! INI configuration file editor
 ::  - get_net_iface(): NEW! Get network interface data (experimental)
+::  - reg_get(): NEW! Get a registry value
 ::
 ::  - argparse():
 ::      - Reworked spec syntax
@@ -302,30 +303,6 @@ rem ############################################################################
 ::  - Add new subcommand to view documentation of a script
 exit /b 0
 
-
-:changelog.dev
-::  - ini_parse():
-::      - Rename from ini_parse()
-::      - Leave value as-is
-::      - Add command to get sections and keys
-::      - Use variables and macro to improve performance
-::  - coderender():
-::      - Add option to generate codes to render
-::      - Changed the way arguments are passed to template
-::  - endlocal():
-::      - Add ability to exit to access parent context
-::      - Add support for returning LF characters in EnableDelayedExpansion
-::  - strip():
-::      - Support stripping multiple characters at the same time
-::  - input_string(), input_path(): Use new syntax of endlocal()
-::  - macroify()
-::      - Add a dot in front of global variables
-::  - color_print(): Reduce chances of overwriting other temp files
-::  - diffbin(), hexlify(), wait(), watchvar():
-::      - Add prefix to temporary files
-::  - functions_list(), functions_range(), ini_parse(), macroify(), strip():
-::      - Use shared global variables for constants and macros
-exit /b 0
 
 rem ############################################################################
 rem Metadata
