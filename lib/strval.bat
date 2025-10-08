@@ -37,7 +37,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string string || (
+call :input_string --optional string || (
     set "string="
     for %%c in (# A - +) do if !random! LSS 5461 (
         set "string=!string!%%c"

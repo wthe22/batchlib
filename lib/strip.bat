@@ -100,8 +100,8 @@ exit /b 0
 :doc.demo
 call :capchar TAB
 
-call :input_string string || set "string=  hello world.   "
-call :input_string character || set "character= "
+call :input_string --optional string || set "string=  hello world.   "
+call :input_string --optional character || set "character= "
 set "stripped=!string!"
 echo=
 call :strip stripped "!character!"

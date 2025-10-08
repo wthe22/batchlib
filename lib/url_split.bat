@@ -83,7 +83,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
+call :input_string --optional web_url || set "web_url=https://blog.example.com:80/1970/01/news.html?page=1#top"
 call :url_split web_url. "!web_url!"
 set web_url
 exit /b 0

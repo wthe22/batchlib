@@ -77,7 +77,7 @@ exit /b 0
 
 :doc.demo
 call :input_path --exist --file --optional file_path || set "file_path=%~f0"
-call :input_string checksum_type
+call :input_string --optional checksum_type
 call :checksum checksum "!file_path!" !checksum_type!
 echo=
 echo File: !file_path!

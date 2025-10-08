@@ -48,7 +48,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string time_in_centisecond || set "time_in_centisecond=1234567"
+call :input_string --optional time_in_centisecond || set "time_in_centisecond=1234567"
 call :ftime time_taken !time_in_centisecond!
 echo=
 echo Centiseconds   : !time_in_centisecond!

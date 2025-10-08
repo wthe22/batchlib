@@ -103,17 +103,17 @@ exit /b 0
 
 
 :doc.demo
-call :input_string config_file  --message "Input an existing file: "
+call :input_string config_file --optional --message "Input an existing file: "
 call :check_path --exist --file config_file && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :input_string folder  --message "Input an existing folder or a new folder name: "
+call :input_string folder --optional --message "Input an existing folder or a new folder name: "
 call :check_path --directory folder && (
     echo Your input is valid
 ) || echo Your input is invalid
 
-call :input_string new_name  --message "Input a non-existing file name: "
+call :input_string new_name --optional --message "Input a non-existing file name: "
 call :check_path --not-exist new_name && (
     echo Your input is valid
 ) || echo Your input is invalid

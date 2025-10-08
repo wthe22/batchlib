@@ -72,8 +72,8 @@ exit /b 0
 rem Satisfy dependencies
 call :capchar LF BACK
 
-call :input_string text || set "text=Hello World"
-call :input_string hexadecimal_color || set "hexadecimal_color=02"
+call :input_string --optional text || set "text=Hello World"
+call :input_string --optional hexadecimal_color || set "hexadecimal_color=02"
 echo=
 call :color_print "!hexadecimal_color!" "!text!" && (
     echo !LF!Print Success

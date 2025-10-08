@@ -125,7 +125,7 @@ exit /b 0
 
 :doc.demo
 call :input_path input_file --file --exist --optional || set "input_file=%~f0"
-call :input_string label_name || set "label_name=doc.demo"
+call :input_string --optional label_name || set "label_name=doc.demo"
 echo=
 echo Input file : !input_file!
 echo Label name : !label_name!

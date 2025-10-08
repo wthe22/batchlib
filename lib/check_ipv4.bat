@@ -58,7 +58,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string ip_address
+call :input_string --optional ip_address
 echo=
 echo Your entered: '!ip_address!'
 call :check_ipv4 "!ip_address!" --wildcard && (

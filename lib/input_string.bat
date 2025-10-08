@@ -3,13 +3,14 @@ call %*
 exit /b
 
 
-:input_string [-m message] [-f] <return_var>
+:input_string [-m message] [-o] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_return_var _message _require_filled) do set "%%v="
+for %%v in (_return_var _message _optional) do set "%%v="
 call :argparse --name %0 ^
     ^ "return_var:              set _return_var" ^
     ^ "[-m,--message MESSAGE]:  set _message" ^
-    ^ "[-f,--filled]:           set _require_filled=true" ^
+    ^ "[-o,--optional]:         set _optional=true" ^
+    ^ "[-f,--filled]:           set _optional=" ^
     ^ -- %* || exit /b 2
 if not defined _message set "_message=Input !_return_var!: "
 call :input_string._loop || exit /b 4
@@ -28,7 +29,7 @@ for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
     set /p "user_input=!_message!"
     if defined user_input (
         exit /b 0
-    ) else if not defined _require_filled exit /b 0
+    ) else if defined _optional exit /b 0
 )
 echo%0: Too many invalid inputs
 exit /b 1
@@ -52,8 +53,8 @@ exit /b 0
 ::          Variable to store the result.
 ::
 ::  OPTIONS
-::      -f, --filled
-::          The string must not be an empty string.
+::      -o, --optional
+::          Input is optional and could be skipped by entering nothing.
 ::
 ::      -m MESSAGE, --message MESSAGE
 ::          Use MESSAGE as the prompt message.
@@ -64,13 +65,16 @@ exit /b 0
 ::      2:  - Invalid argument.
 ::      3:  - Input is an empty string.
 ::      4:  - Too many invalid inputs (100 attempts).
+::
+::  NOTES
+::      - Flag -f, --filled is deprecated
 exit /b 0
 
 
 :doc.demo
-call :input_string your_text --message "Enter anything: "
+call :input_string your_text --optional --message "Enter anything: "
 echo Your input: "!your_text!"
-call :input_string your_text --filled --message "Enter something: "
+call :input_string your_text --message "Enter something: "
 echo Your input: "!your_text!"
 exit /b 0
 
@@ -91,8 +95,8 @@ exit /b 0
 for %%a in (
     "hello: hello fail"
     "semicolon: semicolon fail"
-    "empty: empty fail"
-    "hello: empty hello fail: --filled"
+    "empty: empty fail: --optional"
+    "hello: empty hello fail"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!
@@ -110,9 +114,9 @@ exit /b 0
 for %%a in (
     "0: hello fail"
     "0: semicolon fail"
-    "3: empty fail"
-    "0: empty hello fail: --filled"
-    "4: empty: --filled"
+    "3: empty fail: --optional"
+    "0: empty hello fail"
+    "4: empty"
 ) do for /f "tokens=1-2* delims=:" %%b in (%%a) do (
     > "input" (
         for %%i in (%%c) do echo=!text_%%i!

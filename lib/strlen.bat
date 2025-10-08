@@ -43,7 +43,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string string || (
+call :input_string --optional string || (
     set "string=1"
     for /l %%i in (1,1,10) do (
         set /a "string*=9 * (!random! %% 2) + 1"

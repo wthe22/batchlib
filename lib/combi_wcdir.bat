@@ -88,8 +88,8 @@ exit /b 0
 
 :doc.demo
 call :capchar LF
-call :input_string first_parts || set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
-call :input_string second_parts || set "second_parts=*script.exe"
+call :input_string --optional first_parts || set "first_parts=C:\Windows\System32;C:\Windows\SysWOW64"
+call :input_string --optional second_parts || set "second_parts=*script.exe"
 call :combi_wcdir result "!first_parts!" "!second_parts!" -s LF
 echo=
 echo First parts of path:

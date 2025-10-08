@@ -34,7 +34,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string string || set "string=once UPON a TiMe"
+call :input_string --optional string || set "string=once UPON a TiMe"
 set "result=!string!"
 echo=
 call :to_upper result

@@ -46,7 +46,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string readable_bytes || set "readable_bytes=2M + 512K"
+call :input_string --optional readable_bytes || set "readable_bytes=2M + 512K"
 call :bytes_parse bytes "!readable_bytes!"
 echo=
 echo Readable bytes: !readable_bytes!

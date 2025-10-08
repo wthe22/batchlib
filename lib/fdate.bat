@@ -57,7 +57,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string days_since_epoch || set "days_since_epoch=365"
+call :input_string --optional days_since_epoch || set "days_since_epoch=365"
 call :fdate result !days_since_epoch!
 echo=
 echo Days since epoch   : !days_since_epoch!

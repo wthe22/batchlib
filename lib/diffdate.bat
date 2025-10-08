@@ -55,8 +55,8 @@ exit /b 0
 
 
 :doc.demo
-call :input_string start_date || set "start_date=1/01/1970"
-call :input_string end_date || set "end_date=!date:* =!"
+call :input_string --optional start_date || set "start_date=1/01/1970"
+call :input_string --optional end_date || set "end_date=!date:* =!"
 call :diffdate difference !end_date! !start_date!
 echo=
 echo Start date : !start_date!

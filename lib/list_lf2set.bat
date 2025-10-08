@@ -104,7 +104,7 @@ exit /b 0
 
 :doc.demo
 call :capchar LF NL
-call :input_string list_with_duplicates || (
+call :input_string --optional list_with_duplicates || (
     set list_with_duplicates= sushi;noodle;salad;sushi;sushi;milk;SALAD
 )
 set list_with_duplicates=!list_with_duplicates:;=%NL%!

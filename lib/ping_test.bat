@@ -59,7 +59,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string host || set "host=google.com"
+call :input_string --optional host || set "host=google.com"
 echo=
 echo Ping: !host!
 call :ping_test ping. !host! && (

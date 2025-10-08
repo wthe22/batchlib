@@ -80,8 +80,8 @@ exit /b 0
 
 
 :doc.demo
-call :input_string pattern || set "pattern=*.bat"
-call :input_string string || set "string=batchlib.bat"
+call :input_string --optional pattern || set "pattern=*.bat"
+call :input_string --optional string || set "string=batchlib.bat"
 echo=
 echo Pattern    : '!pattern!'
 echo String     : '!string!'

@@ -60,7 +60,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string a_date || set "a_date=!date:* =!"
+call :input_string --optional a_date || set "a_date=!date:* =!"
 echo=
 call :what_day day "!a_date!"
 echo Date '!a_date!' is !day!

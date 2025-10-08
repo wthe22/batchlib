@@ -38,7 +38,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string roman_numeral || set "roman_numeral=MCMLXIX"
+call :input_string --optional roman_numeral || set "roman_numeral=MCMLXIX"
 echo=
 call :roman_decode result !roman_numeral!
 echo The decimal value of '!roman_numeral!' is !result!

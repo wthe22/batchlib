@@ -39,7 +39,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string binary || set "binary=10110"
+call :input_string --optional binary || set "binary=10110"
 call :int_from_bin result !binary!
 echo=
 echo The decimal value of '!binary!' is !result!

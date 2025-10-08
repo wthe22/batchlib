@@ -52,8 +52,8 @@ exit /b 0
 
 
 :doc.demo
-call :input_string start_time || set "start_time=!time!"
-call :input_string end_time || set "end_time=!time!"
+call :input_string --optional start_time || set "start_time=!time!"
+call :input_string --optional end_time || set "end_time=!time!"
 call :difftime time_taken "!end_time!" "!start_time!"
 echo=
 echo Start time     : !start_time!

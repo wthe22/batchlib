@@ -61,7 +61,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string string
+call :input_string --optional string
 call :is_number "!string!" && (
     echo It is a number
 ) || echo It is not a number

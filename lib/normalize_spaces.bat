@@ -54,7 +54,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string multi_space_text || (
+call :input_string --optional multi_space_text || (
     set "multi_space_text= hello     world,  how     are    you  ?"
 )
 set "result=!multi_space_text!"

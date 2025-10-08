@@ -44,7 +44,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string text
+call :input_string --optional text
 echo=
 call :shuffle text
 echo Shuffled string:

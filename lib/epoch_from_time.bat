@@ -45,7 +45,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string date_time || set "date_time=!date:* =!_!time!"
+call :input_string --optional date_time || set "date_time=!date:* =!_!time!"
 call :epoch_from_time result !date_time!
 echo=
 echo Date and time:

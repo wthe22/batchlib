@@ -62,7 +62,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string list_with_duplicates || (
+call :input_string --optional list_with_duplicates || (
     set list_with_duplicates= hello? hi =hello= *howdy* "hi" hello? *howdy*
 )
 set "result=!list_with_duplicates!"

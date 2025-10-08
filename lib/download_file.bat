@@ -49,7 +49,7 @@ exit /b 0
 echo For this demo, file will be saved to "!cd!"
 echo Enter nothing to download the logo of Git (1.87 KB on Sept 2021)
 echo=
-call :input_string download_url || set "download_url=https://git-scm.com/images/logo.png"
+call :input_string --optional download_url || set "download_url=https://git-scm.com/images/logo.png"
 call :input_path --file --optional save_path || set "save_path=logo.png"
 echo=
 echo Download url:

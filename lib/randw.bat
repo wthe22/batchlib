@@ -57,7 +57,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string weights || set "weights=1 4 9"
+call :input_string --optional weights || set "weights=1 4 9"
 
 echo=
 echo Weights    : !weights!

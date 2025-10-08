@@ -70,7 +70,7 @@ exit /b 0
 
 :doc.demo
 call :input_path --file --exist --optional input_file || set "input_file=%~f0"
-call :input_string pattern || set "pattern=*i*.*e*"
+call :input_string --optional pattern || set "pattern=*i*.*e*"
 echo=
 echo Input file : !input_file!
 echo Pattern    : !pattern!

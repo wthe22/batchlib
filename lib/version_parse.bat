@@ -245,9 +245,9 @@ exit /b 0
 
 
 :doc.demo
-call :input_string version1 || set "version1=2.0a"
-call :input_string version2 || set "version2=2.0"
-call :input_string comparison || set "comparison=LSS"
+call :input_string --optional version1 || set "version1=2.0a"
+call :input_string --optional version2 || set "version2=2.0"
+call :input_string --optional comparison || set "comparison=LSS"
 echo=
 call :version_parse version1.parsed !version1!
 call :version_parse version2.parsed !version2!

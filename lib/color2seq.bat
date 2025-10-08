@@ -58,7 +58,7 @@ exit /b 0
 
 :doc.demo
 call :capchar ESC
-call :input_string hexadecimal_color || set "hexadecimal_color=02"
+call :input_string --optional hexadecimal_color || set "hexadecimal_color=02"
 call :color2seq color_code "!hexadecimal_color!"
 echo=
 echo Hex Color  : !hexadecimal_color!

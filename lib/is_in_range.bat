@@ -68,7 +68,7 @@ exit /b 0
 
 :doc.demo
 call :input_number number --optional || set "number=!random!"
-call :input_string range || set "range=-99~111, 123, -1, 10240~20480"
+call :input_string --optional range || set "range=-99~111, 123, -1, 10240~20480"
 echo=
 echo Number : !number!
 echo Range  : !range!

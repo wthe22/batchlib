@@ -34,7 +34,7 @@ exit /b 0
 
 
 :doc.demo
-call :input_string string || set string="hello"
+call :input_string --optional string || set string="hello"
 set "stripped=!string!"
 echo=
 call :strip_dquotes stripped
