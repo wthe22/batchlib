@@ -226,81 +226,31 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      Simplifying usage with some new features, and license change
+::      Improvements
 ::
 ::  - New subcommand: run
-::  - New functions: list_lf2set, ini_edit, get_net_iface, reg_get
-::  - Bug fixes: color_print, endlocal, quicktest, strip, input_yesno
-::  - Behavior changes: quicktest, check_path, strip
-::  - Global variable usage changes: functions_list, functions_range, macroify,
-::    strip
-::  - Breaking changes: argparse, coderender, unittest, endlocal
-::  - Deprecated / removed: ut_fmt_basic, argparse
-::  - License: Remove attribution requirement (MIT No Attribution)
+::  - New functions:
+::  - Bug fixes:
+::  - Behavior changes:
+::  - Global variable usage changes:
+::  - Breaking changes: input_string
+::  - Deprecated / removed:
 ::
 ::  Core
-::  - Include unittest() to library in debug mode
-::  - Remove '-c' subcommand requirement to build script
-::  - Add build script warning when ':entry_point' is not at line 1
+::  -
 ::
 ::  Library
-::  - Functions now initialize required constants and macros, then saving them as
-::    shared global variables
-::  - Recategorize functions
-::  - list_lf2set(): New! Similar to list2set() but with Line Feed seperator
-::  - ini_edit(): New! INI configuration file editor
-::  - get_net_iface(): NEW! Get network interface data (experimental)
-::  - reg_get(): NEW! Get a registry value
-::
-::  - argparse():
-::      - Reworked spec syntax
-::      - Help flag detection and auto-generated usage syntax
-::      - Required/optional spec detection
-::      - A single flag can now capture multiple arguments
-::  - check_path(): Adjust exit status so invalid argument
-::                  errors are distinguishable
-::  - coderender():
-::      - Add option to generate codes to render
-::      - Changed the way arguments are passed to template
-::  - combi_wcdir(): Simplify code by using list_lf2set()
-::  - endlocal():
-::      - Fix string gets executed when it contains ampersand
-::      - Add ability to quit multiple stacks of setlocal
-::      - Add ability to exit to access parent context
-::      - Function signature change
-::      - Add support for returning LF characters in EnableDelayedExpansion
-::  - get_os(): Function can now detect Windows 11
-::  - input_yesno(): Fix value not returned if the value is null
-::  - nroot(): Improve readabilty
-::  - prime(): Add nroot dependency and improve readabilty
-::  - quicktest():
-::      - Empty label string now triggers auto detect label
-::      - Use outcome message as-is to prevent errors from unquoted string
-::      - Error in tests.setup() will abort the test,
-::        making behavior consistent with unittest
-::  - strip():
-::      - Special characters in variable can now be safely processed
-::      - Double quotes can now be stripped
-::      - Support stripping multiple characters at the same time
-::      - Function can now be converted to macro by using macroify()
-::  - timeit(): Add unittest, reformat macro code
-::  - timeleft(): Add macro
-::  - ut_fmt_basic(): Removed / merged into unittest() as 'basic' output.
-::  - unittest():
-::      - Remove '-s' flag
-::      - Rework and simplify usage of '-o' flag
-::      - Added an experimental TAP output
-::  - updater(): Remove '-c' subcommand requirement
-::  - version_parse(): Add python testing code
+::  - input_string(): Replace -f, -filled flag with -o, --optional flag, for
+::    consistency with other input functions
 ::
 ::  Documentation
-::  - Fix argument syntax of: quicktest, hexlify, argparse
-::  - Fix demo of: unittest
-::  - Improve some documentations
-::  - macroify(): Add details on creating and using macros
-::  - Template subcommand will list available template when no name is given
-::  - Mark functions as required or optional in template.bat
-::  - Add new subcommand to view documentation of a script
+::  -
+exit /b 0
+
+
+:upcomming
+::  Library
+::  - input_string(): Remove deprecated flag -f, --filled
 exit /b 0
 
 
