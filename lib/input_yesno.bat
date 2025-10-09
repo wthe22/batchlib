@@ -33,7 +33,7 @@ exit /b 1
 #+++
 
 :input_yesno._loop
-for /l %%# in (1,1,10) do for /l %%# in (1,1,10) do (
+for /l %%# in (1,1,7) do for /l %%# in (1,1,7) do (
     set "user_input="
     set /p "user_input=!_message!"
     if defined _default (
