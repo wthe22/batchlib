@@ -781,8 +781,8 @@ cls
 set "category= "
 for %%c in (!Library_%_library%.category!) do set "category=!category!!Category_%%c.name!, "
 set "category=!category:~1,-2!"
-call :Library.rdepends rdepends "!Library.all!" "!_library!" "install"
-set "rdepends=!rdepends: %_library% = !"
+call :rdepends rdepends "!_library!" Library.resolve_cmd "!Library.all!" --propagate
+if defined rdepends set "rdepends=!rdepends: %_library% = !"
 
 echo Name               : !_library!
 echo Argument Syntax    : !Library_%_library%.args!
@@ -899,7 +899,7 @@ exit /b 0
 :collect_dependencies <libraries>
 setlocal EnableDelayedExpansion
 set "_libraries=%~1"
-call :Library.depends _dependencies "!_libraries!" || exit /b 3
+call %lib%:depends _dependencies "!_libraries!" Library.resolve_cmd
 call :Library.unload_info
 if defined flags.is_minified (
     call :functions_range _ranges "%~f0" "!_dependencies!" || exit /b 3
@@ -1032,7 +1032,7 @@ for %%l in (!_library!) do (
         set "%%v=!%%v:M12=M00!"
     )
     set "_is_outdated="
-    call :Library.depends _dep "%%l !Library_%%l.extra_requires!"
+    call %lib%:depends _dep "%%l !Library_%%l.extra_requires!" Library.resolve_cmd
     for %%d in (!_dep!) do if not defined _is_outdated (
         for %%f in ("!lib_dir!\%%d.bat") do set "_mtime=%%~tf"
         for %%v in (_mtime) do (
@@ -1111,14 +1111,7 @@ echo=
 echo=
 echo :: Automatically Added
 echo=
-call :Library.depends _dep "!_dependencies!" || exit /b 3
-call :Library.unload_info
-for %%l in (!_dep!) do (
-    call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
-    call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
-    echo=
-    echo=
-)
+call :collect_dependencies "!_dependencies!" || exit /b 3
 exit /b 0
 
 
@@ -1197,102 +1190,8 @@ for %%l in (!Library.all!) do (
         1>&2 echo%0: Failed to call lib.dependencies^(^) in '%%l'
     )
 )
-exit /b 0
-
-
-:Library.depends <return_var> <library ...>
-setlocal EnableDelayedExpansion
-set "_return_var=%~1"
-set "_library=%~2"
-set resolve_in_var=(^
-        ^ if defined Library_%%n.install_requires ( ^
-            ^ set ^"%%r=^^!Library_%%n.install_requires^^!^" ^
-        ^ ) else set /a 2^> nul ^
-    ^ )
-call %lib%:depsolve _result "!_library!" resolve_in_var
-set "_errorlevel=!errorlevel!"
-for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
-    endlocal
-    set "%_return_var%=%%b"
-    if "%%b" == " " set "%_return_var%="
-    exit /b %_errorlevel%
-)
-exit /b 1
-
-
-:Library.rdepends <return_var> <search_list> <library ...> [requires ...]
-setlocal EnableDelayedExpansion
-set "_return_var=%~1"
-set "_search_list_raw=%~2"
-set "_library=%~3"
-set "_requires=%~4"
-if not defined _requires set "_requires=install"
-set "_search_list="
-for %%l in (!_search_list_raw!) do (
-    for %%r in (!_requires!) do (
-        for /f "tokens=1-2 delims=[]" %%a in ("%%l[%%r]") do (
-            set "_search_list=!_search_list! %%a[%%b]"
-        )
-    )
-)
-set "_match_list="
-for %%l in (!_library!) do (
-    for /f "tokens=1-2 delims=[]" %%a in ("%%l[install]") do (
-        set "_match_list=!_match_list! %%a[%%b]"
-    )
-)
-set "_result= "
-set "_stack="
-set "_visited= "
-call :Library.rdepends._visit "!_search_list!"
-set "_result=!_result:[install] = !"
-call :Library.remove_extras_pkg _result
-for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
-    endlocal
-    set "%_return_var%=%%b"
-    if "%%b" == " " set "%_return_var%="
-)
-exit /b 0
-#+++
-
-:Library.rdepends._visit <library ...>
-for %%l in (%~1) do ( rem
-) & for /f "tokens=1-2 delims=[]" %%a in ("%%l[install]") do (
-    set "_stack=%%a[%%b] !_stack!"
-    set "_match="
-    for %%m in (!_match_list!) do if "%%a[%%b]" == "%%m" set "_match=true"
-    if defined _match (
-        for %%s in (!_stack!) do (
-            if "!_result: %%s =!" == "!_result!" set "_result= %%s!_result!"
-        )
-    ) else (
-        set "_visit=true"
-        if not "!_stack: %%a[%%b] =!" == "!_stack!" set "_visit="
-        if not "!_visited: %%a[%%b] =!" == "!_visited!" set "_visit="
-        if not defined Library_%%a.install_requires set "_visit="
-        if defined _visit (
-            set "_visited= %%a[%%b]!_visited!"
-            call :Library.rdepends._visit "!Library_%%a.%%b_requires!"
-        )
-    )
-    for /f "tokens=1* delims= " %%r in ("!_stack!") do set "_stack=%%s"
-)
-exit /b 0
-
-
-:Library.remove_extras_pkg <variable>
-setlocal EnableDelayedExpansion
-set "_variable=%~1"
-set "_value=!%~1!"
-set "_result= "
-for %%l in (!_value!) do ( rem
-) & for /f "tokens=1-2 delims=[]" %%a in ("%%l") do (
-    if "!_result: %%a =!" == "!_result!" set "_result=!_result!%%a "
-)
-for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
-    endlocal
-    set "%_variable%=%%b"
-    if "%%b" == " " set "%_return_var%="
+set Library.resolve_cmd=for %%v in (Library_%%i.install_requires) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
 )
 exit /b 0
 
@@ -1326,7 +1225,7 @@ rem ############################################################################
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ functions_range readline functions_list true unset_all ^
-    ^ coderender unittest version_parse depsolve ^
+    ^ coderender unittest version_parse depends rdepends ^
     ^ conemu input_path input_yesno updater ^
     ^ difftime ftime ^
     ^ %=END=%
@@ -1437,9 +1336,6 @@ for %%l in (!Library.all!) do (
 ::
 call :self_extract_func ^
     ^ Library.read_args.from_self ^
-    ^ Library.depends ^
-    ^ Library.rdepends ^
-    ^ Library.remove_extras_pkg ^
     ^ Library.search ^
     ^ %=END=%
 ::  :flags.is_minified
@@ -1456,7 +1352,7 @@ call :self_extract_func ^
     ^ lib.dependencies ^
     ^ lib.call ^
     ^ %=END=%
-call :Library.depends ordered_lib "!Library.all!"
+call %lib%:depends ordered_lib "!Library.all!" Library.resolve_cmd
 for %%l in (!ordered_lib!) do (
     call :functions_range _range "!lib_dir!\%%l.bat" "%%l"
     call :readline "!lib_dir!\%%l.bat" !_range!
@@ -1565,16 +1461,6 @@ set "result=!Library_hi.args!"
 set "expected=hi   <name> [message]"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
-)
-exit /b 0
-
-
-:tests.Library.test_depends_unresolvable
-set "Library.all=magic"
-set "Library_magic.install_requires="
-set "given=magic"
-call :Library.depends result "!given!" 2> nul && (
-    call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
 
