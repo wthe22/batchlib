@@ -39,6 +39,7 @@ rem ############################################################################
 ::      batchlib (-h|--help)
 ::      batchlib -c :<label> [arguments] ...
 ::      batchlib build <input_file> [backup_name]
+::      batchlib collect <libraries>
 ::      batchlib debug <library> :<label> [arguments] ...
 ::      batchlib test [library]
 ::      batchlib template <name>
@@ -63,6 +64,12 @@ rem ############################################################################
 ::
 ::          backup_name
 ::              Path of the backup file.
+::
+::  COLLECT SUBCOMMAND
+::          batchlib collect <libraries>
+::
+::      Collect the Libraries and its dependency. Useful for adding libraries into
+::      another file.
 ::
 ::  RUN SUBCOMMAND
 ::          batchlib run <library> :<label> [arguments] ...
@@ -228,7 +235,7 @@ rem ############################################################################
 ::  TLDR
 ::      Improvements
 ::
-::  - New subcommand:
+::  - New subcommand: collect
 ::  - New functions: depsolve
 ::  - Bug fixes:
 ::  - Behavior changes:
@@ -386,6 +393,11 @@ exit /b
 
 :subcommand.build <file>
 call :build_script %*
+exit /b
+
+
+:subcommand.collect <file>
+call :collect_dependencies %*
 exit /b
 
 
@@ -861,9 +873,7 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if defined flags.is_minified set "lib="
 call %lib%:functions_range _range "!_input_file!" "lib.dependencies" || exit /b 3
 call %lib%:readline "!_input_file!" !_range! > "_lib_dependencies.bat" || exit /b 3
-call "_lib_dependencies.bat" || exit /b 3
-call :Library.depends _dep "!install_requires!" || exit /b 3
-call :Library.unload_info
+call "_lib_dependencies.bat" target. || exit /b 3
 call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
 for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
     set "_range=%%a:%%b"
@@ -877,26 +887,35 @@ for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
     echo=
     echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.VERSION! on !date! !time!
     echo=
-    if defined flags.is_minified (
-        call :functions_range _ranges "%~f0" "!_dep!" || exit /b 3
-        for %%r in (!_ranges!) do (
-            call :readline "%~f0" %%r || exit /b 3
-            echo=
-            echo=
-        )
-    ) else (
-        for %%l in (!_dep!) do (
-            call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
-            call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
-            echo=
-            echo=
-        )
-    )
+    call :collect_dependencies "!target.install_requires!"
 ) || exit /b 3
 if defined _backup_file (
     copy /b /v /y "!_input_file!" "!_backup_file!" > nul || exit /b 3
 )
 move /y "_build_script.tmp" "!_input_file!" > nul || exit /b 3
+exit /b 0
+
+
+:collect_dependencies <libraries>
+setlocal EnableDelayedExpansion
+set "_libraries=%~1"
+call :Library.depends _dependencies "!_libraries!" || exit /b 3
+call :Library.unload_info
+if defined flags.is_minified (
+    call :functions_range _ranges "%~f0" "!_dependencies!" || exit /b 3
+    for %%r in (!_ranges!) do (
+        call :readline "%~f0" %%r || exit /b 3
+        echo=
+        echo=
+    )
+) else (
+    for %%l in (!_dependencies!) do (
+        call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
+        call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
+        echo=
+        echo=
+    )
+)
 exit /b 0
 
 
