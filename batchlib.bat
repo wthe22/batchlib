@@ -228,8 +228,8 @@ rem ############################################################################
 ::  TLDR
 ::      Improvements
 ::
-::  - New subcommand: run
-::  - New functions:
+::  - New subcommand:
+::  - New functions: depsolve
 ::  - Bug fixes:
 ::  - Behavior changes:
 ::  - Global variable usage changes:
@@ -248,7 +248,7 @@ rem ############################################################################
 exit /b 0
 
 
-:upcomming
+:upcomming_v3.4
 ::  Library
 ::  - input_string(): Remove deprecated flag -f, --filled
 exit /b 0
