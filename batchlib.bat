@@ -1013,7 +1013,7 @@ for %%l in (!_library!) do (
         set "%%v=!%%v:M12=M00!"
     )
     set "_is_outdated="
-    call :Library.depends _dep "%%l" "install extra"
+    call :Library.depends _dep "%%l !Library_%%l.extra_requires!"
     for %%d in (!_dep!) do if not defined _is_outdated (
         for %%f in ("!lib_dir!\%%d.bat") do set "_mtime=%%~tf"
         for %%v in (_mtime) do (
@@ -1181,27 +1181,17 @@ for %%l in (!Library.all!) do (
 exit /b 0
 
 
-:Library.depends <return_var> <library ...> [requires ...]
+:Library.depends <return_var> <library ...>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_library=%~2"
-set "_requires=%~3"
-if not defined _requires set "_requires=install"
-set "_search_list= "
-for %%l in (!_library!) do (
-    for %%r in (!_requires!) do (
-        for /f "tokens=1-2 delims=[]" %%a in ("%%l[%%r]") do (
-            set "_search_list=!_search_list!%%a[%%b] "
-        )
-    )
-)
-set "_result= "
-set "_stack="
-set "_bad="
-set "_errorlevel=0"
-call :Library.depends._visit "!_search_list!"
-set "_result=!_result:[install] = !"
-call :Library.remove_extras_pkg _result
+set resolve_in_var=(^
+        ^ if defined Library_%%n.install_requires ( ^
+            ^ set ^"%%r=^^!Library_%%n.install_requires^^!^" ^
+        ^ ) else set /a 2^> nul ^
+    ^ )
+call %lib%:depsolve _result "!_library!" resolve_in_var
+set "_errorlevel=!errorlevel!"
 for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
     endlocal
     set "%_return_var%=%%b"
@@ -1209,37 +1199,6 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
     exit /b %_errorlevel%
 )
 exit /b 1
-#+++
-
-:Library.depends._visit <library ...>
-set "_lib= "
-for %%l in (%~1) do ( rem
-) & for /f "tokens=1-2 delims=[]" %%a in ("%%l[install]") do (
-    set "_lib= %%a[%%b]!_lib!"
-    )
-)
-for %%l in (%_lib%) do ( rem
-) & for /f "tokens=1-2 delims=[]" %%a in ("%%l") do (
-    set "_stack=%%a[%%b] !_stack!"
-    set "_visit=true"
-    if not "!_stack: %%a[%%b] =!" == "!_stack!" (
-        1>&2 echo%0: Cyclic dependencies detected in stack: !_stack!
-        set /a "_errorlevel|=0x4"
-        set "_visit="
-    )
-    if not "!_result: %%a[%%b] =!" == "!_result!" set "_visit="
-    if not defined Library_%%a.install_requires (
-        1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
-        set /a "_errorlevel|=0x2"
-        set "_visit="
-    )
-    if defined _visit (
-        call :Library.depends._visit "!Library_%%a.%%b_requires!"
-    )
-    if "!_result: %%a[%%b] =!" == "!_result!" set "_result= %%a[%%b]!_result!"
-    for /f "tokens=1* delims= " %%r in ("!_stack!") do set "_stack=%%s"
-)
-exit /b 0
 
 
 :Library.rdepends <return_var> <search_list> <library ...> [requires ...]
@@ -1348,7 +1307,7 @@ rem ############################################################################
 :lib.dependencies [return_prefix]
 set %~1install_requires= ^
     ^ functions_range readline functions_list true unset_all ^
-    ^ coderender unittest version_parse ^
+    ^ coderender unittest version_parse depsolve ^
     ^ conemu input_path input_yesno updater ^
     ^ difftime ftime ^
     ^ %=END=%
@@ -1587,50 +1546,6 @@ set "result=!Library_hi.args!"
 set "expected=hi   <name> [message]"
 if not "!result!" == "!expected!" (
     call %unittest% fail "Expected '!expected!', got '!result!'"
-)
-exit /b 0
-
-
-:tests.Library.test_depends
-set "Library.all=bed chair plank stick table wood wool"
-set "Library_table.install_requires=plank stick"
-set "Library_chair.install_requires=plank wool stick"
-set "Library_bed.install_requires=plank wool"
-set "Library_plank.install_requires= "
-set "Library_stick.install_requires= "
-set "Library_wood.install_requires= "
-set "Library_wool.install_requires= "
-set "given=table wool bed"
-set "expected= table stick bed plank wool "
-call :Library.depends result "!given!"
-if not "!result!" == "!expected!" (
-    call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
-)
-exit /b 0
-
-
-:tests.Library.test_depends_extra
-set "Library.all=plank stick table"
-set "Library_table.install_requires=plank stick"
-set "Library_plank.install_requires= "
-set "Library_stick.install_requires= "
-set "Library_stick.extra_requires=table"
-set "given=stick stick[extra]"
-set "expected= stick table plank "
-call :Library.depends result "!given!"
-if not "!result!" == "!expected!" (
-    call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
-)
-exit /b 0
-
-
-:tests.Library.test_depends_cyclic
-set "Library.all=chichen egg"
-set "Library_chicken.install_requires=egg"
-set "Library_egg.install_requires=chicken"
-set "given=chicken egg"
-call :Library.depends result "!given!" 2> nul && (
-    call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
 
