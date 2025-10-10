@@ -1123,7 +1123,7 @@ exit /b 0
 
 
 :Library.unload_info
-call :unset_all "Library." "Library_"
+call %lib%:unset_all "Library." "Library_"
 exit /b 0
 
 
