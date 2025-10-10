@@ -68,7 +68,7 @@ rem ############################################################################
 ::  COLLECT SUBCOMMAND
 ::          batchlib collect <libraries>
 ::
-::      Collect the Libraries and its dependency. Useful for adding libraries into
+::      Collect libraries and its dependencies. Useful for adding libraries into
 ::      another file.
 ::
 ::  RUN SUBCOMMAND
@@ -90,19 +90,19 @@ rem ############################################################################
 ::
 ::      This subcommand is not available in the minified version.
 ::
-::  MAN SUBCOMMAND
-::          batchlib man [library]
-::
-::      Shows documentation of a library. If no library name is specified,
-::      it will show documentation of batchlib.
-::
-::      This subcommand is not available in the minified version.
-::
 ::  TEST SUBCOMMAND
 ::          batchlib test [library]
 ::
 ::      Run unittests of a library. If no library is given, it will
 ::      test all libraries instead.
+::
+::      This subcommand is not available in the minified version.
+::
+::  MAN SUBCOMMAND
+::          batchlib man [library]
+::
+::      Shows documentation of a library. If no library name is specified,
+::      it will show documentation of batchlib.
 ::
 ::      This subcommand is not available in the minified version.
 ::
@@ -209,18 +209,24 @@ echo=
 echo    batchlib build ^<input_file^> [backup_name]
 echo        Add/update dependency of a file
 echo=
+echo    batchlib collect ^<libraries^>
+echo        Collect libraries and its dependencies
+echo=
 echo    batchlib run ^<library^> :^<label^> [arguments] ...
-echo        Run a function in the library (Not available in minified version)
+echo        Run a function in the library
+echo        (Not available in minified version)
 echo=
 echo    batchlib debug ^<library^> :^<label^> [arguments] ...
-echo        Debug a library (Not available in minified version)
+echo        Debug a library
+echo        (Not available in minified version)
+echo=
+echo    batchlib test [library]
+echo        Run unittests of a library
+echo        (Not available in minified version)
 echo=
 echo    batchlib man [library]
 echo        Shows documentation of a library or the batchlib itself
 echo        (Not available in minified version)
-echo=
-echo    batchlib test [library]
-echo        Run unittest to a library (Not available in minified version)
 echo=
 echo    batchlib template ^<name^>
 echo        Create the specified template and output to STDOUT.
