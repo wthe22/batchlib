@@ -236,9 +236,9 @@ rem ############################################################################
 ::      Improvements
 ::
 ::  - New subcommand: collect
-::  - New functions: depsolve
+::  - New functions: depends, rdepends
 ::  - Bug fixes:
-::  - Behavior changes:
+::  - Behavior changes: input_*
 ::  - Global variable usage changes:
 ::  - Breaking changes: input_string
 ::  - Deprecated / removed:
@@ -247,6 +247,7 @@ rem ############################################################################
 ::  -
 ::
 ::  Library
+::  - input_*(): Reduce number of max attempts from 100 to 49
 ::  - input_string(): Replace -f, -filled flag with -o, --optional flag, for
 ::    consistency with other input functions
 ::
