@@ -3,47 +3,47 @@ call %*
 exit /b
 
 
-:depsolve <return_var> <node ...> <get_cmd_var>
+:depsolve <return_var> <items> <get_cmd_var>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
-set "_nodes=%~2"
+set "_items=%~2"
 set "_get_cmd_var=%~3"
 set "_get_cmd=!%_get_cmd_var%!"
 set "_result= "
 set "_stack="
 set "_errorlevel=0"
-call :depsolve._visit "!_nodes!"
-for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
+call :depsolve._visit "!_items!"
+for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
-    set "%_return_var%=%%b"
-    if "%%b" == " " set "%_return_var%="
+    set "%_return_var%=%%r"
+    if "%%r" == " " set "%_return_var%="
     exit /b %_errorlevel%
 )
 exit /b 1
 #+++
 
-:depsolve._visit <node ...>
-set "_reversed_nodes="
-for %%n in (%~1) do set "_reversed_nodes=%%n !_reversed_nodes!"
-for %%n in (!_reversed_nodes!) do (
-    set "_stack=%%n !_stack!"
+:depsolve._visit <items>
+set "_reversed_items="
+for %%i in (%~1) do set "_reversed_items=%%i !_reversed_items!"
+for %%i in (!_reversed_items!) do (
+    set "_stack=%%i !_stack!"
     set "_visit=true"
-    if not "!_stack: %%n =!" == "!_stack!" (
+    if not "!_stack: %%i =!" == "!_stack!" (
         1>&2 echo%0: Cyclic dependency detected in stack: !_stack!
         set /a "_errorlevel|=0x4"
         set "_visit="
     )
-    if not "!_result: %%n =!" == "!_result!" set "_visit="
+    if not "!_result: %%i =!" == "!_result!" set "_visit="
     if defined _visit for %%r in (_dependencies) do (
         set "%%r="
         %_get_cmd% && (
-            call :depsolve._visit "!_dependencies!"
+            call :depsolve._visit "!%%r!"
         ) || (
             1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
             set /a "_errorlevel|=0x2"
         )
     )
-    if "!_result: %%n =!" == "!_result!" set "_result= %%n!_result!"
+    if "!_result: %%i =!" == "!_result!" set "_result= %%i!_result!"
     for /f "tokens=1*" %%a in ("!_stack!") do set "_stack=%%b"
 )
 exit /b 0
@@ -65,25 +65,26 @@ rem ############################################################################
 ::      depsolve - dependency solver
 ::
 ::  SYNOPSIS
-::      depsolve <return_var> <node ...> <get_cmd_var>
+::      depsolve <return_var> <items> <get_cmd_var>
 ::
 ::  DESCRIPTION
-::      Resolve dependencies with ordering. The nodes are ordered in a way that
+::      List all dependencies of an item. The items are ordered in a way that
 ::      its dependencies are always on its right side, never on its left side.
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
 ::          Variable to store the result.
 ::
-::      node
-::          Nodes to resolve.
+::      items
+::          Items to resolve, each separated by a space.
 ::
 ::      get_cmd_var
-::          Variable that contains commands to get the direct dependencies of a
-::          node. The dependencies must be saved to variable %%r. The name of the
-::          node can be accessed through %%n. For example of the command:
+::          Variable that contains commands to get the direct dependencies of an
+::          item. The dependencies must be saved to variable %%r. The name of the
+::          item the function is currently checking can be accessed through %%i.
+::          Example of the command:
 ::
-::              set get_cmd_var=set ^"%%r=^^!Item_%%n.dependencies^^!^"
+::              set get_cmd_var=set ^"%%r=^^!Item_%%i.dependencies^^!^"
 ::
 ::  EXIT STATUS
 ::      0:  - Success
@@ -108,7 +109,9 @@ call :input_string --optional items || (
 )
 echo=
 echo Items: !items!
-set resolve_in_var=set ^"%%r=^^!Item_%%n.dependencies^^!^"
+set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
+)
 call :depsolve result "!items!" resolve_in_var
 
 echo Dependencies: !result!
@@ -120,8 +123,10 @@ rem Tests
 rem ############################################################################
 
 :tests.setup
-set resolve_in_var=set ^"%%r=^^!Item_%%n.dependencies^^!^"
-set resolve_error=set /a 2> nul"
+set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
+)
+call :tests.mc
 exit /b 0
 
 
@@ -154,7 +159,7 @@ exit /b 0
 set "Item.all=magic"
 set "Item_magic.dependencies="
 set "given=magic"
-call :depsolve result "!given!" resolve_error 2> nul && (
+call :depsolve result "!given!" resolve_in_var 2> nul && (
     call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
