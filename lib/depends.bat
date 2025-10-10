@@ -3,7 +3,7 @@ call %*
 exit /b
 
 
-:depsolve <return_var> <items> <get_cmd_var>
+:depends <return_var> <items> <get_cmd_var>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_items=%~2"
@@ -12,7 +12,7 @@ set "_get_cmd=!%_get_cmd_var%!"
 set "_result= "
 set "_stack="
 set "_errorlevel=0"
-call :depsolve._visit "!_items!"
+call :depends._visit "!_items!"
 for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
     set "%_return_var%=%%r"
@@ -22,7 +22,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
 exit /b 1
 #+++
 
-:depsolve._visit <items>
+:depends._visit <items>
 set "_reversed_items="
 for %%i in (%~1) do set "_reversed_items=%%i !_reversed_items!"
 for %%i in (!_reversed_items!) do (
@@ -37,7 +37,7 @@ for %%i in (!_reversed_items!) do (
     if defined _visit for %%r in (_dependencies) do (
         set "%%r="
         %_get_cmd% && (
-            call :depsolve._visit "!%%r!"
+            call :depends._visit "!%%r!"
         ) || (
             1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
             set /a "_errorlevel|=0x2"
@@ -62,10 +62,10 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      depsolve - dependency solver
+::      depends - dependency solver
 ::
 ::  SYNOPSIS
-::      depsolve <return_var> <items> <get_cmd_var>
+::      depends <return_var> <items> <get_cmd_var>
 ::
 ::  DESCRIPTION
 ::      List all dependencies of an item. The items are ordered in a way that
@@ -112,7 +112,7 @@ echo Items: !items!
 set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
     ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
 )
-call :depsolve result "!items!" resolve_in_var
+call :depends result "!items!" resolve_in_var
 
 echo Dependencies: !result!
 exit /b 0
@@ -137,7 +137,7 @@ exit /b 0
 :tests.test_depends
 set "given=pickaxe torch bed"
 set "expected= pickaxe torch coal stick bed plank wool string "
-call :depsolve result "!given!" resolve_in_var
+call :depends result "!given!" resolve_in_var
 if not "!result!" == "!expected!" (
     call %unittest% fail "Given '!given!', expected '!expected!', got '!result!'"
 )
@@ -149,7 +149,7 @@ set "Item.all=chichen egg"
 set "Item_chicken.dependencies=egg"
 set "Item_egg.dependencies=chicken"
 set "given=chicken egg"
-call :depsolve result "!given!" resolve_in_var 2> nul && (
+call :depends result "!given!" resolve_in_var 2> nul && (
     call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
@@ -159,7 +159,7 @@ exit /b 0
 set "Item.all=magic"
 set "Item_magic.dependencies="
 set "given=magic"
-call :depsolve result "!given!" resolve_in_var 2> nul && (
+call :depends result "!given!" resolve_in_var 2> nul && (
     call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
