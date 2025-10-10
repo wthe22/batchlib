@@ -267,7 +267,7 @@ rem ############################################################################
 
 :metadata [return_prefix]
 set "%~1name=batchlib"
-set "%~1version=3.2"
+set "%~1version=3.3dev"
 set "%~1authors=wthe22"
 set "%~1license=MIT No Attribution"
 set "%~1description=Batch Script Library"
