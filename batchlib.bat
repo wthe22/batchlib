@@ -53,7 +53,7 @@ rem ############################################################################
 ::          batchlib build <input_file> [backup_name]
 ::
 ::      Add/update dependencies of a file (made from the new script template).
-::      Dependencies are found in 'install_requires' in lib.dependencies() and
+::      Dependencies are found in 'install_requires' in metadata() and
 ::      'extra_requires' is ignored. Build is aborted if any errors occur.
 ::      Please keep codes between 'entry_point' and 'EOF'. Codes beyond that will
 ::      be removed.
@@ -281,6 +281,13 @@ set "%~1description=Batch Script Library"
 set "%~1release_date=10/08/2025"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
+:lib.dependencies
+set %~1install_requires= ^
+    ^ functions_range readline functions_list true unset_all ^
+    ^ coderender unittest version_parse depends rdepends ^
+    ^ conemu input_path input_yesno updater ^
+    ^ difftime ftime ^
+    ^ %=END=%
 exit /b 0
 
 
@@ -720,7 +727,9 @@ setlocal EnableDelayedExpansion
 set "_library=%~1"
 set "_library_source=!lib_dir!\!_library!.bat"
 set "_library_build=!build_dir!\!_library!.bat"
-call "!_library_source!" :lib.dependencies "Library_!_library!." 2> nul
+call "!_library_source!" :metadata "Library_!_library!." 2> nul || (
+    call "!_library_source!" :lib.dependencies "Library_!_library!." 2> nul
+)
 call :LibBuild.update "!_library!"
 call :LibMenu.menu
 exit /b 0
@@ -878,7 +887,7 @@ set "_input_file=%~f1"
 set "_backup_file=%~f2"
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if defined flags.is_minified set "lib="
-call %lib%:functions_range _range "!_input_file!" "lib.dependencies" || exit /b 3
+call %lib%:functions_range _range "!_input_file!" "metadata" || exit /b 3
 call %lib%:readline "!_input_file!" !_range! > "_lib_dependencies.bat" || exit /b 3
 call "_lib_dependencies.bat" target. || exit /b 3
 call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
@@ -1193,8 +1202,10 @@ exit /b 0
 :Library.read_dependencies
 for %%l in (!Library.all!) do (
     set "Library_%%l.install_requires=?"
-    call "!lib_dir!\%%l.bat" :lib.dependencies "Library_%%l." 2> nul || (
-        1>&2 echo%0: Failed to call lib.dependencies^(^) in '%%l'
+    call "!lib_dir!\%%l.bat" :metadata "Library_%%l." 2> nul || (
+        call "!lib_dir!\%%l.bat" :lib.dependencies "Library_%%l." 2> nul
+    ) || (
+        1>&2 echo%0: Failed to call metadata and lib.dependencies in '%%l'
     )
 )
 set Library.resolve_cmd=for %%v in (Library_%%i.install_requires) do ( ^
@@ -1222,20 +1233,6 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
     if "%%b" == " " set "%_return_var%="
     if not defined %_return_var% exit /b 2
 )
-exit /b 0
-
-
-rem ############################################################################
-rem Library
-rem ############################################################################
-
-:lib.dependencies [return_prefix]
-set %~1install_requires= ^
-    ^ functions_range readline functions_list true unset_all ^
-    ^ coderender unittest version_parse depends rdepends ^
-    ^ conemu input_path input_yesno updater ^
-    ^ difftime ftime ^
-    ^ %=END=%
 exit /b 0
 
 
