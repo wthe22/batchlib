@@ -31,7 +31,15 @@ set "%~1description=New Script Template"
 set "%~1release_date=01/07/2024"   :: mm/dd/YYYY
 set "%~1url="
 set "%~1download_url="
+
+rem Required by batchlib
+rem List libraries you use in this file here:
+set "%~1install_requires="
 exit /b 0
+
+
+rem Add dependencies to this file by running:
+:: cmd /c batchlib.bat build Script-Name-Here.bat
 
 rem ############################################################################
 rem Configurations
@@ -73,19 +81,6 @@ set "exit_code=!errorlevel!"
 :main_script
 rem TODO: start scripting...
 @exit /b
-
-rem ############################################################################
-rem Library
-rem ############################################################################
-
-:lib.dependencies  [return_prefix]
-rem Required for batchlib
-rem List libraries you use in this file here:
-set "%~1install_requires="
-
-rem Add dependencies to this file by running:
-:: cmd /c batchlib.bat build Script-Name-Here.bat
-exit /b 0
 
 rem ############################################################################
 rem Tests
