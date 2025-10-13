@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=time"
+exit /b 0
+
+
 :ftime <return_var> <centiseconds>
 setlocal EnableDelayedExpansion
 set "_result="
@@ -17,13 +24,6 @@ for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=time"
 exit /b 0
 
 

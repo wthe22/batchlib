@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=functions_range readline"
+set "%~1category=string"
+exit /b 0
+
+
 :capchar <char> ...
 setlocal EnableDelayedExpansion
 for %%v in (
@@ -48,13 +55,6 @@ set "EM=^!"
 set EM=^^!
 
 rem ================================================
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=functions_range readline"
-set "%~1category=string"
-exit /b 0
 
 
 :doc.man

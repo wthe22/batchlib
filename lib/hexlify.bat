@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse strlen"
+set "%~1extra_requires=input_path"
+set "%~1category=file"
+exit /b 0
+
+
 :hexlify <input_file> [--eol hex]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_input_file="
@@ -46,13 +53,6 @@ if not "!_hex:~7680!" == "" (
 )
 set "_hex=!_hex:~0,-1!"
 exit /b
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse strlen"
-set "%~1extra_requires=input_path"
-set "%~1category=file"
-exit /b 0
 
 
 :doc.man

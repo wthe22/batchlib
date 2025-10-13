@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_number"
+set "%~1category=number"
+exit /b 0
+
+
 :nroot <return_var> <integer> <n>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -22,13 +29,6 @@ for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%~1=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_number"
-set "%~1category=number"
 exit /b 0
 
 

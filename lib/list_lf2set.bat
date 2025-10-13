@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=capchar input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :list_lf2set <return_var> <input_var>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -76,13 +83,6 @@ if defined _result (
     endlocal
     set "%_return_var%="
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=capchar input_string"
-set "%~1category=string"
 exit /b 0
 
 

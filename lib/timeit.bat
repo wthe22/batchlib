@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse difftime macroify ext_powershell"
+set "%~1category=debug"
+exit /b 0
+
+
 :timeit [-n loops] [-r repetitions] <code>
 setlocal EnableDelayedExpansion
 set "_is_macro="
@@ -124,12 +130,6 @@ for /l %%r in (!_start_repeat!,1,!_repeat!) do (
         ) else if "%%#" == "1" (
             set "_start_time=!time!"
             ) & for /l %%l in (1,1,!_loops!) do
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse difftime macroify ext_powershell"
-set "%~1category=debug"
 exit /b 0
 
 

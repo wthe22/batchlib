@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :list2set <input_var ...> [--not-null]
 for %%v in (%~1) do (
     setlocal EnableDelayedExpansion
@@ -28,13 +35,6 @@ for /l %%# in (1,1,64) do for /l %%# in (1,1,64) do (
     )
     shift /1
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

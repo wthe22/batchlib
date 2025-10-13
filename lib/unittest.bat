@@ -3,6 +3,16 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set %~1install_requires= ^
+    ^ argparse functions_match functions_range readline ^
+    ^ difftime ftime ^
+    ^ %=END=%
+set "%~1extra_requires=functions_range readline"
+set "%~1category=debug"
+exit /b 0
+
+
 :unittest [-f] [-p pattern] [-a target_args] [-o format] [target]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (
@@ -269,16 +279,6 @@ exit /b 0
 #+++
 
 :unittest.fmt.etap.stop
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set %~1install_requires= ^
-    ^ argparse functions_match functions_range readline ^
-    ^ difftime ftime ^
-    ^ %=END=%
-set "%~1extra_requires=functions_range readline"
-set "%~1category=debug"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=ext_vbscript"
+set "%~1extra_requires=input_path"
+set "%~1category=file"
+exit /b 0
+
+
 :unzip <zip_file> <destination_dir>
 setlocal EnableDelayedExpansion
 set "_zip_file=%~f1"
@@ -23,13 +30,6 @@ set "success="
 cscript //nologo "unzip.vbs" "!_zip_file!" "!_dest_path!" && set "success=true"
 del /f /q "unzip.vbs"
 if not defined success exit /b 3
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=ext_vbscript"
-set "%~1extra_requires=input_path"
-set "%~1category=file"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires="
+set "%~1category=cli"
+exit /b 0
+
+
 :conemu
 @(
     call :conemu.setup
@@ -81,13 +88,6 @@ exit /b 0
 @(
     set /p "=> " < nul
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires="
-set "%~1category=cli"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=strlen"
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :shuffle <input_var>
 if defined %~1 (
     setlocal EnableDelayedExpansion
@@ -20,13 +27,6 @@ if defined %~1 (
         set "%~1=%%a"
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=strlen"
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

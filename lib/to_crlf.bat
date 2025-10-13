@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=is_crlf"
+set "%~1category=file"
+exit /b 0
+
+
 :to_crlf <input_file>
 :to_crlf.alt1
 :to_crlf.alt2
@@ -13,13 +20,6 @@ type "%~f1" 2> nul | more /t4 > "%~f1.tmp" && (
 )
 1>&2 echo%0: Convert EOL failed
 exit /b 3
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=is_crlf"
-set "%~1category=file"
-exit /b 0
 
 
 :doc.man

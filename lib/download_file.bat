@@ -3,18 +3,18 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=ext_powershell"
+set "%~1extra_requires=input_string input_path"
+set "%~1category=net"
+exit /b 0
+
+
 :download_file <url> <save_path>
 if exist "%~2" del /f /q "%~2"
 if not exist "%~dp2" md "%~dp2"
 powershell -Command "(New-Object Net.WebClient).DownloadFile('%~1', '%~2')"
 if not exist "%~2" exit /b 1
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=ext_powershell"
-set "%~1extra_requires=input_string input_path"
-set "%~1category=net"
 exit /b 0
 
 

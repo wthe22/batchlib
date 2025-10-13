@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=wait"
+set "%~1extra_requires=input_number difftime"
+set "%~1category=time"
+exit /b 0
+
+
 :sleep <milliseconds>
 (
     setlocal EnableDelayedExpansion
@@ -18,13 +25,6 @@ exit /b
     set /a "_remaining=%~1 - !_remaining! * 10"
     for %%t in (!_remaining!) do %wait%
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=wait"
-set "%~1extra_requires=input_number difftime"
-set "%~1category=time"
 exit /b 0
 
 

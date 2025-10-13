@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=functions_range readline"
+set "%~1extra_requires=capchar"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :macroify <return_var> <input_file> <label>
 if not defined ._shared.LF (
     set ._shared.LF=^
@@ -32,13 +39,6 @@ for /f "tokens=1-2 delims=:" %%a in ("!_range!") do (
     set "%_return_var%=!%_return_var%:%%%%=%%!"
 )
 set ".macroify._line="
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=functions_range readline"
-set "%~1extra_requires=capchar"
-set "%~1category=algorithms"
 exit /b 0
 
 

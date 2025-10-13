@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=diffdate"
+set "%~1extra_requires=input_string"
+set "%~1category=time"
+exit /b 0
+
+
 :what_day <return_var> <date> [--number|--short]
 setlocal EnableDelayedExpansion
 call :diffdate _day "%~2" 1/01/1583
@@ -21,13 +28,6 @@ for /f "tokens=*" %%r in ("!_day!") do (
     endlocal
     set "%~1=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=diffdate"
-set "%~1extra_requires=input_string"
-set "%~1category=time"
 exit /b 0
 
 

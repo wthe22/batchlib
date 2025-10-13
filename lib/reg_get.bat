@@ -3,6 +3,11 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1category=env"
+exit /b 0
+
+
 :reg_get
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -16,11 +21,6 @@ for /f "tokens=* skip=2 usebackq" %%o in (`reg query "!_key_name!" /v "!_value_n
 	)
 )
 exit /b 2
-
-
-:lib.dependencies [return_prefix]
-set "%~1category=env"
-exit /b 0
 
 
 rem ############################################################################

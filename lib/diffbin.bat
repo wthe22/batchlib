@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_path"
+set "%~1category=file"
+exit /b 0
+
+
 :diffbin <return_var> <input_file1> <input_file2>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -26,13 +33,6 @@ for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
     set "%_return_var%=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_path"
-set "%~1category=file"
 exit /b 0
 
 

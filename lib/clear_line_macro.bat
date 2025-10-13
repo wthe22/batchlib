@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=capchar get_os"
+set "%~1extra_requires=get_con_size"
+set "%~1category=cli"
+exit /b 0
+
+
 :clear_line_macro <return_var> <width>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -20,13 +27,6 @@ for /f "tokens=1-2 delims=:" %%q in ("Q:!_result!:Q") do (
     endlocal
     set "%_return_var%=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=capchar get_os"
-set "%~1extra_requires=get_con_size"
-set "%~1category=cli"
 exit /b 0
 
 

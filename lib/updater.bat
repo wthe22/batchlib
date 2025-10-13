@@ -3,6 +3,16 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set %~1install_requires= ^
+    ^ argparse download_file functions_range readline ^
+    ^ version_parse input_yesno ^
+    ^ %=END=%
+set "%~1extra_requires=argparse ping_test coderender get_pid_by_title input_path"
+set "%~1category=net"
+exit /b 0
+
+
 :updater [-n] [-y] [-f] [-u url] <script_path>
 setlocal EnableDelayedExpansion
 for %%v in (_assume_yes _notify_only _force _dl_url) do set "%%v="
@@ -61,17 +71,6 @@ exit /b 1
 call :functions_range _range %1 "metadata" || exit /b 3
 call :readline %1 !_range! > ".updater.metadata.bat" || exit /b 3
 call ".updater.metadata.bat" %2 || exit /b 3
-exit /b 0
-
-
-
-:lib.dependencies [return_prefix]
-set %~1install_requires= ^
-    ^ argparse download_file functions_range readline ^
-    ^ version_parse input_yesno ^
-    ^ %=END=%
-set "%~1extra_requires=argparse ping_test coderender get_pid_by_title input_path"
-set "%~1category=net"
 exit /b 0
 
 

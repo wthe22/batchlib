@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=file"
+exit /b 0
+
+
 :is_crlf [--check-exist]
 :is_crlf.alt1
 :is_crlf.alt2
@@ -18,12 +24,6 @@ rem  7  Last line should be 1 character                       #
 rem  8  shorter than the rest               DO NOT MODIFY -> #
 :is_crlf._test
 @exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=file"
-exit /b 0
 
 
 :doc.man

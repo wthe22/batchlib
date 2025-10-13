@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse"
+set "%~1category=cli"
+exit /b 0
+
+
 :input_yesno [-m message] [-y value] [-n value] [-d value] [return_var]
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_return_var _message) do set "%%v="
@@ -44,12 +50,6 @@ for /l %%# in (1,1,7) do for /l %%# in (1,1,7) do (
 )
 echo%0: Too many invalid inputs
 exit /b 1
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse"
-set "%~1category=cli"
-exit /b 0
 
 
 :doc.man

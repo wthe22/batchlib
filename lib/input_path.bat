@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse check_path input_yesno endlocal"
+set "%~1extra_requires="
+set "%~1category=cli"
+exit /b 0
+
+
 :input_path [-m message] [-b base_dir] [-e|-n] [-f|-d] [-o] [-w] <return_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (
@@ -52,13 +59,6 @@ for /l %%# in (1,1,7) do for /l %%# in (1,1,7) do (
 )
 echo%0: Too many invalid inputs
 exit /b 1
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse check_path input_yesno endlocal"
-set "%~1extra_requires="
-set "%~1category=cli"
-exit /b 0
 
 
 :doc.man

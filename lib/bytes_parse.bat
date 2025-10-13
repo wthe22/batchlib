@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=number"
+exit /b 0
+
+
 :bytes_parse <return_var> <readable_bytes>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -16,13 +23,6 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
     set "%_return_var%=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=number"
 exit /b 0
 
 

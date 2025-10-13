@@ -3,15 +3,15 @@ call %*
 exit /b
 
 
-:ext_powershell
-powershell -Command "$PSVersionTable.PSVersion.ToString()"
-exit /b
-
-
-:lib.dependencies [return_prefix]
+:metadata [return_prefix]
 set "%~1install_requires= "
 set "%~1category=external"
 exit /b 0
+
+
+:ext_powershell
+powershell -Command "$PSVersionTable.PSVersion.ToString()"
+exit /b
 
 
 :doc.man

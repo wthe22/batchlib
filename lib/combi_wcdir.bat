@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=list_lf2set argparse wcdir capchar"
+set "%~1extra_requires=input_string"
+set "%~1category=file"
+exit /b 0
+
+
 :combi_wcdir [-f|-d] [-s] <return_var> <first_parts> <second_parts>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_list_dir=true"
@@ -41,13 +48,6 @@ for /f "tokens=* delims=" %%r in ("!_result!") do (
         ) else set "%_return_var%=!%_return_var%!%%r!%_seperator_var%!"
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=list_lf2set argparse wcdir capchar"
-set "%~1extra_requires=input_string"
-set "%~1category=file"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires="
+set "%~1category=net env"
+exit /b 0
+
+
 :get_net_iface <return_var>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -47,13 +54,6 @@ if "%%v" == "endlocal" (
 %=REQUIRED=%
 %=REQUIRED=%
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires="
-set "%~1category=net env"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=functions_list fnmatch"
+set "%~1extra_requires=input_string input_path capchar"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :functions_match <return_var> <input_file> <pattern>
 setlocal EnableDelayedExpansion EnableExtensions
 set "_return_var=%~1"
@@ -18,13 +25,6 @@ for /f "tokens=1* delims= " %%q in ("Q !_result!") do (
     set "%_return_var%=%%r"
     if not defined %_return_var% exit /b 3
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=functions_list fnmatch"
-set "%~1extra_requires=input_string input_path capchar"
-set "%~1category=algorithms"
 exit /b 0
 
 

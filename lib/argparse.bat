@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string unset_all"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :argparse [-h] [-d] [-s] [-n NAME] <spec> ... -- %*
 setlocal EnableDelayedExpansion
 for %%v in (
@@ -538,13 +545,6 @@ for /f "tokens=1-7* delims=|" %%a in ("!_spec_names!!_spec_flags!") do (
     )
 )
 if not defined _spec_id exit /b 2
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string unset_all"
-set "%~1category=algorithms"
 exit /b 0
 
 

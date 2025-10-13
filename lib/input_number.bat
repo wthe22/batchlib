@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse is_number is_in_range"
+set "%~1extra_requires="
+set "%~1category=cli"
+exit /b 0
+
+
 :input_number [-m message] [-r range] [-a] [-o] <return_var>
 setlocal EnableDelayedExpansion
 for %%v in (_return_var _message _range _as_is) do set "%%v="
@@ -42,13 +49,6 @@ for /l %%# in (1,1,7) do for /l %%# in (1,1,7) do (
     ) else if defined _optional exit /b 0
 )
 exit /b 1
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse is_number is_in_range"
-set "%~1extra_requires="
-set "%~1category=cli"
-exit /b 0
 
 
 :doc.man

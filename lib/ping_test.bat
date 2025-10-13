@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=net"
+exit /b 0
+
+
 :ping_test <return_prefix> <host> [ping_opts]
 set "_index=0"
 for /f "usebackq tokens=1-8 delims=(:=, " %%a in (`ping "%~2" %~3 `) do (
@@ -22,13 +29,6 @@ for /f "usebackq tokens=1-8 delims=(:=, " %%a in (`ping "%~2" %~3 `) do (
     )
 )
 if "!~1loss!" == "100" exit /b 2
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=net"
 exit /b 0
 
 

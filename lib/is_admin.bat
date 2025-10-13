@@ -3,14 +3,14 @@ call %*
 exit /b
 
 
-:is_admin
-( net session || openfiles || exit /b 2 ) > nul 2> nul
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=env"
 exit /b 0
 
 
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=env"
+:is_admin
+( net session || openfiles || exit /b 2 ) > nul 2> nul
 exit /b 0
 
 

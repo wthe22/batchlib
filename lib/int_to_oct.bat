@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_number"
+set "%~1category=number"
+exit /b 0
+
+
 :int_to_oct <return_var> <positive_integer>
 setlocal EnableDelayedExpansion
 set "_result="
@@ -16,13 +23,6 @@ for /f "tokens=1* delims=0" %%a in ("Q0!_result!") do (
         set "%~1=0"
     ) else set "%~1=%%b"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_number"
-set "%~1category=number"
 exit /b 0
 
 

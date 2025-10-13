@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=capchar input_string"
+set "%~1category=cli"
+exit /b 0
+
+
 :color2seq <return_var> <color>
 set "%~1=%~2"
 set "%~1=[!%~1:~0,1!;!%~1:~1,1!m"
@@ -15,13 +22,6 @@ for %%t in (
     set "%~1=!%~1:[%%a;=[%%b;!"
     set "%~1=!%~1:;%%am=;%%cm!"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=capchar input_string"
-set "%~1category=cli"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=env"
+exit /b 0
+
+
 :get_pid_by_title <return_var> <window_title>
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -18,13 +25,6 @@ for /f "tokens=1*" %%q in ("Q !_result!") do (
     set "%_return_var%=%%r"
     if not "%_count%" == "1" exit /b 2
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=env"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=macroify strip endlocal"
+set "%~1extra_requires=capchar coderender list_lf2set"
+set "%~1category=file"
+exit /b 0
+
+
 :ini_parse <action> <var> <config_file> [section] [key]
 if not defined ._shared.strip (
     call :macroify ._shared.strip "%~f0" "strip" || (
@@ -286,13 +293,6 @@ for /f "usebackq tokens=*" %%o in (".ini_parse._numbered") do (
     )
     endlocal
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=macroify strip endlocal"
-set "%~1extra_requires=capchar coderender list_lf2set"
-set "%~1category=file"
 exit /b 0
 
 

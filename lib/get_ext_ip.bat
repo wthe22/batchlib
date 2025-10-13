@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=ext_powershell"
+set "%~1category=net"
+exit /b 0
+
+
 :get_ext_ip <return_var>
 for %%u in (
     "http://ipecho.net/plain"
@@ -14,12 +20,6 @@ for %%u in (
     exit /b 0
 )
 exit /b 1
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=ext_powershell"
-set "%~1category=net"
-exit /b 0
 
 
 :doc.man

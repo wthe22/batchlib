@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=strlen"
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :fnmatch <string> <pattern>
 @setlocal EnableDelayedExpansion EnableExtensions
 set "_string=%~1"
@@ -44,13 +51,6 @@ if not defined _last (
 )
 call :strlen _len _last
 if /i not "!_leftover:~-%_len%!" == "!_last!" exit /b 3
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=strlen"
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

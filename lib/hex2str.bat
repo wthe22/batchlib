@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=hexlify"
+set "%~1extra_requires="
+set "%~1category=string"
+exit /b 0
+
+
 :hex2str <var> ...
 setlocal EnableDelayedExpansion
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -31,13 +38,6 @@ for %%f in (".hex2str.bat") do (
     endlocal
     call "%%~ff"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=hexlify"
-set "%~1extra_requires="
-set "%~1category=string"
 exit /b 0
 
 

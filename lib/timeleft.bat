@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=macroify"
+set "%~1extra_requires=difftime ftime clear_line_macro"
+set "%~1category=time"
+exit /b 0
+
+
 :timeleft
 call :timeleft._macro %* || exit /b
 exit /b 0
@@ -44,13 +51,6 @@ if "%%#" == "1" (
 if "%0" == ":timeleft._macro" (
         call set _args=%%*
     ) else set _args=
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=macroify"
-set "%~1extra_requires=difftime ftime clear_line_macro"
-set "%~1category=time"
 exit /b 0
 
 

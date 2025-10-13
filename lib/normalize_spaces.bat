@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :normalize_spaces <input_var ...> [--not-null]
 for %%l in (%~1) do (
     set "%%l= !%%l! "
@@ -15,13 +22,6 @@ for %%l in (%~1) do (
     ) do set "%%l=!%%l:%%~s= !"
     if not "%2" == "--not-null" if "!%%l!" == " " set "%%l="
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

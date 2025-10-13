@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_number timeit pow"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :loop_macro [return_var] [loops] [stacks]
 for %%v in (%1) do ( rem
 ) & for /f "tokens=1 delims==" %%b in ("%~2=256") do (
@@ -11,13 +18,6 @@ for %%v in (%1) do ( rem
         set "%%v=!%%v!for /l %%^_ in (1,1,%%b) do "
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_number timeit pow"
-set "%~1category=algorithms"
 exit /b 0
 
 

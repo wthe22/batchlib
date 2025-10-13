@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string input_yesno"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :rdepends <return_var> <items> <get_cmd_var> <search> [--propagate]
 setlocal EnableDelayedExpansion
 set "_return_var=%~1"
@@ -48,7 +55,7 @@ for %%i in (%~1) do (
         %_get_cmd% && (
             set "_explore="
             if defined _propagate (
-                set "_explore=true" 
+                set "_explore=true"
             ) else if not defined _stack set "_explore=true"
             if defined _explore (
                 set "_stack=%%i !_stack!"
@@ -62,13 +69,6 @@ for %%i in (%~1) do (
         )
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string input_yesno"
-set "%~1category=algorithms"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse"
+set "%~1extra_requires=input_string"
+set "%~1category=file"
+exit /b 0
+
+
 :check_path [-e|-n] [-f|-d] <path_var>
 setlocal EnableDelayedExpansion EnableExtensions
 for %%v in (_require_attrib  _require_exist) do set "%%v="
@@ -56,13 +63,6 @@ for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
     set "%_path_var%=%%c"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse"
-set "%~1extra_requires=input_string"
-set "%~1category=file"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=diffdate difftime"
+set "%~1extra_requires=input_string"
+set "%~1category=time"
+exit /b 0
+
+
 :epoch_from_time <return_var> <date_time>
 setlocal EnableDelayedExpansion
 for /f "tokens=1-2 delims=_" %%a in ("%~2") do (
@@ -14,13 +21,6 @@ for /f "tokens=*" %%r in ("!_epoch!") do (
     endlocal
     set "%~1=%%r"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=diffdate difftime"
-set "%~1extra_requires=input_string"
-set "%~1category=time"
 exit /b 0
 
 

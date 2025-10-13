@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=string"
+exit /b 0
+
+
 :sprintrow <buffer_var> <seperator> <size ...> <text> ...
 setlocal EnableDelayedExpansion
 set "_result="
@@ -26,12 +32,6 @@ for /f "tokens=* delims=" %%a in ("!%~1!!_result!") do (
     endlocal
     set "%~1=%%a"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=string"
 exit /b 0
 
 

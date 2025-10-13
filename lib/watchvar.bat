@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=argparse hexlify"
+set "%~1extra_requires=strlen"
+set "%~1category=debug"
+exit /b 0
+
+
 :watchvar [-i] [-n]
 setlocal EnableDelayedExpansion EnableExtensions
 cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
@@ -96,13 +103,6 @@ if defined _list_names (
         echo=
     )
 ) else echo Variables: !_var_count! [+!_new_count!/~!_changed_count!/-!_deleted_count!]
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=argparse hexlify"
-set "%~1extra_requires=strlen"
-set "%~1category=debug"
 exit /b 0
 
 

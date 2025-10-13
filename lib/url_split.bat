@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=net"
+exit /b 0
+
+
 :url_split <return_prefix> <url>
 pushd "%~d0\"
 for %%v in (url scheme host port path name ext query fragment) do set "%~1%%v="
@@ -37,13 +44,6 @@ if defined %~1port set "%~1url=!%~1url!:!%~1port!"
 set "%~1url=!%~1url!!%~1path!!%~1name!!%~1ext!"
 if defined %~1query set "%~1url=!%~1url!?!%~1query!"
 if defined %~1fragment set "%~1url=!%~1url!#!%~1fragment!"
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=net"
 exit /b 0
 
 

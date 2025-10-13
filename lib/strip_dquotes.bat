@@ -3,15 +3,15 @@ call %*
 exit /b
 
 
-:strip_dquotes <input_var>
-if "!%~1:~0,1!!%~1:~-1,1!" == ^"^"^"^" set "%~1=!%~1:~1,-1!"
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
+:metadata [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=input_string"
 set "%~1category=string"
+exit /b 0
+
+
+:strip_dquotes <input_var>
+if "!%~1:~0,1!!%~1:~-1,1!" == ^"^"^"^" set "%~1=!%~1:~1,-1!"
 exit /b 0
 
 

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=difftime"
+set "%~1extra_requires=input_number difftime"
+set "%~1category=time"
+exit /b 0
+
+
 :wait <milliseconds>
 for %%t in (%~1) do %wait%
 exit /b 0
@@ -36,13 +43,6 @@ exit /b 0
 
 :wait.setup_macro
 set wait=for /l %%w in (0,^^!.wait._increment^^!,%%t00000) do call
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=difftime"
-set "%~1extra_requires=input_number difftime"
-set "%~1category=time"
 exit /b 0
 
 

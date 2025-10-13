@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=capchar"
+set "%~1extra_requires=input_string"
+set "%~1category=cli"
+exit /b 0
+
+
 :color_print <color> <text>
 2> nul (
     pushd "!tmp_dir!" || pushd "!tmp!" || exit /b 3
@@ -15,13 +22,6 @@ exit /b
     del /f /q "%~2_" > nul
     popd
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=capchar"
-set "%~1extra_requires=input_string"
-set "%~1category=cli"
 exit /b 0
 
 

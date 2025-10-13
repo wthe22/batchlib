@@ -3,15 +3,15 @@ call %*
 exit /b
 
 
-:get_sid <return_var>
-set "%~1="
-for /f "tokens=2" %%s in ('whoami /user /fo table /nh') do set "%~1=%%s"
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=env"
 exit /b 0
 
 
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=env"
+:get_sid <return_var>
+set "%~1="
+for /f "tokens=2" %%s in ('whoami /user /fo table /nh') do set "%~1=%%s"
 exit /b 0
 
 

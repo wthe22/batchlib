@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string strip_dquotes capchar"
+set "%~1category=file"
+exit /b 0
+
+
 :wcdir <return_var> <wildcard_path> [-f|-d]
 set "%~1="
 setlocal EnableDelayedExpansion
@@ -42,13 +49,6 @@ for /f "tokens=1* delims=\" %%a in ("%~1") do if "%%a" == "*:" (
 ) else for /d %%f in ("%%a") do pushd "%%f\" 2> nul && call :wcdir._find "%%b"
 popd
 exit /b
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string strip_dquotes capchar"
-set "%~1category=file"
-exit /b 0
 
 
 :doc.man

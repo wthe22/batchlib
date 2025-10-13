@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string input_path capchar"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :functions_list <input_file>
 if not defined ._shared.TAB (
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
@@ -22,13 +29,6 @@ for /f "usebackq tokens=*" %%o in (".functions_list._tokens") do (
     for /f "tokens=1 delims=:%TAB% " %%a in ("!_label!") do set "_label=%%a"
     echo !_label!
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string input_path capchar"
-set "%~1category=algorithms"
 exit /b 0
 
 

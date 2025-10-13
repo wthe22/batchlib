@@ -3,19 +3,19 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires="
+set "%~1category=algorithms"
+exit /b 0
+
+
 :unset_all [variable_prefix] ...
 for %%p in (%*) do (
     for /f "usebackq tokens=1 delims==" %%v in (`set "%%~p" 2^> nul`) do (
         set "%%v="
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires="
-set "%~1category=algorithms"
 exit /b 0
 
 

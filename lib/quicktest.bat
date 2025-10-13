@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=coderender functions_range readline functions_match"
+set "%~1category=debug"
+exit /b 0
+
+
 :quicktest [label ...]
 @setlocal EnableDelayedExpansion
 @echo off
@@ -48,13 +55,6 @@ set "unittest._outcome=%~1"
     ( call )
 )
 exit /b 1
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=coderender functions_range readline functions_match"
-set "%~1category=debug"
-exit /b 0
 
 
 :doc.man

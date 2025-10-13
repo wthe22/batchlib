@@ -3,6 +3,20 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+rem Put your libaray dependencies here. If there isn't any dependencies,
+rem just put a space inside. Undefined is considered an error.
+set "%~1install_requires= "
+
+rem Extra libraries needed to run demo, tests, etc.
+set "%~1extra_requires="
+
+rem Category of the library. Choose ones that fit.
+rem Multiple values are supported (each seperated by space)
+set "%~1category="
+exit /b 0
+
+
 :lib_template [--options] <args>
 rem Library name should start with an alphablet. Library name should only
 rem contain the characters A-Z, a-z, 0-9, dot '.', and/or dash '-'.
@@ -16,20 +30,6 @@ rem %debug% echo Debug mode is ON
 echo This is a template for new library
 
 rem Library ends with an 'exit' or 'goto' statement, followed by an empty line.
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-rem Put your libaray dependencies here. If there isn't any dependencies,
-rem just put a space inside. Undefined is considered an error.
-set "%~1install_requires= "
-
-rem Extra libraries needed to run demo, tests, etc.
-set "%~1extra_requires="
-
-rem Category of the library. Choose ones that fit.
-rem Multiple values are supported (each seperated by space)
-set "%~1category="
 exit /b 0
 
 

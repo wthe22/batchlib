@@ -3,17 +3,17 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=difftime ext_powershell"
+set "%~1category=env"
+exit /b 0
+
+
 :get_pid <return_var> [unique_id]
 for /f "usebackq tokens=*" %%a in (
     `wmic process where "name='cmd.exe' and CommandLine like '%% get_pid %random% %~2 %%'" get ParentProcessID`
 ) do for %%b in (%%a) do set "%~1=%%b"
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=difftime ext_powershell"
-set "%~1category=env"
 exit /b 0
 
 

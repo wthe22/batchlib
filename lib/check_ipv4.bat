@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string capchar"
+set "%~1category=net"
+exit /b 0
+
+
 :check_ipv4 <input_string> [--wildcard]
 setlocal EnableDelayedExpansion
 set "_allow_wildcard="
@@ -29,13 +36,6 @@ for /f "tokens=*" %%n in ("!_input!") do (
         if %%n GTR 255  exit /b 1
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string capchar"
-set "%~1category=net"
 exit /b 0
 
 

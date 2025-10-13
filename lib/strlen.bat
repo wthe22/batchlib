@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :strlen <return_var> <input_var>
 set "%~1=0"
 if defined %~2 (
@@ -12,13 +19,6 @@ if defined %~2 (
     )
     set /a "%~1+=1"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

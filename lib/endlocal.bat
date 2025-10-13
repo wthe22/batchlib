@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=algorithms"
+exit /b 0
+
+
 :endlocal <exit_count> <endlocal_count> <old[:new]> ...
 setlocal EnableDelayedExpansion
 set LF=^
@@ -65,12 +71,6 @@ if "%%a" == "endlocal" (
         )
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=algorithms"
 exit /b 0
 
 

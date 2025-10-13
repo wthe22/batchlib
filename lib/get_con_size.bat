@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=cli"
+exit /b 0
+
+
 :get_con_size <width_return_var> <height_return_var>
 setlocal EnableDelayedExpansion
 set "_index=0"
@@ -17,12 +23,6 @@ for /f "tokens=1-2 delims=x" %%a in ("!_width!x!_height!") do (
     set "%~1=%%a"
     set "%~2=%%b"
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=cli"
 exit /b 0
 
 

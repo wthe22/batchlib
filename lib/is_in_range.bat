@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_number input_string"
+set "%~1category=number"
+exit /b 0
+
+
 :is_in_range <number> <range>
 setlocal EnableDelayedExpansion
 set "_evaluated="
@@ -32,13 +39,6 @@ for %%r in (!_range!) do for /f "tokens=1,2 delims=~ " %%a in ("%%~r") do (
     if not defined _invalid exit /b 0
 )
 exit /b 3
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_number input_string"
-set "%~1category=number"
-exit /b 0
 
 
 :doc.man

@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_string"
+set "%~1category=string"
+exit /b 0
+
+
 :to_upper <input_var>
 set "%1= !%1!"
 for %%a in (
@@ -10,13 +17,6 @@ for %%a in (
     N O P Q R S T U V W X Y Z
 ) do set "%1=!%1:%%a=%%a!"
 set "%1=!%1:~1!"
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_string"
-set "%~1category=string"
 exit /b 0
 
 

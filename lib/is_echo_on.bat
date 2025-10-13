@@ -3,18 +3,18 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=cli"
+exit /b 0
+
+
 :is_echo_on
 @for %%f in ("%tmp%\.is_echo_on") do @(
     ( for %%n in (1) do call ) > %%f
     for %%r in (%%f) do @if "%%~zr" == "0" @exit /b 2
 ) > nul 2>&1
 @exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=cli"
-exit /b 0
 
 
 :doc.man

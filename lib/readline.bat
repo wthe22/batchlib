@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=input_number input_path"
+set "%~1category=file"
+exit /b 0
+
+
 :readline <input_file> <range> [offset] [substr]
 setlocal EnableDelayedExpansion
 set "_input_file=%~f1"
@@ -51,13 +58,6 @@ for /f "tokens=1-2 delims=:" %%a in ("!_offset!") do (
     set /a "_start+=%%a" || exit /b 2
     if defined _end if not "%%b" == "" set /a "_end+=%%b" || exit /b 2
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=input_number input_path"
-set "%~1category=file"
 exit /b 0
 
 

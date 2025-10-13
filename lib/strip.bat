@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=capchar input_string macroify"
+set "%~1category=string"
+exit /b 0
+
+
 :strip <input_var> [characters]
 if not defined ._shared.TAB (
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
@@ -60,13 +67,6 @@ for %%n in (64 32 16 8 4 2 1) do (
         if "%%v" == "_" set "_var=!_var:~0,-%%n!"
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=capchar input_string macroify"
-set "%~1category=string"
 exit /b 0
 
 

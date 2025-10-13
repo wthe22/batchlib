@@ -3,15 +3,15 @@ call %*
 exit /b
 
 
-:rand <return_var> <minimum> <maximum>
-set /a "%~1=((!random!<<16) + (!random!<<1) + (!random!>>14)) %% ((%~3)-(%~2)+1) + (%~2)"
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
+:metadata [return_prefix]
 set "%~1install_requires= "
 set "%~1extra_requires=input_number"
 set "%~1category=number"
+exit /b 0
+
+
+:rand <return_var> <minimum> <maximum>
+set /a "%~1=((!random!<<16) + (!random!<<1) + (!random!>>14)) %% ((%~3)-(%~2)+1) + (%~2)"
 exit /b 0
 
 

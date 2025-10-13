@@ -3,6 +3,12 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1category=env"
+exit /b 0
+
+
 :get_os <return_var> [--name]
 for /f "tokens=4 delims=[] " %%v in ('ver') do set "%~1=%%v"
 if /i "%~2" == "--name" (
@@ -21,12 +27,6 @@ if /i "%~2" == "--name" (
         if "%%a.%%b" == "5.0" set "%~1=Windows 2000"
     )
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1category=env"
 exit /b 0
 
 

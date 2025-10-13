@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires= "
+set "%~1extra_requires=capchar input_path input_string"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :functions_range <return_var> <input_file> <label ...>
 if not defined ._shared.TAB (
     for /f "delims= " %%t in ('robocopy /l . . /njh /njs') do set "._shared.TAB=%%t"
@@ -73,13 +80,6 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_ranges!") do (
     set "%_return_var%=%%r"
     if "%_missing%" == "true" exit /b 3
 )
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=capchar input_path input_string"
-set "%~1category=algorithms"
 exit /b 0
 
 

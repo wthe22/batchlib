@@ -3,6 +3,13 @@ call %*
 exit /b
 
 
+:metadata [return_prefix]
+set "%~1install_requires=functions_range readline"
+set "%~1extra_requires=functions_range readline get_os true"
+set "%~1category=algorithms"
+exit /b 0
+
+
 :coderender <file> <label> [--compile-only]
 setlocal EnableDelayedExpansion EnableExtensions
 set "_source_file=%~f1"
@@ -88,13 +95,6 @@ exit /b 0
 :coderender._type
 call :functions_range _range "%~f0" "coderender._captured.%~1" || exit /b 2
 call :readline "%~f0" !_range! 1:-1 4
-exit /b 0
-
-
-:lib.dependencies [return_prefix]
-set "%~1install_requires=functions_range readline"
-set "%~1extra_requires=functions_range readline get_os true"
-set "%~1category=algorithms"
 exit /b 0
 
 
