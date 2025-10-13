@@ -10,7 +10,7 @@ set "%~1categories=utils"
 exit /b 0
 
 
-:timeleft
+:timeleft <return_var> <start_time_cs> <current_progress> <total_progress>
 call :timeleft._macro %* || exit /b
 exit /b 0
 #+++
