@@ -38,7 +38,6 @@ rem ############################################################################
 :main
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
-call :metadata SOFTWARE.
 rem TODO: start scripting...
 @exit /b 0
 
