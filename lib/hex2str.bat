@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=hexlify"
-set "%~1extra_requires="
-set "%~1category=string"
+set "%~1dependencies=hexlify"
+set "%~1dev_dependencies="
+set "%~1categories=string"
 exit /b 0
 
 

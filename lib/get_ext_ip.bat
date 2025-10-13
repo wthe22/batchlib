@@ -4,8 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=ext_powershell"
-set "%~1category=net"
+set "%~1dependencies=ext_powershell"
+set "%~1dev_dependencies="
+set "%~1categories=net"
 exit /b 0
 
 

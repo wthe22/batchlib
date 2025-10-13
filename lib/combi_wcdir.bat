@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=list_lf2set argparse wcdir capchar"
-set "%~1extra_requires=input_string"
-set "%~1category=file"
+set "%~1dependencies=list_lf2set argparse wcdir capchar"
+set "%~1dev_dependencies=input_string"
+set "%~1categories=file"
 exit /b 0
 
 

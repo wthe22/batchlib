@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=argparse is_number is_in_range"
-set "%~1extra_requires="
-set "%~1category=cli"
+set "%~1dependencies=argparse is_number is_in_range"
+set "%~1dev_dependencies="
+set "%~1categories=cli"
 exit /b 0
 
 

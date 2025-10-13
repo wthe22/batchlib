@@ -6,14 +6,14 @@ exit /b
 :metadata [return_prefix]
 rem Put your libaray dependencies here. If there isn't any dependencies,
 rem just put a space inside. Undefined is considered an error.
-set "%~1install_requires= "
+set "%~1dependencies= "
 
 rem Extra libraries needed to run demo, tests, etc.
-set "%~1extra_requires="
+set "%~1dev_dependencies="
 
 rem Category of the library. Choose ones that fit.
 rem Multiple values are supported (each seperated by space)
-set "%~1category="
+set "%~1categories="
 exit /b 0
 
 

@@ -24,7 +24,7 @@ set "%~1download_url="
 
 rem Required by batchlib
 rem List libraries you use in this file here:
-set "%~1install_requires="
+set "%~1dependencies="
 exit /b 0
 
 

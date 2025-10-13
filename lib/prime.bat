@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=nroot"
-set "%~1extra_requires=input_number clear_line_macro"
-set "%~1category=number"
+set "%~1dependencies=nroot"
+set "%~1dev_dependencies=input_number clear_line_macro"
+set "%~1categories=number"
 exit /b 0
 
 

@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=capchar"
-set "%~1extra_requires=input_string"
-set "%~1category=cli"
+set "%~1dependencies=capchar"
+set "%~1dev_dependencies=input_string"
+set "%~1categories=cli"
 exit /b 0
 
 

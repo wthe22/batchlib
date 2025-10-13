@@ -4,12 +4,12 @@ exit /b
 
 
 :metadata [return_prefix]
-set %~1install_requires= ^
+set %~1dependencies= ^
     ^ argparse functions_match functions_range readline ^
     ^ difftime ftime ^
     ^ %=END=%
-set "%~1extra_requires=functions_range readline"
-set "%~1category=debug"
+set "%~1dev_dependencies=functions_range readline"
+set "%~1categories=debug"
 exit /b 0
 
 

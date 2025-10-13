@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=fdate ftime"
-set "%~1extra_requires=input_number"
-set "%~1category=time"
+set "%~1dependencies=fdate ftime"
+set "%~1dev_dependencies=input_number"
+set "%~1categories=time"
 exit /b 0
 
 

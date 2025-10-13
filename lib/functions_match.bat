@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=functions_list fnmatch"
-set "%~1extra_requires=input_string input_path capchar"
-set "%~1category=algorithms"
+set "%~1dependencies=functions_list fnmatch"
+set "%~1dev_dependencies=input_string input_path capchar"
+set "%~1categories=algorithms"
 exit /b 0
 
 

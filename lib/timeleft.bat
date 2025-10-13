@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=macroify"
-set "%~1extra_requires=difftime ftime clear_line_macro"
-set "%~1category=time"
+set "%~1dependencies=macroify"
+set "%~1dev_dependencies=difftime ftime clear_line_macro"
+set "%~1categories=time"
 exit /b 0
 
 

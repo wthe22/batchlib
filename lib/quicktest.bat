@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires=coderender functions_range readline functions_match"
-set "%~1category=debug"
+set "%~1dependencies= "
+set "%~1dev_dependencies=coderender functions_range readline functions_match"
+set "%~1categories=debug"
 exit /b 0
 
 

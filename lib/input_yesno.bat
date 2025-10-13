@@ -4,8 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=argparse"
-set "%~1category=cli"
+set "%~1dependencies=argparse"
+set "%~1dev_dependencies="
+set "%~1categories=cli"
 exit /b 0
 
 

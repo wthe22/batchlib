@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=ext_vbscript"
-set "%~1extra_requires=input_path"
-set "%~1category=file"
+set "%~1dependencies=ext_vbscript"
+set "%~1dev_dependencies=input_path"
+set "%~1categories=file"
 exit /b 0
 
 

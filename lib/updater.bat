@@ -4,12 +4,12 @@ exit /b
 
 
 :metadata [return_prefix]
-set %~1install_requires= ^
+set %~1dependencies= ^
     ^ argparse download_file functions_range readline ^
     ^ version_parse input_yesno ^
     ^ %=END=%
-set "%~1extra_requires=argparse ping_test coderender get_pid_by_title input_path"
-set "%~1category=net"
+set "%~1dev_dependencies=argparse ping_test coderender get_pid_by_title input_path"
+set "%~1categories=net"
 exit /b 0
 
 

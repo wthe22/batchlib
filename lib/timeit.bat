@@ -4,8 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=argparse difftime macroify ext_powershell"
-set "%~1category=debug"
+set "%~1dependencies=argparse difftime macroify ext_powershell"
+set "%~1dev_dependencies="
+set "%~1categories=debug"
 exit /b 0
 
 

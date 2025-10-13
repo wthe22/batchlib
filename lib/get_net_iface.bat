@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires= "
-set "%~1extra_requires="
-set "%~1category=net env"
+set "%~1dependencies= "
+set "%~1dev_dependencies="
+set "%~1categories=net env"
 exit /b 0
 
 

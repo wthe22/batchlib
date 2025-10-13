@@ -4,8 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires= "
-set "%~1category=string"
+set "%~1dependencies= "
+set "%~1dev_dependencies="
+set "%~1categories=string"
 exit /b 0
 
 

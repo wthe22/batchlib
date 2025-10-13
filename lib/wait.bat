@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=difftime"
-set "%~1extra_requires=input_number difftime"
-set "%~1category=time"
+set "%~1dependencies=difftime"
+set "%~1dev_dependencies=input_number difftime"
+set "%~1categories=time"
 exit /b 0
 
 

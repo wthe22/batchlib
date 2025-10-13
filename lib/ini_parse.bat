@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=macroify strip endlocal"
-set "%~1extra_requires=capchar coderender list_lf2set"
-set "%~1category=file"
+set "%~1dependencies=macroify strip endlocal"
+set "%~1dev_dependencies=capchar coderender list_lf2set"
+set "%~1categories=file"
 exit /b 0
 
 

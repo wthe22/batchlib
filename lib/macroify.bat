@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=functions_range readline"
-set "%~1extra_requires=capchar"
-set "%~1category=algorithms"
+set "%~1dependencies=functions_range readline"
+set "%~1dev_dependencies=capchar"
+set "%~1categories=algorithms"
 exit /b 0
 
 

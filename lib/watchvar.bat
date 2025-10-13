@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=argparse hexlify"
-set "%~1extra_requires=strlen"
-set "%~1category=debug"
+set "%~1dependencies=argparse hexlify"
+set "%~1dev_dependencies=strlen"
+set "%~1categories=debug"
 exit /b 0
 
 

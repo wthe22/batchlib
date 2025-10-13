@@ -4,9 +4,9 @@ exit /b
 
 
 :metadata [return_prefix]
-set "%~1install_requires=argparse"
-set "%~1extra_requires=input_string"
-set "%~1category=file"
+set "%~1dependencies=argparse"
+set "%~1dev_dependencies=input_string"
+set "%~1categories=file"
 exit /b 0
 
 
