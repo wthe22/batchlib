@@ -238,7 +238,7 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      Improvements
+::      Improvements and simplification
 ::
 ::  - New subcommand: collect
 ::  - New functions: depends, rdepends
@@ -249,19 +249,32 @@ rem ############################################################################
 ::  - Deprecated / removed:
 ::
 ::  Core
-::  -
+::  - Deprecate listing dependencies in lib.dependencies(), instead use metadata()
+::  - Deprecate keys in lib.dependencies, use new key names instead:
+::      - install_requires -> dependencies
+::      - extra_requires -> dev_dependencies
+::      - category -> categories
+::  - Remove requirement for entry_point() to build script
+::  - Use mtime_to_isotime when checking outdated builds
+::  - Change categories of several functions
 ::
 ::  Library
 ::  - input_*(): Reduce number of max attempts from 100 to 49
 ::  - input_string(): Replace -f, -filled flag with -o, --optional flag, for
-::    consistency with other input functions
+::    consistency with other input functions. The function now requires input if
+::    no flags are specified.
 ::
 ::  Documentation
-::  -
+::  - Remove help, config, and simplify main at template
 exit /b 0
 
 
 :upcomming_v3.4
+::  Core
+::  - Remove support for lib.dependencies(), use metadata() instead
+::  - Remove support for install_requires, extra_requires, category.
+::    Instead, use dependencies, dev_dependencies, categories
+::
 ::  Library
 ::  - input_string(): Remove deprecated flag -f, --filled
 exit /b 0
