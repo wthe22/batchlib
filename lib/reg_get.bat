@@ -4,6 +4,7 @@ exit /b
 
 
 :metadata [return_prefix]
+set "%~1install_requires= "
 set "%~1category=env"
 exit /b 0
 
