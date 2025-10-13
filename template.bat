@@ -8,6 +8,10 @@ rem Metadata
 rem ############################################################################
 
 :metadata [return_prefix]
+rem Place to specify metadata for various tools.
+rem This function does not need to be callable from the script,
+rem because it will be extracted from the script.
+
 rem Required by updater
 set "%~1name=template"
 set "%~1version=0"
