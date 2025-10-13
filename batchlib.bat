@@ -1353,7 +1353,6 @@ call :self_extract_func "tests"
 
 call :template.minified._section_header "Library"
 call :self_extract_func ^
-    ^ lib.dependencies ^
     ^ lib.call ^
     ^ %=END=%
 call %lib%:depends ordered_lib "!Library.all!" Library.resolve_cmd
