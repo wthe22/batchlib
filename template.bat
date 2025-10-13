@@ -1,5 +1,5 @@
 :entry_point
-@rem Required by batchlib
+@rem Optional
 @goto main
 
 

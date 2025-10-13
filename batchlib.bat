@@ -890,12 +890,9 @@ if defined flags.is_minified set "lib="
 call %lib%:functions_range _range "!_input_file!" "metadata" || exit /b 3
 call %lib%:readline "!_input_file!" !_range! > "_lib_dependencies.bat" || exit /b 3
 call "_lib_dependencies.bat" target. || exit /b 3
-call %lib%:functions_range _range "!_input_file!" "entry_point EOF" || exit /b 3
-for /f "tokens=1,4 delims=: " %%a in ("!_range!") do (
-    set "_range=%%a:%%b"
-    if %%a GTR 1 (
-        1>&2 echo%0: warning: Expected ':entry_point' label at line 1, found at line %%a
-    )
+call %lib%:functions_range _range "!_input_file!" "EOF" || exit /b 3
+for /f "tokens=1,2 delims=: " %%a in ("!_range!") do (
+    set "_range=1:%%b"
 )
 > "_build_script.tmp" (
     call %lib%:readline "!_input_file!" !_range! || exit /b 3
