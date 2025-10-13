@@ -53,10 +53,9 @@ rem ############################################################################
 ::          batchlib build <input_file> [backup_name]
 ::
 ::      Add/update dependencies of a file (made from the new script template).
-::      Dependencies are found in 'install_requires' in metadata() and
-::      'extra_requires' is ignored. Build is aborted if any errors occur.
-::      Please keep codes between 'entry_point' and 'EOF'. Codes beyond that will
-::      be removed.
+::      Dependencies are found in in metadata() and 'dev_dependencies' is ignored.
+::      Build is aborted if any error occurs. Please keep codes before 'EOF', as
+::      codes beyond that will be removed.
 ::
 ::      POSITIONAL ARGUMENTS
 ::          input_file
@@ -281,12 +280,11 @@ set "%~1description=Batch Script Library"
 set "%~1release_date=10/08/2025"   :: mm/dd/YYYY
 set "%~1url=https://github.com/wthe22/batchlib"
 set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/batchlib.bat"
-:lib.dependencies
-set %~1install_requires= ^
+set %~1dependencies= ^
     ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest version_parse depends rdepends ^
     ^ conemu input_path input_yesno updater ^
-    ^ difftime ftime ^
+    ^ difftime ftime mtime_to_isotime ^
     ^ %=END=%
 exit /b 0
 
@@ -379,7 +377,7 @@ for %%p in (
 
 call :Library.unload_info
 call :Library.read_names
-call :Library.read_dependencies
+call :Library.read_metadata
 if not defined flags.is_minified (
     call :LibBuild.remove_orphans
 )
@@ -428,7 +426,7 @@ exit /b
 
 :subcommand.debug <library> :<label> [arguments] ...
 set "library=%~1"
-for %%v in ("Library_!library!.extra_requires") do set "%%~v=!%%~v! quicktest unittest"
+for %%v in ("Library_!library!.dev_dependencies") do set "%%~v=!%%~v! quicktest unittest"
 call :LibBuild.build "!library!" || exit /b 3
 endlocal & (
     cd /d "%build_dir%"
@@ -530,7 +528,7 @@ if "!user_input!" == "5" call :build_menu
 if "!user_input!" == "6" (
     call :Library.unload_info
     call :Library.read_names
-    call :Library.read_dependencies
+    call :Library.read_metadata
     call :Library.read_args
     call :Category.unload_info
     call :Category.load
@@ -804,8 +802,8 @@ echo Name               : !_library!
 echo Argument Syntax    : !Library_%_library%.args!
 echo Category           : !category!
 echo=
-echo Install requires   : !Library_%_library%.install_requires!
-echo Extra requires     : !Library_%_library%.extra_requires!
+echo Dependencies       : !Library_%_library%.dependencies!
+echo Dev dependencies   : !Library_%_library%.dev_dependencies!
 echo Required by        : !rdepends!
 echo=
 pause
@@ -889,7 +887,11 @@ cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
 if defined flags.is_minified set "lib="
 call %lib%:functions_range _range "!_input_file!" "metadata" || exit /b 3
 call %lib%:readline "!_input_file!" !_range! > "_lib_dependencies.bat" || exit /b 3
-call "_lib_dependencies.bat" target. || exit /b 3
+call "_lib_dependencies.bat" _target. || exit /b 3
+:: Remove at batchlib 3.4
+if not defined _target.dependencies if defined _target.install_requires (
+    set "_target.dependencies=!_target.install_requires!"
+)
 call %lib%:functions_range _range "!_input_file!" "EOF" || exit /b 3
 for /f "tokens=1,2 delims=: " %%a in ("!_range!") do (
     set "_range=1:%%b"
@@ -900,35 +902,12 @@ for /f "tokens=1,2 delims=: " %%a in ("!_range!") do (
     echo=
     echo :: Automatically Added by !SOFTWARE.name! !SOFTWARE.VERSION! on !date! !time!
     echo=
-    call :collect_dependencies "!target.install_requires!"
+    call :collect_dependencies "!_target.dependencies!"
 ) || exit /b 3
 if defined _backup_file (
     copy /b /v /y "!_input_file!" "!_backup_file!" > nul || exit /b 3
 )
 move /y "_build_script.tmp" "!_input_file!" > nul || exit /b 3
-exit /b 0
-
-
-:collect_dependencies <libraries>
-setlocal EnableDelayedExpansion
-set "_libraries=%~1"
-call %lib%:depends _dependencies "!_libraries!" Library.resolve_cmd
-call :Library.unload_info
-if defined flags.is_minified (
-    call :functions_range _ranges "%~f0" "!_dependencies!" || exit /b 3
-    for %%r in (!_ranges!) do (
-        call :readline "%~f0" %%r || exit /b 3
-        echo=
-        echo=
-    )
-) else (
-    for %%l in (!_dependencies!) do (
-        call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
-        call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
-        echo=
-        echo=
-    )
-)
 exit /b 0
 
 
@@ -991,7 +970,7 @@ exit /b 0
 set "Category_all.functions=!Library.all!"
 for %%l in (!Library.all!) do (
     set "_category="
-    for %%c in (!Library_%%l.category!) do (
+    for %%c in (!Library_%%l.categories!) do (
         if defined Category_%%c.name (
             set "_category=!_category! %%c"
         ) else ( 1>&2 echo%0: Unknown category '%%c' in %%l^(^) )
@@ -1077,8 +1056,7 @@ for %%l in (!_library!) do (
     call :LibBuild.check_extraction "!lib_dir!\%%l.bat" "%%l" || (
         1>&2 echo%0: warning: possible incomplete extraction of %%l^(^)
     )
-    set "_dep=!Library_%%l.install_requires!"
-    for %%r in (install extra) do set "_dep=!_dep! !Library_%%l.%%r_requires!"
+    set "_dep=!Library_%%l.dependencies! !Library_%%l.dev_dependencies!"
     call :LibBuild.build._template "!lib_dir!\%%l.bat" "!_dep!" > "%%l.bat.tmp" && (
         move /y "%%l.bat.tmp" "!build_dir!\%%l.bat" > nul
     ) || (
@@ -1087,6 +1065,22 @@ for %%l in (!_library!) do (
         exit /b 3
     )
 )
+exit /b 0
+#+++
+
+:LibBuild.build._template <source> [dependency ...]
+setlocal EnableDelayedExpansion
+set "_source=%~f1"
+set "_dependencies=%~2"
+echo :: Generated on !date! !time!
+echo=
+echo=
+type "!_source!" || exit /b 3
+echo=
+echo=
+echo :: Automatically Added
+echo=
+call :collect_dependencies "!_dependencies!" || exit /b 3
 exit /b 0
 #+++
 
@@ -1108,23 +1102,6 @@ for /f "usebackq tokens=*" %%l in ("_labels") do (
     if "!_leftover:~0,2!" == "x:" set "_match=true"
 )
 if defined _match exit /b 3
-exit /b 0
-#+++
-
-:LibBuild.build._template <source> [dependency ...]
-setlocal EnableDelayedExpansion
-set "_source=%~f1"
-set "_dependencies=%~2"
-cd /d "!tmp_dir!" 2> nul || cd /d "!tmp!"
-echo :: Generated on !date! !time!
-echo=
-echo=
-type "!_source!" || exit /b 3
-echo=
-echo=
-echo :: Automatically Added
-echo=
-call :collect_dependencies "!_dependencies!" || exit /b 3
 exit /b 0
 
 
@@ -1196,17 +1173,30 @@ for %%l in (!Library.all!) do (
 exit /b 0
 
 
-:Library.read_dependencies
+:Library.read_metadata
 for %%l in (!Library.all!) do (
-    set "Library_%%l.install_requires=?"
+    set "Library_%%l.dependencies="
     call "!lib_dir!\%%l.bat" :metadata "Library_%%l." 2> nul || (
         call "!lib_dir!\%%l.bat" :lib.dependencies "Library_%%l." 2> nul
     ) || (
         1>&2 echo%0: Failed to call metadata and lib.dependencies in '%%l'
     )
+    :: Remove at batchlib 3.4
+    if not defined Library_%%l.dependencies if defined Library_%%l.install_requires (
+        set "Library_%%l.dependencies=!Library_%%l.install_requires!"
+        set "Library_%%l.install_requires="
+    )
+    if not defined Library_%%l.dev_dependencies if defined Library_%%l.extra_requires (
+        set "Library_%%l.dev_dependencies=!Library_%%l.extra_requires!"
+        set "Library_%%l.extra_requires="
+    )
+    if not defined Library_%%l.categories if defined Library_%%l.category (
+        set "Library_%%l.categories=!Library_%%l.category!"
+        set "Library_%%l.category="
+    )
 )
-set Library.resolve_cmd=for %%v in (Library_%%i.install_requires) do ( ^
-    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
+set Library.resolve_cmd=for %%v in (Library_%%i.dependencies) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
 )
 exit /b 0
 
@@ -1233,6 +1223,29 @@ for /f "tokens=1* delims=:" %%a in ("Q:!_result!") do (
 exit /b 0
 
 
+:collect_dependencies <libraries>
+setlocal EnableDelayedExpansion
+set "_libraries=%~1"
+call %lib%:depends _dependencies "!_libraries!" Library.resolve_cmd
+call :Library.unload_info
+if defined flags.is_minified (
+    call :functions_range _ranges "%~f0" "!_dependencies!" || exit /b 3
+    for %%r in (!_ranges!) do (
+        call :readline "%~f0" %%r || exit /b 3
+        echo=
+        echo=
+    )
+) else (
+    for %%l in (!_dependencies!) do (
+        call %lib%:functions_range _range "!lib_dir!\%%l.bat" "%%l" || exit /b 3
+        call %lib%:readline "!lib_dir!\%%l.bat" !_range! || exit /b 3
+        echo=
+        echo=
+    )
+)
+exit /b 0
+
+
 :lib.call <library> [args]
 @for /f "tokens=1 delims=: " %%a in ("%~1") do @(
     goto 2> nul
@@ -1248,7 +1261,7 @@ rem ############################################################################
 :template.minified
 call :Library.unload_info
 call :Library.read_names
-call :Library.read_dependencies
+call :Library.read_metadata
 call :Category.load
 set "sep_line="
 for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
@@ -1320,11 +1333,9 @@ echo     ^^^^ %%=END=%%!=DUMMY=!
 ::  exit /b 0
 ::
 ::
-::  :Library.read_dependencies
+::  :Library.read_metadata
 for %%l in (!Library.all!) do (
-    for %%a in (
-        install_requires extra_requires
-    ) do for %%v in (Library_%%l.%%a) do (
+    for %%v in (Library_%%l.dependencies) do (
         if defined %%v echo set "%%v=!%%v!"
     )
 )
@@ -1417,13 +1428,13 @@ exit /b 0
 
 :tests.Library.test_unload
 set "Library.test=hello hi"
-set "Library_hello.install_requires=hi"
+set "Library_hello.dependencies=hi"
 set "Library_hello.args=hello   <name>"
 call :Library.unload_info
 set "success=true"
 for %%v in (
     Library.test
-    Library_hello.install_requires
+    Library_hello.dependencies
     Library_hello.args
 ) do if defined %%v set "success="
 if not defined success (
