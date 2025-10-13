@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=ext_powershell"
 set "%~1dev_dependencies=input_string input_path"
-set "%~1categories=net"
+set "%~1categories=network"
 exit /b 0
 
 

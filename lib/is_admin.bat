@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies= "
 set "%~1dev_dependencies="
-set "%~1categories=env"
+set "%~1categories=os"
 exit /b 0
 
 

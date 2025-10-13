@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=argparse strlen"
 set "%~1dev_dependencies=input_path"
-set "%~1categories=file"
+set "%~1categories=convert file"
 exit /b 0
 
 

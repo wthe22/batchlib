@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies= "
 set "%~1dev_dependencies=coderender functions_range readline functions_match"
-set "%~1categories=debug"
+set "%~1categories=devtools"
 exit /b 0
 
 

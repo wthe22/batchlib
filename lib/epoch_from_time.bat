@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=diffdate difftime"
 set "%~1dev_dependencies=input_string"
-set "%~1categories=time"
+set "%~1categories=convert time"
 exit /b 0
 
 

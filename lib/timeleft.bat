@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=macroify"
 set "%~1dev_dependencies=difftime ftime clear_line_macro"
-set "%~1categories=time"
+set "%~1categories=utils"
 exit /b 0
 
 

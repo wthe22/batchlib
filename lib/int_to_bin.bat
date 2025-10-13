@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies= "
 set "%~1dev_dependencies=input_number"
-set "%~1categories=number"
+set "%~1categories=convert"
 exit /b 0
 
 

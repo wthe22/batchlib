@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=argparse hexlify"
 set "%~1dev_dependencies=strlen"
-set "%~1categories=debug"
+set "%~1categories=devtools"
 exit /b 0
 
 

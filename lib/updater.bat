@@ -9,7 +9,7 @@ set %~1dependencies= ^
     ^ version_parse input_yesno ^
     ^ %=END=%
 set "%~1dev_dependencies=argparse ping_test coderender get_pid_by_title input_path"
-set "%~1categories=net"
+set "%~1categories=utils"
 exit /b 0
 
 

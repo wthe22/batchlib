@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=functions_range readline"
 set "%~1dev_dependencies=functions_range readline get_os true"
-set "%~1categories=algorithms"
+set "%~1categories=utils"
 exit /b 0
 
 

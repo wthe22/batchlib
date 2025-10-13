@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=hexlify"
 set "%~1dev_dependencies="
-set "%~1categories=string"
+set "%~1categories=convert"
 exit /b 0
 
 

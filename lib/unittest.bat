@@ -9,7 +9,7 @@ set %~1dependencies= ^
     ^ difftime ftime ^
     ^ %=END=%
 set "%~1dev_dependencies=functions_range readline"
-set "%~1categories=debug"
+set "%~1categories=devtools"
 exit /b 0
 
 

@@ -5,7 +5,7 @@ exit /b
 
 :metadata [return_prefix]
 set "%~1dependencies= "
-set "%~1categories=algorithms"
+set "%~1categories=extension"
 exit /b 0
 
 

@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies=argparse difftime macroify ext_powershell"
 set "%~1dev_dependencies="
-set "%~1categories=debug"
+set "%~1categories=devtools"
 exit /b 0
 
 

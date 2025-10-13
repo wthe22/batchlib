@@ -6,7 +6,7 @@ exit /b
 :metadata [return_prefix]
 set "%~1dependencies= "
 set "%~1dev_dependencies=input_string"
-set "%~1categories=net"
+set "%~1categories=network"
 exit /b 0
 
 
