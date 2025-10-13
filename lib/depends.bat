@@ -16,6 +16,10 @@ set "_return_var=%~1"
 set "_items=%~2"
 set "_get_cmd_var=%~3"
 set "_get_cmd=!%_get_cmd_var%!"
+if not defined _get_cmd (
+    1>&2 echo%0: get_cmd_var '!_get_cmd_var!' does not contain any commands
+    exit /b 2
+)
 set "_result= "
 set "_stack="
 set "_errorlevel=0"
@@ -43,7 +47,7 @@ for %%i in (!_reversed_items!) do (
     if not "!_result: %%i =!" == "!_result!" set "_visit="
     if defined _visit for %%r in (_dependencies) do (
         set "%%r="
-        %_get_cmd% && (
+        ( %_get_cmd% ) && (
             call :depends._visit "!%%r!"
         ) || (
             1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
@@ -109,9 +113,9 @@ call :input_string --optional items || (
 )
 echo=
 echo Items: !items!
-set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
-    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
-)
+set resolve_in_var=(for %%v in (Item_%%i.dependencies) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
+))
 call :depends result "!items!" resolve_in_var
 
 echo Dependencies: !result!
@@ -124,7 +128,7 @@ rem ############################################################################
 
 :tests.setup
 set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
-    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
 )
 call :tests.mc
 exit /b 0

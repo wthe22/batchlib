@@ -20,6 +20,10 @@ if "%~5" == "--propagate" (
     set "_propagate=true"
 ) else set "_propagate="
 set "_get_cmd=!%_get_cmd_var%!"
+if not defined _get_cmd (
+    1>&2 echo%0: get_cmd_var '!_get_cmd_var!' does not contain any commands
+    exit /b 2
+)
 set "_result= "
 set "_stack="
 set "_visited= "
@@ -52,7 +56,7 @@ for %%i in (%~1) do (
     if defined _visit for %%r in (_dependencies) do (
         set "_visited= %%i!_visited!"
         set "%%r="
-        %_get_cmd% && (
+        ( %_get_cmd% ) && (
             set "_explore="
             if defined _propagate (
                 set "_explore=true"
@@ -134,9 +138,9 @@ call :input_yesno --default y --message "Include indirect dependencies? [Y/n] " 
 echo=
 echo Items: !items!
 echo Options: !params!
-set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
-    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
-)
+set resolve_in_var=(for %%v in (Item_%%i.dependencies) do ( ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
+))
 call :rdepends result "!items!" resolve_in_var "!Item.all!" !params!
 
 echo Dependencies: !result!
@@ -149,7 +153,7 @@ rem ############################################################################
 
 :tests.setup
 set resolve_in_var=for %%v in (Item_%%i.dependencies) do ( ^
-    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else set /a 2^> nul ^
+    ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
 )
 call :tests.mc
 exit /b 0
@@ -187,8 +191,8 @@ exit /b 0
 :tests.test_depends_unresolvable
 set "Item.all=magic"
 set "Item_magic.dependencies="
-set "given=magic"
-call :rdepends result "!given!" resolve_error "!Item.all!" 2> nul && (
+set "given=nonexistent"
+call :rdepends result "!given!" resolve_in_var "!Item.all!" 2> nul && (
     call %unittest% fail "Given '!given!', expected failure, got '!result!'"
 )
 exit /b 0
