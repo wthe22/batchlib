@@ -4,20 +4,6 @@
 
 
 rem ############################################################################
-rem Documentation
-rem ############################################################################
-
-:doc.help
-rem Optional
-rem A good documentation to help users how to use this script
-echo usage:
-echo    %~nx0 [-h^|--help]
-echo=
-echo    -h^|--help
-echo        Show this help message
-exit /b 0
-
-rem ############################################################################
 rem Metadata
 rem ############################################################################
 
@@ -42,45 +28,16 @@ rem Add dependencies to this file by running:
 :: cmd /c batchlib.bat build Script-Name-Here.bat
 
 rem ############################################################################
-rem Configurations
-rem ############################################################################
-
-:config
-rem Optional
-call :config.default
-call :config.preference
-exit /b 0
-
-
-:config.default
-rem Default/common configurations
-:: set "tmp_dir=!tmp!\!SOFTWARE.name!"
-exit /b 0
-
-
-:config.preference
-rem Configurations to change/override
-exit /b 0
-
-rem ############################################################################
 rem Main
 rem ############################################################################
 
 :main
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
-if ^"%1^" == "-h" goto doc.help
-if ^"%1^" == "--help" goto doc.help
 call :metadata SOFTWARE.
-call :config
-call :main_script
-set "exit_code=!errorlevel!"
-@exit /b !exit_code!
-
-
-:main_script
 rem TODO: start scripting...
-@exit /b
+@exit /b 0
+
 
 rem ############################################################################
 rem Tests
