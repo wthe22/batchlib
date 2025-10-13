@@ -55,6 +55,7 @@ exit /b 0
 
 
 :tests.teardown
+rem Required by unittest/quicktest
 rem Called after unittest for this file is done. Useful for cleanups.
 exit /b 0
 
