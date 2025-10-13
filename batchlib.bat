@@ -1021,18 +1021,14 @@ set "_return_var=%~1"
 set "_library=%~2"
 set "_result= "
 for %%l in (!_library!) do (
-    for %%f in ("!build_dir!\%%l.bat") do set "_btime=%%~tf"
-    for %%v in (_btime) do (
-        set "%%v=!%%v:~6,4!-!%%v:~0,2!-!%%v:~3,2!T!%%v:~17,2!!%%v:~11,2!:!%%v:~14,2!"
-        set "%%v=!%%v:M12=M00!"
+    for %%f in ("!build_dir!\%%l.bat") do (
+        call %lib%:mtime_to_isotime _btime "%%~tf"
     )
     set "_is_outdated="
-    call %lib%:depends _dep "%%l !Library_%%l.extra_requires!" Library.resolve_cmd
+    call %lib%:depends _dep "%%l !Library_%%l.dev_dependencies!" Library.resolve_cmd
     for %%d in (!_dep!) do if not defined _is_outdated (
-        for %%f in ("!lib_dir!\%%d.bat") do set "_mtime=%%~tf"
-        for %%v in (_mtime) do (
-            set "%%v=!%%v:~6,4!-!%%v:~0,2!-!%%v:~3,2!T!%%v:~17,2!!%%v:~11,2!:!%%v:~14,2!"
-            set "%%v=!%%v:M12=M00!"
+        for %%f in ("!lib_dir!\%%d.bat") do (
+            call %lib%:mtime_to_isotime _mtime "%%~tf"
         )
         if "!_btime!" LEQ "!_mtime!" set "_is_outdated=true"
     )
