@@ -795,7 +795,7 @@ cls
 set "category= "
 for %%c in (!Library_%_library%.category!) do set "category=!category!!Category_%%c.name!, "
 set "category=!category:~1,-2!"
-call :rdepends rdepends "!_library!" Library.resolve_cmd "!Library.all!" --propagate
+call :rdepends rdepends "!_library!" Library.resolve_cmd "!Library.all!"
 if defined rdepends set "rdepends=!rdepends: %_library% = !"
 
 echo Name               : !_library!
