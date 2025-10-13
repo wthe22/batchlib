@@ -33,6 +33,7 @@ for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
     set "%_return_var%=%%r"
     if "%%r" == " " set "%_return_var%="
+    exit /b %_errorlevel%
 )
 exit /b 0
 #+++
@@ -68,8 +69,8 @@ for %%i in (%~1) do (
             )
         ) || (
             1>&2 echo%0: Failed to resolve dependency of '%%i'
-            set /a "_errorlevel|=0x2"
-            exit /b 2
+            set /a "_errorlevel|=0x4"
+            exit /b 4
         )
     )
 )
@@ -115,7 +116,8 @@ rem ############################################################################
 ::  EXIT STATUS
 ::      0:  - Success
 ::      1:  - An unexpected error occured
-::      2:  - Failed to resolve dependency
+::      2:  - Invalid argument
+::      4:  - Failed to resolve dependency
 exit /b 0
 
 

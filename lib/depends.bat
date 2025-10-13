@@ -41,7 +41,7 @@ for %%i in (!_reversed_items!) do (
     set "_visit=true"
     if not "!_stack: %%i =!" == "!_stack!" (
         1>&2 echo%0: Cyclic dependency detected in stack: !_stack!
-        set /a "_errorlevel|=0x4"
+        set /a "_errorlevel|=0x8"
         set "_visit="
     )
     if not "!_result: %%i =!" == "!_result!" set "_visit="
@@ -51,7 +51,7 @@ for %%i in (!_reversed_items!) do (
             call :depends._visit "!%%r!"
         ) || (
             1>&2 echo%0: Failed to resolve dependency in stack: !_stack!
-            set /a "_errorlevel|=0x2"
+            set /a "_errorlevel|=0x4"
         )
     )
     if "!_result: %%i =!" == "!_result!" set "_result= %%i!_result!"
@@ -93,9 +93,10 @@ rem ############################################################################
 ::  EXIT STATUS
 ::      0:  - Success
 ::      1:  - An unexpected error occured
-::      2:  - Failed to resolve dependency
-::      4:  - Cyclic dependency detected
-::      6:  - Status 2 + 4
+::      2:  - Invalid argument
+::      4:  - Failed to resolve dependency
+::      8:  - Cyclic dependency detected
+::      12:  - Status 4 + 8
 exit /b 0
 
 
