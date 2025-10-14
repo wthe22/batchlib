@@ -266,6 +266,7 @@ for %%a in (
     "2025-09-01=25/9/1"
     "04:06=04:06 AM"
     "16:06=4:06 PM"
+    "2021-04-30T09:55=04/30/2021 09:55 AM"
 ) do for /f "tokens=1* delims==" %%b in (%%a) do (
     set "given=%%c"
     set "expected=%%b"
