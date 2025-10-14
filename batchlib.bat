@@ -297,7 +297,7 @@ set %~1dependencies= ^
     ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest version_parse depends rdepends ^
     ^ conemu input_path input_yesno updater ^
-    ^ difftime ftime mtime_to_isotime ^
+    ^ difftime ftime isotime ^
     ^ %=END=%
 exit /b 0
 
@@ -1035,13 +1035,13 @@ set "_library=%~2"
 set "_result= "
 for %%l in (!_library!) do (
     for %%f in ("!build_dir!\%%l.bat") do (
-        call %lib%:mtime_to_isotime _btime "%%~tf"
+        call %lib%:isotime _btime "%%~tf"
     )
     set "_is_outdated="
     call %lib%:depends _dep "%%l !Library_%%l.dev_dependencies!" Library.resolve_cmd
     for %%d in (!_dep!) do if not defined _is_outdated (
         for %%f in ("!lib_dir!\%%d.bat") do (
-            call %lib%:mtime_to_isotime _mtime "%%~tf"
+            call %lib%:isotime _mtime "%%~tf"
         )
         if "!_btime!" LEQ "!_mtime!" set "_is_outdated=true"
     )
