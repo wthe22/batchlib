@@ -10,9 +10,13 @@ set "%~1categories=time"
 exit /b 0
 
 
-:fdate <return_var> <days_since_epoch>
+:fdate <return_var> <days_since_epoch> <format>
 setlocal EnableDelayedExpansion
-set /a "_dso=%~2 + 135140 - 60"
+set "_return_var=%~1"
+set "_epoch=%~2"
+set "_format=%~3"
+if not defined _format set "_format=M/D/Y"
+set /a "_dso=!_epoch! + 135140 - 60"
 set /a "_era=!_dso! / 146097"
 set /a "_doe=!_dso! - !_era! * 146097"
 set /a "_yoe=(!_doe! - !_doe!/1460 + !_doe!/36524 - !_doe!/146096) / 365"
@@ -28,10 +32,15 @@ for %%v in (_month _day) do (
     set "%%v=0!%%v!"
     set "%%v=!%%v:~-2,2!"
 )
-set "_result=!_month!/!_day!/!_year!"
-for /f "tokens=*" %%r in ("!_result!") do (
+set "_result=!_format!"
+for %%a in (
+    Y:_year M:_month D:_day
+) do for /f "tokens=1-2 delims=:" %%b in ("%%a") do (
+    for %%v in (!%%c!) do set "_result=!_result:%%b=%%v!"
+)
+for %%v in (!_return_var!) do for /f "tokens=1* delims=:" %%q in ("Q:!_result!") do (
     endlocal
-    set "%~1=%%r"
+    set "%%v=%%r"
 )
 exit /b 0
 
@@ -41,7 +50,7 @@ exit /b 0
 ::      fdate - convert days since epoch to human readable date
 ::
 ::  SYNOPSIS
-::      fdate <return_var> <days_since_epoch>
+::      fdate <return_var> <days_since_epoch> <format>
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_var
@@ -50,9 +59,11 @@ exit /b 0
 ::      days_since_epoch
 ::          The number of days since epoch (January 1, 1970).
 ::
+::      format
+::          Date format. By default, it is 'M/D/Y'. To use ISO format, use "Y-M-D"
+::
 ::  NOTES
 ::      - This function uses Gregorian calendar system (the generally used one).
-::      - The format of the date is 'mm/dd/YYYY'.
 exit /b 0
 
 
@@ -122,6 +133,13 @@ exit /b 0
 call :tests.check_result ^
     ^ "02/29/2400=157113" ^
     ^ "03/01/2400=157114" ^
+    ^ %=end=%
+exit /b 0
+
+
+:tests.test_format
+call :tests.check_result ^
+    ^ "2001-09-11=11576 Y-M-D" ^
     ^ %=end=%
 exit /b 0
 
