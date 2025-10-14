@@ -421,8 +421,17 @@ call :build_script %*
 exit /b
 
 
-:subcommand.collect <file>
-call :collect_dependencies %*
+:subcommand.debug <library> :<label> [arguments] ...
+set "library=%~1"
+for %%v in ("Library_!library!.dev_dependencies") do set "%%~v=!%%~v! quicktest unittest"
+call :LibBuild.build "!library!" || exit /b 3
+endlocal & (
+    cd /d "%build_dir%"
+    set "tmp_dir=%tmp_dir%"
+)
+if not defined debug set "debug=/? > nul & 1>&2"
+call %*
+set "no_cleanup=true"
 exit /b
 
 
@@ -437,17 +446,13 @@ call %*
 exit /b
 
 
-:subcommand.debug <library> :<label> [arguments] ...
-set "library=%~1"
-for %%v in ("Library_!library!.dev_dependencies") do set "%%~v=!%%~v! quicktest unittest"
-call :LibBuild.build "!library!" || exit /b 3
-endlocal & (
-    cd /d "%build_dir%"
-    set "tmp_dir=%tmp_dir%"
-)
-if not defined debug set "debug=/? > nul & 1>&2"
-call %*
-set "no_cleanup=true"
+:subcommand.test <library>
+call :tests.run_lib_test %1
+exit /b
+
+
+:subcommand.collect <file>
+call :collect_dependencies %*
 exit /b
 
 
@@ -463,11 +468,6 @@ if ^"%1^" == "" (
     )
 )
 exit /b 0
-
-
-:subcommand.test <library>
-call :tests.run_lib_test %1
-exit /b
 
 
 :subcommand.template <name>
