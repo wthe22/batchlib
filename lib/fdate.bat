@@ -15,7 +15,7 @@ setlocal EnableDelayedExpansion
 set "_return_var=%~1"
 set "_epoch=%~2"
 set "_format=%~3"
-if not defined _format set "_format=M/D/Y"
+if not defined _format set "_format=Y-M-D"
 set /a "_dso=!_epoch! + 135140 - 60"
 set /a "_era=!_dso! / 146097"
 set /a "_doe=!_dso! - !_era! * 146097"
@@ -60,7 +60,7 @@ exit /b 0
 ::          The number of days since epoch (January 1, 1970).
 ::
 ::      format
-::          Date format. By default, it is 'M/D/Y'. To use ISO format, use "Y-M-D"
+::          Date format. By default, it is 'Y-M-D'. To use old format, use "M/D/Y".
 ::
 ::  NOTES
 ::      - This function uses Gregorian calendar system (the generally used one).
@@ -83,63 +83,63 @@ exit /b 0
 
 :tests.test_day
 call :tests.check_result ^
-    ^ "01/01/1970=0" ^
-    ^ "01/02/1970=1" ^
-    ^ "01/10/1970=9" ^
-    ^ "01/31/1970=30" ^
+    ^ "1970-01-01=0" ^
+    ^ "1970-01-02=1" ^
+    ^ "1970-01-10=9" ^
+    ^ "1970-01-31=30" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_month
 call :tests.check_result ^
-    ^ "01/01/1970=0" ^
-    ^ "02/01/1970=31" ^
-    ^ "03/01/1970=59" ^
-    ^ "04/01/1970=90" ^
-    ^ "05/01/1970=120" ^
-    ^ "06/01/1970=151" ^
-    ^ "07/01/1970=181" ^
-    ^ "08/01/1970=212" ^
-    ^ "09/01/1970=243" ^
-    ^ "10/01/1970=273" ^
-    ^ "11/01/1970=304" ^
-    ^ "12/01/1970=334" ^
+    ^ "1970-01-01=0" ^
+    ^ "1970-02-01=31" ^
+    ^ "1970-03-01=59" ^
+    ^ "1970-04-01=90" ^
+    ^ "1970-05-01=120" ^
+    ^ "1970-06-01=151" ^
+    ^ "1970-07-01=181" ^
+    ^ "1970-08-01=212" ^
+    ^ "1970-09-01=243" ^
+    ^ "1970-10-01=273" ^
+    ^ "1970-11-01=304" ^
+    ^ "1970-12-01=334" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_4
 call :tests.check_result ^
-    ^ "02/29/1972=789" ^
-    ^ "03/01/1972=790" ^
-    ^ "02/28/1973=1154" ^
-    ^ "03/01/1973=1155" ^
+    ^ "1972-02-29=789" ^
+    ^ "1972-03-01=790" ^
+    ^ "1973-02-28=1154" ^
+    ^ "1973-03-01=1155" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_100
 call :tests.check_result ^
-    ^ "02/29/2000=11016" ^
-    ^ "03/01/2000=11017" ^
-    ^ "02/28/2100=47540" ^
-    ^ "03/01/2100=47541" ^
+    ^ "2000-02-29=11016" ^
+    ^ "2000-03-01=11017" ^
+    ^ "2100-02-28=47540" ^
+    ^ "2100-03-01=47541" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_400
 call :tests.check_result ^
-    ^ "02/29/2400=157113" ^
-    ^ "03/01/2400=157114" ^
+    ^ "2400-02-29=157113" ^
+    ^ "2400-03-01=157114" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_format
 call :tests.check_result ^
-    ^ "2001-09-11=11576 Y-M-D" ^
+    ^ "09/11/2001=11576 M/D/Y" ^
     ^ %=end=%
 exit /b 0
 

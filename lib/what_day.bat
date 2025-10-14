@@ -12,7 +12,7 @@ exit /b 0
 
 :what_day <return_var> <date> [--number|--short]
 setlocal EnableDelayedExpansion
-call :diffdate _day "%~2" 1/01/1583
+call :diffdate _day "%~2" 1583-01-01
 set /a _day=(!_day! + 6) %% 7
 if /i not "%3" == "--number" (
     if "!_day!" == "0" set "_day=Sunday"
@@ -43,7 +43,7 @@ exit /b 0
 ::          Variable to store the result.
 ::
 ::      date
-::          The input date.
+::          The input date (YYYY-MM-DD_HH:MM:SS).
 ::
 ::  OPTIONS
 ::      --number
@@ -74,13 +74,13 @@ exit /b 0
 
 :tests.test_all
 for %%a in (
-    "Saturday:      1/01/1583"
-    "Monday:        1/01/1923"
-    "Thursday:      1/01/1970"
-    "Saturday:      1/01/2000"
+    "Saturday:      1583-1-01"
+    "Monday:        1923-1-01"
+    "Thursday:      1970-1-01"
+    "Saturday:      2000-1-01"
 
-    "Sat:   1/01/2000 --short"
-    "6:   1/01/2000 --number"
+    "Sat:   2000-1-01 --short"
+    "6:     2000-1-01 --number"
 ) do for /f "tokens=1* delims=:" %%b in (%%a) do (
     set "given=%%c"
     call :what_day result !given!

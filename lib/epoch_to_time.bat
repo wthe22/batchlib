@@ -15,7 +15,7 @@ setlocal EnableDelayedExpansion
 set /a "_days=%~2 / 86400"
 set /a "_time=(%~2 %% 86400) * 100"
 call :ftime _time "!_time!"
-call :fdate _days "!_days!"
+call :fdate _days "!_days!" "Y-M-D"
 set "_result=!_days!_!_time:~0,-3!"
 for /f "tokens=*" %%r in ("!_result!") do (
     endlocal
@@ -36,10 +36,10 @@ exit /b 0
 ::          Variable to store the result.
 ::
 ::      epoch_time
-::          The number of seconds since epoch (January 1, 1970 00:00:00).
+::          The number of seconds since epoch (1 Jan 1970 00:00:00).
 ::
 ::  NOTES
-::      - The date time format is 'mm/dd/YYYY_HH:MM:SS'.
+::      - The date time format is 'YYYY-MM-DD_HH:MM:SS'.
 ::      - Function is not timezone aware thus no timezone conversion is done
 exit /b 0
 
@@ -62,30 +62,30 @@ exit /b 0
 
 :tests.test_epoch
 call :tests.check_conversion ^
-    ^ "0            = 01/01/1970_00:00:00" ^
-    ^ "2147483647   = 01/19/2038_03:14:07" ^
+    ^ "0            = 1970-01-01_00:00:00" ^
+    ^ "2147483647   = 2038-01-19_03:14:07" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_new_year
 call :tests.check_conversion ^
-    ^ "946684799    = 12/31/1999_23:59:59" ^
-    ^ "946684800    = 01/01/2000_00:00:00" ^
-    ^ "1072915199   = 12/31/2003_23:59:59" ^
-    ^ "1072915200   = 01/01/2004_00:00:00" ^
+    ^ "946684799    = 1999-12-31_23:59:59" ^
+    ^ "946684800    = 2000-01-01_00:00:00" ^
+    ^ "1072915199   = 2003-12-31_23:59:59" ^
+    ^ "1072915200   = 2004-01-01_00:00:00" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year
 call :tests.check_conversion ^
-    ^ "954287999    = 03/28/2000_23:59:59" ^
-    ^ "951868800    = 03/01/2000_00:00:00" ^
-    ^ "1048895999   = 03/28/2003_23:59:59" ^
-    ^ "1046476800   = 03/01/2003_00:00:00" ^
-    ^ "1080518399   = 03/28/2004_23:59:59" ^
-    ^ "1078099200   = 03/01/2004_00:00:00" ^
+    ^ "954287999    = 2000-03-28_23:59:59" ^
+    ^ "951868800    = 2000-03-01_00:00:00" ^
+    ^ "1048895999   = 2003-03-28_23:59:59" ^
+    ^ "1046476800   = 2003-03-01_00:00:00" ^
+    ^ "1080518399   = 2004-03-28_23:59:59" ^
+    ^ "1078099200   = 2004-03-01_00:00:00" ^
     ^ %=end=%
 exit /b 0
 

@@ -5,28 +5,29 @@ exit /b
 
 :metadata [return_prefix]
 set "%~1dependencies= "
-set "%~1dev_dependencies=input_string"
+set "%~1dev_dependencies=input_string isotime"
 set "%~1categories=time"
 exit /b 0
 
 
 :diffdate <return_var> <end_date> [start_date]
 setlocal EnableDelayedExpansion
+set "_return_var=%~1"
+set "_end_date=%~2"
+set "_start_date=%~3"
+if not defined _start_date set "_start_date=1970-01-01"
+set "_dates=-!_end_date! -!_start_date!"
+set "_dates=!_dates:- =-!"
+set "_dates=!_dates:-0=-!"
 set "_difference=0"
-set "_args=/%~2"
-if "%~3" == "" (
-    set "_args=!_args! /1/01/1970"
-) else set "_args=!_args! /%~3"
-set "_args=!_args:/ =/!"
-set "_args=!_args:/0=/!"
-for %%d in (!_args!) do for /f "tokens=1-3 delims=/" %%a in ("%%d") do (
-    set /a "_difference+=(%%c-1970)*365 + (%%c/4 - %%c/100 + %%c/400 - 477) + (336 * (%%a-1) + 7) / 11 + %%b - 2"
-    if %%a LEQ 2 set /a "_difference+=2-(((%%c %% 4)-8)/-8)*((((%%c %% 400)-512)/-512)+((((%%c %% 100)-128)/-128)-1)/-1)"
+for %%d in (!_dates!) do for /f "tokens=1-3 delims=-" %%a in ("%%d") do (
+    set /a "_difference+=(%%a-1970)*365 + (%%a/4 - %%a/100 + %%a/400 - 477) + (336 * (%%b-1) + 7) / 11 + %%c - 2"
+    if %%b LEQ 2 set /a "_difference+=2-(((%%a %% 4)-8)/-8)*((((%%a %% 400)-512)/-512)+((((%%a %% 100)-128)/-128)-1)/-1)"
     set /a "_difference*=-1"
 )
 for /f "tokens=*" %%r in ("!_difference!") do (
     endlocal
-    set "%~1=%%r"
+    set "%_return_var%=%%r"
 )
 exit /b 0
 
@@ -46,17 +47,17 @@ exit /b 0
 ::          The end date.
 ::
 ::      start_date
-::          The start date. By default, it is epoch (1/01/1970).
+::          The start date. By default, it is epoch (1970-1-01).
 ::
 ::  NOTES
 ::      - This function uses Gregorian calendar system (the generally used one).
-::      - The date format used is 'mm/dd/YYYY'.
+::      - The date format used is 'YYYY-MM-DD'.
 exit /b 0
 
 
 :doc.demo
-call :input_string --optional start_date || set "start_date=1/01/1970"
-call :input_string --optional end_date || set "end_date=!date:* =!"
+call :input_string --optional start_date || set "start_date=1970-1-01"
+call :input_string --optional end_date || call :isotime end_date
 call :diffdate difference !end_date! !start_date!
 echo=
 echo Start date : !start_date!
@@ -72,81 +73,89 @@ exit /b 0
 
 :tests.test_day
 call :tests.check_result ^
-    ^ "01/01/1970=0" ^
-    ^ "01/02/1970=1" ^
-    ^ "01/10/1970=9" ^
-    ^ "01/31/1970=30" ^
+    ^ "1970-01-01=0" ^
+    ^ "1970-01-02=1" ^
+    ^ "1970-01-10=9" ^
+    ^ "1970-01-31=30" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_month
 call :tests.check_result ^
-    ^ "01/01/1970=0" ^
-    ^ "02/01/1970=31" ^
-    ^ "03/01/1970=59" ^
-    ^ "04/01/1970=90" ^
-    ^ "05/01/1970=120" ^
-    ^ "06/01/1970=151" ^
-    ^ "07/01/1970=181" ^
-    ^ "08/01/1970=212" ^
-    ^ "09/01/1970=243" ^
-    ^ "10/01/1970=273" ^
-    ^ "11/01/1970=304" ^
-    ^ "12/01/1970=334" ^
+    ^ "1970-01-01=0" ^
+    ^ "1970-02-01=31" ^
+    ^ "1970-03-01=59" ^
+    ^ "1970-04-01=90" ^
+    ^ "1970-05-01=120" ^
+    ^ "1970-06-01=151" ^
+    ^ "1970-07-01=181" ^
+    ^ "1970-08-01=212" ^
+    ^ "1970-09-01=243" ^
+    ^ "1970-10-01=273" ^
+    ^ "1970-11-01=304" ^
+    ^ "1970-12-01=334" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_4
 call :tests.check_result ^
-    ^ "02/29/1972=789" ^
-    ^ "03/01/1972=790" ^
-    ^ "02/28/1973=1154" ^
-    ^ "03/01/1973=1155" ^
+    ^ "1972-02-29=789" ^
+    ^ "1972-03-01=790" ^
+    ^ "1973-02-28=1154" ^
+    ^ "1973-03-01=1155" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_100
 call :tests.check_result ^
-    ^ "02/29/2000=11016" ^
-    ^ "03/01/2000=11017" ^
-    ^ "02/28/2100=47540" ^
-    ^ "03/01/2100=47541" ^
+    ^ "2000-02-29=11016" ^
+    ^ "2000-03-01=11017" ^
+    ^ "2100-02-28=47540" ^
+    ^ "2100-03-01=47541" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_leap_year_400
 call :tests.check_result ^
-    ^ "02/29/2400=157113" ^
-    ^ "03/01/2400=157114" ^
+    ^ "2400-02-29=157113" ^
+    ^ "2400-03-01=157114" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_diff_year
 call :tests.check_result ^
-    ^ "01/01/2000 12/31/1999=1" ^
-    ^ "01/01/2100 12/31/2099=1" ^
-    ^ "01/01/2004 12/31/2003=1" ^
+    ^ "2000-01-01 1999-12-31=1" ^
+    ^ "2100-01-01 2099-12-31=1" ^
+    ^ "2004-01-01 2003-12-31=1" ^
     ^ %=end=%
 exit /b 0
 
 
 :tests.test_diff_leap
 call :tests.check_result ^
-    ^ "03/01/2000  02/28/2000=2" ^
-    ^ "03/01/2004  02/28/2004=2" ^
-    ^ "03/01/2001  02/28/2001=1" ^
+    ^ "2000-03-01  2000-02-28=2" ^
+    ^ "2004-03-01  2004-02-28=2" ^
+    ^ "2001-03-01  2001-02-28=1" ^
     ^ %=end=%
 exit /b 0
 
 
-:tests.test_diff_today
+:tests.test_padding
 call :tests.check_result ^
-    ^ "!date:~4! !date:~4!=0" ^
+    ^ "2000-1-1=10957" ^
+    ^ "2000-01-01=10957" ^
+    ^ %=end=%
+exit /b 0
+
+
+:tests.test_known
+call :tests.check_result ^
+    ^ "2025-10-14=20375" ^
     ^ %=end=%
 exit /b 0
 
