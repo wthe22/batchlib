@@ -93,10 +93,10 @@ rem ############################################################################
 
 :doc.man
 ::  NAME
-::      isotime - Convert date into ISO format
+::      isotime - Convert date/time into ISO format
 ::
 ::  SYNOPSIS
-::      isotime <return_var> <date>
+::      isotime <return_var> <datetime>
 ::
 ::  DESCRIPTION
 ::      Convert date, time, datetime to ISO format.
@@ -128,9 +128,7 @@ rem ############################################################################
 ::      What the exit code of your function means. Some examples are:
 ::      0:  - Success
 ::      1:  - An unexpected error occured
-::      2:  - Invalid argument
-::      3:  - Other failures/errors/signals
-::          - Another possibility...
+::      n:  - Invalid format
 ::
 ::  NOTES
 ::      - Function can distinguish all the supported dates format given that the
@@ -146,8 +144,12 @@ echo Date   : !date!
 echo Time   : !time!
 echo=
 call :input_string --optional any_date || set "any_date=!date! !time!"
-call :isotime result "!any_date!"
+echo=
 echo Date       : !any_date!
+call :isotime result "!any_date!"
+set "exit_code=!errorlevel!"
+echo Exit code !exit_code!
+echo=
 echo ISO Date   : !result!
 exit /b 0
 
