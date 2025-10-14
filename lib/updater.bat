@@ -83,8 +83,11 @@ exit /b 0
 ::
 ::  DESCRIPTION
 ::      Check for updates, download them, notify user, and update the script.
-::      The script must have a metadata function to get name, version,
-::      release_date, etc.
+::      The script must have a metadata function to get update information.
+::      Currently the required fields are:
+::
+::          Local   : name, version, download_url (if -u is not specified)
+::          Remote  : name, version
 ::
 ::  POSITIONAL ARGUMENTS
 ::      return_prefix
