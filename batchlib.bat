@@ -238,15 +238,16 @@ rem ############################################################################
 
 :changelog
 ::  TLDR
-::      Improvements and simplification
+::      Improvements, simplification and ISO dates
 ::
 ::  - New subcommand: collect
-::  - New functions: depends, rdepends
+::  - New functions: depends, rdepends, isotime
 ::  - Bug fixes:
 ::  - Behavior changes: input_*
 ::  - Global variable usage changes:
-::  - Breaking changes: input_string
-::  - Deprecated / removed:
+::  - Breaking changes: input_string, diffdate, fdate, what_day, epoch_to_time,
+::    epoch_from_time
+::  - Deprecated / removed: mtime_to_isotime
 ::
 ::  Core
 ::  - Deprecate listing dependencies in lib.dependencies(), instead use metadata()
@@ -255,7 +256,8 @@ rem ############################################################################
 ::      - extra_requires -> dev_dependencies
 ::      - category -> categories
 ::  - Remove requirement for entry_point() to build script
-::  - Use mtime_to_isotime when checking outdated builds
+::  - Fix error when checking outdated builds due to date formatting mismatch
+::  - Use ISO date in metadata
 ::  - Change categories of several functions
 ::
 ::  Library
@@ -263,9 +265,19 @@ rem ############################################################################
 ::  - input_string(): Replace -f, -filled flag with -o, --optional flag, for
 ::    consistency with other input functions. The function now requires input if
 ::    no flags are specified.
+::  - diffdate(): Use ISO date format 'YYYY-MM-DD'
+::  - fdate(): Support custom date formats, including ISO format.
+::  - what_day(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
+::    side effect of changes at diffdate()
+::  - epoch_from_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
+::    side effect of changes at fdate()
+::  - epoch_to_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS'
+::  - isotime(): Convert date and time formats into ISO time 'yyyy-mm-ddTHH:MM:SS'
+::  - mtime_to_isotime(): Removed. Use isotime() instead, same usage and output,
+::    just slightly different behavior, and support more date/time formats.
 ::
 ::  Documentation
-::  - Remove help, config, and simplify main at template
+::  - Remove help, config, and simplify main at template.bat
 exit /b 0
 
 
