@@ -241,13 +241,14 @@ rem ############################################################################
 ::      Improvements, simplification and ISO dates
 ::
 ::  - New subcommand: collect
-::  - New functions: depends, rdepends, isotime
+::  - New functions: depends, rdepends, isotime, get_ipconfig
 ::  - Bug fixes:
 ::  - Behavior changes: input_*
 ::  - Global variable usage changes:
 ::  - Breaking changes: input_string, diffdate, fdate, what_day, epoch_to_time,
 ::    epoch_from_time
-::  - Deprecated / removed: mtime_to_isotime
+::  - Deprecated / removed: mtime_to_isotime, get_net_iface
+::  - Use metadata() for dependencies
 ::
 ::  Core
 ::  - Deprecate listing dependencies in lib.dependencies(), instead use metadata()
@@ -275,6 +276,7 @@ rem ############################################################################
 ::  - isotime(): Convert date and time formats into ISO time 'yyyy-mm-ddTHH:MM:SS'
 ::  - mtime_to_isotime(): Removed. Use isotime() instead, same usage and output,
 ::    just slightly different behavior, and support more date/time formats.
+::  - get_net_iface(): Replaced with get_ipconfig().
 ::
 ::  Documentation
 ::  - Remove help, config, and simplify main at template.bat
