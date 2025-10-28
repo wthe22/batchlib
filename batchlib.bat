@@ -246,7 +246,7 @@ rem ############################################################################
 ::  - Behavior changes: input_*
 ::  - Global variable usage changes:
 ::  - Breaking changes: input_string, diffdate, fdate, what_day, epoch_to_time,
-::    epoch_from_time
+::    epoch_from_time, normalize_spaces
 ::  - Deprecated / removed: mtime_to_isotime, get_net_iface
 ::  - Use metadata() for dependencies
 ::
@@ -277,6 +277,7 @@ rem ############################################################################
 ::  - mtime_to_isotime(): Removed. Use isotime() instead, same usage and output,
 ::    just slightly different behavior, and support more date/time formats.
 ::  - get_net_iface(): Replaced with get_ipconfig().
+::  - normalize_spaces(): Rework because function is very unintuitive.
 ::
 ::  Documentation
 ::  - Remove help, config, and simplify main at template.bat
