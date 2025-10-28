@@ -262,22 +262,22 @@ rem ############################################################################
 ::  - Change categories of several functions
 ::
 ::  Library
+::  - diffdate(): Use ISO date format 'YYYY-MM-DD'
+::  - epoch_from_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
+::    side effect of changes at fdate()
+::  - epoch_to_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS'
+::  - fdate(): Support custom date formats, including ISO format.
+::  - get_net_iface(): Replaced with get_ipconfig().
 ::  - input_*(): Reduce number of max attempts from 100 to 49
 ::  - input_string(): Replace -f, -filled flag with -o, --optional flag, for
 ::    consistency with other input functions. The function now requires input if
 ::    no flags are specified.
-::  - diffdate(): Use ISO date format 'YYYY-MM-DD'
-::  - fdate(): Support custom date formats, including ISO format.
-::  - what_day(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
-::    side effect of changes at diffdate()
-::  - epoch_from_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
-::    side effect of changes at fdate()
-::  - epoch_to_time(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS'
 ::  - isotime(): Convert date and time formats into ISO time 'yyyy-mm-ddTHH:MM:SS'
 ::  - mtime_to_isotime(): Removed. Use isotime() instead, same usage and output,
 ::    just slightly different behavior, and support more date/time formats.
-::  - get_net_iface(): Replaced with get_ipconfig().
 ::  - normalize_spaces(): Rework because function is very unintuitive.
+::  - what_day(): Use RFC3339 datetime format 'yyyy-mm-dd_HH:MM:SS',
+::    side effect of changes at diffdate()
 ::
 ::  Documentation
 ::  - Remove help, config, and simplify main at template.bat
