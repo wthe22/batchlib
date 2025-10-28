@@ -311,7 +311,7 @@ set %~1dependencies= ^
     ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest version_parse depends rdepends ^
     ^ conemu input_path input_yesno updater ^
-    ^ difftime ftime isotime ^
+    ^ difftime ftime isotime normalize_spaces ^
     ^ %=END=%
 exit /b 0
 
@@ -405,6 +405,7 @@ for %%p in (
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_metadata
+call :Library.setup_get_dependency_macro Library.resolve_cmd
 if not defined flags.is_minified (
     call :LibBuild.remove_orphans
 )
@@ -1220,8 +1221,15 @@ for %%l in (!Library.all!) do (
         set "Library_%%l.categories=!Library_%%l.category!"
         set "Library_%%l.category="
     )
+	for %%v in (dependencies dev_dependencies category) do (
+		call %lib%:normalize_spaces Library_%%l.%%v
+	)
 )
-set Library.resolve_cmd=for %%v in (Library_%%i.dependencies) do ( ^
+exit /b 0
+
+
+:Library.setup_get_dependency_macro <return_var>
+set %~1=for %%v in (Library_%%i.dependencies) do ( ^
     ^ if defined %%v ( set ^"%%r=^^!%%v^^!^" ) else ( set /a 2^> nul ) ^
 )
 exit /b 0
@@ -1288,6 +1296,7 @@ rem ############################################################################
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_metadata
+call :Library.setup_get_dependency_macro Library.resolve_cmd
 call :Category.load
 set "sep_line="
 for /l %%n in (5,1,80) do set "sep_line=!sep_line!#"
@@ -1336,7 +1345,7 @@ call :self_extract_func ^
 call :template.minified._section_header "Core"
 call :self_extract_func ^
     ^ core ^
-    ^ build_script ^
+    ^ build_script collect_dependencies ^
     ^ self_extract_func ^
     ^ Library.unload_info ^
     ^ %=END=%
@@ -1368,6 +1377,7 @@ for %%l in (!Library.all!) do (
 ::  exit /b 0
 ::
 ::
+
 ::  :Library.read_args
 ::  goto Library.read_args.from_self
 ::
@@ -1375,6 +1385,7 @@ for %%l in (!Library.all!) do (
 call :self_extract_func ^
     ^ Library.read_args.from_self ^
     ^ Library.search ^
+	^ Library.setup_get_dependency_macro ^
     ^ %=END=%
 ::  :flags.is_minified
 ::  rem Indicator that script is minified
