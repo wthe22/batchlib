@@ -1222,6 +1222,12 @@ for %%l in (!Library.all!) do (
         set "Library_%%l.categories=!Library_%%l.category!"
         set "Library_%%l.category="
     )
+)
+exit /b 0
+
+
+:Library.format_data
+for %%l in (!Library.all!) do (
 	for %%v in (dependencies dev_dependencies category) do (
 		call %lib%:normalize_spaces Library_%%l.%%v
 	)
@@ -1297,6 +1303,7 @@ rem ############################################################################
 call :Library.unload_info
 call :Library.read_names
 call :Library.read_metadata
+call :Library.format_data
 call :Library.setup_get_dependency_macro Library.resolve_cmd
 call :Category.load
 set "sep_line="
