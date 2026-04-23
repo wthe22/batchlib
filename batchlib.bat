@@ -231,8 +231,11 @@ echo    batchlib man [library]
 echo        Shows documentation of a library or the batchlib itself
 echo        (Not available in minified version)
 echo=
-echo    batchlib template ^<name^>
-echo        Create the specified template and output to STDOUT.
+echo    batchlib min [output_path]
+echo        Generate the minified script and output to the specified path.
+echo        If path is a directory, "batchlib-min.bat" will be created in that
+echo        directory, overwriting any existing file. If no path is specified,
+echo        the script will be written to STDOUT.
 exit /b 0
 
 
@@ -244,7 +247,8 @@ rem ############################################################################
 ::  TLDR
 ::      Improvements, simplification and ISO dates
 ::
-::  - New subcommand: collect
+::  - CLI aguments: collect (new subcommand), --version (display version),
+::    replace 'template' subcommand with 'min'
 ::  - New functions: depends, rdepends, isotime, get_ipconfig
 ::  - Bug fixes:
 ::  - Behavior changes: input_*
@@ -264,7 +268,12 @@ rem ############################################################################
 ::  - Fix error when checking outdated builds due to date formatting mismatch
 ::  - Use ISO date in metadata
 ::  - Change categories of several functions
-::  - Add flag to check version
+::
+::  Script
+::  - Add --version flag to check version
+::  - Add collect subcommand: Collect dependencies and output to STDOUT
+::  - Replace 'template' subcommand with 'min'. Now the only template generated
+::    is the minified version of the script.
 ::
 ::  Library
 ::  - diffdate(): Use ISO date format 'YYYY-MM-DD'
@@ -316,7 +325,7 @@ set "%~1download_url=https://raw.githubusercontent.com/wthe22/batchlib/master/ba
 set %~1dependencies= ^
     ^ functions_range readline functions_list true unset_all ^
     ^ coderender unittest version_parse depends rdepends ^
-    ^ conemu input_path input_yesno updater ^
+    ^ conemu input_path input_yesno check_path updater ^
     ^ difftime ftime isotime normalize_spaces ^
     ^ %=END=%
 exit /b 0
@@ -492,21 +501,29 @@ if ^"%1^" == "" (
 exit /b 0
 
 
-:subcommand.template <name>
-set "template_name=%~1"
-if not defined template_name (
-    call :functions_match labels "%~f0" "template.*"
-    set "_templates= "
-    for %%l in (!labels!) do (
-        for /f "tokens=2 delims=." %%a in ("%%l") do (
-            set "_templates=!_templates: %%a = !%%a "
-        )
+:subcommand.min <output_path>
+setlocal EnableDelayedExpansion
+set "output_path=%~1"
+set "attrib="
+for %%f in ("!output_path!") do (
+    set "output_path=%%~ff"
+    set "attrib=%%~af"
+    if defined attrib (
+        set "attrib=!attrib:~0,1!"
     )
-    set "_templates=!_templates:~1,-1!"
-    echo Available templates: !_templates!
-    exit /b 0
 )
-call :coderender "%~f0" "template.!template_name!"
+if "!attrib!" == "d" (
+    for %%f in ("!output_path!\batchlib-min.bat") do (
+        set "output_path=%%~ff"
+    )
+)
+set "write="
+if defined output_path (
+    set write=^> "!output_path!"
+)
+%write% (
+    call :coderender "%~f0" "template.minified"
+)
 exit /b
 
 
@@ -566,7 +583,7 @@ if "!user_input!" == "3" (
     pause
     goto main_menu
 )
-if "!user_input!" == "4" call :new_template_menu "minified" "Minified Script"
+if "!user_input!" == "4" call :generate_minified_menu
 if "!user_input!" == "5" call :build_menu
 if "!user_input!" == "6" (
     call :Library.unload_info
@@ -863,25 +880,41 @@ pause
 exit /b 0
 
 
-:new_template_menu <template> <description>
+:generate_minified_menu
 setlocal EnableDelayedExpansion
-set "_template=%~1"
-set "_description=%~2"
-call :input_path save_file --file --warn-overwrite --optional ^
-    ^ --message "Input new !_description! path (Enter nothing to cancel): " ^
-    ^ || exit /b 2
+echo Enter a folder path to create "batchlib-min.bat" in that directory.
+echo Enter '.' to create "batchlib-min.bat" in current directory.
+echo Enter a new file path to generate the minified script there.
 echo=
-echo !_description! path:
-echo !save_file!
+call :generate_minified_menu.input_loop || exit /b
+echo=
+echo Minified script path:
+echo !output_path!
 echo=
 echo Generating...
 set "start_time=!time!"
-call :coderender "%~f0" "template.!_template!" > "!save_file!"
+call :coderender "%~f0" "template.minified" > "!output_path!"
 call :difftime time_taken "!time!" "!start_time!"
 call :ftime time_taken !time_taken!
 echo=
 echo Done in !time_taken!
 pause
+exit /b 0
+
+:generate_minified_menu.input_loop
+call :input_path output_path --optional ^
+    ^ --message "Enter path for the new minified script (Enter nothing to cancel): " ^
+    ^ || exit /b 2
+call :check_path output_path -d -s > nul && (
+    for %%f in ("!output_path!\batchlib-min.bat") do (
+        set "output_path=%%~ff"
+    )
+)
+if exist "!output_path!" (
+    call :input_yesno _ --default N ^
+    ^ --message "File already exist. Overwrite file? [y/N] " ^
+    ^ || goto generate_minified_menu.input_loop
+)
 exit /b 0
 
 
@@ -1360,7 +1393,7 @@ call :self_extract_func ^
 ::
 call :self_extract_func ^
     ^ subcommand.build ^
-    ^ subcommand.template ^
+    ^ subcommand.min ^
     ^ subcommand.call ^
     ^ subcommand.version ^
     ^ %=END=%
