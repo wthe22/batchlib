@@ -12,13 +12,14 @@ exit /b 0
 
 :check_path [-e|-n] [-f|-d] <path_var>
 setlocal EnableDelayedExpansion EnableExtensions
-for %%v in (_require_attrib  _require_exist) do set "%%v="
+for %%v in (_require_attrib  _require_exist _silent) do set "%%v="
 call :argparse --name %0 ^
     ^ "path_var:            set _path_var" ^
     ^ "[-e,--exist]:        set _require_exist=true" ^
     ^ "[-n,--not-exist]:    set _require_exist=false" ^
     ^ "[-f,--file]:         set _require_attrib=-" ^
     ^ "[-d,--directory]:    set _require_attrib=d" ^
+    ^ "[-s,--silent]:       set _silent=true" ^
     ^ -- %* || exit /b 2
 set "_path=!%_path_var%!"
 if "!_path:~0,1!!_path:~-1,1!" == ^"^"^"^" set "_path=!_path:~1,-1!"
@@ -44,20 +45,25 @@ if defined _attrib (
 if "!_attrib!" == "d" (
     for %%f in ("!_path!\.") do set "_path=%%~ff"
 )
-if defined _require_exist if not "!_file_exist!" == "!_require_exist!" (
-    if "!_require_exist!" == "true" 1>&2 echo%0: Input does not exist
-    if "!_require_exist!" == "false" 1>&2 echo%0: Input already exist
-    exit /b 3
-)
-if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
-    if defined _require_exist (
-        if "!_require_attrib!" == "d" 1>&2 echo%0: Input is not a folder
-        if "!_require_attrib!" == "-" 1>&2 echo%0: Input is not a file
-    ) else (
-        if "!_require_attrib!" == "d" 1>&2 echo%0: Input must be a new or existing folder, not a file
-        if "!_require_attrib!" == "-" 1>&2 echo%0: Input must be a new or existing file, not a folder
+if defined _silent (
+    set "_output=> nul"
+) else set "_output=1>&2"
+%_output% (
+    if defined _require_exist if not "!_file_exist!" == "!_require_exist!" (
+        if "!_require_exist!" == "true" echo%0: Input does not exist
+        if "!_require_exist!" == "false" echo%0: Input already exist
+        exit /b 3
     )
-    exit /b 3
+    if "!_file_exist!" == "true" if defined _require_attrib if not "!_attrib!" == "!_require_attrib!" (
+        if defined _require_exist (
+            if "!_require_attrib!" == "d" echo%0: Input is not a folder
+            if "!_require_attrib!" == "-" echo%0: Input is not a file
+        ) else (
+            if "!_require_attrib!" == "d" echo%0: Input must be a new or existing folder, not a file
+            if "!_require_attrib!" == "-" echo%0: Input must be a new or existing file, not a folder
+        )
+        exit /b 3
+    )
 )
 for /f "tokens=* delims=" %%c in ("!_path!") do (
     endlocal
@@ -89,6 +95,9 @@ exit /b 0
 ::
 ::      -d, --directory
 ::          Target must be a folder (if exist).
+::
+::      -s, --silent
+::          No output is printed.
 ::
 ::  EXIT STATUS
 ::      0:  - The path satisfy the requirements.
