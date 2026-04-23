@@ -38,11 +38,15 @@ rem ############################################################################
 ::      batchlib
 ::      batchlib (-h|--help)
 ::      batchlib -c :<label> [arguments] ...
+::      batchlib --version
 ::      batchlib build <input_file> [backup_name]
 ::      batchlib collect <libraries>
 ::      batchlib debug <library> :<label> [arguments] ...
 ::      batchlib test [library]
 ::      batchlib template <name>
+::
+::  OPTIONS
+::      --version   Display the version of batchlib.
 ::
 ::  CALL SUBCOMMAND
 ::          batchlib -c :<label> [arguments] ...
@@ -260,6 +264,7 @@ rem ############################################################################
 ::  - Fix error when checking outdated builds due to date formatting mismatch
 ::  - Use ISO date in metadata
 ::  - Change categories of several functions
+::  - Add flag to check version
 ::
 ::  Library
 ::  - diffdate(): Use ISO date format 'YYYY-MM-DD'
@@ -370,6 +375,7 @@ rem ############################################################################
 
 :main
 @if ^"%1^" == "-c" @goto subcommand.call
+@if ^"%1^" == "--version" @goto subcommand.version
 @setlocal EnableDelayedExpansion EnableExtensions
 @echo off
 if ^"%1^" == "-h" goto doc.help
@@ -515,6 +521,14 @@ exit /b
         call %%b
     )
 )
+@exit /b
+
+
+:subcommand.version --version
+@setlocal EnableDelayedExpansion EnableExtensions
+@echo off
+call :metadata SOFTWARE. 1>&2
+echo !SOFTWARE.version!
 @exit /b
 
 
@@ -1348,6 +1362,7 @@ call :self_extract_func ^
     ^ subcommand.build ^
     ^ subcommand.template ^
     ^ subcommand.call ^
+    ^ subcommand.version ^
     ^ %=END=%
 
 call :template.minified._section_header "Core"
